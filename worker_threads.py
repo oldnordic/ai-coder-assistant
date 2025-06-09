@@ -12,13 +12,11 @@ class Worker(QObject):
     log_message = pyqtSignal(str)
     scan_results_signal = pyqtSignal(dict)
 
-    def __init__(self, task_type, func, args, log_callback, progress_callback):
+    def __init__(self, task_type, func, args):
         super().__init__()
         self.task_type = task_type
         self.func = func
         self.args = args
-        self.log_callback = log_callback
-        self.progress_callback = progress_callback
 
     def run(self):
         """
@@ -37,9 +35,9 @@ class Worker(QObject):
                 self.scan_results_signal.emit(result)
 
         except Exception as e:
-            tb = traceback.format_exc()
-            error_message = f"An error occurred in the worker thread for task '{self.task_type}':\n{tb}"
+            tb_str = traceback.format_exc()
+            error_message = f"An error occurred in the worker thread for task '{self.task_type}':\n{tb_str}"
             self.log_message.emit(error_message)
-            self.error_signal.emit(f"Error: {self.task_type}", str(e))
+            self.error_signal.emit(f"Error in '{self.task_type}' task", f"An exception occurred: {e}")
         finally:
             self.finished.emit()

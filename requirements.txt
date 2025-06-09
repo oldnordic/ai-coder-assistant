@@ -1,0 +1,8 @@
+PyQt5
+requests
+beautifulsoup4
+lxml
+tqdm
+torch
+python-dotenv
+numpy

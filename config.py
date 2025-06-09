@@ -1,8 +1,12 @@
 import os
 
+# --- Project Root ---
+# Define the absolute path to the project root directory.
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
 # --- Directory and File Configuration ---
-BASE_DOCS_SAVE_DIR = "documentation_corpus"
-PROCESSED_DOCS_DIR = "processed_docs_chunks"
+BASE_DOCS_SAVE_DIR = os.path.join(PROJECT_ROOT, "documentation_corpus")
+PROCESSED_DOCS_DIR = os.path.join(PROJECT_ROOT, "processed_docs_chunks")
 LEARNING_DATA_FILE = os.path.join(PROCESSED_DOCS_DIR, "learning_data.jsonl")
 
 # --- Preprocessing & Vocabulary ---

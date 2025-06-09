@@ -1,22 +1,18 @@
+import faulthandler
 import sys
 import os
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QCoreApplication
 
-# --- Corrected Path Setup ---
-# This ensures Python knows where to find the 'ai_coder_assistant' package
-# by adding the parent directory to the system path.
-current_file_path = os.path.abspath(__file__)
-package_dir = os.path.dirname(current_file_path)
-project_root = os.path.dirname(package_dir)
+# NEW: Enable the fault handler to get a traceback on segfaults
+faulthandler.enable()
 
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+# Set application info for QSettings to work correctly across the app
+QCoreApplication.setOrganizationName("AICoderOrg")
+QCoreApplication.setApplicationName("AICoderAssistant")
 
-
-# --- Corrected Import Statement ---
-# This now correctly imports AIFoundryApp from within the package structure.
-from ai_coder_assistant.main_window import AIFoundryApp
-
+# Direct import for a flat structure
+from main_window import AIFoundryApp
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

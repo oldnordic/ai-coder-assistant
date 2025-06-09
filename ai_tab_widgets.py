@@ -1,5 +1,5 @@
 import os
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QGroupBox, QFormLayout, QTextEdit, QFileDialog
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QGroupBox, QFormLayout, QTextEdit, QFileDialog, QProgressBar
 
 def setup_ai_tab(parent_widget, main_app_instance):
     layout = QVBoxLayout(parent_widget)
@@ -20,11 +20,16 @@ def setup_ai_tab(parent_widget, main_app_instance):
 
     # Scan button
     main_app_instance.scan_code_button = QPushButton("Scan Python Files")
-    # CORRECTED: Pass a string identifier instead of a function reference.
-    main_app_instance.scan_code_button.clicked.connect(
-        lambda: main_app_instance.start_worker('scan_code')
-    )
+    main_app_instance.scan_code_button.clicked.connect(lambda: main_app_instance.start_worker('scan_code'))
     scan_layout.addWidget(main_app_instance.scan_code_button) 
+
+    # NEW: Progress bar and status label for scanning
+    progress_layout = QFormLayout()
+    main_app_instance.scan_status_label = QLabel("Ready")
+    main_app_instance.scan_progress_bar = QProgressBar()
+    progress_layout.addRow("Status:", main_app_instance.scan_status_label)
+    progress_layout.addRow("Progress:", main_app_instance.scan_progress_bar)
+    scan_layout.addLayout(progress_layout)
 
     # Scan results display
     main_app_instance.scan_results_label = QLabel("<b>Scan Results:</b>")
