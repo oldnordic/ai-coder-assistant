@@ -1,4 +1,0 @@
-scikit-learn: machine learning in Python
-You will be automatically redirected to the
-new location of this page
-.
