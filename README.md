@@ -1,88 +1,63 @@
-# AI Coder Assistant
+AI Coder Assistant
+The Philosophy: An Assistant, Not an Oracle
 
-The AI Coder Assistant is a desktop application built with PyQt5 that provides a suite of tools to assist software developers. Its primary functions include acquiring and processing technical documentation, training a custom language model on this documentation, and then using the trained model to analyze Python code for potential improvements and generating justified code suggestions.
+In 2025, AI-generated content is more persuasive than ever, yet it is prone to "hallucinations"—confidently stating things that simply aren't true. A generative AI might fabricate a scientific citation that looks perfect in format but links to a non-existent paper. It masters the appearance of correctness without understanding the underlying substance.
 
-## Features
+This project operates on a similar principle, applied to coding.
 
-* **Web Documentation Acquisition**: Crawls specified online documentation sources (e.g., Python Standard Library, Requests library) to build a local corpus.
-* **Documentation Preprocessing**: Cleans, chunks, and tokenizes acquired documentation, and builds a vocabulary for language model training.
-* **AI Language Model Training**: Trains a transformer-based language model on the preprocessed documentation.
-* **Python Code Scanning**: Scans a specified directory of Python files to identify potential code issues or areas for improvement.
-* **Interactive Code Suggestions**: Presents detected code issues with detailed justifications and proposed code changes through an interactive dialog, allowing users to apply or ignore suggestions.
-* **Learning from User Decisions**: Records user decisions (accepting or ignoring proposals) to potentially improve future suggestions.
-* **User-Friendly GUI**: Provides a graphical user interface for managing data acquisition, model training, and code analysis workflows.
+Just as an AI can hallucinate a citation, a code-assisting AI can "hallucinate" an error. The model you train in this application learns the statistical patterns of vast amounts of code from sources like the Python Standard Library and GitHub. When it scans your code, it doesn't understand the logic or intent. Instead, it identifies lines of code that are statistically improbable based on the patterns it has learned.
 
-## Installation
+An unconventional but perfectly valid line of code might be flagged as an "error" simply because it's rare. This tool is therefore not an auto-fixer; it is an assistant. Its purpose is to bring these statistical anomalies to your attention, presenting them with a justification in an interactive dialog. You, the developer, are the final authority. You are the one who verifies the suggestion and decides whether it's a genuine mistake or simply a unique solution.
+How It Works
 
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/your-username/ai-coder-assistant.git](https://github.com/your-username/ai-coder-assistant.git)
-    cd ai-coder-assistant
-    ```
-    *(Note: Replace `https://github.com/your-username/ai-coder-assistant.git` with the actual repository URL if it's hosted.)*
+    Data Acquisition: The assistant builds its knowledge base by acquiring source code and documentation from the web and GitHub. You can provide a search query to download real-world Python code, or add your own local folders of text files to the training corpus.
+    Model Training: It trains a Transformer-based language model on this corpus. The model's sole objective is to get very good at predicting the next "word" (or token) in a sequence, learning the common grammar and style of Python code.
+    Code Analysis: When scanning your project, the model calculates a "probability score" (or "loss") for each line of code. Lines that are highly improbable—meaning they deviate significantly from the patterns the model has learned—are flagged as potential issues.
+    Justified Suggestions: The assistant presents these flagged lines to you in a diff view, explaining why the line was flagged (i.e., its improbability score). It is then your decision to Apply or Ignore the suggestion, ensuring a human is always in the loop.
 
-2.  **Create a virtual environment (recommended):**
-    ```bash
-    python -m venv .venv
-    # On Windows:
-    # .venv\Scripts\activate
-    # On macOS/Linux:
-    source .venv/bin/activate
-    ```
+Features
 
-3.  **Install dependencies:**
-    The core dependencies for the AI Coder Assistant include PyQt5, requests, beautifulsoup4, lxml, tqdm, and torch.
-    A `requirements.txt` file is recommended for a complete list of dependencies. If one is not provided, you may need to install them individually:
-    ```bash
-    pip install PyQt5 requests beautifulsoup4 lxml tqdm torch
-    ```
-    *(Note: Additional dependencies like `pymatgen`, `mp_api`, `pandas`, `sqlite3`, and `python-dotenv` are present in `data_acquisition.py` but are currently for a separate Materials Project data acquisition feature not integrated with the main GUI workflow.)*
+    Web & GitHub Data Acquisition: Crawls specified online documentation and uses the GitHub API to download real-world Python code, building a rich local corpus for training.
+    Custom Corpus Integration: Allows you to add your own local folders of .txt or .py files to the training data.
+    AI Language Model Training: Trains a transformer-based language model on the preprocessed documentation and code.
+    Interactive Code Suggestions: Presents potential statistical anomalies with detailed justifications and proposed changes through an interactive dialog, empowering the developer to Apply or Ignore the suggestion.
+    Learning Data Collection: Records your decisions (accepted/ignored proposals) to a log file (learning_data.jsonl). This data can be used in the future to manually train even smarter models.
 
-## Usage
+Project Structure
 
-1.  **Run the application:**
-    Ensure your virtual environment is activated, then run the `main.py` script from the project root:
-    ```bash
+    main.py: The entry point of the PyQt5 application.
+    main_window.py: Manages the main application window, tab setup, logging, and worker thread orchestration.
+    config.py: Centralized configuration settings for directories, model parameters, and preprocessing.
+    worker_threads.py: Provides a generic worker class for running tasks in separate QThreads to maintain UI responsiveness.
+    README.md: This file.
+    application.log: Logs runtime information and errors from the application.
+    Data Pipeline:
+        acquire_docs.py: Contains logic for web crawling and extracting documentation.
+        preprocess_docs.py: Handles text cleaning, chunking, and vocabulary creation for all acquired data.
+        train_language_model.py: Defines the language model architecture and the training pipeline.
+    UI Modules:
+        data_tab_widgets.py: Defines the UI components for the "Data & Training" tab.
+        ai_tab_widgets.py: Defines the UI components for the "Code Analysis" tab.
+    Core AI Logic:
+        ai_coder_scanner.py: Implements the logic for scanning Python code and using the trained model to find statistical anomalies.
+
+Usage
+
+    Run the application:
+    Bash
+
     python main.py
-    ```
 
-2.  **Application Tabs:**
-    The application features two main tabs:
+    Data & Training Tab:
+        Use the "Acquire" buttons to download documentation and GitHub code.
+        Optionally, add a local folder of your own text/code files.
+        Run "Pre-process All Docs for AI" to prepare the data.
+        Run "Train AI Language Model" to train your model on the prepared data.
 
-    * **Data & Training Tab:**
-        * **Acquire Documentation from Web**: Initiates the crawling process to download documentation from predefined sources.
-        * **Pre-process Docs for AI**: Processes the acquired raw text documentation into chunks, cleans it, and builds a vocabulary, preparing it for model training.
-        * **Train AI Language Model**: Starts the training process for the AI language model using the preprocessed data.
+    Code Analysis Tab:
+        Select a directory containing Python files you want to analyze.
+        Click "Scan Python Files". The AI model will scan the files and present proposals for any statistically unusual lines of code for your review.
 
-    * **Code Analysis Tab:**
-        * **Scan Code for Errors & Justification**: Allows you to select a directory containing Python files. The AI model will scan these files and generate proposals for code changes, presenting them in an interactive dialog for review.
+License
 
-## Project Structure
-
-* `.gitignore`: Specifies files and directories to be ignored by Git (e.g., virtual environments, generated data, logs).
-* `README.md`: This file, providing an overview of the project.
-* `acquire_docs.py`: Contains logic for web crawling and extracting documentation.
-* `ai_coder_scanner.py`: Implements the core logic for scanning Python code and generating AI-driven proposals.
-* `ai_tab_widgets.py`: Defines the UI components for the "Code Analysis" tab.
-* `application.log`: Logs runtime information and errors from the application.
-* `config.py`: Centralized configuration settings for directories, model parameters, and preprocessing.
-* `data_acquisition.py`: Contains functions for Materials Project data acquisition, though currently not part of the main GUI workflow.
-* `data_tab_widgets.py`: Defines the UI components for the "Data & Training" tab.
-* `main.py`: The entry point of the PyQt5 application.
-* `main_window.py`: Manages the main application window, tab setup, logging, and worker thread orchestration.
-* `preprocess_docs.py`: Handles text cleaning, chunking, and vocabulary creation for documentation.
-* `train_language_model.py`: Defines the language model architecture and the training pipeline.
-* `worker_threads.py`: Provides a generic worker class for running tasks in separate QThreads to maintain UI responsiveness.
-
-## Known Issues / Troubleshooting
-
-* **`ImportError: cannot import name 'ai_coder_scanner' from 'ai_coder_assistant'`**: This error, as seen in `application.log`, indicates a potential issue with Python's module import resolution within the application's environment. While `main.py` attempts to set the `sys.path` correctly, ensure that the project is run from its root directory and that the package structure (`ai_coder_assistant` as a package with its modules) is correctly recognized by your Python interpreter.
-* For any runtime errors or unexpected behavior, always check the `application.log` file in the project's root directory for detailed traceback information.
-
-## Contributing
-
-Contributions are welcome! Please feel free to open issues or submit pull requests.
-
-## License
-
-This project is open-sourced. *(Please specify a license, e.g., MIT, Apache 2.0, etc.)*
+This project is open-sourced. (A license like MIT or Apache 2.0 is recommended.)
