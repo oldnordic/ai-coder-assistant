@@ -1,0 +1,241 @@
+joblib.Memory — joblib 1.6.dev0 documentation
+joblib.Memory
+¶
+class
+joblib.
+Memory
+(
+location
+=
+None
+,
+backend
+=
+'local'
+,
+mmap_mode
+=
+None
+,
+compress
+=
+False
+,
+verbose
+=
+1
+,
+backend_options
+=
+None
+)
+¶
+A context object for caching a function’s return value each time it
+is called with the same input arguments.
+All values are cached on the filesystem, in a deep directory
+structure.
+Read more in the
+User Guide
+.
+Parameters
+:
+location: str, pathlib.Path or None
+The path of the base directory to use as a data store
+or None. If None is given, no caching is done and
+the Memory object is completely transparent. This option
+replaces cachedir since version 0.12.
+backend: str, optional, default=’local’
+Type of store backend for reading/writing cache files.
+The ‘local’ backend is using regular filesystem operations to
+manipulate data (open, mv, etc) in the backend.
+mmap_mode: {None, ‘r+’, ‘r’, ‘w+’, ‘c’}, optional
+The memmapping mode used when loading from cache
+numpy arrays. See numpy.load for the meaning of the
+arguments.
+compress: boolean, or integer, optional
+Whether to zip the stored data on disk. If an integer is
+given, it should be between 1 and 9, and sets the amount
+of compression. Note that compressed arrays cannot be
+read by memmapping.
+verbose: int, optional
+Verbosity flag, controls the debug messages that are issued
+as functions are evaluated.
+backend_options: dict, optional
+Contains a dictionary of named parameters used to configure
+the store backend.
+cache
+(
+func
+=
+None
+,
+ignore
+=
+None
+,
+verbose
+=
+None
+,
+mmap_mode
+=
+False
+,
+cache_validation_callback
+=
+None
+)
+¶
+Decorates the given function func to only compute its return
+value for input arguments not cached on disk.
+Parameters
+:
+func: callable, optional
+The function to be decorated
+ignore: list of strings
+A list of arguments name to ignore in the hashing
+verbose: integer, optional
+The verbosity mode of the function. By default that
+of the memory object is used.
+mmap_mode: {None, ‘r+’, ‘r’, ‘w+’, ‘c’}, optional
+The memmapping mode used when loading from cache
+numpy arrays. See numpy.load for the meaning of the
+arguments. By default that of the memory object is used.
+cache_validation_callback: callable, optional
+Callable to validate whether or not the cache is valid. When
+the cached function is called with arguments for which a cache
+exists, this callable is called with the metadata of the cached
+result as its sole argument. If it returns True, then the
+cached result is returned, else the cache for these arguments
+is cleared and recomputed.
+Returns
+:
+decorated_func: MemorizedFunc object
+The returned object is a MemorizedFunc object, that is
+callable (behaves like a function), but offers extra
+methods for cache lookup and management. See the
+documentation for
+joblib.memory.MemorizedFunc
+.
+clear
+(
+warn
+=
+True
+)
+¶
+Erase the complete cache directory.
+eval
+(
+func
+,
+*
+args
+,
+**
+kwargs
+)
+¶
+Eval function func with arguments
+*args
+and
+**kwargs
+,
+in the context of the memory.
+This method works similarly to the builtin
+apply
+, except
+that the function is called only if the cache is not
+up to date.
+reduce_size
+(
+bytes_limit
+=
+None
+,
+items_limit
+=
+None
+,
+age_limit
+=
+None
+)
+¶
+Remove cache elements to make the cache fit its limits.
+The limitation can impose that the cache size fits in
+bytes_limit
+,
+that the number of cache items is no more than
+items_limit
+, and
+that all files in cache are not older than
+age_limit
+.
+Parameters
+:
+bytes_limit: int | str, optional
+Limit in bytes of the size of the cache. By default, the size of
+the cache is unlimited. When reducing the size of the cache,
+joblib
+keeps the most recently accessed items first. If a
+str is passed, it is converted to a number of bytes using units
+{ K | M | G} for kilo, mega, giga.
+items_limit: int, optional
+Number of items to limit the cache to.  By default, the number of
+items in the cache is unlimited.  When reducing the size of the
+cache,
+joblib
+keeps the most recently accessed items first.
+age_limit: datetime.timedelta, optional
+Maximum age of items to limit the cache to.  When reducing the size
+of the cache, any items last accessed more than the given length of
+time ago are deleted. Example: to remove files older than 5 days,
+use datetime.timedelta(days=5). Negative timedelta are not
+accepted.
+Examples using
+joblib.Memory
+¶
+How to use joblib.Memory
+How to use joblib.Memory
+Checkpoint using joblib.Memory and joblib.Parallel
+Checkpoint using joblib.Memory and joblib.Parallel
+Navigation
+User manual
+Why joblib: project goals
+Installing joblib
+On demand recomputing: the
+Memory
+class
+Embarrassingly parallel for loops
+Persistence
+Parallel backend customization API
+Examples
+Development
+Module reference
+joblib.Memory
+Memory
+Memory.cache()
+Memory.clear()
+Memory.eval()
+Memory.reduce_size()
+Examples using
+joblib.Memory
+joblib.Parallel
+joblib.parallel_config
+joblib
+.cpu_count
+joblib
+.dump
+joblib
+.load
+joblib
+.hash
+joblib
+.register_compressor
+Deprecated functionalities
+joblib.parallel_backend
+©2008-2021, Joblib developers.
+      
+      |
+Page source

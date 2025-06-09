@@ -1,0 +1,86 @@
+I/O with NumPy — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+Getting started
+What is NumPy?
+Installation
+NumPy quickstart
+NumPy: the absolute basics for beginners
+Fundamentals and usage
+NumPy fundamentals
+Array creation
+Indexing on
+ndarrays
+I/O with NumPy
+Importing data with
+genfromtxt
+Data types
+Broadcasting
+Copies and views
+Working with Arrays of Strings And Bytes
+Structured arrays
+Universal functions (
+ufunc
+) basics
+NumPy for MATLAB users
+NumPy tutorials
+NumPy how-tos
+Advanced usage and interoperability
+Using NumPy C-API
+F2PY user guide and reference manual
+Under-the-hood documentation for developers
+Interoperability with NumPy
+Extras
+Glossary
+Release notes
+NumPy 2.0 migration guide
+NumPy license
+NumPy user guide
+NumPy fundamentals
+I/O with NumPy
+I/O with NumPy
+#
+Importing data with
+genfromtxt
+Defining the input
+Splitting the lines into columns
+Skipping lines and choosing columns
+Choosing the data type
+Setting the names
+Tweaking the conversion
+previous
+Indexing on
+ndarrays
+next
+Importing data with
+genfromtxt
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

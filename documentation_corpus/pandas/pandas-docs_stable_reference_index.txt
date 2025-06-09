@@ -1,0 +1,270 @@
+API reference — pandas 2.3.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Input/output
+General functions
+Series
+DataFrame
+pandas arrays, scalars, and data types
+Index objects
+Date offsets
+Window
+GroupBy
+Resampling
+Style
+Plotting
+Options and settings
+Extensions
+Testing
+Missing values
+API reference
+API reference
+#
+This page gives an overview of all public pandas objects, functions and
+methods. All classes and functions exposed in
+pandas.*
+namespace are public.
+The following subpackages are public.
+pandas.errors
+: Custom exception and warnings classes that are raised by pandas.
+pandas.plotting
+: Plotting public API.
+pandas.testing
+: Functions that are useful for writing tests involving pandas objects.
+pandas.api.extensions
+: Functions and classes for extending pandas objects.
+pandas.api.indexers
+: Functions and classes for rolling window indexers.
+pandas.api.interchange
+: DataFrame interchange protocol.
+pandas.api.types
+: Datatype classes and functions.
+pandas.api.typing
+: Classes that may be necessary for type-hinting.
+These are classes that are encountered as intermediate results but should not be instantiated
+directly by users. These classes are not to be confused with classes from the
+pandas-stubs
+package
+which has classes in addition to those that occur in pandas for type-hinting.
+In addition, public functions in
+pandas.io
+and
+pandas.tseries
+submodules
+are mentioned in the documentation.
+Warning
+The
+pandas.core
+,
+pandas.compat
+, and
+pandas.util
+top-level modules are PRIVATE. Stable functionality in such modules is not guaranteed.
+Input/output
+Pickling
+Flat file
+Clipboard
+Excel
+JSON
+HTML
+XML
+Latex
+HDFStore: PyTables (HDF5)
+Feather
+Parquet
+ORC
+SAS
+SPSS
+SQL
+Google BigQuery
+STATA
+General functions
+Data manipulations
+Top-level missing data
+Top-level dealing with numeric data
+Top-level dealing with datetimelike data
+Top-level dealing with Interval data
+Top-level evaluation
+Datetime formats
+Hashing
+Importing from other DataFrame libraries
+Series
+Constructor
+Attributes
+Conversion
+Indexing, iteration
+Binary operator functions
+Function application, GroupBy & window
+Computations / descriptive stats
+Reindexing / selection / label manipulation
+Missing data handling
+Reshaping, sorting
+Combining / comparing / joining / merging
+Time Series-related
+Accessors
+Plotting
+Serialization / IO / conversion
+DataFrame
+Constructor
+Attributes and underlying data
+Conversion
+Indexing, iteration
+Binary operator functions
+Function application, GroupBy & window
+Computations / descriptive stats
+Reindexing / selection / label manipulation
+Missing data handling
+Reshaping, sorting, transposing
+Combining / comparing / joining / merging
+Time Series-related
+Flags
+Metadata
+Plotting
+Sparse accessor
+Serialization / IO / conversion
+pandas arrays, scalars, and data types
+Objects
+Utilities
+Index objects
+Index
+Numeric Index
+CategoricalIndex
+IntervalIndex
+MultiIndex
+DatetimeIndex
+TimedeltaIndex
+PeriodIndex
+Date offsets
+DateOffset
+BusinessDay
+BusinessHour
+CustomBusinessDay
+CustomBusinessHour
+MonthEnd
+MonthBegin
+BusinessMonthEnd
+BusinessMonthBegin
+CustomBusinessMonthEnd
+CustomBusinessMonthBegin
+SemiMonthEnd
+SemiMonthBegin
+Week
+WeekOfMonth
+LastWeekOfMonth
+BQuarterEnd
+BQuarterBegin
+QuarterEnd
+QuarterBegin
+BYearEnd
+BYearBegin
+YearEnd
+YearBegin
+FY5253
+FY5253Quarter
+Easter
+Tick
+Day
+Hour
+Minute
+Second
+Milli
+Micro
+Nano
+Frequencies
+pandas.tseries.frequencies.to_offset
+Window
+Rolling window functions
+Weighted window functions
+Expanding window functions
+Exponentially-weighted window functions
+Window indexer
+GroupBy
+Indexing, iteration
+Function application helper
+Function application
+DataFrameGroupBy
+computations / descriptive stats
+SeriesGroupBy
+computations / descriptive stats
+Plotting and visualization
+Resampling
+Indexing, iteration
+Function application
+Upsampling
+Computations / descriptive stats
+Style
+Styler constructor
+Styler properties
+Style application
+Builtin styles
+Style export and import
+Plotting
+pandas.plotting.andrews_curves
+pandas.plotting.autocorrelation_plot
+pandas.plotting.bootstrap_plot
+pandas.plotting.boxplot
+pandas.plotting.deregister_matplotlib_converters
+pandas.plotting.lag_plot
+pandas.plotting.parallel_coordinates
+pandas.plotting.plot_params
+pandas.plotting.radviz
+pandas.plotting.register_matplotlib_converters
+pandas.plotting.scatter_matrix
+pandas.plotting.table
+Options and settings
+Working with options
+Numeric formatting
+Extensions
+pandas.api.extensions.register_extension_dtype
+pandas.api.extensions.register_dataframe_accessor
+pandas.api.extensions.register_series_accessor
+pandas.api.extensions.register_index_accessor
+pandas.api.extensions.ExtensionDtype
+pandas.api.extensions.ExtensionArray
+pandas.arrays.NumpyExtensionArray
+pandas.api.indexers.check_array_indexer
+Testing
+Assertion functions
+Exceptions and warnings
+Bug report function
+Test suite runner
+Missing values
+pandas.NA
+pandas.NaT
+previous
+Cookbook
+next
+Input/output
+Show Source
+&copy 2025, pandas via
+NumFOCUS, Inc.
+Hosted by
+OVHcloud
+.
+Created using
+Sphinx
+8.1.3.
+Built with the
+PyData Sphinx Theme
+0.14.4.

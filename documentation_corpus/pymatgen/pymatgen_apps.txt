@@ -1,0 +1,166 @@
+pymatgen.apps package — pymatgen 2025.5.28 documentation
+pymatgen.apps package
+Subpackages
+pymatgen
+pymatgen.apps package
+Edit on GitHub
+pymatgen.apps package
+
+This package is an overarching package for subpackages for specific materials
+applications.
+Subpackages
+
+pymatgen.apps.battery package
+Submodules
+pymatgen.apps.battery.analyzer module
+BatteryAnalyzer
+BatteryAnalyzer.get_max_capgrav()
+BatteryAnalyzer.get_max_capvol()
+BatteryAnalyzer.get_removals_int_oxid()
+BatteryAnalyzer.max_ion_insertion
+BatteryAnalyzer.max_ion_removal
+is_redox_active_intercalation()
+pymatgen.apps.battery.battery_abc module
+AbstractElectrode
+AbstractElectrode.voltage_pairs
+AbstractElectrode.working_ion
+AbstractElectrode.working_ion_entry
+AbstractElectrode.framework_formula
+AbstractElectrode.framework
+AbstractElectrode.framework_formula
+AbstractElectrode.get_average_voltage()
+AbstractElectrode.get_capacity_grav()
+AbstractElectrode.get_capacity_vol()
+AbstractElectrode.get_energy_density()
+AbstractElectrode.get_specific_energy()
+AbstractElectrode.get_sub_electrodes()
+AbstractElectrode.get_summary_dict()
+AbstractElectrode.max_delta_volume
+AbstractElectrode.max_voltage
+AbstractElectrode.max_voltage_step
+AbstractElectrode.min_voltage
+AbstractElectrode.normalization_mass
+AbstractElectrode.normalization_volume
+AbstractElectrode.num_steps
+AbstractElectrode.voltage_pairs
+AbstractElectrode.working_ion
+AbstractElectrode.working_ion_entry
+AbstractElectrode.x_charge
+AbstractElectrode.x_discharge
+AbstractVoltagePair
+AbstractVoltagePair.voltage
+AbstractVoltagePair.mAh
+AbstractVoltagePair.mass_charge
+AbstractVoltagePair.mass_discharge
+AbstractVoltagePair.vol_charge
+AbstractVoltagePair.vol_discharge
+AbstractVoltagePair.frac_charge
+AbstractVoltagePair.frac_discharge
+AbstractVoltagePair.working_ion_entry
+AbstractVoltagePair.framework_formula
+AbstractVoltagePair.frac_charge
+AbstractVoltagePair.frac_discharge
+AbstractVoltagePair.framework
+AbstractVoltagePair.framework_formula
+AbstractVoltagePair.mAh
+AbstractVoltagePair.mass_charge
+AbstractVoltagePair.mass_discharge
+AbstractVoltagePair.vol_charge
+AbstractVoltagePair.vol_discharge
+AbstractVoltagePair.voltage
+AbstractVoltagePair.working_ion
+AbstractVoltagePair.working_ion_entry
+AbstractVoltagePair.x_charge
+AbstractVoltagePair.x_discharge
+pymatgen.apps.battery.conversion_battery module
+ConversionElectrode
+ConversionElectrode.from_composition_and_entries()
+ConversionElectrode.from_composition_and_pd()
+ConversionElectrode.get_sub_electrodes()
+ConversionElectrode.get_summary_dict()
+ConversionElectrode.initial_comp
+ConversionElectrode.initial_comp_formula
+ConversionElectrode.is_super_electrode()
+ConversionVoltagePair
+ConversionVoltagePair.rxn
+ConversionVoltagePair.voltage
+ConversionVoltagePair.mAh
+ConversionVoltagePair.vol_charge
+ConversionVoltagePair.vol_discharge
+ConversionVoltagePair.mass_charge
+ConversionVoltagePair.mass_discharge
+ConversionVoltagePair.frac_charge
+ConversionVoltagePair.frac_discharge
+ConversionVoltagePair.entries_charge
+ConversionVoltagePair.entries_discharge
+ConversionVoltagePair.working_ion_entry
+ConversionVoltagePair.entries_charge
+ConversionVoltagePair.entries_discharge
+ConversionVoltagePair.from_steps()
+ConversionVoltagePair.rxn
+pymatgen.apps.battery.insertion_battery module
+InsertionElectrode
+InsertionElectrode.as_dict_legacy()
+InsertionElectrode.from_dict_legacy()
+InsertionElectrode.from_entries()
+InsertionElectrode.fully_charged_entry
+InsertionElectrode.fully_discharged_entry
+InsertionElectrode.get_all_entries()
+InsertionElectrode.get_max_instability()
+InsertionElectrode.get_max_muO2()
+InsertionElectrode.get_min_instability()
+InsertionElectrode.get_min_muO2()
+InsertionElectrode.get_stable_entries()
+InsertionElectrode.get_sub_electrodes()
+InsertionElectrode.get_summary_dict()
+InsertionElectrode.get_unstable_entries()
+InsertionElectrode.stable_entries
+InsertionElectrode.unstable_entries
+InsertionVoltagePair
+InsertionVoltagePair.entry_charge
+InsertionVoltagePair.entry_discharge
+InsertionVoltagePair.from_entries()
+pymatgen.apps.battery.plotter module
+VoltageProfilePlotter
+VoltageProfilePlotter.add_electrode()
+VoltageProfilePlotter.get_plot()
+VoltageProfilePlotter.get_plot_data()
+VoltageProfilePlotter.get_plotly_figure()
+VoltageProfilePlotter.save()
+VoltageProfilePlotter.show()
+pymatgen.apps.borg package
+Submodules
+pymatgen.apps.borg.hive module
+AbstractDrone
+AbstractDrone.assimilate()
+AbstractDrone.get_valid_paths()
+GaussianToComputedEntryDrone
+GaussianToComputedEntryDrone.as_dict()
+GaussianToComputedEntryDrone.assimilate()
+GaussianToComputedEntryDrone.from_dict()
+GaussianToComputedEntryDrone.get_valid_paths()
+SimpleVaspToComputedEntryDrone
+SimpleVaspToComputedEntryDrone.as_dict()
+SimpleVaspToComputedEntryDrone.assimilate()
+SimpleVaspToComputedEntryDrone.from_dict()
+VaspToComputedEntryDrone
+VaspToComputedEntryDrone.as_dict()
+VaspToComputedEntryDrone.assimilate()
+VaspToComputedEntryDrone.from_dict()
+VaspToComputedEntryDrone.get_valid_paths()
+pymatgen.apps.borg.queen module
+BorgQueen
+BorgQueen.get_data()
+BorgQueen.load_data()
+BorgQueen.parallel_assimilate()
+BorgQueen.save_data()
+BorgQueen.serial_assimilate()
+order_assimilation()
+© Copyright 2011, Pymatgen Development Team.
+Built with
+Sphinx
+using a
+theme
+provided by
+Read the Docs
+.

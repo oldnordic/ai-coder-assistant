@@ -1,0 +1,11 @@
+2025-06-09 14:30:19,948 [INFO] - Documentation base directory already exists: /home/feanor/ai_coder_assistant/documentation_corpus/
+2025-06-09 14:30:19,948 [INFO] - Processed docs directory already exists: /home/feanor/ai_coder_assistant/processed_docs_chunks/
+2025-06-09 14:30:23,787 [INFO] - An ImportError occurred while trying to load the module for task 'scan_code':
+Traceback (most recent call last):
+  File "/home/feanor/ai_coder_assistant/gui_modules/main_window.py", line 171, in start_worker
+    from ai_coder_assistant import ai_coder_scanner
+ImportError: cannot import name 'ai_coder_scanner' from 'ai_coder_assistant' (unknown location)
+
+2025-06-09 14:30:25,823 [INFO] - ERROR: Import Error - Could not load the necessary module for 'scan_code'.
+
+Please see the application log for details.

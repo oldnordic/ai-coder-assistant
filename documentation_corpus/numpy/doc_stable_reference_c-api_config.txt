@@ -1,0 +1,218 @@
+System configuration — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+NumPy’s module structure
+Array objects
+Universal functions (
+ufunc
+)
+Routines and objects by topic
+Typing (
+numpy.typing
+)
+Packaging (
+numpy.distutils
+)
+NumPy C-API
+Python types and C-structures
+System configuration
+Data type API
+Array API
+Array iterator API
+ufunc API
+Generalized universal function API
+NpyString API
+NumPy core math library
+Datetime API
+C API deprecations
+Memory management in NumPy
+Array API standard compatibility
+CPU/SIMD optimizations
+Thread Safety
+Global Configuration Options
+NumPy security
+Status of
+numpy.distutils
+and migration advice
+numpy.distutils
+user guide
+NumPy and SWIG
+NumPy reference
+NumPy C-API
+System configuration
+System configuration
+#
+When NumPy is built, information about system configuration is
+recorded, and is made available for extension modules using NumPy’s C
+API.  These are mostly defined in
+numpyconfig.h
+(included in
+ndarrayobject.h
+). The public symbols are prefixed by
+NPY_*
+.
+NumPy also offers some functions for querying information about the
+platform in use.
+For private use, NumPy also constructs a
+config.h
+in the NumPy
+include directory, which is not exported by NumPy (that is a python
+extension which use the numpy C API will not see those symbols), to
+avoid namespace pollution.
+Data type sizes
+#
+The
+NPY_SIZEOF_{CTYPE}
+constants are defined so that sizeof
+information is available to the pre-processor.
+NPY_SIZEOF_SHORT
+#
+sizeof(short)
+NPY_SIZEOF_INT
+#
+sizeof(int)
+NPY_SIZEOF_LONG
+#
+sizeof(long)
+NPY_SIZEOF_LONGLONG
+#
+sizeof(longlong) where longlong is defined appropriately on the
+platform.
+NPY_SIZEOF_PY_LONG_LONG
+#
+NPY_SIZEOF_FLOAT
+#
+sizeof(float)
+NPY_SIZEOF_DOUBLE
+#
+sizeof(double)
+NPY_SIZEOF_LONG_DOUBLE
+#
+NPY_SIZEOF_LONGDOUBLE
+#
+sizeof(longdouble)
+NPY_SIZEOF_PY_INTPTR_T
+#
+Size of a pointer
+void
+*
+and
+intptr_t
+/
+Py_intptr_t
+.
+NPY_SIZEOF_INTP
+#
+Size of a
+size_t
+on this platform (
+sizeof(size_t)
+)
+Platform information
+#
+NPY_CPU_X86
+#
+NPY_CPU_AMD64
+#
+NPY_CPU_IA64
+#
+NPY_CPU_PPC
+#
+NPY_CPU_PPC64
+#
+NPY_CPU_SPARC
+#
+NPY_CPU_SPARC64
+#
+NPY_CPU_S390
+#
+NPY_CPU_PARISC
+#
+CPU architecture of the platform; only one of the above is
+defined.
+Defined in
+numpy/npy_cpu.h
+NPY_LITTLE_ENDIAN
+#
+NPY_BIG_ENDIAN
+#
+NPY_BYTE_ORDER
+#
+Portable alternatives to the
+endian.h
+macros of GNU Libc.
+If big endian,
+NPY_BYTE_ORDER
+==
+NPY_BIG_ENDIAN
+, and
+similarly for little endian architectures.
+Defined in
+numpy/npy_endian.h
+.
+int
+PyArray_GetEndianness
+(
+)
+#
+Returns the endianness of the current platform.
+One of
+NPY_CPU_BIG
+,
+NPY_CPU_LITTLE
+,
+or
+NPY_CPU_UNKNOWN_ENDIAN
+.
+NPY_CPU_BIG
+#
+NPY_CPU_LITTLE
+#
+NPY_CPU_UNKNOWN_ENDIAN
+#
+Compiler directives
+#
+NPY_LIKELY
+#
+NPY_UNLIKELY
+#
+NPY_UNUSED
+#
+previous
+Python types and C-structures
+next
+Data type API
+On this page
+Data type sizes
+Platform information
+Compiler directives
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

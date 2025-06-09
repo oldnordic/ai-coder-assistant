@@ -1,0 +1,2956 @@
+pymatgen.io.aims package — pymatgen 2025.5.28 documentation
+pymatgen.io.aims package
+Subpackages
+Submodules
+pymatgen.io.aims.inputs module
+AimsControlIn
+AimsControlIn._parameters
+AimsControlIn.as_dict()
+AimsControlIn.from_dict()
+AimsControlIn.get_aims_control_parameter_str()
+AimsControlIn.get_content()
+AimsControlIn.get_species_block()
+AimsControlIn.parameters
+AimsControlIn.write_file()
+AimsCube
+AimsCube.type
+AimsCube.origin
+AimsCube.edges
+AimsCube.points
+AimsCube.spin_state
+AimsCube.kpoint
+AimsCube.filename
+AimsCube.format
+AimsCube.elf_type
+AimsCube.as_dict()
+AimsCube.control_block
+AimsCube.edges
+AimsCube.elf_type
+AimsCube.filename
+AimsCube.format
+AimsCube.from_dict()
+AimsCube.kpoint
+AimsCube.origin
+AimsCube.points
+AimsCube.spin_state
+AimsCube.type
+AimsGeometryIn
+AimsGeometryIn._content
+AimsGeometryIn._structure
+AimsGeometryIn.as_dict()
+AimsGeometryIn.content
+AimsGeometryIn.from_dict()
+AimsGeometryIn.from_file()
+AimsGeometryIn.from_str()
+AimsGeometryIn.from_structure()
+AimsGeometryIn.get_header()
+AimsGeometryIn.structure
+AimsGeometryIn.write_file()
+AimsSpeciesFile
+AimsSpeciesFile.data
+AimsSpeciesFile.label
+AimsSpeciesFile.as_dict()
+AimsSpeciesFile.data
+AimsSpeciesFile.element
+AimsSpeciesFile.from_dict()
+AimsSpeciesFile.from_element_and_basis_name()
+AimsSpeciesFile.from_file()
+AimsSpeciesFile.label
+SpeciesDefaults
+SpeciesDefaults.as_dict()
+SpeciesDefaults.from_dict()
+SpeciesDefaults.from_structure()
+SpeciesDefaults.to_dict()
+pymatgen.io.aims.outputs module
+AimsOutput
+AimsOutput.aims_version
+AimsOutput.all_forces
+AimsOutput.as_dict()
+AimsOutput.band_gap
+AimsOutput.cbm
+AimsOutput.completed
+AimsOutput.direct_band_gap
+AimsOutput.fermi_energy
+AimsOutput.final_energy
+AimsOutput.final_structure
+AimsOutput.forces
+AimsOutput.from_dict()
+AimsOutput.from_outfile()
+AimsOutput.from_str()
+AimsOutput.get_results_for_image()
+AimsOutput.initial_structure
+AimsOutput.metadata
+AimsOutput.n_images
+AimsOutput.stress
+AimsOutput.stresses
+AimsOutput.structure_summary
+AimsOutput.structures
+AimsOutput.vbm
+pymatgen.io.aims.parsers module
+AimsOutCalcChunk
+AimsOutCalcChunk.E_f
+AimsOutCalcChunk.cbm
+AimsOutCalcChunk.converged
+AimsOutCalcChunk.coords
+AimsOutCalcChunk.dielectric_tensor
+AimsOutCalcChunk.dipole
+AimsOutCalcChunk.direct_gap
+AimsOutCalcChunk.electronic_temperature
+AimsOutCalcChunk.energy
+AimsOutCalcChunk.forces
+AimsOutCalcChunk.free_energy
+AimsOutCalcChunk.gap
+AimsOutCalcChunk.hirshfeld_atomic_dipoles
+AimsOutCalcChunk.hirshfeld_charges
+AimsOutCalcChunk.hirshfeld_dipole
+AimsOutCalcChunk.hirshfeld_volumes
+AimsOutCalcChunk.initial_lattice
+AimsOutCalcChunk.initial_structure
+AimsOutCalcChunk.is_metallic
+AimsOutCalcChunk.k_point_weights
+AimsOutCalcChunk.k_points
+AimsOutCalcChunk.lattice
+AimsOutCalcChunk.magmom
+AimsOutCalcChunk.mulliken_charges
+AimsOutCalcChunk.mulliken_spins
+AimsOutCalcChunk.n_atoms
+AimsOutCalcChunk.n_bands
+AimsOutCalcChunk.n_electrons
+AimsOutCalcChunk.n_iter
+AimsOutCalcChunk.n_k_points
+AimsOutCalcChunk.n_spins
+AimsOutCalcChunk.polarization
+AimsOutCalcChunk.results
+AimsOutCalcChunk.species
+AimsOutCalcChunk.stress
+AimsOutCalcChunk.stresses
+AimsOutCalcChunk.structure
+AimsOutCalcChunk.vbm
+AimsOutCalcChunk.velocities
+AimsOutChunk
+AimsOutChunk.lines
+AimsOutChunk.lines
+AimsOutChunk.parse_scalar()
+AimsOutChunk.reverse_search_for()
+AimsOutChunk.search_for_all()
+AimsOutHeaderChunk
+AimsOutHeaderChunk.aims_uuid
+AimsOutHeaderChunk.build_type
+AimsOutHeaderChunk.c_compiler
+AimsOutHeaderChunk.c_compiler_flags
+AimsOutHeaderChunk.commit_hash
+AimsOutHeaderChunk.electronic_temperature
+AimsOutHeaderChunk.fortran_compiler
+AimsOutHeaderChunk.fortran_compiler_flags
+AimsOutHeaderChunk.header_summary
+AimsOutHeaderChunk.initial_charges
+AimsOutHeaderChunk.initial_lattice
+AimsOutHeaderChunk.initial_magnetic_moments
+AimsOutHeaderChunk.initial_structure
+AimsOutHeaderChunk.is_md
+AimsOutHeaderChunk.is_relaxation
+AimsOutHeaderChunk.k_point_weights
+AimsOutHeaderChunk.k_points
+AimsOutHeaderChunk.lines
+AimsOutHeaderChunk.linked_against
+AimsOutHeaderChunk.metadata_summary
+AimsOutHeaderChunk.n_atoms
+AimsOutHeaderChunk.n_bands
+AimsOutHeaderChunk.n_electrons
+AimsOutHeaderChunk.n_k_points
+AimsOutHeaderChunk.n_spins
+AimsOutHeaderChunk.version_number
+AimsParseError
+ParseError
+check_convergence()
+get_aims_out_chunks()
+get_header_chunk()
+get_lines()
+read_aims_header_info()
+read_aims_header_info_from_content()
+read_aims_output()
+read_aims_output_from_content()
+pymatgen
+pymatgen.io.aims package
+Edit on GitHub
+pymatgen.io.aims package
+
+IO interface for FHI-aims.
+Subpackages
+
+pymatgen.io.aims.sets package
+Submodules
+pymatgen.io.aims.sets.base module
+AimsInputGenerator
+AimsInputGenerator.user_params
+AimsInputGenerator.user_kpoints_settings
+AimsInputGenerator.use_structure_charge
+AimsInputGenerator.d2k()
+AimsInputGenerator.d2k_recip_cell()
+AimsInputGenerator.get_input_set()
+AimsInputGenerator.get_parameter_updates()
+AimsInputGenerator.k2d()
+AimsInputGenerator.use_structure_charge
+AimsInputGenerator.user_kpoints_settings
+AimsInputGenerator.user_params
+AimsInputSet
+AimsInputSet.control_in
+AimsInputSet.geometry_in
+AimsInputSet.get_input_files()
+AimsInputSet.params_json
+AimsInputSet.remove_parameters()
+AimsInputSet.set_parameters()
+AimsInputSet.set_structure()
+recursive_update()
+pymatgen.io.aims.sets.bs module
+BandStructureSetGenerator
+BandStructureSetGenerator.calc_type
+BandStructureSetGenerator.k_point_density
+BandStructureSetGenerator.calc_type
+BandStructureSetGenerator.get_parameter_updates()
+BandStructureSetGenerator.k_point_density
+GWSetGenerator
+GWSetGenerator.calc_type
+GWSetGenerator.k_point_density
+GWSetGenerator.calc_type
+GWSetGenerator.get_parameter_updates()
+GWSetGenerator.k_point_density
+prepare_band_input()
+pymatgen.io.aims.sets.core module
+MDSetGenerator
+MDSetGenerator.calc_type
+MDSetGenerator.ensemble
+MDSetGenerator.ensemble_specs
+MDSetGenerator.get_parameter_updates()
+MDSetGenerator.init_velocities
+MDSetGenerator.temp
+MDSetGenerator.time
+MDSetGenerator.time_step
+RelaxSetGenerator
+RelaxSetGenerator.calc_type
+RelaxSetGenerator.relax_cell
+RelaxSetGenerator.max_force
+RelaxSetGenerator.method
+RelaxSetGenerator.calc_type
+RelaxSetGenerator.get_parameter_updates()
+RelaxSetGenerator.max_force
+RelaxSetGenerator.method
+RelaxSetGenerator.relax_cell
+SocketIOSetGenerator
+SocketIOSetGenerator.calc_type
+SocketIOSetGenerator.host
+SocketIOSetGenerator.port
+SocketIOSetGenerator.calc_type
+SocketIOSetGenerator.get_parameter_updates()
+SocketIOSetGenerator.host
+SocketIOSetGenerator.port
+StaticSetGenerator
+StaticSetGenerator.calc_type
+StaticSetGenerator.calc_type
+StaticSetGenerator.get_parameter_updates()
+pymatgen.io.aims.sets.magnetism module
+MagneticRelaxSetGenerator
+MagneticRelaxSetGenerator.calc_type
+MagneticRelaxSetGenerator.relax_cell
+MagneticRelaxSetGenerator.max_force
+MagneticRelaxSetGenerator.method
+MagneticRelaxSetGenerator.get_parameter_updates()
+MagneticStaticSetGenerator
+MagneticStaticSetGenerator.calc_type
+MagneticStaticSetGenerator.calc_type
+MagneticStaticSetGenerator.get_parameter_updates()
+Submodules
+
+pymatgen.io.aims.inputs module
+
+Classes for reading/manipulating/writing FHI-aims input files.
+Works for aims cube objects, geometry.in and control.in
+class
+AimsControlIn
+(
+_parameters:
+dict[str
+,
+Any]
+=
+<factory>
+)
+[source]
+
+Bases:
+MSONable
+An FHI-aims control.in file.
+_parameters
+[source]
+
+The parameters dictionary containing all input
+flags (key) and values for the control.in file
+Type
+:
+dict[str, Any]
+as_dict
+(
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Get a dictionary representation of the geometry.in file.
+classmethod
+from_dict
+(
+dct
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+Self
+[source]
+
+Initialize from dictionary.
+Parameters
+:
+dct
+(
+dict
+[
+str
+,
+Any
+]
+) – The MontyEncoded dictionary
+Returns
+:
+The AimsControlIn for dct
+get_aims_control_parameter_str
+(
+key
+:
+str
+,
+value
+:
+Any
+,
+fmt
+:
+str
+)
+→
+str
+[source]
+
+Get the string needed to add a parameter to the control.in file.
+Parameters
+:
+key
+(
+str
+) – The name of the input flag
+value
+(
+Any
+) – The value to be set for the flag
+fmt
+(
+str
+) – The format string to apply to the value
+Returns
+:
+The line to add to the control.in file
+Return type
+:
+str
+get_content
+(
+structure
+:
+Structure
+|
+Molecule
+,
+verbose_header
+:
+bool
+=
+False
+,
+directory
+:
+str
+|
+Path
+|
+None
+=
+None
+)
+→
+str
+[source]
+
+Get the content of the file.
+Parameters
+:
+structure
+(
+Structure
+|
+Molecule
+) – The structure to write the input
+file for
+verbose_header
+(
+bool
+) – If True print the input option dictionary
+directory
+– str | Path | None = The directory for the calculation,
+Returns
+:
+The content of the file for a given structure
+Return type
+:
+str
+get_species_block
+(
+structure
+:
+Structure
+|
+Molecule
+,
+basis_set
+:
+str
+|
+dict
+[
+str
+,
+str
+]
+,
+species_dir
+:
+str
+|
+Path
+|
+None
+=
+None
+)
+→
+str
+[source]
+
+Get the basis set information for a structure
+Parameters
+:
+structure
+(
+Molecule
+or
+Structure
+) – The structure to get the basis set information for
+basis_set
+(
+str
+|
+dict
+[
+str
+,
+str
+]
+) – a name of a basis set (
+light
+,
+tight
+…) or a mapping from site labels to basis set names.
+The name of a basis set can either correspond to the subfolder in
+defaults_2020
+folder
+or be a full path from the
+FHI-aims/species_defaults
+directory.
+species_dir
+(
+str
+|
+Path
+|
+None
+) – The base species directory
+Returns
+:
+The block to add to the control.in file for the species
+Raises
+:
+ValueError
+– If a file for the species is not found
+property
+parameters
+:
+dict
+[
+str
+,
+Any
+]
+[source]
+
+The dictionary of input parameters for control.in.
+write_file
+(
+structure
+:
+Structure
+|
+Molecule
+,
+directory
+:
+str
+|
+Path
+|
+None
+=
+None
+,
+verbose_header
+:
+bool
+=
+False
+,
+overwrite
+:
+bool
+=
+False
+)
+→
+None
+[source]
+
+Write the control.in file.
+Parameters
+:
+structure
+(
+Structure
+|
+Molecule
+) – The structure to write the input
+file for
+directory
+(
+str
+or
+Path
+) – The directory to write the control.in file.
+If None use cwd
+verbose_header
+(
+bool
+) – If True print the input option dictionary
+overwrite
+(
+bool
+) – If True allow to overwrite existing files
+Raises
+:
+ValueError
+– If a file must be overwritten and overwrite is False
+ValueError
+– If k-grid is not provided for the periodic structures
+class
+AimsCube
+(
+type:
+str
+=
+<factory>
+,
+origin:
+Sequence[float]
+|
+tuple[float
+,
+float
+,
+float]
+=
+<factory>
+,
+edges:
+Sequence[Sequence[float]]
+=
+<factory>
+,
+points:
+Sequence[int]
+|
+tuple[int
+,
+int
+,
+int]
+=
+<factory>
+,
+format:
+str
+=
+'cube'
+,
+spin_state:
+int
+|
+None
+=
+None
+,
+kpoint:
+int
+|
+None
+=
+None
+,
+filename:
+str
+|
+None
+=
+None
+,
+elf_type:
+int
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+The FHI-aims cubes.
+type
+[source]
+
+The value to be outputted as a cube file
+Type
+:
+str
+origin
+[source]
+
+The origin of the cube
+Type
+:
+Sequence[float] or tuple[float, float, float]
+edges
+[source]
+
+Specifies the edges of a cube: dx, dy, dz
+dx (float): The length of the step in the x direction
+dy (float): The length of the step in the y direction
+dx (float): The length of the step in the x direction
+Type
+:
+Sequence[Sequence[float]]
+points
+[source]
+
+The number of points
+along each edge
+Type
+:
+Sequence[int] or tuple[int, int, int]
+spin_state
+[source]
+
+The spin-channel to use either 1 or 2
+Type
+:
+int
+kpoint
+[source]
+
+The k-point to use (the index of the list printed from
+output k_point_list
+)
+Type
+:
+int
+filename
+[source]
+
+The filename to use
+Type
+:
+str
+format
+[source]
+
+The format to output the cube file in: cube, gOpenMol, or xsf
+Type
+:
+str
+elf_type
+[source]
+
+The type of electron localization function to use (
+see FHI-aims manual)
+Type
+:
+int
+as_dict
+(
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Get a dictionary representation of the geometry.in file.
+property
+control_block
+:
+str
+[source]
+
+The block of text for the control.in file of the Cube.
+edges
+:
+Sequence
+[
+Sequence
+[
+float
+]
+]
+[source]
+
+elf_type
+:
+int
+|
+None
+=
+None
+[source]
+
+filename
+:
+str
+|
+None
+=
+None
+[source]
+
+format
+:
+str
+=
+'cube'
+[source]
+
+classmethod
+from_dict
+(
+dct
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+Self
+[source]
+
+Initialize from dictionary.
+Parameters
+:
+dct
+(
+dict
+[
+str
+,
+Any
+]
+) – The MontyEncoded dictionary
+Returns
+:
+AimsCube
+kpoint
+:
+int
+|
+None
+=
+None
+[source]
+
+origin
+:
+Sequence
+[
+float
+]
+|
+tuple
+[
+float
+,
+float
+,
+float
+]
+[source]
+
+points
+:
+Sequence
+[
+int
+]
+|
+tuple
+[
+int
+,
+int
+,
+int
+]
+[source]
+
+spin_state
+:
+int
+|
+None
+=
+None
+[source]
+
+type
+:
+str
+[source]
+
+class
+AimsGeometryIn
+(
+_content
+:
+str
+,
+_structure
+:
+Structure
+|
+Molecule
+)
+[source]
+
+Bases:
+MSONable
+Representation of an aims geometry.in file.
+_content
+[source]
+
+The content of the input file
+Type
+:
+str
+_structure
+[source]
+
+The structure or molecule
+representation of the file
+Type
+:
+Structure
+|
+Molecule
+as_dict
+(
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Get a dictionary representation of the geometry.in file.
+property
+content
+:
+str
+[source]
+
+Access the contents of the file.
+classmethod
+from_dict
+(
+dct
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+Self
+[source]
+
+Initialize from dictionary.
+Parameters
+:
+dct
+(
+dict
+[
+str
+,
+Any
+]
+) – The MontyEncoded dictionary of the AimsGeometryIn object
+Returns
+:
+The input object represented by the dict
+classmethod
+from_file
+(
+filepath
+:
+str
+|
+Path
+)
+→
+Self
+[source]
+
+Create an AimsGeometryIn from an input file.
+Parameters
+:
+filepath
+(
+str
+|
+Path
+) – The path to the input file (either plain text of gzipped)
+Returns
+:
+The input object represented in the file
+Return type
+:
+AimsGeometryIn
+classmethod
+from_str
+(
+contents
+:
+str
+)
+→
+Self
+[source]
+
+Create an input from the content of an input file.
+Parameters
+:
+contents
+(
+str
+) – The content of the file
+Returns
+:
+The AimsGeometryIn file for the string contents
+classmethod
+from_structure
+(
+structure
+:
+Structure
+|
+IStructure
+|
+Molecule
+)
+→
+Self
+[source]
+
+Construct an input file from an input structure.
+Parameters
+:
+structure
+(
+Structure
+|
+Molecule
+) – The structure for the file
+Returns
+:
+The input object for the structure
+Return type
+:
+AimsGeometryIn
+get_header
+(
+filename
+:
+str
+)
+→
+str
+[source]
+
+A header of geometry.in file
+Parameters
+:
+filename
+(
+str
+) – A name of the file for the header
+property
+structure
+:
+Structure
+|
+Molecule
+[source]
+
+Access structure for the file.
+write_file
+(
+directory
+:
+str
+|
+Path
+|
+None
+=
+None
+,
+overwrite
+:
+bool
+=
+False
+)
+→
+None
+[source]
+
+Write the geometry.in file.
+Parameters
+:
+directory
+(
+str
+|
+Path
+|
+None
+) – The directory to write the geometry.in file
+overwrite
+(
+bool
+) – If True allow to overwrite existing files
+class
+AimsSpeciesFile
+(
+data
+:
+str
+=
+''
+,
+label
+:
+str
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+object
+An FHI-aims single species’ defaults file.
+data
+[source]
+
+A string of the complete species defaults file
+Type
+:
+str
+label
+[source]
+
+A string representing the name of species
+Type
+:
+str
+as_dict
+(
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Dictionary representation of the species’ defaults file.
+data
+:
+str
+=
+''
+[source]
+
+property
+element
+:
+str
+[source]
+
+classmethod
+from_dict
+(
+dct
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+Self
+[source]
+
+Deserialization of the AimsSpeciesFile object
+classmethod
+from_element_and_basis_name
+(
+element
+:
+str
+,
+basis
+:
+str
+,
+*
+,
+species_dir
+:
+str
+|
+Path
+|
+None
+=
+None
+,
+label
+:
+str
+|
+None
+=
+None
+)
+→
+Self
+[source]
+
+Initialize from element and basis names.
+Parameters
+:
+element
+(
+str
+) – the element name (not to confuse with the species)
+basis
+(
+str
+) – the directory in which the species’ defaults file is located relative to the
+root
+species_defaults
+(or
+species_defaults/defaults_2020
+) directory.`.
+label
+(
+str
+) – A string representing the name of species. If not specified,
+then equal to element
+Returns
+:
+AimsSpeciesFile
+classmethod
+from_file
+(
+filename
+:
+str
+,
+label
+:
+str
+|
+None
+=
+None
+)
+→
+Self
+[source]
+
+Initialize from file.
+Parameters
+:
+filename
+(
+str
+) – The filename of the species’ defaults file
+label
+(
+str
+) – A string representing the name of species
+Returns
+:
+AimsSpeciesFile
+label
+:
+str
+|
+None
+=
+None
+[source]
+
+class
+SpeciesDefaults
+(
+labels
+:
+Sequence
+[
+str
+]
+,
+basis_set
+:
+str
+|
+dict
+[
+str
+,
+str
+]
+,
+*
+,
+species_dir
+:
+str
+|
+Path
+|
+None
+=
+None
+,
+elements
+:
+dict
+[
+str
+,
+str
+]
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+list
+,
+MSONable
+A list containing a set of species’ defaults objects with
+methods to read and write them to files
+Parameters
+:
+labels
+(
+list
+[
+str
+]
+) – a list of labels, for which to build species’ defaults
+basis_set
+(
+str
+|
+dict
+[
+str
+,
+str
+]
+) – a name of a basis set (
+light
+,
+tight
+…) or a mapping from site labels to basis set names.
+The name of a basis set can either correspond to the subfolder in
+defaults_2020
+folder
+or be a full path from the
+FHI-aims/species_defaults
+directory.
+species_dir
+(
+str
+|
+Path
+|
+None
+) – The base species directory
+elements
+(
+dict
+[
+str
+,
+str
+]
+|
+None
+) – a mapping from site labels to elements. If some label is not in this mapping,
+it coincides with an element.
+as_dict
+(
+)
+[source]
+
+Dictionary representation of the species’ defaults
+classmethod
+from_dict
+(
+dct
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+SpeciesDefaults
+[source]
+
+Deserialization of the SpeciesDefaults object
+classmethod
+from_structure
+(
+struct
+:
+Structure
+|
+Molecule
+,
+basis_set
+:
+str
+|
+dict
+[
+str
+,
+str
+]
+,
+species_dir
+:
+str
+|
+Path
+|
+None
+=
+None
+)
+[source]
+
+Initialize species defaults from a structure.
+to_dict
+(
+)
+[source]
+
+pymatgen.io.aims.outputs module
+
+A representation of FHI-aims output (based on ASE output parser).
+class
+AimsOutput
+(
+results
+:
+Molecule
+|
+Structure
+|
+Sequence
+[
+Molecule
+|
+Structure
+]
+,
+metadata
+:
+dict
+[
+str
+,
+Any
+]
+,
+structure_summary
+:
+dict
+[
+str
+,
+Any
+]
+)
+[source]
+
+Bases:
+MSONable
+The main output file for FHI-aims.
+Parameters
+:
+results
+(
+Molecule
+or
+Structure
+or
+Sequence
+[
+Molecule
+or
+Structure
+]
+) – A list
+of all images in an output file
+metadata
+(
+Dict
+[
+str
+,
+Any
+]
+) – The metadata of the executable used to perform
+the calculation
+structure_summary
+(
+Dict
+[
+str
+,
+Any
+]
+) – The summary of the starting
+atomic structure.
+property
+aims_version
+:
+str
+[source]
+
+The version of FHI-aims used for the calculation.
+property
+all_forces
+:
+list
+[
+list
+[
+tuple
+[
+float
+,
+float
+,
+float
+]
+]
+]
+[source]
+
+The forces for all images in the calculation.
+as_dict
+(
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Create a dict representation of the outputs for MSONable.
+property
+band_gap
+:
+float
+[source]
+
+The band gap for the final structure in the calculation.
+property
+cbm
+:
+float
+[source]
+
+The LUMO level for the final structure in the calculation.
+property
+completed
+:
+bool
+[source]
+
+Did the calculation complete.
+property
+direct_band_gap
+:
+float
+[source]
+
+The direct band gap for the final structure in the calculation.
+property
+fermi_energy
+:
+float
+[source]
+
+The Fermi energy for the final structure in the calculation.
+property
+final_energy
+:
+float
+[source]
+
+The total energy for the final structure in the calculation.
+property
+final_structure
+:
+Structure
+|
+Molecule
+[source]
+
+The final structure for the calculation.
+property
+forces
+:
+Sequence
+[
+tuple
+[
+float
+,
+float
+,
+float
+]
+]
+|
+None
+[source]
+
+The forces for the final image of the calculation.
+classmethod
+from_dict
+(
+dct
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+Self
+[source]
+
+Construct an AimsOutput from a dictionary.
+Parameters
+:
+dct
+(
+dict
+[
+str
+,
+Any
+]
+) – The dictionary used to create AimsOutput
+Returns
+:
+AimsOutput
+classmethod
+from_outfile
+(
+outfile
+:
+str
+|
+Path
+)
+→
+Self
+[source]
+
+Construct an AimsOutput from an output file.
+Parameters
+:
+outfile
+– str | Path: The aims.out file to parse
+Returns
+:
+The AimsOutput object for the output file
+classmethod
+from_str
+(
+content
+:
+str
+)
+→
+Self
+[source]
+
+Construct an AimsOutput from an output file.
+Parameters
+:
+content
+(
+str
+) – The content of the aims.out file
+Returns
+:
+The AimsOutput for the output file content
+get_results_for_image
+(
+image_ind
+:
+int
+)
+→
+Structure
+|
+Molecule
+[source]
+
+Get the results dictionary for a particular image or slice of images.
+Parameters
+:
+image_ind
+(
+int
+) – The index of the image to get the results for
+Returns
+:
+The results of the image with index images_ind
+property
+initial_structure
+:
+Structure
+|
+Molecule
+[source]
+
+The initial structure for the calculations.
+property
+metadata
+:
+dict
+[
+str
+,
+Any
+]
+[source]
+
+The system metadata.
+property
+n_images
+:
+int
+[source]
+
+The number of images in results.
+property
+stress
+:
+ndarray
+[source]
+
+The stress for the final image of the calculation.
+property
+stresses
+:
+list
+[
+list
+[
+float
+]
+]
+|
+None
+[source]
+
+The atomic virial stresses for the final image of the calculation.
+property
+structure_summary
+:
+dict
+[
+str
+,
+Any
+]
+[source]
+
+The summary of the material/molecule that the calculations represent.
+property
+structures
+:
+Sequence
+[
+Structure
+|
+Molecule
+]
+[source]
+
+All images in the output file.
+property
+vbm
+:
+float
+[source]
+
+The HOMO level for the final structure in the calculation.
+pymatgen.io.aims.parsers module
+
+AIMS output parser, taken from ASE with modifications.
+class
+AimsOutCalcChunk
+(
+lines
+:
+list
+[
+str
+]
+,
+header
+:
+AimsOutHeaderChunk
+)
+[source]
+
+Bases:
+AimsOutChunk
+A part of the aims.out file corresponding to a single structure.
+Construct the AimsOutCalcChunk.
+Parameters
+:
+lines
+(
+list
+[
+str
+]
+) – The lines used for the structure
+header
+(
+.AimsOutHeaderChunk
+) – A summary of the relevant information from
+the aims.out header
+property
+E_f
+:
+float
+|
+None
+[source]
+
+The Fermi energy.
+property
+cbm
+:
+float
+[source]
+
+The conduction band minimnum.
+property
+converged
+:
+bool
+[source]
+
+True if the calculation is converged.
+property
+coords
+:
+list
+[
+tuple
+[
+float
+,
+float
+,
+float
+]
+]
+[source]
+
+The cartesian coordinates of the atoms.
+property
+dielectric_tensor
+:
+ndarray
+|
+None
+[source]
+
+The dielectric tensor from the aims.out file.
+property
+dipole
+:
+ndarray
+|
+None
+[source]
+
+The electric dipole moment from the aims.out file.
+property
+direct_gap
+:
+float
+[source]
+
+The direct bandgap.
+property
+electronic_temperature
+:
+float
+[source]
+
+The electronic temperature for the chunk.
+property
+energy
+:
+float
+[source]
+
+The energy from the aims.out file.
+property
+forces
+:
+ndarray
+|
+None
+[source]
+
+The forces from the aims.out file.
+property
+free_energy
+:
+float
+|
+None
+[source]
+
+The free energy of the calculation.
+property
+gap
+:
+float
+[source]
+
+The band gap.
+property
+hirshfeld_atomic_dipoles
+:
+Sequence
+[
+tuple
+[
+float
+,
+float
+,
+float
+]
+]
+|
+None
+[source]
+
+The Hirshfeld atomic dipoles of the system.
+property
+hirshfeld_charges
+:
+Sequence
+[
+float
+]
+|
+None
+[source]
+
+The Hirshfeld charges of the system.
+property
+hirshfeld_dipole
+:
+None
+|
+tuple
+[
+float
+,
+float
+,
+float
+]
+[source]
+
+The Hirshfeld dipole of the system.
+property
+hirshfeld_volumes
+:
+Sequence
+[
+float
+]
+|
+None
+[source]
+
+The Hirshfeld atomic dipoles of the system.
+property
+initial_lattice
+:
+Lattice
+|
+None
+[source]
+
+The initial Lattice of the structure.
+property
+initial_structure
+:
+Structure
+|
+Molecule
+[source]
+
+The initial structure for the calculation.
+property
+is_metallic
+:
+bool
+[source]
+
+Is the system is metallic.
+property
+k_point_weights
+:
+Sequence
+[
+float
+]
+[source]
+
+The k-point weights for the calculation.
+property
+k_points
+:
+Sequence
+[
+tuple
+[
+float
+,
+float
+,
+float
+]
+]
+[source]
+
+All k-points listed in the calculation.
+property
+lattice
+:
+Lattice
+[source]
+
+The Lattice object for the structure.
+property
+magmom
+:
+float
+|
+None
+[source]
+
+The magnetic moment of the structure.
+property
+mulliken_charges
+:
+Sequence
+[
+float
+]
+|
+None
+[source]
+
+The Mulliken charges of the system
+property
+mulliken_spins
+:
+Sequence
+[
+float
+]
+|
+None
+[source]
+
+The Mulliken spins of the system
+property
+n_atoms
+:
+int
+[source]
+
+The number of atoms in the structure.
+property
+n_bands
+:
+int
+[source]
+
+The number of Kohn-Sham states for the chunk.
+property
+n_electrons
+:
+int
+[source]
+
+The number of electrons for the chunk.
+property
+n_iter
+:
+int
+|
+None
+[source]
+
+The number of steps needed to converge the SCF cycle for the chunk.
+property
+n_k_points
+:
+int
+[source]
+
+The number of k_ppoints for the calculation.
+property
+n_spins
+:
+int
+[source]
+
+The number of spin channels for the chunk.
+property
+polarization
+:
+ndarray
+|
+None
+[source]
+
+The polarization vector from the aims.out file.
+property
+results
+:
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Convert an AimsOutChunk to a Results Dictionary.
+property
+species
+:
+list
+[
+str
+]
+[source]
+
+The list of atomic symbols for all atoms in the structure.
+property
+stress
+:
+ndarray
+|
+None
+[source]
+
+The stress from the aims.out file and convert to kBar.
+property
+stresses
+:
+ndarray
+|
+None
+[source]
+
+The stresses from the aims.out file and convert to kBar.
+property
+structure
+:
+Structure
+|
+Molecule
+[source]
+
+The pymatgen SiteCollection of the chunk.
+property
+vbm
+:
+float
+[source]
+
+The valance band maximum.
+property
+velocities
+:
+list
+[
+tuple
+[
+float
+,
+float
+,
+float
+]
+]
+[source]
+
+The velocities of the atoms.
+class
+AimsOutChunk
+(
+lines:
+list[str]
+=
+<factory>
+)
+[source]
+
+Bases:
+object
+Base class for AimsOutChunks.
+lines
+[source]
+
+The list of all lines in the chunk
+Type
+:
+list[str]
+lines
+:
+list
+[
+str
+]
+[source]
+
+parse_scalar
+(
+property
+:
+str
+)
+→
+float
+|
+None
+[source]
+
+Parse a scalar property from the chunk.
+Parameters
+:
+property
+(
+str
+) – The property key to parse
+Returns
+:
+The scalar value of the property or None if not found
+reverse_search_for
+(
+keys
+:
+list
+[
+str
+]
+,
+line_start
+:
+int
+=
+0
+)
+→
+int
+[source]
+
+Find the last time one of the keys appears in self.lines.
+Parameters
+:
+keys
+(
+list
+[
+str
+]
+) – The key strings to search for in self.lines
+line_start
+(
+int
+) – The lowest index to search for in self.lines
+Returns
+:
+The last time one of the keys appears in self.lines
+search_for_all
+(
+key
+:
+str
+,
+line_start
+:
+int
+=
+0
+,
+line_end
+:
+int
+=
+-1
+)
+→
+list
+[
+int
+]
+[source]
+
+Find the all times the key appears in self.lines.
+Parameters
+:
+key
+(
+str
+) – The key string to search for in self.lines
+line_start
+(
+int
+) – The first line to start the search from
+line_end
+(
+int
+) – The last line to end the search at
+Returns
+:
+All times the key appears in the lines
+class
+AimsOutHeaderChunk
+(
+lines:
+list[str]
+=
+<factory>
+,
+_cache:
+dict[str
+,
+Any]
+=
+<factory>
+)
+[source]
+
+Bases:
+AimsOutChunk
+The header of the aims.out file containing general information.
+property
+aims_uuid
+:
+str
+[source]
+
+The aims-uuid for the calculation.
+property
+build_type
+:
+list
+[
+str
+]
+[source]
+
+The optional build flags passed to cmake.
+property
+c_compiler
+:
+str
+|
+None
+[source]
+
+The C compiler used to make FHI-aims.
+property
+c_compiler_flags
+:
+str
+|
+None
+[source]
+
+The C compiler flags used to make FHI-aims.
+property
+commit_hash
+:
+str
+[source]
+
+The commit hash for the FHI-aims version.
+property
+electronic_temperature
+:
+float
+[source]
+
+The electronic temperature for the chunk.
+property
+fortran_compiler
+:
+str
+|
+None
+[source]
+
+The fortran compiler used to make FHI-aims.
+property
+fortran_compiler_flags
+:
+str
+|
+None
+[source]
+
+The fortran compiler flags used to make FHI-aims.
+property
+header_summary
+:
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Dictionary summarizing the information inside the header.
+property
+initial_charges
+:
+Sequence
+[
+float
+]
+[source]
+
+The initial charges for the structure.
+property
+initial_lattice
+:
+Lattice
+|
+None
+[source]
+
+The initial lattice vectors from the aims.out file.
+property
+initial_magnetic_moments
+:
+Sequence
+[
+float
+]
+[source]
+
+The initial magnetic Moments.
+property
+initial_structure
+:
+Structure
+|
+Molecule
+[source]
+
+The initial structure.
+Using the FHI-aims output file recreate the initial structure for
+the calculation.
+property
+is_md
+:
+bool
+[source]
+
+Is the output for a molecular dynamics calculation?
+property
+is_relaxation
+:
+bool
+[source]
+
+Is the output for a relaxation?
+property
+k_point_weights
+:
+Sequence
+[
+float
+]
+[source]
+
+The k-point weights for the calculation.
+property
+k_points
+:
+Sequence
+[
+tuple
+[
+float
+,
+float
+,
+float
+]
+]
+[source]
+
+All k-points listed in the calculation.
+lines
+:
+list
+[
+str
+]
+[source]
+
+property
+linked_against
+:
+list
+[
+str
+]
+[source]
+
+All libraries used to link the FHI-aims executable.
+property
+metadata_summary
+:
+dict
+[
+str
+,
+list
+[
+str
+]
+|
+str
+|
+None
+]
+[source]
+
+Dictionary containing all metadata for FHI-aims build.
+property
+n_atoms
+:
+int
+[source]
+
+The number of atoms for the material.
+property
+n_bands
+:
+int
+|
+None
+[source]
+
+The number of Kohn-Sham states for the chunk.
+property
+n_electrons
+:
+int
+|
+None
+[source]
+
+The number of electrons for the chunk.
+property
+n_k_points
+:
+int
+|
+None
+[source]
+
+The number of k_ppoints for the calculation.
+property
+n_spins
+:
+int
+|
+None
+[source]
+
+The number of spin channels for the chunk.
+property
+version_number
+:
+str
+[source]
+
+The commit hash for the FHI-aims version.
+exception
+AimsParseError
+(
+message
+:
+str
+)
+[source]
+
+Bases:
+Exception
+Exception raised if an error occurs when parsing an Aims output file.
+Initialize the error with the message, message.
+exception
+ParseError
+[source]
+
+Bases:
+Exception
+Parse error during reading of a file.
+check_convergence
+(
+chunks
+:
+list
+[
+AimsOutCalcChunk
+]
+,
+non_convergence_ok
+:
+bool
+=
+False
+)
+→
+bool
+[source]
+
+Check if the aims output file is for a converged calculation.
+Parameters
+:
+chunks
+(
+list
+[
+.AimsOutCalcChunk
+]
+) – The list of chunks for the aims calculations
+non_convergence_ok
+(
+bool
+) – True if it is okay for the calculation to not be converged
+chunks
+– list[AimsOutCalcChunk]:
+non_convergence_ok
+– bool:  (Default value = False)
+Returns
+:
+True if the calculation is converged
+get_aims_out_chunks
+(
+content
+:
+str
+|
+TextIOWrapper
+,
+header_chunk
+:
+AimsOutHeaderChunk
+)
+→
+Generator
+[source]
+
+Yield unprocessed chunks (header, lines) for each AimsOutChunk image.
+Parameters
+:
+content
+(
+str
+or
+TextIOWrapper
+) – the content to parse
+header_chunk
+(
+AimsOutHeaderChunk
+) – The AimsOutHeader for the calculation
+Yields
+:
+The next AimsOutChunk
+get_header_chunk
+(
+content
+:
+str
+|
+TextIOWrapper
+)
+→
+AimsOutHeaderChunk
+[source]
+
+Get the header chunk for an output.
+Parameters
+:
+content
+(
+str
+or
+TextIOWrapper
+) – the content to parse
+Returns
+:
+The AimsHeaderChunk of the file
+get_lines
+(
+content
+:
+str
+|
+TextIOWrapper
+)
+→
+list
+[
+str
+]
+[source]
+
+Get a list of lines from a str or file of content.
+Parameters
+:
+content
+– the content of the file to parse
+Returns
+:
+The list of lines
+read_aims_header_info
+(
+filename
+:
+str
+|
+Path
+)
+→
+tuple
+[
+dict
+[
+str
+,
+None
+|
+list
+[
+str
+]
+|
+str
+]
+,
+dict
+[
+str
+,
+Any
+]
+]
+[source]
+
+Read the FHI-aims header information.
+Parameters
+:
+filename
+(
+str
+or
+Path
+) – The file to read
+Returns
+:
+The metadata for the header of the aims calculation
+read_aims_header_info_from_content
+(
+content
+:
+str
+)
+→
+tuple
+[
+dict
+[
+str
+,
+list
+[
+str
+]
+|
+None
+|
+str
+]
+,
+dict
+[
+str
+,
+Any
+]
+]
+[source]
+
+Read the FHI-aims header information.
+Parameters
+:
+content
+(
+str
+) – The content of the output file to check
+Returns
+:
+The metadata for the header of the aims calculation
+read_aims_output
+(
+filename
+:
+str
+|
+Path
+,
+index
+:
+int
+|
+slice
+=
+-1
+,
+non_convergence_ok
+:
+bool
+=
+False
+)
+→
+Structure
+|
+Molecule
+|
+Sequence
+[
+Structure
+|
+Molecule
+]
+[source]
+
+Import FHI-aims output files with all data available.
+Includes all structures for relaxations and MD runs with FHI-aims
+Parameters
+:
+filename
+(
+str
+or
+Path
+) – The file to read
+index
+(
+int
+or
+slice
+) – The index of the images to read
+non_convergence_ok
+(
+bool
+) – True if the calculations do not have to be converged
+Returns
+:
+The list of images to get
+read_aims_output_from_content
+(
+content
+:
+str
+,
+index
+:
+int
+|
+slice
+=
+-1
+,
+non_convergence_ok
+:
+bool
+=
+False
+)
+→
+Structure
+|
+Molecule
+|
+Sequence
+[
+Structure
+|
+Molecule
+]
+[source]
+
+Read and aims output file from the content of a file.
+Parameters
+:
+content
+(
+str
+) – The content of the file to read
+index
+– int | slice:  (Default value = -1)
+non_convergence_ok
+– bool:  (Default value = False)
+Returns
+:
+The list of images to get
+© Copyright 2011, Pymatgen Development Team.
+Built with
+Sphinx
+using a
+theme
+provided by
+Read the Docs
+.

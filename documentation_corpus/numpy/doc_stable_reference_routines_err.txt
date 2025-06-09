@@ -1,0 +1,126 @@
+Floating point error handling — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+NumPy’s module structure
+Array objects
+Universal functions (
+ufunc
+)
+Routines and objects by topic
+Constants
+Array creation routines
+Array manipulation routines
+Bit-wise operations
+String functionality
+Datetime support functions
+Data type routines
+Mathematical functions with automatic domain
+Floating point error handling
+numpy.seterr
+numpy.geterr
+numpy.seterrcall
+numpy.geterrcall
+numpy.errstate
+Exceptions and Warnings (
+numpy.exceptions
+)
+Discrete Fourier Transform (
+numpy.fft
+)
+Functional programming
+Input and output
+Indexing routines
+Linear algebra (
+numpy.linalg
+)
+Logic functions
+Masked array operations
+Mathematical functions
+Miscellaneous routines
+Polynomials
+Random sampling (
+numpy.random
+)
+Set routines
+Sorting, searching, and counting
+Statistics
+Test support (
+numpy.testing
+)
+Window functions
+Typing (
+numpy.typing
+)
+Packaging (
+numpy.distutils
+)
+NumPy C-API
+Array API standard compatibility
+CPU/SIMD optimizations
+Thread Safety
+Global Configuration Options
+NumPy security
+Status of
+numpy.distutils
+and migration advice
+numpy.distutils
+user guide
+NumPy and SWIG
+NumPy reference
+Routines and objects by topic
+Floating point error handling
+Floating point error handling
+#
+Setting and getting error handling
+#
+seterr
+([all, divide, over, under, invalid])
+Set how floating-point errors are handled.
+geterr
+()
+Get the current way of handling floating-point errors.
+seterrcall
+(func)
+Set the floating-point error callback function or log object.
+geterrcall
+()
+Return the current callback function used on floating-point errors.
+errstate
+(**kwargs)
+Context manager for floating-point error handling.
+previous
+numpy.mintypecode
+next
+numpy.seterr
+On this page
+Setting and getting error handling
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

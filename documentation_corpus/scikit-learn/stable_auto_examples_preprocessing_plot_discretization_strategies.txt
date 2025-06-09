@@ -1,0 +1,948 @@
+Demonstrating the different strategies of KBinsDiscretizer — scikit-learn 1.7.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Install
+User Guide
+API
+Examples
+Community
+More
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Install
+User Guide
+API
+Examples
+Community
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Section Navigation
+Release Highlights
+Release Highlights for scikit-learn 1.7
+Release Highlights for scikit-learn 1.6
+Release Highlights for scikit-learn 1.5
+Release Highlights for scikit-learn 1.4
+Release Highlights for scikit-learn 1.3
+Release Highlights for scikit-learn 1.2
+Release Highlights for scikit-learn 1.1
+Release Highlights for scikit-learn 1.0
+Release Highlights for scikit-learn 0.24
+Release Highlights for scikit-learn 0.23
+Release Highlights for scikit-learn 0.22
+Biclustering
+A demo of the Spectral Biclustering algorithm
+A demo of the Spectral Co-Clustering algorithm
+Biclustering documents with the Spectral Co-clustering algorithm
+Calibration
+Comparison of Calibration of Classifiers
+Probability Calibration curves
+Probability Calibration for 3-class classification
+Probability calibration of classifiers
+Classification
+Classifier comparison
+Linear and Quadratic Discriminant Analysis with covariance ellipsoid
+Normal, Ledoit-Wolf and OAS Linear Discriminant Analysis for classification
+Plot classification probability
+Recognizing hand-written digits
+Clustering
+A demo of K-Means clustering on the handwritten digits data
+A demo of structured Ward hierarchical clustering on an image of coins
+A demo of the mean-shift clustering algorithm
+Adjustment for chance in clustering performance evaluation
+Agglomerative clustering with and without structure
+Agglomerative clustering with different metrics
+An example of K-Means++ initialization
+Bisecting K-Means and Regular K-Means Performance Comparison
+Compare BIRCH and MiniBatchKMeans
+Comparing different clustering algorithms on toy datasets
+Comparing different hierarchical linkage methods on toy datasets
+Comparison of the K-Means and MiniBatchKMeans clustering algorithms
+Demo of DBSCAN clustering algorithm
+Demo of HDBSCAN clustering algorithm
+Demo of OPTICS clustering algorithm
+Demo of affinity propagation clustering algorithm
+Demonstration of k-means assumptions
+Empirical evaluation of the impact of k-means initialization
+Feature agglomeration
+Feature agglomeration vs. univariate selection
+Hierarchical clustering: structured vs unstructured ward
+Inductive Clustering
+Online learning of a dictionary of parts of faces
+Plot Hierarchical Clustering Dendrogram
+Segmenting the picture of greek coins in regions
+Selecting the number of clusters with silhouette analysis on KMeans clustering
+Spectral clustering for image segmentation
+Various Agglomerative Clustering on a 2D embedding of digits
+Vector Quantization Example
+Covariance estimation
+Ledoit-Wolf vs OAS estimation
+Robust covariance estimation and Mahalanobis distances relevance
+Robust vs Empirical covariance estimate
+Shrinkage covariance estimation: LedoitWolf vs OAS and max-likelihood
+Sparse inverse covariance estimation
+Cross decomposition
+Compare cross decomposition methods
+Principal Component Regression vs Partial Least Squares Regression
+Dataset examples
+Plot randomly generated multilabel dataset
+Decision Trees
+Decision Tree Regression
+Plot the decision surface of decision trees trained on the iris dataset
+Post pruning decision trees with cost complexity pruning
+Understanding the decision tree structure
+Decomposition
+Blind source separation using FastICA
+Comparison of LDA and PCA 2D projection of Iris dataset
+Faces dataset decompositions
+Factor Analysis (with rotation) to visualize patterns
+FastICA on 2D point clouds
+Image denoising using dictionary learning
+Incremental PCA
+Kernel PCA
+Model selection with Probabilistic PCA and Factor Analysis (FA)
+Principal Component Analysis (PCA) on Iris Dataset
+Sparse coding with a precomputed dictionary
+Developing Estimators
+__sklearn_is_fitted__
+as Developer API
+Ensemble methods
+Categorical Feature Support in Gradient Boosting
+Combine predictors using stacking
+Comparing Random Forests and Histogram Gradient Boosting models
+Comparing random forests and the multi-output meta estimator
+Decision Tree Regression with AdaBoost
+Early stopping in Gradient Boosting
+Feature importances with a forest of trees
+Feature transformations with ensembles of trees
+Features in Histogram Gradient Boosting Trees
+Gradient Boosting Out-of-Bag estimates
+Gradient Boosting regression
+Gradient Boosting regularization
+Hashing feature transformation using Totally Random Trees
+IsolationForest example
+Monotonic Constraints
+Multi-class AdaBoosted Decision Trees
+OOB Errors for Random Forests
+Plot individual and voting regression predictions
+Plot the decision surfaces of ensembles of trees on the iris dataset
+Prediction Intervals for Gradient Boosting Regression
+Single estimator versus bagging: bias-variance decomposition
+Two-class AdaBoost
+Visualizing the probabilistic predictions of a VotingClassifier
+Examples based on real world datasets
+Compressive sensing: tomography reconstruction with L1 prior (Lasso)
+Faces recognition example using eigenfaces and SVMs
+Image denoising using kernel PCA
+Lagged features for time series forecasting
+Model Complexity Influence
+Out-of-core classification of text documents
+Outlier detection on a real data set
+Prediction Latency
+Species distribution modeling
+Time-related feature engineering
+Topic extraction with Non-negative Matrix Factorization and Latent Dirichlet Allocation
+Visualizing the stock market structure
+Wikipedia principal eigenvector
+Feature Selection
+Comparison of F-test and mutual information
+Model-based and sequential feature selection
+Pipeline ANOVA SVM
+Recursive feature elimination
+Recursive feature elimination with cross-validation
+Univariate Feature Selection
+Frozen Estimators
+Examples of Using
+FrozenEstimator
+Gaussian Mixture Models
+Concentration Prior Type Analysis of Variation Bayesian Gaussian Mixture
+Density Estimation for a Gaussian mixture
+GMM Initialization Methods
+GMM covariances
+Gaussian Mixture Model Ellipsoids
+Gaussian Mixture Model Selection
+Gaussian Mixture Model Sine Curve
+Gaussian Process for Machine Learning
+Ability of Gaussian process regression (GPR) to estimate data noise-level
+Comparison of kernel ridge and Gaussian process regression
+Forecasting of CO2 level on Mona Loa dataset using Gaussian process regression (GPR)
+Gaussian Processes regression: basic introductory example
+Gaussian process classification (GPC) on iris dataset
+Gaussian processes on discrete data structures
+Illustration of Gaussian process classification (GPC) on the XOR dataset
+Illustration of prior and posterior Gaussian process for different kernels
+Iso-probability lines for Gaussian Processes classification (GPC)
+Probabilistic predictions with Gaussian process classification (GPC)
+Generalized Linear Models
+Comparing Linear Bayesian Regressors
+Curve Fitting with Bayesian Ridge Regression
+Decision Boundaries of Multinomial and One-vs-Rest Logistic Regression
+Early stopping of Stochastic Gradient Descent
+Fitting an Elastic Net with a precomputed Gram Matrix and Weighted Samples
+HuberRegressor vs Ridge on dataset with strong outliers
+Joint feature selection with multi-task Lasso
+L1 Penalty and Sparsity in Logistic Regression
+L1-based models for Sparse Signals
+Lasso model selection via information criteria
+Lasso model selection: AIC-BIC / cross-validation
+Lasso on dense and sparse data
+Lasso, Lasso-LARS, and Elastic Net paths
+Logistic function
+MNIST classification using multinomial logistic + L1
+Multiclass sparse logistic regression on 20newgroups
+Non-negative least squares
+One-Class SVM versus One-Class SVM using Stochastic Gradient Descent
+Ordinary Least Squares and Ridge Regression
+Orthogonal Matching Pursuit
+Plot Ridge coefficients as a function of the regularization
+Plot multi-class SGD on the iris dataset
+Poisson regression and non-normal loss
+Polynomial and Spline interpolation
+Quantile regression
+Regularization path of L1- Logistic Regression
+Ridge coefficients as a function of the L2 Regularization
+Robust linear estimator fitting
+Robust linear model estimation using RANSAC
+SGD: Maximum margin separating hyperplane
+SGD: Penalties
+SGD: Weighted samples
+SGD: convex loss functions
+Theil-Sen Regression
+Tweedie regression on insurance claims
+Inspection
+Common pitfalls in the interpretation of coefficients of linear models
+Failure of Machine Learning to infer causal effects
+Partial Dependence and Individual Conditional Expectation Plots
+Permutation Importance vs Random Forest Feature Importance (MDI)
+Permutation Importance with Multicollinear or Correlated Features
+Kernel Approximation
+Scalable learning with polynomial kernel approximation
+Manifold learning
+Comparison of Manifold Learning methods
+Manifold Learning methods on a severed sphere
+Manifold learning on handwritten digits: Locally Linear Embedding, Isomap…
+Multi-dimensional scaling
+Swiss Roll And Swiss-Hole Reduction
+t-SNE: The effect of various perplexity values on the shape
+Miscellaneous
+Advanced Plotting With Partial Dependence
+Comparing anomaly detection algorithms for outlier detection on toy datasets
+Comparison of kernel ridge regression and SVR
+Displaying Pipelines
+Displaying estimators and complex pipelines
+Evaluation of outlier detection estimators
+Explicit feature map approximation for RBF kernels
+Face completion with a multi-output estimators
+Introducing the
+set_output
+API
+Isotonic Regression
+Metadata Routing
+Multilabel classification
+ROC Curve with Visualization API
+The Johnson-Lindenstrauss bound for embedding with random projections
+Visualizations with Display Objects
+Missing Value Imputation
+Imputing missing values before building an estimator
+Imputing missing values with variants of IterativeImputer
+Model Selection
+Balance model complexity and cross-validated score
+Class Likelihood Ratios to measure classification performance
+Comparing randomized search and grid search for hyperparameter estimation
+Comparison between grid search and successive halving
+Confusion matrix
+Custom refit strategy of a grid search with cross-validation
+Demonstration of multi-metric evaluation on cross_val_score and GridSearchCV
+Detection error tradeoff (DET) curve
+Effect of model regularization on training and test error
+Multiclass Receiver Operating Characteristic (ROC)
+Nested versus non-nested cross-validation
+Plotting Cross-Validated Predictions
+Plotting Learning Curves and Checking Models’ Scalability
+Post-hoc tuning the cut-off point of decision function
+Post-tuning the decision threshold for cost-sensitive learning
+Precision-Recall
+Receiver Operating Characteristic (ROC) with cross validation
+Sample pipeline for text feature extraction and evaluation
+Statistical comparison of models using grid search
+Successive Halving Iterations
+Test with permutations the significance of a classification score
+Underfitting vs. Overfitting
+Visualizing cross-validation behavior in scikit-learn
+Multiclass methods
+Overview of multiclass training meta-estimators
+Multioutput methods
+Multilabel classification using a classifier chain
+Nearest Neighbors
+Approximate nearest neighbors in TSNE
+Caching nearest neighbors
+Comparing Nearest Neighbors with and without Neighborhood Components Analysis
+Dimensionality Reduction with Neighborhood Components Analysis
+Kernel Density Estimate of Species Distributions
+Kernel Density Estimation
+Nearest Centroid Classification
+Nearest Neighbors Classification
+Nearest Neighbors regression
+Neighborhood Components Analysis Illustration
+Novelty detection with Local Outlier Factor (LOF)
+Outlier detection with Local Outlier Factor (LOF)
+Simple 1D Kernel Density Estimation
+Neural Networks
+Compare Stochastic learning strategies for MLPClassifier
+Restricted Boltzmann Machine features for digit classification
+Varying regularization in Multi-layer Perceptron
+Visualization of MLP weights on MNIST
+Pipelines and composite estimators
+Column Transformer with Heterogeneous Data Sources
+Column Transformer with Mixed Types
+Concatenating multiple feature extraction methods
+Effect of transforming the targets in regression model
+Pipelining: chaining a PCA and a logistic regression
+Selecting dimensionality reduction with Pipeline and GridSearchCV
+Preprocessing
+Compare the effect of different scalers on data with outliers
+Comparing Target Encoder with Other Encoders
+Demonstrating the different strategies of KBinsDiscretizer
+Feature discretization
+Importance of Feature Scaling
+Map data to a normal distribution
+Target Encoder’s Internal Cross fitting
+Using KBinsDiscretizer to discretize continuous features
+Semi Supervised Classification
+Decision boundary of semi-supervised classifiers versus SVM on the Iris dataset
+Effect of varying threshold for self-training
+Label Propagation circles: Learning a complex structure
+Label Propagation digits: Active learning
+Label Propagation digits: Demonstrating performance
+Semi-supervised Classification on a Text Dataset
+Support Vector Machines
+One-class SVM with non-linear kernel (RBF)
+Plot classification boundaries with different SVM Kernels
+Plot different SVM classifiers in the iris dataset
+Plot the support vectors in LinearSVC
+RBF SVM parameters
+SVM Margins Example
+SVM Tie Breaking Example
+SVM with custom kernel
+SVM-Anova: SVM with univariate feature selection
+SVM: Maximum margin separating hyperplane
+SVM: Separating hyperplane for unbalanced classes
+SVM: Weighted samples
+Scaling the regularization parameter for SVCs
+Support Vector Regression (SVR) using linear and non-linear kernels
+Working with text documents
+Classification of text documents using sparse features
+Clustering text documents using k-means
+FeatureHasher and DictVectorizer Comparison
+Examples
+Preprocessing
+Demonstrating the different strategies of KBinsDiscretizer
+Note
+Go to the end
+to download the full example code. or to run this example in your browser via JupyterLite or Binder
+Demonstrating the different strategies of KBinsDiscretizer
+#
+This example presents the different strategies implemented in KBinsDiscretizer:
+‘uniform’: The discretization is uniform in each feature, which means that
+the bin widths are constant in each dimension.
+quantile’: The discretization is done on the quantiled values, which means
+that each bin has approximately the same number of samples.
+‘kmeans’: The discretization is based on the centroids of a KMeans clustering
+procedure.
+The plot shows the regions where the discretized encoding is constant.
+# Authors: The scikit-learn developers
+# SPDX-License-Identifier: BSD-3-Clause
+import
+matplotlib.pyplot
+as
+plt
+import
+numpy
+as
+np
+from
+sklearn.datasets
+import
+make_blobs
+from
+sklearn.preprocessing
+import
+KBinsDiscretizer
+strategies
+=
+[
+"uniform"
+,
+"quantile"
+,
+"kmeans"
+]
+n_samples
+=
+200
+centers_0
+=
+np
+.
+array
+([[
+0
+,
+0
+],
+[
+0
+,
+5
+],
+[
+2
+,
+4
+],
+[
+8
+,
+8
+]])
+centers_1
+=
+np
+.
+array
+([[
+0
+,
+0
+],
+[
+3
+,
+1
+]])
+# construct the datasets
+random_state
+=
+42
+X_list
+=
+[
+np
+.
+random
+.
+RandomState
+(
+random_state
+)
+.
+uniform
+(
+-
+3
+,
+3
+,
+size
+=
+(
+n_samples
+,
+2
+)),
+make_blobs
+(
+n_samples
+=
+[
+n_samples
+//
+10
+,
+n_samples
+*
+4
+//
+10
+,
+n_samples
+//
+10
+,
+n_samples
+*
+4
+//
+10
+,
+],
+cluster_std
+=
+0.5
+,
+centers
+=
+centers_0
+,
+random_state
+=
+random_state
+,
+)[
+0
+],
+make_blobs
+(
+n_samples
+=
+[
+n_samples
+//
+5
+,
+n_samples
+*
+4
+//
+5
+],
+cluster_std
+=
+0.5
+,
+centers
+=
+centers_1
+,
+random_state
+=
+random_state
+,
+)[
+0
+],
+]
+figure
+=
+plt
+.
+figure
+(
+figsize
+=
+(
+14
+,
+9
+))
+i
+=
+1
+for
+ds_cnt
+,
+X
+in
+enumerate
+(
+X_list
+):
+ax
+=
+plt
+.
+subplot
+(
+len
+(
+X_list
+),
+len
+(
+strategies
+)
++
+1
+,
+i
+)
+ax
+.
+scatter
+(
+X
+[:,
+0
+],
+X
+[:,
+1
+],
+edgecolors
+=
+"k"
+)
+if
+ds_cnt
+==
+0
+:
+ax
+.
+set_title
+(
+"Input data"
+,
+size
+=
+14
+)
+xx
+,
+yy
+=
+np
+.
+meshgrid
+(
+np
+.
+linspace
+(
+X
+[:,
+0
+]
+.
+min
+(),
+X
+[:,
+0
+]
+.
+max
+(),
+300
+),
+np
+.
+linspace
+(
+X
+[:,
+1
+]
+.
+min
+(),
+X
+[:,
+1
+]
+.
+max
+(),
+300
+),
+)
+grid
+=
+np
+.
+c_
+[
+xx
+.
+ravel
+(),
+yy
+.
+ravel
+()]
+ax
+.
+set_xlim
+(
+xx
+.
+min
+(),
+xx
+.
+max
+())
+ax
+.
+set_ylim
+(
+yy
+.
+min
+(),
+yy
+.
+max
+())
+ax
+.
+set_xticks
+(())
+ax
+.
+set_yticks
+(())
+i
++=
+1
+# transform the dataset with KBinsDiscretizer
+for
+strategy
+in
+strategies
+:
+enc
+=
+KBinsDiscretizer
+(
+n_bins
+=
+4
+,
+encode
+=
+"ordinal"
+,
+quantile_method
+=
+"averaged_inverted_cdf"
+,
+strategy
+=
+strategy
+,
+)
+enc
+.
+fit
+(
+X
+)
+grid_encoded
+=
+enc
+.
+transform
+(
+grid
+)
+ax
+=
+plt
+.
+subplot
+(
+len
+(
+X_list
+),
+len
+(
+strategies
+)
++
+1
+,
+i
+)
+# horizontal stripes
+horizontal
+=
+grid_encoded
+[:,
+0
+]
+.
+reshape
+(
+xx
+.
+shape
+)
+ax
+.
+contourf
+(
+xx
+,
+yy
+,
+horizontal
+,
+alpha
+=
+0.5
+)
+# vertical stripes
+vertical
+=
+grid_encoded
+[:,
+1
+]
+.
+reshape
+(
+xx
+.
+shape
+)
+ax
+.
+contourf
+(
+xx
+,
+yy
+,
+vertical
+,
+alpha
+=
+0.5
+)
+ax
+.
+scatter
+(
+X
+[:,
+0
+],
+X
+[:,
+1
+],
+edgecolors
+=
+"k"
+)
+ax
+.
+set_xlim
+(
+xx
+.
+min
+(),
+xx
+.
+max
+())
+ax
+.
+set_ylim
+(
+yy
+.
+min
+(),
+yy
+.
+max
+())
+ax
+.
+set_xticks
+(())
+ax
+.
+set_yticks
+(())
+if
+ds_cnt
+==
+0
+:
+ax
+.
+set_title
+(
+"strategy='
+%s
+'"
+%
+(
+strategy
+,),
+size
+=
+14
+)
+i
++=
+1
+plt
+.
+tight_layout
+()
+plt
+.
+show
+()
+Total running time of the script:
+(0 minutes 0.599 seconds)
+Download
+Jupyter
+notebook:
+plot_discretization_strategies.ipynb
+Download
+Python
+source
+code:
+plot_discretization_strategies.py
+Download
+zipped:
+plot_discretization_strategies.zip
+Related examples
+Feature discretization
+Feature discretization
+Varying regularization in Multi-layer Perceptron
+Varying regularization in Multi-layer Perceptron
+Illustration of Gaussian process classification (GPC) on the XOR dataset
+Illustration of Gaussian process classification (GPC) on the XOR dataset
+SVM Margins Example
+SVM Margins Example
+Gallery generated by Sphinx-Gallery
+previous
+Comparing Target Encoder with Other Encoders
+next
+Feature discretization
+This Page
+Show Source
+Download source code
+Download Jupyter notebook
+Download zipped
+© Copyright 2007 - 2025, scikit-learn developers (BSD License).

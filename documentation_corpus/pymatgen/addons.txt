@@ -1,0 +1,93 @@
+Add-ons | pymatgen
+Skip to main content
+Link
+Menu
+Expand
+(external link)
+Document
+Search
+Copy
+Copied
+pymatgen
+Home
+Installation
+Compatibility
+Change Log
+Usage
+Contributing
+API Documentation
+Add-ons
+Development Team
+Security Policy
+References
+© Copyright 2011, Materials Project
+API docs
+GitHub
+Issues
+Discourse
+Matgenb Examples
+Add-ons
+With effect from v2022.0.3, pymatgen, pymatgen.analysis, pymatgen.ext and pymatgen.io are now
+namespace packages
+. You may refer to the
+contributing page
+. for details on how to write such packages. This page serves as a universal resource page to list known pymatgen add-ons.
+It should be noted that the
+pymatgen maintainers provide no guarantees whatsoever on the quality or reliability of any of the add-ons
+listed here. End users should make their own assessment of the functionality and quality.
+Please submit a pull request to update this page when if release a new add-on package.
+Add-ons for Analysis
+pymatgen-analysis-diffusion
+: Provides modules for diffusion analysis, including path determination for NEB calculations, analysis of MD trajectories (RDF, van Hove, Arrhenius plots, etc.). This package is maintained by the Materials Virtual Lab.
+pymatgen-analysis-defects
+: Provides functionality related to defect analysis. This package is maintained by Jimmy-Xuan Shen, and officially supported by the Materials Project.
+Add-ons for Input/Output
+pymatgen-io-fleur
+: Provides modules for reading and writing files used by the
+fleur
+DFT code. This package is maintained by the juDFT team.
+pymatgen-io-openmm
+: Provides easy IO for performing molecular dynamics on solutions with OpenMM. This package is maintained by Orion Archer Cohen.
+pymatgen-io-espresso
+: Provides support for the
+Quantum ESPRESSO (QE)
+DFT code. This package was created by
+Omar Ashour
+and maintained in the
+Griffin Group
+repository.
+pymatgen-io-validation
+: Provides comprehensive validation of VASP calculations. This package was created by
+Matthew Kuner
+and maintained in the Materials Project repository.
+External Tools
+If you would like your own tool to be listed here, please submit a PR. For a more complete but less curated list, have a look at
+pymatgen dependents
+.
+Atomate2
+: atomate2 is a library of computational materials science workflows.
+LobsterPy
+: Automatically analyze
+Lobster runs
+.
+pymatviz
+: Complements
+pymatgen
+with additional plotting functionality for larger datasets common in materials informatics.
+DiSCoVeR
+: A materials discovery algorithm geared towards exploring high-performance candidates in new chemical spaces.
+rxn-network
+: Reaction Network is a Python package for predicting likely inorganic chemical reaction pathways using graph theory.
+Matbench
+: Benchmarks for machine learning property prediction.
+Matbench Discovery
+: Benchmark for machine learning crystal stability prediction.
+matgl
+: Graph deep learning library for materials. Implements M3GNet and MEGNet in DGL and Pytorch with more to come.
+chgnet
+: Pretrained universal neural network potential for charge-informed atomistic modeling.
+DebyeCalculator
+: A vectorised implementation of the Debye Scattering Equation on CPU and GPU.
+ramannoodle
+: Efficiently compute off-resonance Raman spectra from first principles calculations (e.g. VASP) using polynomial and ML models.
+© Copyright 2011, Materials Project

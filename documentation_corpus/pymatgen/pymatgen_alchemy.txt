@@ -1,0 +1,1427 @@
+pymatgen.alchemy package — pymatgen 2025.5.28 documentation
+pymatgen.alchemy package
+Submodules
+pymatgen.alchemy.filters module
+AbstractStructureFilter
+AbstractStructureFilter.test()
+ChargeBalanceFilter
+ChargeBalanceFilter.test()
+ContainsSpecieFilter
+ContainsSpecieFilter.as_dict()
+ContainsSpecieFilter.from_dict()
+ContainsSpecieFilter.test()
+RemoveDuplicatesFilter
+RemoveDuplicatesFilter.test()
+RemoveExistingFilter
+RemoveExistingFilter.as_dict()
+RemoveExistingFilter.test()
+SpecieProximityFilter
+SpecieProximityFilter.as_dict()
+SpecieProximityFilter.from_dict()
+SpecieProximityFilter.test()
+SpeciesMaxDistFilter
+SpeciesMaxDistFilter.test()
+pymatgen.alchemy.materials module
+TransformedStructure
+TransformedStructure.append_filter()
+TransformedStructure.append_transformation()
+TransformedStructure.as_dict()
+TransformedStructure.extend_transformations()
+TransformedStructure.from_cif_str()
+TransformedStructure.from_dict()
+TransformedStructure.from_poscar_str()
+TransformedStructure.from_snl()
+TransformedStructure.get_vasp_input()
+TransformedStructure.redo_next_change()
+TransformedStructure.set_parameter()
+TransformedStructure.structures
+TransformedStructure.to_snl()
+TransformedStructure.undo_last_change()
+TransformedStructure.was_modified
+TransformedStructure.write_vasp_input()
+pymatgen.alchemy.transmuters module
+CifTransmuter
+CifTransmuter.from_filenames()
+PoscarTransmuter
+PoscarTransmuter.from_filenames()
+StandardTransmuter
+StandardTransmuter.transformed_structures
+StandardTransmuter.add_tags()
+StandardTransmuter.append_transformation()
+StandardTransmuter.append_transformed_structures()
+StandardTransmuter.apply_filter()
+StandardTransmuter.extend_transformations()
+StandardTransmuter.from_structures()
+StandardTransmuter.redo_next_change()
+StandardTransmuter.set_parameter()
+StandardTransmuter.undo_last_change()
+StandardTransmuter.write_vasp_input()
+batch_write_vasp_input()
+pymatgen
+pymatgen.alchemy package
+Edit on GitHub
+pymatgen.alchemy package
+
+This package provides the modules for performing large scale transformations on
+a large number of structures.
+Submodules
+
+pymatgen.alchemy.filters module
+
+This module defines filters for Transmuter object.
+class
+AbstractStructureFilter
+[source]
+
+Bases:
+MSONable
+,
+ABC
+Structures that return True when passed to the test() method are retained during
+transmutation. Those that return False are removed.
+abstractmethod
+test
+(
+structure
+:
+Structure
+|
+IStructure
+)
+[source]
+
+Structures that return true are kept in the Transmuter object during filtering.
+Parameters
+:
+structure
+(
+Structure
+) – Input structure to test
+Returns
+:
+True if structure passes filter.
+Return type
+:
+bool
+class
+ChargeBalanceFilter
+[source]
+
+Bases:
+AbstractStructureFilter
+This filter removes structures that are not charge balanced from the
+transmuter. This only works if the structure is oxidation state
+decorated, as structures with only elemental sites are automatically
+assumed to have net charge of 0.
+No args required.
+test
+(
+structure
+:
+Structure
+)
+[source]
+
+True if structure is neutral.
+class
+ContainsSpecieFilter
+(
+species
+:
+SpeciesLike
+,
+strict_compare
+:
+bool
+=
+False
+,
+AND
+:
+bool
+=
+True
+,
+exclude
+:
+bool
+=
+False
+)
+[source]
+
+Bases:
+AbstractStructureFilter
+Filter for structures containing certain elements or species.
+By default compares by atomic number.
+Parameters
+:
+species
+(
+list
+[
+SpeciesLike
+]
+) – species to look for
+AND
+– whether all species must be present to pass (or fail) filter.
+strict_compare
+– if true, compares objects by specie or element
+object if false, compares atomic number
+exclude
+– If true, returns false for any structures with the specie
+(excludes them from the Transmuter).
+as_dict
+(
+)
+→
+dict
+[source]
+
+Get MSONable dict.
+classmethod
+from_dict
+(
+dct
+:
+dict
+)
+→
+Self
+[source]
+
+Parameters
+:
+dct
+(
+dict
+) – Dict representation.
+Returns
+:
+Filter
+test
+(
+structure
+:
+Structure
+|
+IStructure
+)
+[source]
+
+True if structure does not contain specified species.
+class
+RemoveDuplicatesFilter
+(
+structure_matcher
+:
+dict
+|
+StructureMatcher
+|
+None
+=
+None
+,
+symprec
+:
+float
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+AbstractStructureFilter
+This filter removes exact duplicate structures from the transmuter.
+Remove duplicate structures based on the structure matcher
+and symmetry (if symprec is given).
+Parameters
+:
+structure_matcher
+(
+dict
+|
+StructureMatcher
+,
+optional
+) – Provides a structure matcher to be used for
+structure comparison.
+symprec
+(
+float
+,
+optional
+) – The precision in the symmetry finder algorithm if None (
+default value), no symmetry check is performed and only the
+structure matcher is used. A recommended value is 1e-5.
+test
+(
+structure
+:
+Structure
+)
+→
+bool
+[source]
+
+Parameters
+:
+structure
+(
+Structure
+) – Input structure to test.
+Returns
+:
+True if structure is not in list.
+Return type
+:
+bool
+class
+RemoveExistingFilter
+(
+existing_structures
+:
+list
+[
+Structure
+]
+,
+structure_matcher
+:
+dict
+|
+StructureMatcher
+|
+None
+=
+None
+,
+symprec
+:
+float
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+AbstractStructureFilter
+This filter removes structures existing in a given list from the transmuter.
+Remove existing structures based on the structure matcher
+and symmetry (if symprec is given).
+Parameters
+:
+existing_structures
+(
+list
+[
+Structure
+]
+) – Existing structures to compare with.
+structure_matcher
+(
+dict
+|
+StructureMatcher
+,
+optional
+) – Will be used for
+structure comparison.
+symprec
+(
+float
+|
+None
+) – The precision in the symmetry finder algorithm.
+If None (default value), no symmetry check is performed and only the
+structure matcher is used. A recommended value is 1e-5.
+as_dict
+(
+)
+[source]
+
+Get MSONable dict.
+test
+(
+structure
+:
+Structure
+)
+[source]
+
+True if structure is not in existing list.
+class
+SpecieProximityFilter
+(
+specie_and_min_dist_dict
+)
+[source]
+
+Bases:
+AbstractStructureFilter
+This filter removes structures that have certain species that are too close together.
+Parameters
+:
+specie_and_min_dist_dict
+(
+dict
+) – A species string to float mapping. For
+example, {“Na+”: 1} means that all Na+ ions must be at least 1
+Angstrom away from each other. Multiple species criteria can be
+applied. Note that the testing is done based on the actual object
+. If you have a structure with Element, you must use {“Na”:1}
+instead to filter based on Element and not Species.
+as_dict
+(
+)
+[source]
+
+Get MSONable dict.
+classmethod
+from_dict
+(
+dct
+:
+dict
+)
+→
+Self
+[source]
+
+Parameters
+:
+dct
+(
+dict
+) – Dict representation.
+Returns
+:
+SpecieProximityFilter
+test
+(
+structure
+:
+Structure
+)
+[source]
+
+True if structure does not contain species within specified distances.
+class
+SpeciesMaxDistFilter
+(
+sp1
+,
+sp2
+,
+max_dist
+)
+[source]
+
+Bases:
+AbstractStructureFilter
+This filter removes structures that do have two particular species that are
+not nearest neighbors by a predefined max_dist. For instance, if you are
+analyzing Li battery materials, you would expect that each Li+ would be
+nearest neighbor to lower oxidation state transition metal for
+electrostatic reasons. This only works if the structure is oxidation state
+decorated, as structures with only elemental sites are automatically
+assumed to have net charge of 0.
+Parameters
+:
+sp1
+(
+Species
+) – First specie
+sp2
+(
+Species
+) – Second specie
+max_dist
+(
+float
+) – Maximum distance between species.
+test
+(
+structure
+:
+Structure
+)
+[source]
+
+True if structure contains the two species but their distance is greater than max_dist.
+pymatgen.alchemy.materials module
+
+This module provides various representations of transformed structures. A
+TransformedStructure is a structure that has been modified by undergoing a
+series of transformations.
+class
+TransformedStructure
+(
+structure
+:
+Structure
+,
+transformations
+:
+AbstractTransformation
+|
+Sequence
+[
+AbstractTransformation
+]
+|
+None
+=
+None
+,
+history
+:
+list
+[
+AbstractTransformation
+|
+Mapping
+[
+str
+,
+Any
+]
+]
+|
+None
+=
+None
+,
+other_parameters
+:
+dict
+[
+str
+,
+Any
+]
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+Container for new structures that include history of transformations.
+Each transformed structure is made up of a sequence of structures with
+associated transformation history.
+Initialize a transformed structure from a structure.
+Parameters
+:
+structure
+(
+Structure
+) – Input structure
+transformations
+(
+list
+[
+Transformation
+]
+) – Transformations to apply.
+history
+(
+list
+[
+Transformation
+]
+) – Previous history.
+other_parameters
+(
+dict
+) – Additional parameters to be added.
+append_filter
+(
+structure_filter
+:
+AbstractStructureFilter
+)
+→
+None
+[source]
+
+Add a filter.
+Parameters
+:
+structure_filter
+(
+StructureFilter
+) – A filter implementing the
+AbstractStructureFilter API. Tells transmuter what structures to retain.
+append_transformation
+(
+transformation
+,
+return_alternatives
+:
+bool
+=
+False
+,
+clear_redo
+:
+bool
+=
+True
+)
+→
+list
+[
+TransformedStructure
+]
+|
+None
+[source]
+
+Append a transformation to the TransformedStructure.
+Parameters
+:
+transformation
+– Transformation to append
+return_alternatives
+– Whether to return alternative
+TransformedStructures for one-to-many transformations.
+return_alternatives can be a number, which stipulates the
+total number of structures to return.
+clear_redo
+– Boolean indicating whether to clear the redo list.
+By default, this is True, meaning any appends clears the
+history of undoing. However, when using append_transformation
+to do a redo, the redo list should not be cleared to allow
+multiple redos.
+as_dict
+(
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Dict representation of the TransformedStructure.
+extend_transformations
+(
+transformations
+:
+list
+[
+AbstractTransformation
+]
+,
+return_alternatives
+:
+bool
+=
+False
+)
+→
+None
+[source]
+
+Extend a sequence of transformations to the TransformedStructure.
+Parameters
+:
+transformations
+– Sequence of Transformations
+return_alternatives
+– Whether to return alternative
+TransformedStructures for one-to-many transformations.
+return_alternatives can be a number, which stipulates the
+total number of structures to return.
+classmethod
+from_cif_str
+(
+cif_string
+:
+str
+,
+transformations
+:
+list
+[
+AbstractTransformation
+]
+|
+None
+=
+None
+,
+primitive
+:
+bool
+=
+True
+,
+occupancy_tolerance
+:
+float
+=
+1.0
+)
+→
+Self
+[source]
+
+Generate TransformedStructure from a CIF string.
+Parameters
+:
+cif_string
+(
+str
+) – Input CIF string. Should contain only one
+structure. For CIFs containing multiple structures, please use
+CifTransmuter.
+transformations
+(
+list
+[
+Transformation
+]
+) – Sequence of transformations
+to be applied to the input structure.
+primitive
+(
+bool
+) – Option to set if the primitive cell should be
+extracted. Defaults to True. However, there are certain
+instances where you might want to use a non-primitive cell,
+e.g. if you are trying to generate all possible orderings of
+partial removals or order a disordered structure. Defaults to True.
+occupancy_tolerance
+(
+float
+) – If total occupancy of a site is
+between 1 and occupancy_tolerance, the occupancies will be
+scaled down to 1.
+Returns
+:
+TransformedStructure
+classmethod
+from_dict
+(
+dct
+:
+dict
+)
+→
+Self
+[source]
+
+Create a TransformedStructure from a dict.
+classmethod
+from_poscar_str
+(
+poscar_string
+:
+str
+,
+transformations
+:
+list
+[
+AbstractTransformation
+]
+|
+None
+=
+None
+)
+→
+Self
+[source]
+
+Generate TransformedStructure from a poscar string.
+Parameters
+:
+poscar_string
+(
+str
+) – Input POSCAR string.
+transformations
+(
+list
+[
+Transformation
+]
+) – Sequence of transformations
+to be applied to the input structure.
+classmethod
+from_snl
+(
+snl
+:
+StructureNL
+)
+→
+Self
+[source]
+
+Create TransformedStructure from SNL.
+Parameters
+:
+snl
+(
+StructureNL
+) – Starting snl
+Returns
+:
+TransformedStructure
+get_vasp_input
+(
+vasp_input_set:
+type[VaspInputSet]
+=
+<class
+'pymatgen.io.vasp.sets.MPRelaxSet'>
+,
+**kwargs
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Get VASP input as a dict of VASP objects.
+Parameters
+:
+vasp_input_set
+(
+VaspInputSet
+) – input set
+to create VASP input files from structures
+**kwargs
+– All keyword args supported by the VASP input set.
+redo_next_change
+(
+)
+→
+None
+[source]
+
+Redo the last undone change in the TransformedStructure.
+Raises
+:
+IndexError
+– If already at the latest change.
+set_parameter
+(
+key
+:
+str
+,
+value
+:
+Any
+)
+→
+TransformedStructure
+[source]
+
+Set a parameter.
+Parameters
+:
+key
+(
+str
+) – The string key.
+value
+(
+Any
+) – The value.
+Returns
+:
+TransformedStructure
+property
+structures
+:
+list
+[
+Structure
+]
+[source]
+
+Copy of all structures in the TransformedStructure. A
+structure is stored after every single transformation.
+to_snl
+(
+authors
+:
+list
+[
+str
+]
+,
+**
+kwargs
+)
+→
+StructureNL
+[source]
+
+Generate a StructureNL from TransformedStructure.
+Parameters
+:
+authors
+(
+List
+[
+str
+]
+) – Authors contributing to the generated StructureNL.
+**kwargs
+(
+Any
+) – All kwargs supported by StructureNL.
+Returns
+:
+The generated StructureNL object.
+Return type
+:
+StructureNL
+undo_last_change
+(
+)
+→
+None
+[source]
+
+Undo the last change in the TransformedStructure.
+Raises
+:
+IndexError
+– If already at the oldest change.
+property
+was_modified
+:
+bool
+[source]
+
+Boolean describing whether the last transformation on the structure
+made any alterations to it one example of when this would return false
+is in the case of performing a substitution transformation on the
+structure when the specie to replace isn’t in the structure.
+write_vasp_input
+(
+vasp_input_set:
+type[~pymatgen.io.vasp.sets.VaspInputSet]
+=
+<class
+'pymatgen.io.vasp.sets.MPRelaxSet'>
+,
+output_dir:
+str
+=
+'.'
+,
+create_directory:
+bool
+=
+True
+,
+**kwargs
+)
+→
+None
+[source]
+
+Write VASP input to an output_dir.
+Parameters
+:
+vasp_input_set
+– pymatgen.io.vasp.sets.VaspInputSet like object that creates vasp input files from
+structures.
+output_dir
+– Directory to output files
+create_directory
+– Create the directory if not present. Defaults to
+True.
+**kwargs
+– All keyword args supported by the VASP input set.
+pymatgen.alchemy.transmuters module
+
+This module implements various transmuter classes.
+Transmuters are essentially classes that generate TransformedStructures from
+various data sources. They enable the high-throughput generation of new
+structures and input files.
+It also includes the helper function, batch_write_vasp_input to generate an
+entire directory of vasp input files for running.
+class
+CifTransmuter
+(
+cif_string
+,
+transformations
+=
+None
+,
+primitive
+=
+True
+,
+extend_collection
+=
+False
+)
+[source]
+
+Bases:
+StandardTransmuter
+Generate a Transmuter from a CIF string, possibly containing multiple structures.
+Generate a Transmuter from a CIF string, possibly
+containing multiple structures.
+Parameters
+:
+cif_string
+– A string containing a CIF or a series of CIFs
+transformations
+– New transformations to be applied to all
+structures
+primitive
+– Whether to generate the primitive cell from the CIF.
+extend_collection
+– Whether to use more than one output structure
+from one-to-many transformations. extend_collection can be a
+number, which determines the maximum branching for each
+transformation.
+classmethod
+from_filenames
+(
+filenames
+,
+transformations
+=
+None
+,
+primitive
+=
+True
+,
+extend_collection
+=
+False
+)
+→
+Self
+[source]
+
+Generate a TransformedStructureCollection from a cif, possibly
+containing multiple structures.
+Parameters
+:
+filenames
+(
+list
+[
+str
+]
+) – The CIF file paths.
+transformations
+– New transformations to be applied to all
+structures
+primitive
+– Same meaning as in __init__.
+extend_collection
+– Same meaning as in __init__.
+class
+PoscarTransmuter
+(
+poscar_string
+,
+transformations
+=
+None
+,
+extend_collection
+=
+False
+)
+[source]
+
+Bases:
+StandardTransmuter
+Generate a transmuter from a sequence of POSCARs.
+Parameters
+:
+poscar_string
+(
+list
+[
+str
+]
+) – POSCAR strings.
+transformations
+– New transformations to be applied to all
+structures.
+extend_collection
+– Whether to use more than one output structure
+from one-to-many transformations.
+classmethod
+from_filenames
+(
+poscar_filenames
+,
+transformations
+=
+None
+,
+extend_collection
+=
+False
+)
+→
+StandardTransmuter
+[source]
+
+Convenient constructor to generates a POSCAR transmuter from a list of
+POSCAR filenames.
+Parameters
+:
+poscar_filenames
+(
+list
+[
+str
+]
+) – The POSCAR file paths.
+transformations
+– New transformations to be applied to all
+structures.
+extend_collection
+– Same meaning as in __init__.
+class
+StandardTransmuter
+(
+transformed_structures
+:
+list
+[
+TransformedStructure
+]
+,
+transformations
+=
+None
+,
+extend_collection
+:
+int
+=
+0
+,
+ncores
+:
+int
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+object
+An example of a Transmuter object, which performs a sequence of
+transformations on many structures to generate TransformedStructures.
+transformed_structures
+[source]
+
+All transformed structures.
+Type
+:
+list[
+Structure
+]
+Initialize a transmuter from an initial list of
+pymatgen.alchemy.materials.TransformedStructure.
+Parameters
+:
+transformed_structures
+(
+[
+TransformedStructure
+]
+) – Input transformed
+structures
+transformations
+(
+[
+Transformations
+]
+) – New transformations to be
+applied to all structures.
+extend_collection
+(
+int
+) – Whether to use more than one output
+structure from one-to-many transformations. extend_collection
+can be an int, which determines the maximum branching for each
+transformation.
+ncores
+(
+int
+) – Number of cores to use for applying transformations.
+Uses multiprocessing.Pool. Default is None, which implies
+serial.
+add_tags
+(
+tags
+)
+[source]
+
+Add tags for the structures generated by the transmuter.
+Parameters
+:
+tags
+– A sequence of tags. Note that this should be a sequence of
+strings, e.g. [“My awesome structures”, “Project X”].
+append_transformation
+(
+transformation
+,
+extend_collection
+=
+False
+,
+clear_redo
+=
+True
+)
+→
+list
+[
+bool
+]
+[source]
+
+Append a transformation to all TransformedStructures.
+Parameters
+:
+transformation
+– Transformation to append
+extend_collection
+– Whether to use more than one output structure
+from one-to-many transformations. extend_collection can be a
+number, which determines the maximum branching for each transformation.
+clear_redo
+(
+bool
+) – Whether to clear the redo list. By default,
+this is True, meaning any appends clears the history of
+undoing. However, when using append_transformation to do a
+redo, the redo list should not be cleared to allow multiple redos.
+Returns
+:
+Each list item is True if the transformation altered the structure
+with the corresponding index.
+Return type
+:
+list[bool]
+append_transformed_structures
+(
+trafo_structs_or_transmuter
+)
+[source]
+
+Overloaded to accept either a list of transformed structures
+or transmuter, it which case it appends the second transmuter’s structures.
+Parameters
+:
+trafo_structs_or_transmuter
+– A list of transformed structures or a transmuter.
+apply_filter
+(
+structure_filter
+:
+AbstractStructureFilter
+)
+[source]
+
+Apply a structure_filter to the list of TransformedStructures
+in the transmuter.
+Parameters
+:
+structure_filter
+– StructureFilter to apply.
+extend_transformations
+(
+transformations
+)
+[source]
+
+Extend a sequence of transformations to the TransformedStructure.
+Parameters
+:
+transformations
+– Sequence of Transformations
+classmethod
+from_structures
+(
+structures
+,
+transformations
+=
+None
+,
+extend_collection
+=
+0
+)
+→
+Self
+[source]
+
+Alternative constructor from structures rather than
+TransformedStructures.
+Parameters
+:
+structures
+– Sequence of structures
+transformations
+– New transformations to be applied to all
+structures
+extend_collection
+– Whether to use more than one output structure
+from one-to-many transformations. extend_collection can be a
+number, which determines the maximum branching for each
+transformation.
+Returns
+:
+StandardTransmuter
+redo_next_change
+(
+)
+→
+None
+[source]
+
+Redo the last undone transformation in the TransformedStructure.
+Raises
+:
+IndexError if already at the latest change.
+–
+set_parameter
+(
+key
+,
+value
+)
+[source]
+
+Add parameters to the transmuter. Additional parameters are stored in
+the as_dict() output.
+Parameters
+:
+key
+– The key for the parameter.
+value
+– The value for the parameter.
+undo_last_change
+(
+)
+→
+None
+[source]
+
+Undo the last transformation in the TransformedStructure.
+Raises
+:
+IndexError if already at the oldest change.
+–
+write_vasp_input
+(
+**
+kwargs
+)
+[source]
+
+Batch write vasp input for a sequence of transformed structures to
+output_dir, following the format output_dir/{formula}_{number}.
+Parameters
+:
+kwargs
+– All kwargs supported by batch_write_vasp_input.
+batch_write_vasp_input
+(
+transformed_structures:
+Sequence[TransformedStructure],
+vasp_input_set:
+type[VaspInputSet]
+=
+<class
+'pymatgen.io.vasp.sets.MPRelaxSet'>,
+output_dir:
+str
+=
+'.',
+create_directory:
+bool
+=
+True,
+subfolder:
+Callable[[TransformedStructure],
+str]
+|
+None
+=
+None,
+include_cif:
+bool
+=
+False,
+**kwargs
+)
+[source]
+
+Batch write vasp input for a sequence of transformed structures to
+output_dir, following the format output_dir/{group}/{formula}_{number}.
+Parameters
+:
+transformed_structures
+– Sequence of TransformedStructures.
+vasp_input_set
+– pymatgen.io.vasp.sets.VaspInputSet to creates
+vasp input files from structures.
+output_dir
+– Directory to output files
+create_directory
+(
+bool
+) – Create the directory if not present.
+Defaults to True.
+subfolder
+– Function to create subdirectory name from transformed_structure.
+E.g. lambda x: x.other_parameters[“tags”][0] to use the first tag.
+include_cif
+(
+bool
+) – Pass True to output a CIF as well. CIF files are generally
+better supported in visualization programs.
+**kwargs
+– Any kwargs supported by vasp_input_set.
+© Copyright 2011, Pymatgen Development Team.
+Built with
+Sphinx
+using a
+theme
+provided by
+Read the Docs
+.

@@ -1,0 +1,138 @@
+Exceptions and Warnings (numpy.exceptions) — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+NumPy’s module structure
+Array objects
+Universal functions (
+ufunc
+)
+Routines and objects by topic
+Constants
+Array creation routines
+Array manipulation routines
+Bit-wise operations
+String functionality
+Datetime support functions
+Data type routines
+Mathematical functions with automatic domain
+Floating point error handling
+Exceptions and Warnings (
+numpy.exceptions
+)
+numpy.exceptions.ComplexWarning
+numpy.exceptions.VisibleDeprecationWarning
+numpy.exceptions.RankWarning
+numpy.exceptions.AxisError
+numpy.exceptions.DTypePromotionError
+numpy.exceptions.TooHardError
+Discrete Fourier Transform (
+numpy.fft
+)
+Functional programming
+Input and output
+Indexing routines
+Linear algebra (
+numpy.linalg
+)
+Logic functions
+Masked array operations
+Mathematical functions
+Miscellaneous routines
+Polynomials
+Random sampling (
+numpy.random
+)
+Set routines
+Sorting, searching, and counting
+Statistics
+Test support (
+numpy.testing
+)
+Window functions
+Typing (
+numpy.typing
+)
+Packaging (
+numpy.distutils
+)
+NumPy C-API
+Array API standard compatibility
+CPU/SIMD optimizations
+Thread Safety
+Global Configuration Options
+NumPy security
+Status of
+numpy.distutils
+and migration advice
+numpy.distutils
+user guide
+NumPy and SWIG
+NumPy reference
+NumPy’s module structure
+Exceptions and Warnings (
+numpy.exceptions
+)
+Exceptions and Warnings (
+numpy.exceptions
+)
+#
+General exceptions used by NumPy.  Note that some exceptions may be module
+specific, such as linear algebra errors.
+New in version NumPy:
+1.25
+The exceptions module is new in NumPy 1.25.  Older exceptions remain
+available through the main NumPy namespace for compatibility.
+Warnings
+#
+ComplexWarning
+The warning raised when casting a complex dtype to a real dtype.
+VisibleDeprecationWarning
+Visible deprecation warning.
+RankWarning
+Matrix rank warning.
+Exceptions
+#
+AxisError
+(axis[, ndim, msg_prefix])
+Axis supplied was invalid.
+DTypePromotionError
+Multiple DTypes could not be converted to a common one.
+TooHardError
+max_work was exceeded.
+previous
+NumPy’s module structure
+next
+numpy.exceptions.ComplexWarning
+On this page
+Warnings
+Exceptions
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

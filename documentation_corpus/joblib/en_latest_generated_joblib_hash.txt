@@ -1,0 +1,60 @@
+joblib.hash — joblib 1.6.dev0 documentation
+joblib
+.hash
+¶
+joblib.
+hash
+(
+obj
+,
+hash_name
+=
+'md5'
+,
+coerce_mmap
+=
+False
+)
+¶
+Quick calculation of a hash to identify uniquely Python objects
+containing numpy arrays.
+Parameters
+:
+hash_name: ‘md5’ or ‘sha1’
+Hashing algorithm used. sha1 is supposedly safer, but md5 is
+faster.
+coerce_mmap: boolean
+Make no difference between np.memmap and np.ndarray
+Navigation
+User manual
+Why joblib: project goals
+Installing joblib
+On demand recomputing: the
+Memory
+class
+Embarrassingly parallel for loops
+Persistence
+Parallel backend customization API
+Examples
+Development
+Module reference
+joblib.Memory
+joblib.Parallel
+joblib.parallel_config
+joblib
+.cpu_count
+joblib
+.dump
+joblib
+.load
+joblib
+.hash
+hash()
+joblib
+.register_compressor
+Deprecated functionalities
+joblib.parallel_backend
+©2008-2021, Joblib developers.
+      
+      |
+Page source

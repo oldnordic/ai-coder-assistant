@@ -1,0 +1,2446 @@
+API Reference — scikit-learn 1.7.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Install
+User Guide
+API
+Examples
+Community
+More
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Install
+User Guide
+API
+Examples
+Community
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Section Navigation
+sklearn
+config_context
+get_config
+set_config
+show_versions
+sklearn.base
+BaseEstimator
+BiclusterMixin
+ClassNamePrefixFeaturesOutMixin
+ClassifierMixin
+ClusterMixin
+DensityMixin
+MetaEstimatorMixin
+OneToOneFeatureMixin
+OutlierMixin
+RegressorMixin
+TransformerMixin
+clone
+is_classifier
+is_clusterer
+is_regressor
+is_outlier_detector
+sklearn.calibration
+CalibratedClassifierCV
+calibration_curve
+CalibrationDisplay
+sklearn.cluster
+AffinityPropagation
+AgglomerativeClustering
+Birch
+BisectingKMeans
+DBSCAN
+FeatureAgglomeration
+HDBSCAN
+KMeans
+MeanShift
+MiniBatchKMeans
+OPTICS
+SpectralBiclustering
+SpectralClustering
+SpectralCoclustering
+affinity_propagation
+cluster_optics_dbscan
+cluster_optics_xi
+compute_optics_graph
+dbscan
+estimate_bandwidth
+k_means
+kmeans_plusplus
+mean_shift
+spectral_clustering
+ward_tree
+sklearn.compose
+ColumnTransformer
+TransformedTargetRegressor
+make_column_selector
+make_column_transformer
+sklearn.covariance
+EllipticEnvelope
+EmpiricalCovariance
+GraphicalLasso
+GraphicalLassoCV
+LedoitWolf
+MinCovDet
+OAS
+ShrunkCovariance
+empirical_covariance
+graphical_lasso
+ledoit_wolf
+ledoit_wolf_shrinkage
+oas
+shrunk_covariance
+sklearn.cross_decomposition
+CCA
+PLSCanonical
+PLSRegression
+PLSSVD
+sklearn.datasets
+clear_data_home
+dump_svmlight_file
+fetch_20newsgroups
+fetch_20newsgroups_vectorized
+fetch_california_housing
+fetch_covtype
+fetch_file
+fetch_kddcup99
+fetch_lfw_pairs
+fetch_lfw_people
+fetch_olivetti_faces
+fetch_openml
+fetch_rcv1
+fetch_species_distributions
+get_data_home
+load_breast_cancer
+load_diabetes
+load_digits
+load_files
+load_iris
+load_linnerud
+load_sample_image
+load_sample_images
+load_svmlight_file
+load_svmlight_files
+load_wine
+make_biclusters
+make_blobs
+make_checkerboard
+make_circles
+make_classification
+make_friedman1
+make_friedman2
+make_friedman3
+make_gaussian_quantiles
+make_hastie_10_2
+make_low_rank_matrix
+make_moons
+make_multilabel_classification
+make_regression
+make_s_curve
+make_sparse_coded_signal
+make_sparse_spd_matrix
+make_sparse_uncorrelated
+make_spd_matrix
+make_swiss_roll
+sklearn.decomposition
+DictionaryLearning
+FactorAnalysis
+FastICA
+IncrementalPCA
+KernelPCA
+LatentDirichletAllocation
+MiniBatchDictionaryLearning
+MiniBatchNMF
+MiniBatchSparsePCA
+NMF
+PCA
+SparseCoder
+SparsePCA
+TruncatedSVD
+dict_learning
+dict_learning_online
+fastica
+non_negative_factorization
+sparse_encode
+sklearn.discriminant_analysis
+LinearDiscriminantAnalysis
+QuadraticDiscriminantAnalysis
+sklearn.dummy
+DummyClassifier
+DummyRegressor
+sklearn.ensemble
+AdaBoostClassifier
+AdaBoostRegressor
+BaggingClassifier
+BaggingRegressor
+ExtraTreesClassifier
+ExtraTreesRegressor
+GradientBoostingClassifier
+GradientBoostingRegressor
+HistGradientBoostingClassifier
+HistGradientBoostingRegressor
+IsolationForest
+RandomForestClassifier
+RandomForestRegressor
+RandomTreesEmbedding
+StackingClassifier
+StackingRegressor
+VotingClassifier
+VotingRegressor
+sklearn.exceptions
+ConvergenceWarning
+DataConversionWarning
+DataDimensionalityWarning
+EfficiencyWarning
+FitFailedWarning
+InconsistentVersionWarning
+NotFittedError
+UndefinedMetricWarning
+EstimatorCheckFailedWarning
+sklearn.experimental
+enable_halving_search_cv
+enable_iterative_imputer
+sklearn.feature_extraction
+DictVectorizer
+FeatureHasher
+PatchExtractor
+extract_patches_2d
+grid_to_graph
+img_to_graph
+reconstruct_from_patches_2d
+CountVectorizer
+HashingVectorizer
+TfidfTransformer
+TfidfVectorizer
+sklearn.feature_selection
+GenericUnivariateSelect
+RFE
+RFECV
+SelectFdr
+SelectFpr
+SelectFromModel
+SelectFwe
+SelectKBest
+SelectPercentile
+SelectorMixin
+SequentialFeatureSelector
+VarianceThreshold
+chi2
+f_classif
+f_regression
+mutual_info_classif
+mutual_info_regression
+r_regression
+sklearn.frozen
+FrozenEstimator
+sklearn.gaussian_process
+GaussianProcessClassifier
+GaussianProcessRegressor
+CompoundKernel
+ConstantKernel
+DotProduct
+ExpSineSquared
+Exponentiation
+Hyperparameter
+Kernel
+Matern
+PairwiseKernel
+Product
+RBF
+RationalQuadratic
+Sum
+WhiteKernel
+sklearn.impute
+IterativeImputer
+KNNImputer
+MissingIndicator
+SimpleImputer
+sklearn.inspection
+partial_dependence
+permutation_importance
+DecisionBoundaryDisplay
+PartialDependenceDisplay
+sklearn.isotonic
+IsotonicRegression
+check_increasing
+isotonic_regression
+sklearn.kernel_approximation
+AdditiveChi2Sampler
+Nystroem
+PolynomialCountSketch
+RBFSampler
+SkewedChi2Sampler
+sklearn.kernel_ridge
+KernelRidge
+sklearn.linear_model
+LogisticRegression
+LogisticRegressionCV
+PassiveAggressiveClassifier
+Perceptron
+RidgeClassifier
+RidgeClassifierCV
+SGDClassifier
+SGDOneClassSVM
+LinearRegression
+Ridge
+RidgeCV
+SGDRegressor
+ElasticNet
+ElasticNetCV
+Lars
+LarsCV
+Lasso
+LassoCV
+LassoLars
+LassoLarsCV
+LassoLarsIC
+OrthogonalMatchingPursuit
+OrthogonalMatchingPursuitCV
+ARDRegression
+BayesianRidge
+MultiTaskElasticNet
+MultiTaskElasticNetCV
+MultiTaskLasso
+MultiTaskLassoCV
+HuberRegressor
+QuantileRegressor
+RANSACRegressor
+TheilSenRegressor
+GammaRegressor
+PoissonRegressor
+TweedieRegressor
+PassiveAggressiveRegressor
+enet_path
+lars_path
+lars_path_gram
+lasso_path
+orthogonal_mp
+orthogonal_mp_gram
+ridge_regression
+sklearn.manifold
+Isomap
+LocallyLinearEmbedding
+MDS
+SpectralEmbedding
+TSNE
+locally_linear_embedding
+smacof
+spectral_embedding
+trustworthiness
+sklearn.metrics
+check_scoring
+get_scorer
+get_scorer_names
+make_scorer
+accuracy_score
+auc
+average_precision_score
+balanced_accuracy_score
+brier_score_loss
+class_likelihood_ratios
+classification_report
+cohen_kappa_score
+confusion_matrix
+d2_log_loss_score
+dcg_score
+det_curve
+f1_score
+fbeta_score
+hamming_loss
+hinge_loss
+jaccard_score
+log_loss
+matthews_corrcoef
+multilabel_confusion_matrix
+ndcg_score
+precision_recall_curve
+precision_recall_fscore_support
+precision_score
+recall_score
+roc_auc_score
+roc_curve
+top_k_accuracy_score
+zero_one_loss
+d2_absolute_error_score
+d2_pinball_score
+d2_tweedie_score
+explained_variance_score
+max_error
+mean_absolute_error
+mean_absolute_percentage_error
+mean_gamma_deviance
+mean_pinball_loss
+mean_poisson_deviance
+mean_squared_error
+mean_squared_log_error
+mean_tweedie_deviance
+median_absolute_error
+r2_score
+root_mean_squared_error
+root_mean_squared_log_error
+coverage_error
+label_ranking_average_precision_score
+label_ranking_loss
+adjusted_mutual_info_score
+adjusted_rand_score
+calinski_harabasz_score
+contingency_matrix
+pair_confusion_matrix
+completeness_score
+davies_bouldin_score
+fowlkes_mallows_score
+homogeneity_completeness_v_measure
+homogeneity_score
+mutual_info_score
+normalized_mutual_info_score
+rand_score
+silhouette_samples
+silhouette_score
+v_measure_score
+consensus_score
+DistanceMetric
+additive_chi2_kernel
+chi2_kernel
+cosine_distances
+cosine_similarity
+distance_metrics
+euclidean_distances
+haversine_distances
+kernel_metrics
+laplacian_kernel
+linear_kernel
+manhattan_distances
+nan_euclidean_distances
+paired_cosine_distances
+paired_distances
+paired_euclidean_distances
+paired_manhattan_distances
+pairwise_kernels
+polynomial_kernel
+rbf_kernel
+sigmoid_kernel
+pairwise_distances
+pairwise_distances_argmin
+pairwise_distances_argmin_min
+pairwise_distances_chunked
+ConfusionMatrixDisplay
+DetCurveDisplay
+PrecisionRecallDisplay
+PredictionErrorDisplay
+RocCurveDisplay
+sklearn.mixture
+BayesianGaussianMixture
+GaussianMixture
+sklearn.model_selection
+GroupKFold
+GroupShuffleSplit
+KFold
+LeaveOneGroupOut
+LeaveOneOut
+LeavePGroupsOut
+LeavePOut
+PredefinedSplit
+RepeatedKFold
+RepeatedStratifiedKFold
+ShuffleSplit
+StratifiedGroupKFold
+StratifiedKFold
+StratifiedShuffleSplit
+TimeSeriesSplit
+check_cv
+train_test_split
+GridSearchCV
+HalvingGridSearchCV
+HalvingRandomSearchCV
+ParameterGrid
+ParameterSampler
+RandomizedSearchCV
+FixedThresholdClassifier
+TunedThresholdClassifierCV
+cross_val_predict
+cross_val_score
+cross_validate
+learning_curve
+permutation_test_score
+validation_curve
+LearningCurveDisplay
+ValidationCurveDisplay
+sklearn.multiclass
+OneVsOneClassifier
+OneVsRestClassifier
+OutputCodeClassifier
+sklearn.multioutput
+ClassifierChain
+MultiOutputClassifier
+MultiOutputRegressor
+RegressorChain
+sklearn.naive_bayes
+BernoulliNB
+CategoricalNB
+ComplementNB
+GaussianNB
+MultinomialNB
+sklearn.neighbors
+BallTree
+KDTree
+KNeighborsClassifier
+KNeighborsRegressor
+KNeighborsTransformer
+KernelDensity
+LocalOutlierFactor
+NearestCentroid
+NearestNeighbors
+NeighborhoodComponentsAnalysis
+RadiusNeighborsClassifier
+RadiusNeighborsRegressor
+RadiusNeighborsTransformer
+kneighbors_graph
+radius_neighbors_graph
+sort_graph_by_row_values
+sklearn.neural_network
+BernoulliRBM
+MLPClassifier
+MLPRegressor
+sklearn.pipeline
+FeatureUnion
+Pipeline
+make_pipeline
+make_union
+sklearn.preprocessing
+Binarizer
+FunctionTransformer
+KBinsDiscretizer
+KernelCenterer
+LabelBinarizer
+LabelEncoder
+MaxAbsScaler
+MinMaxScaler
+MultiLabelBinarizer
+Normalizer
+OneHotEncoder
+OrdinalEncoder
+PolynomialFeatures
+PowerTransformer
+QuantileTransformer
+RobustScaler
+SplineTransformer
+StandardScaler
+TargetEncoder
+add_dummy_feature
+binarize
+label_binarize
+maxabs_scale
+minmax_scale
+normalize
+power_transform
+quantile_transform
+robust_scale
+scale
+sklearn.random_projection
+GaussianRandomProjection
+SparseRandomProjection
+johnson_lindenstrauss_min_dim
+sklearn.semi_supervised
+LabelPropagation
+LabelSpreading
+SelfTrainingClassifier
+sklearn.svm
+LinearSVC
+LinearSVR
+NuSVC
+NuSVR
+OneClassSVM
+SVC
+SVR
+l1_min_c
+sklearn.tree
+DecisionTreeClassifier
+DecisionTreeRegressor
+ExtraTreeClassifier
+ExtraTreeRegressor
+export_graphviz
+export_text
+plot_tree
+sklearn.utils
+Bunch
+_safe_indexing
+as_float_array
+assert_all_finite
+deprecated
+estimator_html_repr
+gen_batches
+gen_even_slices
+indexable
+murmurhash3_32
+resample
+safe_mask
+safe_sqr
+shuffle
+Tags
+InputTags
+TargetTags
+ClassifierTags
+RegressorTags
+TransformerTags
+get_tags
+check_X_y
+check_array
+check_consistent_length
+check_random_state
+check_scalar
+check_is_fitted
+check_memory
+check_symmetric
+column_or_1d
+has_fit_parameter
+validate_data
+available_if
+compute_class_weight
+compute_sample_weight
+is_multilabel
+type_of_target
+unique_labels
+density
+fast_logdet
+randomized_range_finder
+randomized_svd
+safe_sparse_dot
+weighted_mode
+incr_mean_variance_axis
+inplace_column_scale
+inplace_csr_column_scale
+inplace_row_scale
+inplace_swap_column
+inplace_swap_row
+mean_variance_axis
+inplace_csr_row_normalize_l1
+inplace_csr_row_normalize_l2
+single_source_shortest_path_length
+sample_without_replacement
+min_pos
+MetadataRequest
+MetadataRouter
+MethodMapping
+get_routing_for_object
+process_routing
+all_displays
+all_estimators
+all_functions
+check_estimator
+parametrize_with_checks
+estimator_checks_generator
+Parallel
+delayed
+API Reference
+API Reference
+#
+This is the class and function reference of scikit-learn. Please refer to the
+full user guide
+for further details, as the raw specifications of
+classes and functions may not be enough to give full guidelines on their use. For
+reference on concepts repeated across the API, see
+Glossary of Common Terms and API Elements
+.
+Object
+Description
+config_context
+Context manager for global scikit-learn configuration.
+sklearn
+get_config
+Retrieve current values for configuration set by
+set_config
+.
+sklearn
+set_config
+Set global scikit-learn configuration.
+sklearn
+show_versions
+Print useful debugging information”
+sklearn
+BaseEstimator
+Base class for all estimators in scikit-learn.
+sklearn.base
+BiclusterMixin
+Mixin class for all bicluster estimators in scikit-learn.
+sklearn.base
+ClassNamePrefixFeaturesOutMixin
+Mixin class for transformers that generate their own names by prefixing.
+sklearn.base
+ClassifierMixin
+Mixin class for all classifiers in scikit-learn.
+sklearn.base
+ClusterMixin
+Mixin class for all cluster estimators in scikit-learn.
+sklearn.base
+DensityMixin
+Mixin class for all density estimators in scikit-learn.
+sklearn.base
+MetaEstimatorMixin
+Mixin class for all meta estimators in scikit-learn.
+sklearn.base
+OneToOneFeatureMixin
+Provides
+get_feature_names_out
+for simple transformers.
+sklearn.base
+OutlierMixin
+Mixin class for all outlier detection estimators in scikit-learn.
+sklearn.base
+RegressorMixin
+Mixin class for all regression estimators in scikit-learn.
+sklearn.base
+TransformerMixin
+Mixin class for all transformers in scikit-learn.
+sklearn.base
+clone
+Construct a new unfitted estimator with the same parameters.
+sklearn.base
+is_classifier
+Return True if the given estimator is (probably) a classifier.
+sklearn.base
+is_clusterer
+Return True if the given estimator is (probably) a clusterer.
+sklearn.base
+is_regressor
+Return True if the given estimator is (probably) a regressor.
+sklearn.base
+is_outlier_detector
+Return True if the given estimator is (probably) an outlier detector.
+sklearn.base
+CalibratedClassifierCV
+Probability calibration with isotonic regression or logistic regression.
+sklearn.calibration
+calibration_curve
+Compute true and predicted probabilities for a calibration curve.
+sklearn.calibration
+CalibrationDisplay
+Calibration curve (also known as reliability diagram) visualization.
+sklearn.calibration
+AffinityPropagation
+Perform Affinity Propagation Clustering of data.
+sklearn.cluster
+AgglomerativeClustering
+Agglomerative Clustering.
+sklearn.cluster
+Birch
+Implements the BIRCH clustering algorithm.
+sklearn.cluster
+BisectingKMeans
+Bisecting K-Means clustering.
+sklearn.cluster
+DBSCAN
+Perform DBSCAN clustering from vector array or distance matrix.
+sklearn.cluster
+FeatureAgglomeration
+Agglomerate features.
+sklearn.cluster
+HDBSCAN
+Cluster data using hierarchical density-based clustering.
+sklearn.cluster
+KMeans
+K-Means clustering.
+sklearn.cluster
+MeanShift
+Mean shift clustering using a flat kernel.
+sklearn.cluster
+MiniBatchKMeans
+Mini-Batch K-Means clustering.
+sklearn.cluster
+OPTICS
+Estimate clustering structure from vector array.
+sklearn.cluster
+SpectralBiclustering
+Spectral biclustering (Kluger, 2003).
+sklearn.cluster
+SpectralClustering
+Apply clustering to a projection of the normalized Laplacian.
+sklearn.cluster
+SpectralCoclustering
+Spectral Co-Clustering algorithm (Dhillon, 2001).
+sklearn.cluster
+affinity_propagation
+Perform Affinity Propagation Clustering of data.
+sklearn.cluster
+cluster_optics_dbscan
+Perform DBSCAN extraction for an arbitrary epsilon.
+sklearn.cluster
+cluster_optics_xi
+Automatically extract clusters according to the Xi-steep method.
+sklearn.cluster
+compute_optics_graph
+Compute the OPTICS reachability graph.
+sklearn.cluster
+dbscan
+Perform DBSCAN clustering from vector array or distance matrix.
+sklearn.cluster
+estimate_bandwidth
+Estimate the bandwidth to use with the mean-shift algorithm.
+sklearn.cluster
+k_means
+Perform K-means clustering algorithm.
+sklearn.cluster
+kmeans_plusplus
+Init n_clusters seeds according to k-means++.
+sklearn.cluster
+mean_shift
+Perform mean shift clustering of data using a flat kernel.
+sklearn.cluster
+spectral_clustering
+Apply clustering to a projection of the normalized Laplacian.
+sklearn.cluster
+ward_tree
+Ward clustering based on a Feature matrix.
+sklearn.cluster
+ColumnTransformer
+Applies transformers to columns of an array or pandas DataFrame.
+sklearn.compose
+TransformedTargetRegressor
+Meta-estimator to regress on a transformed target.
+sklearn.compose
+make_column_selector
+Create a callable to select columns to be used with
+sklearn.compose
+make_column_transformer
+Construct a ColumnTransformer from the given transformers.
+sklearn.compose
+EllipticEnvelope
+An object for detecting outliers in a Gaussian distributed dataset.
+sklearn.covariance
+EmpiricalCovariance
+Maximum likelihood covariance estimator.
+sklearn.covariance
+GraphicalLasso
+Sparse inverse covariance estimation with an l1-penalized estimator.
+sklearn.covariance
+GraphicalLassoCV
+Sparse inverse covariance w/ cross-validated choice of the l1 penalty.
+sklearn.covariance
+LedoitWolf
+LedoitWolf Estimator.
+sklearn.covariance
+MinCovDet
+Minimum Covariance Determinant (MCD): robust estimator of covariance.
+sklearn.covariance
+OAS
+Oracle Approximating Shrinkage Estimator.
+sklearn.covariance
+ShrunkCovariance
+Covariance estimator with shrinkage.
+sklearn.covariance
+empirical_covariance
+Compute the Maximum likelihood covariance estimator.
+sklearn.covariance
+graphical_lasso
+L1-penalized covariance estimator.
+sklearn.covariance
+ledoit_wolf
+Estimate the shrunk Ledoit-Wolf covariance matrix.
+sklearn.covariance
+ledoit_wolf_shrinkage
+Estimate the shrunk Ledoit-Wolf covariance matrix.
+sklearn.covariance
+oas
+Estimate covariance with the Oracle Approximating Shrinkage.
+sklearn.covariance
+shrunk_covariance
+Calculate covariance matrices shrunk on the diagonal.
+sklearn.covariance
+CCA
+Canonical Correlation Analysis, also known as “Mode B” PLS.
+sklearn.cross_decomposition
+PLSCanonical
+Partial Least Squares transformer and regressor.
+sklearn.cross_decomposition
+PLSRegression
+PLS regression.
+sklearn.cross_decomposition
+PLSSVD
+Partial Least Square SVD.
+sklearn.cross_decomposition
+clear_data_home
+Delete all the content of the data home cache.
+sklearn.datasets
+dump_svmlight_file
+Dump the dataset in svmlight / libsvm file format.
+sklearn.datasets
+fetch_20newsgroups
+Load the filenames and data from the 20 newsgroups dataset (classification).
+sklearn.datasets
+fetch_20newsgroups_vectorized
+Load and vectorize the 20 newsgroups dataset (classification).
+sklearn.datasets
+fetch_california_housing
+Load the California housing dataset (regression).
+sklearn.datasets
+fetch_covtype
+Load the covertype dataset (classification).
+sklearn.datasets
+fetch_file
+Fetch a file from the web if not already present in the local folder.
+sklearn.datasets
+fetch_kddcup99
+Load the kddcup99 dataset (classification).
+sklearn.datasets
+fetch_lfw_pairs
+Load the Labeled Faces in the Wild (LFW) pairs dataset (classification).
+sklearn.datasets
+fetch_lfw_people
+Load the Labeled Faces in the Wild (LFW) people dataset (classification).
+sklearn.datasets
+fetch_olivetti_faces
+Load the Olivetti faces data-set from AT&T (classification).
+sklearn.datasets
+fetch_openml
+Fetch dataset from openml by name or dataset id.
+sklearn.datasets
+fetch_rcv1
+Load the RCV1 multilabel dataset (classification).
+sklearn.datasets
+fetch_species_distributions
+Loader for species distribution dataset from Phillips et. al. (2006).
+sklearn.datasets
+get_data_home
+Return the path of the scikit-learn data directory.
+sklearn.datasets
+load_breast_cancer
+Load and return the breast cancer Wisconsin dataset (classification).
+sklearn.datasets
+load_diabetes
+Load and return the diabetes dataset (regression).
+sklearn.datasets
+load_digits
+Load and return the digits dataset (classification).
+sklearn.datasets
+load_files
+Load text files with categories as subfolder names.
+sklearn.datasets
+load_iris
+Load and return the iris dataset (classification).
+sklearn.datasets
+load_linnerud
+Load and return the physical exercise Linnerud dataset.
+sklearn.datasets
+load_sample_image
+Load the numpy array of a single sample image.
+sklearn.datasets
+load_sample_images
+Load sample images for image manipulation.
+sklearn.datasets
+load_svmlight_file
+Load datasets in the svmlight / libsvm format into sparse CSR matrix.
+sklearn.datasets
+load_svmlight_files
+Load dataset from multiple files in SVMlight format.
+sklearn.datasets
+load_wine
+Load and return the wine dataset (classification).
+sklearn.datasets
+make_biclusters
+Generate a constant block diagonal structure array for biclustering.
+sklearn.datasets
+make_blobs
+Generate isotropic Gaussian blobs for clustering.
+sklearn.datasets
+make_checkerboard
+Generate an array with block checkerboard structure for biclustering.
+sklearn.datasets
+make_circles
+Make a large circle containing a smaller circle in 2d.
+sklearn.datasets
+make_classification
+Generate a random n-class classification problem.
+sklearn.datasets
+make_friedman1
+Generate the “Friedman #1” regression problem.
+sklearn.datasets
+make_friedman2
+Generate the “Friedman #2” regression problem.
+sklearn.datasets
+make_friedman3
+Generate the “Friedman #3” regression problem.
+sklearn.datasets
+make_gaussian_quantiles
+Generate isotropic Gaussian and label samples by quantile.
+sklearn.datasets
+make_hastie_10_2
+Generate data for binary classification used in Hastie et al. 2009, Example 10.2.
+sklearn.datasets
+make_low_rank_matrix
+Generate a mostly low rank matrix with bell-shaped singular values.
+sklearn.datasets
+make_moons
+Make two interleaving half circles.
+sklearn.datasets
+make_multilabel_classification
+Generate a random multilabel classification problem.
+sklearn.datasets
+make_regression
+Generate a random regression problem.
+sklearn.datasets
+make_s_curve
+Generate an S curve dataset.
+sklearn.datasets
+make_sparse_coded_signal
+Generate a signal as a sparse combination of dictionary elements.
+sklearn.datasets
+make_sparse_spd_matrix
+Generate a sparse symmetric definite positive matrix.
+sklearn.datasets
+make_sparse_uncorrelated
+Generate a random regression problem with sparse uncorrelated design.
+sklearn.datasets
+make_spd_matrix
+Generate a random symmetric, positive-definite matrix.
+sklearn.datasets
+make_swiss_roll
+Generate a swiss roll dataset.
+sklearn.datasets
+DictionaryLearning
+Dictionary learning.
+sklearn.decomposition
+FactorAnalysis
+Factor Analysis (FA).
+sklearn.decomposition
+FastICA
+FastICA: a fast algorithm for Independent Component Analysis.
+sklearn.decomposition
+IncrementalPCA
+Incremental principal components analysis (IPCA).
+sklearn.decomposition
+KernelPCA
+Kernel Principal component analysis (KPCA).
+sklearn.decomposition
+LatentDirichletAllocation
+Latent Dirichlet Allocation with online variational Bayes algorithm.
+sklearn.decomposition
+MiniBatchDictionaryLearning
+Mini-batch dictionary learning.
+sklearn.decomposition
+MiniBatchNMF
+Mini-Batch Non-Negative Matrix Factorization (NMF).
+sklearn.decomposition
+MiniBatchSparsePCA
+Mini-batch Sparse Principal Components Analysis.
+sklearn.decomposition
+NMF
+Non-Negative Matrix Factorization (NMF).
+sklearn.decomposition
+PCA
+Principal component analysis (PCA).
+sklearn.decomposition
+SparseCoder
+Sparse coding.
+sklearn.decomposition
+SparsePCA
+Sparse Principal Components Analysis (SparsePCA).
+sklearn.decomposition
+TruncatedSVD
+Dimensionality reduction using truncated SVD (aka LSA).
+sklearn.decomposition
+dict_learning
+Solve a dictionary learning matrix factorization problem.
+sklearn.decomposition
+dict_learning_online
+Solve a dictionary learning matrix factorization problem online.
+sklearn.decomposition
+fastica
+Perform Fast Independent Component Analysis.
+sklearn.decomposition
+non_negative_factorization
+Compute Non-negative Matrix Factorization (NMF).
+sklearn.decomposition
+sparse_encode
+Sparse coding.
+sklearn.decomposition
+LinearDiscriminantAnalysis
+Linear Discriminant Analysis.
+sklearn.discriminant_analysis
+QuadraticDiscriminantAnalysis
+Quadratic Discriminant Analysis.
+sklearn.discriminant_analysis
+DummyClassifier
+DummyClassifier makes predictions that ignore the input features.
+sklearn.dummy
+DummyRegressor
+Regressor that makes predictions using simple rules.
+sklearn.dummy
+AdaBoostClassifier
+An AdaBoost classifier.
+sklearn.ensemble
+AdaBoostRegressor
+An AdaBoost regressor.
+sklearn.ensemble
+BaggingClassifier
+A Bagging classifier.
+sklearn.ensemble
+BaggingRegressor
+A Bagging regressor.
+sklearn.ensemble
+ExtraTreesClassifier
+An extra-trees classifier.
+sklearn.ensemble
+ExtraTreesRegressor
+An extra-trees regressor.
+sklearn.ensemble
+GradientBoostingClassifier
+Gradient Boosting for classification.
+sklearn.ensemble
+GradientBoostingRegressor
+Gradient Boosting for regression.
+sklearn.ensemble
+HistGradientBoostingClassifier
+Histogram-based Gradient Boosting Classification Tree.
+sklearn.ensemble
+HistGradientBoostingRegressor
+Histogram-based Gradient Boosting Regression Tree.
+sklearn.ensemble
+IsolationForest
+Isolation Forest Algorithm.
+sklearn.ensemble
+RandomForestClassifier
+A random forest classifier.
+sklearn.ensemble
+RandomForestRegressor
+A random forest regressor.
+sklearn.ensemble
+RandomTreesEmbedding
+An ensemble of totally random trees.
+sklearn.ensemble
+StackingClassifier
+Stack of estimators with a final classifier.
+sklearn.ensemble
+StackingRegressor
+Stack of estimators with a final regressor.
+sklearn.ensemble
+VotingClassifier
+Soft Voting/Majority Rule classifier for unfitted estimators.
+sklearn.ensemble
+VotingRegressor
+Prediction voting regressor for unfitted estimators.
+sklearn.ensemble
+ConvergenceWarning
+Custom warning to capture convergence problems
+sklearn.exceptions
+DataConversionWarning
+Warning used to notify implicit data conversions happening in the code.
+sklearn.exceptions
+DataDimensionalityWarning
+Custom warning to notify potential issues with data dimensionality.
+sklearn.exceptions
+EfficiencyWarning
+Warning used to notify the user of inefficient computation.
+sklearn.exceptions
+FitFailedWarning
+Warning class used if there is an error while fitting the estimator.
+sklearn.exceptions
+InconsistentVersionWarning
+Warning raised when an estimator is unpickled with an inconsistent version.
+sklearn.exceptions
+NotFittedError
+Exception class to raise if estimator is used before fitting.
+sklearn.exceptions
+UndefinedMetricWarning
+Warning used when the metric is invalid
+sklearn.exceptions
+EstimatorCheckFailedWarning
+Warning raised when an estimator check from the common tests fails.
+sklearn.exceptions
+enable_halving_search_cv
+Enables Successive Halving search-estimators
+sklearn.experimental
+enable_iterative_imputer
+Enables IterativeImputer
+sklearn.experimental
+DictVectorizer
+Transforms lists of feature-value mappings to vectors.
+sklearn.feature_extraction
+FeatureHasher
+Implements feature hashing, aka the hashing trick.
+sklearn.feature_extraction
+PatchExtractor
+Extracts patches from a collection of images.
+sklearn.feature_extraction.image
+extract_patches_2d
+Reshape a 2D image into a collection of patches.
+sklearn.feature_extraction.image
+grid_to_graph
+Graph of the pixel-to-pixel connections.
+sklearn.feature_extraction.image
+img_to_graph
+Graph of the pixel-to-pixel gradient connections.
+sklearn.feature_extraction.image
+reconstruct_from_patches_2d
+Reconstruct the image from all of its patches.
+sklearn.feature_extraction.image
+CountVectorizer
+Convert a collection of text documents to a matrix of token counts.
+sklearn.feature_extraction.text
+HashingVectorizer
+Convert a collection of text documents to a matrix of token occurrences.
+sklearn.feature_extraction.text
+TfidfTransformer
+Transform a count matrix to a normalized tf or tf-idf representation.
+sklearn.feature_extraction.text
+TfidfVectorizer
+Convert a collection of raw documents to a matrix of TF-IDF features.
+sklearn.feature_extraction.text
+GenericUnivariateSelect
+Univariate feature selector with configurable strategy.
+sklearn.feature_selection
+RFE
+Feature ranking with recursive feature elimination.
+sklearn.feature_selection
+RFECV
+Recursive feature elimination with cross-validation to select features.
+sklearn.feature_selection
+SelectFdr
+Filter: Select the p-values for an estimated false discovery rate.
+sklearn.feature_selection
+SelectFpr
+Filter: Select the pvalues below alpha based on a FPR test.
+sklearn.feature_selection
+SelectFromModel
+Meta-transformer for selecting features based on importance weights.
+sklearn.feature_selection
+SelectFwe
+Filter: Select the p-values corresponding to Family-wise error rate.
+sklearn.feature_selection
+SelectKBest
+Select features according to the k highest scores.
+sklearn.feature_selection
+SelectPercentile
+Select features according to a percentile of the highest scores.
+sklearn.feature_selection
+SelectorMixin
+Transformer mixin that performs feature selection given a support mask
+sklearn.feature_selection
+SequentialFeatureSelector
+Transformer that performs Sequential Feature Selection.
+sklearn.feature_selection
+VarianceThreshold
+Feature selector that removes all low-variance features.
+sklearn.feature_selection
+chi2
+Compute chi-squared stats between each non-negative feature and class.
+sklearn.feature_selection
+f_classif
+Compute the ANOVA F-value for the provided sample.
+sklearn.feature_selection
+f_regression
+Univariate linear regression tests returning F-statistic and p-values.
+sklearn.feature_selection
+mutual_info_classif
+Estimate mutual information for a discrete target variable.
+sklearn.feature_selection
+mutual_info_regression
+Estimate mutual information for a continuous target variable.
+sklearn.feature_selection
+r_regression
+Compute Pearson’s r for each features and the target.
+sklearn.feature_selection
+FrozenEstimator
+Estimator that wraps a fitted estimator to prevent re-fitting.
+sklearn.frozen
+GaussianProcessClassifier
+Gaussian process classification (GPC) based on Laplace approximation.
+sklearn.gaussian_process
+GaussianProcessRegressor
+Gaussian process regression (GPR).
+sklearn.gaussian_process
+CompoundKernel
+Kernel which is composed of a set of other kernels.
+sklearn.gaussian_process.kernels
+ConstantKernel
+Constant kernel.
+sklearn.gaussian_process.kernels
+DotProduct
+Dot-Product kernel.
+sklearn.gaussian_process.kernels
+ExpSineSquared
+Exp-Sine-Squared kernel (aka periodic kernel).
+sklearn.gaussian_process.kernels
+Exponentiation
+The Exponentiation kernel takes one base kernel and a scalar parameter
+sklearn.gaussian_process.kernels
+Hyperparameter
+A kernel hyperparameter’s specification in form of a namedtuple.
+sklearn.gaussian_process.kernels
+Kernel
+Base class for all kernels.
+sklearn.gaussian_process.kernels
+Matern
+Matern kernel.
+sklearn.gaussian_process.kernels
+PairwiseKernel
+Wrapper for kernels in sklearn.metrics.pairwise.
+sklearn.gaussian_process.kernels
+Product
+The
+Product
+kernel takes two kernels
+\(k_1\)
+and
+\(k_2\)
+sklearn.gaussian_process.kernels
+RBF
+Radial basis function kernel (aka squared-exponential kernel).
+sklearn.gaussian_process.kernels
+RationalQuadratic
+Rational Quadratic kernel.
+sklearn.gaussian_process.kernels
+Sum
+The
+Sum
+kernel takes two kernels
+\(k_1\)
+and
+\(k_2\)
+sklearn.gaussian_process.kernels
+WhiteKernel
+White kernel.
+sklearn.gaussian_process.kernels
+IterativeImputer
+Multivariate imputer that estimates each feature from all the others.
+sklearn.impute
+KNNImputer
+Imputation for completing missing values using k-Nearest Neighbors.
+sklearn.impute
+MissingIndicator
+Binary indicators for missing values.
+sklearn.impute
+SimpleImputer
+Univariate imputer for completing missing values with simple strategies.
+sklearn.impute
+partial_dependence
+Partial dependence of
+features
+.
+sklearn.inspection
+permutation_importance
+Permutation importance for feature evaluation
+[Rd9e56ef97513-BRE]
+.
+sklearn.inspection
+DecisionBoundaryDisplay
+Decisions boundary visualization.
+sklearn.inspection
+PartialDependenceDisplay
+Partial Dependence Plot (PDP) and Individual Conditional Expectation (ICE).
+sklearn.inspection
+IsotonicRegression
+Isotonic regression model.
+sklearn.isotonic
+check_increasing
+Determine whether y is monotonically correlated with x.
+sklearn.isotonic
+isotonic_regression
+Solve the isotonic regression model.
+sklearn.isotonic
+AdditiveChi2Sampler
+Approximate feature map for additive chi2 kernel.
+sklearn.kernel_approximation
+Nystroem
+Approximate a kernel map using a subset of the training data.
+sklearn.kernel_approximation
+PolynomialCountSketch
+Polynomial kernel approximation via Tensor Sketch.
+sklearn.kernel_approximation
+RBFSampler
+Approximate a RBF kernel feature map using random Fourier features.
+sklearn.kernel_approximation
+SkewedChi2Sampler
+Approximate feature map for “skewed chi-squared” kernel.
+sklearn.kernel_approximation
+KernelRidge
+Kernel ridge regression.
+sklearn.kernel_ridge
+LogisticRegression
+Logistic Regression (aka logit, MaxEnt) classifier.
+sklearn.linear_model
+LogisticRegressionCV
+Logistic Regression CV (aka logit, MaxEnt) classifier.
+sklearn.linear_model
+PassiveAggressiveClassifier
+Passive Aggressive Classifier.
+sklearn.linear_model
+Perceptron
+Linear perceptron classifier.
+sklearn.linear_model
+RidgeClassifier
+Classifier using Ridge regression.
+sklearn.linear_model
+RidgeClassifierCV
+Ridge classifier with built-in cross-validation.
+sklearn.linear_model
+SGDClassifier
+Linear classifiers (SVM, logistic regression, etc.) with SGD training.
+sklearn.linear_model
+SGDOneClassSVM
+Solves linear One-Class SVM using Stochastic Gradient Descent.
+sklearn.linear_model
+LinearRegression
+Ordinary least squares Linear Regression.
+sklearn.linear_model
+Ridge
+Linear least squares with l2 regularization.
+sklearn.linear_model
+RidgeCV
+Ridge regression with built-in cross-validation.
+sklearn.linear_model
+SGDRegressor
+Linear model fitted by minimizing a regularized empirical loss with SGD.
+sklearn.linear_model
+ElasticNet
+Linear regression with combined L1 and L2 priors as regularizer.
+sklearn.linear_model
+ElasticNetCV
+Elastic Net model with iterative fitting along a regularization path.
+sklearn.linear_model
+Lars
+Least Angle Regression model a.k.a. LAR.
+sklearn.linear_model
+LarsCV
+Cross-validated Least Angle Regression model.
+sklearn.linear_model
+Lasso
+Linear Model trained with L1 prior as regularizer (aka the Lasso).
+sklearn.linear_model
+LassoCV
+Lasso linear model with iterative fitting along a regularization path.
+sklearn.linear_model
+LassoLars
+Lasso model fit with Least Angle Regression a.k.a. Lars.
+sklearn.linear_model
+LassoLarsCV
+Cross-validated Lasso, using the LARS algorithm.
+sklearn.linear_model
+LassoLarsIC
+Lasso model fit with Lars using BIC or AIC for model selection.
+sklearn.linear_model
+OrthogonalMatchingPursuit
+Orthogonal Matching Pursuit model (OMP).
+sklearn.linear_model
+OrthogonalMatchingPursuitCV
+Cross-validated Orthogonal Matching Pursuit model (OMP).
+sklearn.linear_model
+ARDRegression
+Bayesian ARD regression.
+sklearn.linear_model
+BayesianRidge
+Bayesian ridge regression.
+sklearn.linear_model
+MultiTaskElasticNet
+Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer.
+sklearn.linear_model
+MultiTaskElasticNetCV
+Multi-task L1/L2 ElasticNet with built-in cross-validation.
+sklearn.linear_model
+MultiTaskLasso
+Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer.
+sklearn.linear_model
+MultiTaskLassoCV
+Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer.
+sklearn.linear_model
+HuberRegressor
+L2-regularized linear regression model that is robust to outliers.
+sklearn.linear_model
+QuantileRegressor
+Linear regression model that predicts conditional quantiles.
+sklearn.linear_model
+RANSACRegressor
+RANSAC (RANdom SAmple Consensus) algorithm.
+sklearn.linear_model
+TheilSenRegressor
+Theil-Sen Estimator: robust multivariate regression model.
+sklearn.linear_model
+GammaRegressor
+Generalized Linear Model with a Gamma distribution.
+sklearn.linear_model
+PoissonRegressor
+Generalized Linear Model with a Poisson distribution.
+sklearn.linear_model
+TweedieRegressor
+Generalized Linear Model with a Tweedie distribution.
+sklearn.linear_model
+PassiveAggressiveRegressor
+Passive Aggressive Regressor.
+sklearn.linear_model
+enet_path
+Compute elastic net path with coordinate descent.
+sklearn.linear_model
+lars_path
+Compute Least Angle Regression or Lasso path using the LARS algorithm.
+sklearn.linear_model
+lars_path_gram
+The lars_path in the sufficient stats mode.
+sklearn.linear_model
+lasso_path
+Compute Lasso path with coordinate descent.
+sklearn.linear_model
+orthogonal_mp
+Orthogonal Matching Pursuit (OMP).
+sklearn.linear_model
+orthogonal_mp_gram
+Gram Orthogonal Matching Pursuit (OMP).
+sklearn.linear_model
+ridge_regression
+Solve the ridge equation by the method of normal equations.
+sklearn.linear_model
+Isomap
+Isomap Embedding.
+sklearn.manifold
+LocallyLinearEmbedding
+Locally Linear Embedding.
+sklearn.manifold
+MDS
+Multidimensional scaling.
+sklearn.manifold
+SpectralEmbedding
+Spectral embedding for non-linear dimensionality reduction.
+sklearn.manifold
+TSNE
+T-distributed Stochastic Neighbor Embedding.
+sklearn.manifold
+locally_linear_embedding
+Perform a Locally Linear Embedding analysis on the data.
+sklearn.manifold
+smacof
+Compute multidimensional scaling using the SMACOF algorithm.
+sklearn.manifold
+spectral_embedding
+Project the sample on the first eigenvectors of the graph Laplacian.
+sklearn.manifold
+trustworthiness
+Indicate to what extent the local structure is retained.
+sklearn.manifold
+check_scoring
+Determine scorer from user options.
+sklearn.metrics
+get_scorer
+Get a scorer from string.
+sklearn.metrics
+get_scorer_names
+Get the names of all available scorers.
+sklearn.metrics
+make_scorer
+Make a scorer from a performance metric or loss function.
+sklearn.metrics
+accuracy_score
+Accuracy classification score.
+sklearn.metrics
+auc
+Compute Area Under the Curve (AUC) using the trapezoidal rule.
+sklearn.metrics
+average_precision_score
+Compute average precision (AP) from prediction scores.
+sklearn.metrics
+balanced_accuracy_score
+Compute the balanced accuracy.
+sklearn.metrics
+brier_score_loss
+Compute the Brier score loss.
+sklearn.metrics
+class_likelihood_ratios
+Compute binary classification positive and negative likelihood ratios.
+sklearn.metrics
+classification_report
+Build a text report showing the main classification metrics.
+sklearn.metrics
+cohen_kappa_score
+Compute Cohen’s kappa: a statistic that measures inter-annotator agreement.
+sklearn.metrics
+confusion_matrix
+Compute confusion matrix to evaluate the accuracy of a classification.
+sklearn.metrics
+d2_log_loss_score
+\(D^2\)
+score function, fraction of log loss explained.
+sklearn.metrics
+dcg_score
+Compute Discounted Cumulative Gain.
+sklearn.metrics
+det_curve
+Compute Detection Error Tradeoff (DET) for different probability thresholds.
+sklearn.metrics
+f1_score
+Compute the F1 score, also known as balanced F-score or F-measure.
+sklearn.metrics
+fbeta_score
+Compute the F-beta score.
+sklearn.metrics
+hamming_loss
+Compute the average Hamming loss.
+sklearn.metrics
+hinge_loss
+Average hinge loss (non-regularized).
+sklearn.metrics
+jaccard_score
+Jaccard similarity coefficient score.
+sklearn.metrics
+log_loss
+Log loss, aka logistic loss or cross-entropy loss.
+sklearn.metrics
+matthews_corrcoef
+Compute the Matthews correlation coefficient (MCC).
+sklearn.metrics
+multilabel_confusion_matrix
+Compute a confusion matrix for each class or sample.
+sklearn.metrics
+ndcg_score
+Compute Normalized Discounted Cumulative Gain.
+sklearn.metrics
+precision_recall_curve
+Compute precision-recall pairs for different probability thresholds.
+sklearn.metrics
+precision_recall_fscore_support
+Compute precision, recall, F-measure and support for each class.
+sklearn.metrics
+precision_score
+Compute the precision.
+sklearn.metrics
+recall_score
+Compute the recall.
+sklearn.metrics
+roc_auc_score
+Compute Area Under the Receiver Operating Characteristic Curve (ROC AUC)     from prediction scores.
+sklearn.metrics
+roc_curve
+Compute Receiver operating characteristic (ROC).
+sklearn.metrics
+top_k_accuracy_score
+Top-k Accuracy classification score.
+sklearn.metrics
+zero_one_loss
+Zero-one classification loss.
+sklearn.metrics
+d2_absolute_error_score
+\(D^2\)
+regression score function, fraction of absolute error explained.
+sklearn.metrics
+d2_pinball_score
+\(D^2\)
+regression score function, fraction of pinball loss explained.
+sklearn.metrics
+d2_tweedie_score
+\(D^2\)
+regression score function, fraction of Tweedie deviance explained.
+sklearn.metrics
+explained_variance_score
+Explained variance regression score function.
+sklearn.metrics
+max_error
+The max_error metric calculates the maximum residual error.
+sklearn.metrics
+mean_absolute_error
+Mean absolute error regression loss.
+sklearn.metrics
+mean_absolute_percentage_error
+Mean absolute percentage error (MAPE) regression loss.
+sklearn.metrics
+mean_gamma_deviance
+Mean Gamma deviance regression loss.
+sklearn.metrics
+mean_pinball_loss
+Pinball loss for quantile regression.
+sklearn.metrics
+mean_poisson_deviance
+Mean Poisson deviance regression loss.
+sklearn.metrics
+mean_squared_error
+Mean squared error regression loss.
+sklearn.metrics
+mean_squared_log_error
+Mean squared logarithmic error regression loss.
+sklearn.metrics
+mean_tweedie_deviance
+Mean Tweedie deviance regression loss.
+sklearn.metrics
+median_absolute_error
+Median absolute error regression loss.
+sklearn.metrics
+r2_score
+\(R^2\)
+(coefficient of determination) regression score function.
+sklearn.metrics
+root_mean_squared_error
+Root mean squared error regression loss.
+sklearn.metrics
+root_mean_squared_log_error
+Root mean squared logarithmic error regression loss.
+sklearn.metrics
+coverage_error
+Coverage error measure.
+sklearn.metrics
+label_ranking_average_precision_score
+Compute ranking-based average precision.
+sklearn.metrics
+label_ranking_loss
+Compute Ranking loss measure.
+sklearn.metrics
+adjusted_mutual_info_score
+Adjusted Mutual Information between two clusterings.
+sklearn.metrics
+adjusted_rand_score
+Rand index adjusted for chance.
+sklearn.metrics
+calinski_harabasz_score
+Compute the Calinski and Harabasz score.
+sklearn.metrics
+contingency_matrix
+Build a contingency matrix describing the relationship between labels.
+sklearn.metrics.cluster
+pair_confusion_matrix
+Pair confusion matrix arising from two clusterings.
+sklearn.metrics.cluster
+completeness_score
+Compute completeness metric of a cluster labeling given a ground truth.
+sklearn.metrics
+davies_bouldin_score
+Compute the Davies-Bouldin score.
+sklearn.metrics
+fowlkes_mallows_score
+Measure the similarity of two clusterings of a set of points.
+sklearn.metrics
+homogeneity_completeness_v_measure
+Compute the homogeneity and completeness and V-Measure scores at once.
+sklearn.metrics
+homogeneity_score
+Homogeneity metric of a cluster labeling given a ground truth.
+sklearn.metrics
+mutual_info_score
+Mutual Information between two clusterings.
+sklearn.metrics
+normalized_mutual_info_score
+Normalized Mutual Information between two clusterings.
+sklearn.metrics
+rand_score
+Rand index.
+sklearn.metrics
+silhouette_samples
+Compute the Silhouette Coefficient for each sample.
+sklearn.metrics
+silhouette_score
+Compute the mean Silhouette Coefficient of all samples.
+sklearn.metrics
+v_measure_score
+V-measure cluster labeling given a ground truth.
+sklearn.metrics
+consensus_score
+The similarity of two sets of biclusters.
+sklearn.metrics
+DistanceMetric
+Uniform interface for fast distance metric functions.
+sklearn.metrics
+additive_chi2_kernel
+Compute the additive chi-squared kernel between observations in X and Y.
+sklearn.metrics.pairwise
+chi2_kernel
+Compute the exponential chi-squared kernel between X and Y.
+sklearn.metrics.pairwise
+cosine_distances
+Compute cosine distance between samples in X and Y.
+sklearn.metrics.pairwise
+cosine_similarity
+Compute cosine similarity between samples in X and Y.
+sklearn.metrics.pairwise
+distance_metrics
+Valid metrics for pairwise_distances.
+sklearn.metrics.pairwise
+euclidean_distances
+Compute the distance matrix between each pair from a feature array X and Y.
+sklearn.metrics.pairwise
+haversine_distances
+Compute the Haversine distance between samples in X and Y.
+sklearn.metrics.pairwise
+kernel_metrics
+Valid metrics for pairwise_kernels.
+sklearn.metrics.pairwise
+laplacian_kernel
+Compute the laplacian kernel between X and Y.
+sklearn.metrics.pairwise
+linear_kernel
+Compute the linear kernel between X and Y.
+sklearn.metrics.pairwise
+manhattan_distances
+Compute the L1 distances between the vectors in X and Y.
+sklearn.metrics.pairwise
+nan_euclidean_distances
+Calculate the euclidean distances in the presence of missing values.
+sklearn.metrics.pairwise
+paired_cosine_distances
+Compute the paired cosine distances between X and Y.
+sklearn.metrics.pairwise
+paired_distances
+Compute the paired distances between X and Y.
+sklearn.metrics.pairwise
+paired_euclidean_distances
+Compute the paired euclidean distances between X and Y.
+sklearn.metrics.pairwise
+paired_manhattan_distances
+Compute the paired L1 distances between X and Y.
+sklearn.metrics.pairwise
+pairwise_kernels
+Compute the kernel between arrays X and optional array Y.
+sklearn.metrics.pairwise
+polynomial_kernel
+Compute the polynomial kernel between X and Y.
+sklearn.metrics.pairwise
+rbf_kernel
+Compute the rbf (gaussian) kernel between X and Y.
+sklearn.metrics.pairwise
+sigmoid_kernel
+Compute the sigmoid kernel between X and Y.
+sklearn.metrics.pairwise
+pairwise_distances
+Compute the distance matrix from a feature array X and optional Y.
+sklearn.metrics
+pairwise_distances_argmin
+Compute minimum distances between one point and a set of points.
+sklearn.metrics
+pairwise_distances_argmin_min
+Compute minimum distances between one point and a set of points.
+sklearn.metrics
+pairwise_distances_chunked
+Generate a distance matrix chunk by chunk with optional reduction.
+sklearn.metrics
+ConfusionMatrixDisplay
+Confusion Matrix visualization.
+sklearn.metrics
+DetCurveDisplay
+Detection Error Tradeoff (DET) curve visualization.
+sklearn.metrics
+PrecisionRecallDisplay
+Precision Recall visualization.
+sklearn.metrics
+PredictionErrorDisplay
+Visualization of the prediction error of a regression model.
+sklearn.metrics
+RocCurveDisplay
+ROC Curve visualization.
+sklearn.metrics
+BayesianGaussianMixture
+Variational Bayesian estimation of a Gaussian mixture.
+sklearn.mixture
+GaussianMixture
+Gaussian Mixture.
+sklearn.mixture
+GroupKFold
+K-fold iterator variant with non-overlapping groups.
+sklearn.model_selection
+GroupShuffleSplit
+Shuffle-Group(s)-Out cross-validation iterator.
+sklearn.model_selection
+KFold
+K-Fold cross-validator.
+sklearn.model_selection
+LeaveOneGroupOut
+Leave One Group Out cross-validator.
+sklearn.model_selection
+LeaveOneOut
+Leave-One-Out cross-validator.
+sklearn.model_selection
+LeavePGroupsOut
+Leave P Group(s) Out cross-validator.
+sklearn.model_selection
+LeavePOut
+Leave-P-Out cross-validator.
+sklearn.model_selection
+PredefinedSplit
+Predefined split cross-validator.
+sklearn.model_selection
+RepeatedKFold
+Repeated K-Fold cross validator.
+sklearn.model_selection
+RepeatedStratifiedKFold
+Repeated class-wise stratified K-Fold cross validator.
+sklearn.model_selection
+ShuffleSplit
+Random permutation cross-validator.
+sklearn.model_selection
+StratifiedGroupKFold
+Class-wise stratified K-Fold iterator variant with non-overlapping groups.
+sklearn.model_selection
+StratifiedKFold
+Class-wise stratified K-Fold cross-validator.
+sklearn.model_selection
+StratifiedShuffleSplit
+Class-wise stratified ShuffleSplit cross-validator.
+sklearn.model_selection
+TimeSeriesSplit
+Time Series cross-validator.
+sklearn.model_selection
+check_cv
+Input checker utility for building a cross-validator.
+sklearn.model_selection
+train_test_split
+Split arrays or matrices into random train and test subsets.
+sklearn.model_selection
+GridSearchCV
+Exhaustive search over specified parameter values for an estimator.
+sklearn.model_selection
+HalvingGridSearchCV
+Search over specified parameter values with successive halving.
+sklearn.model_selection
+HalvingRandomSearchCV
+Randomized search on hyper parameters.
+sklearn.model_selection
+ParameterGrid
+Grid of parameters with a discrete number of values for each.
+sklearn.model_selection
+ParameterSampler
+Generator on parameters sampled from given distributions.
+sklearn.model_selection
+RandomizedSearchCV
+Randomized search on hyper parameters.
+sklearn.model_selection
+FixedThresholdClassifier
+Binary classifier that manually sets the decision threshold.
+sklearn.model_selection
+TunedThresholdClassifierCV
+Classifier that post-tunes the decision threshold using cross-validation.
+sklearn.model_selection
+cross_val_predict
+Generate cross-validated estimates for each input data point.
+sklearn.model_selection
+cross_val_score
+Evaluate a score by cross-validation.
+sklearn.model_selection
+cross_validate
+Evaluate metric(s) by cross-validation and also record fit/score times.
+sklearn.model_selection
+learning_curve
+Learning curve.
+sklearn.model_selection
+permutation_test_score
+Evaluate the significance of a cross-validated score with permutations.
+sklearn.model_selection
+validation_curve
+Validation curve.
+sklearn.model_selection
+LearningCurveDisplay
+Learning Curve visualization.
+sklearn.model_selection
+ValidationCurveDisplay
+Validation Curve visualization.
+sklearn.model_selection
+OneVsOneClassifier
+One-vs-one multiclass strategy.
+sklearn.multiclass
+OneVsRestClassifier
+One-vs-the-rest (OvR) multiclass strategy.
+sklearn.multiclass
+OutputCodeClassifier
+(Error-Correcting) Output-Code multiclass strategy.
+sklearn.multiclass
+ClassifierChain
+A multi-label model that arranges binary classifiers into a chain.
+sklearn.multioutput
+MultiOutputClassifier
+Multi target classification.
+sklearn.multioutput
+MultiOutputRegressor
+Multi target regression.
+sklearn.multioutput
+RegressorChain
+A multi-label model that arranges regressions into a chain.
+sklearn.multioutput
+BernoulliNB
+Naive Bayes classifier for multivariate Bernoulli models.
+sklearn.naive_bayes
+CategoricalNB
+Naive Bayes classifier for categorical features.
+sklearn.naive_bayes
+ComplementNB
+The Complement Naive Bayes classifier described in Rennie et al. (2003).
+sklearn.naive_bayes
+GaussianNB
+Gaussian Naive Bayes (GaussianNB).
+sklearn.naive_bayes
+MultinomialNB
+Naive Bayes classifier for multinomial models.
+sklearn.naive_bayes
+BallTree
+BallTree for fast generalized N-point problems
+sklearn.neighbors
+KDTree
+KDTree for fast generalized N-point problems
+sklearn.neighbors
+KNeighborsClassifier
+Classifier implementing the k-nearest neighbors vote.
+sklearn.neighbors
+KNeighborsRegressor
+Regression based on k-nearest neighbors.
+sklearn.neighbors
+KNeighborsTransformer
+Transform X into a (weighted) graph of k nearest neighbors.
+sklearn.neighbors
+KernelDensity
+Kernel Density Estimation.
+sklearn.neighbors
+LocalOutlierFactor
+Unsupervised Outlier Detection using the Local Outlier Factor (LOF).
+sklearn.neighbors
+NearestCentroid
+Nearest centroid classifier.
+sklearn.neighbors
+NearestNeighbors
+Unsupervised learner for implementing neighbor searches.
+sklearn.neighbors
+NeighborhoodComponentsAnalysis
+Neighborhood Components Analysis.
+sklearn.neighbors
+RadiusNeighborsClassifier
+Classifier implementing a vote among neighbors within a given radius.
+sklearn.neighbors
+RadiusNeighborsRegressor
+Regression based on neighbors within a fixed radius.
+sklearn.neighbors
+RadiusNeighborsTransformer
+Transform X into a (weighted) graph of neighbors nearer than a radius.
+sklearn.neighbors
+kneighbors_graph
+Compute the (weighted) graph of k-Neighbors for points in X.
+sklearn.neighbors
+radius_neighbors_graph
+Compute the (weighted) graph of Neighbors for points in X.
+sklearn.neighbors
+sort_graph_by_row_values
+Sort a sparse graph such that each row is stored with increasing values.
+sklearn.neighbors
+BernoulliRBM
+Bernoulli Restricted Boltzmann Machine (RBM).
+sklearn.neural_network
+MLPClassifier
+Multi-layer Perceptron classifier.
+sklearn.neural_network
+MLPRegressor
+Multi-layer Perceptron regressor.
+sklearn.neural_network
+FeatureUnion
+Concatenates results of multiple transformer objects.
+sklearn.pipeline
+Pipeline
+A sequence of data transformers with an optional final predictor.
+sklearn.pipeline
+make_pipeline
+Construct a
+Pipeline
+from the given estimators.
+sklearn.pipeline
+make_union
+Construct a
+FeatureUnion
+from the given transformers.
+sklearn.pipeline
+Binarizer
+Binarize data (set feature values to 0 or 1) according to a threshold.
+sklearn.preprocessing
+FunctionTransformer
+Constructs a transformer from an arbitrary callable.
+sklearn.preprocessing
+KBinsDiscretizer
+Bin continuous data into intervals.
+sklearn.preprocessing
+KernelCenterer
+Center an arbitrary kernel matrix
+\(K\)
+.
+sklearn.preprocessing
+LabelBinarizer
+Binarize labels in a one-vs-all fashion.
+sklearn.preprocessing
+LabelEncoder
+Encode target labels with value between 0 and n_classes-1.
+sklearn.preprocessing
+MaxAbsScaler
+Scale each feature by its maximum absolute value.
+sklearn.preprocessing
+MinMaxScaler
+Transform features by scaling each feature to a given range.
+sklearn.preprocessing
+MultiLabelBinarizer
+Transform between iterable of iterables and a multilabel format.
+sklearn.preprocessing
+Normalizer
+Normalize samples individually to unit norm.
+sklearn.preprocessing
+OneHotEncoder
+Encode categorical features as a one-hot numeric array.
+sklearn.preprocessing
+OrdinalEncoder
+Encode categorical features as an integer array.
+sklearn.preprocessing
+PolynomialFeatures
+Generate polynomial and interaction features.
+sklearn.preprocessing
+PowerTransformer
+Apply a power transform featurewise to make data more Gaussian-like.
+sklearn.preprocessing
+QuantileTransformer
+Transform features using quantiles information.
+sklearn.preprocessing
+RobustScaler
+Scale features using statistics that are robust to outliers.
+sklearn.preprocessing
+SplineTransformer
+Generate univariate B-spline bases for features.
+sklearn.preprocessing
+StandardScaler
+Standardize features by removing the mean and scaling to unit variance.
+sklearn.preprocessing
+TargetEncoder
+Target Encoder for regression and classification targets.
+sklearn.preprocessing
+add_dummy_feature
+Augment dataset with an additional dummy feature.
+sklearn.preprocessing
+binarize
+Boolean thresholding of array-like or scipy.sparse matrix.
+sklearn.preprocessing
+label_binarize
+Binarize labels in a one-vs-all fashion.
+sklearn.preprocessing
+maxabs_scale
+Scale each feature to the [-1, 1] range without breaking the sparsity.
+sklearn.preprocessing
+minmax_scale
+Transform features by scaling each feature to a given range.
+sklearn.preprocessing
+normalize
+Scale input vectors individually to unit norm (vector length).
+sklearn.preprocessing
+power_transform
+Parametric, monotonic transformation to make data more Gaussian-like.
+sklearn.preprocessing
+quantile_transform
+Transform features using quantiles information.
+sklearn.preprocessing
+robust_scale
+Standardize a dataset along any axis.
+sklearn.preprocessing
+scale
+Standardize a dataset along any axis.
+sklearn.preprocessing
+GaussianRandomProjection
+Reduce dimensionality through Gaussian random projection.
+sklearn.random_projection
+SparseRandomProjection
+Reduce dimensionality through sparse random projection.
+sklearn.random_projection
+johnson_lindenstrauss_min_dim
+Find a ‘safe’ number of components to randomly project to.
+sklearn.random_projection
+LabelPropagation
+Label Propagation classifier.
+sklearn.semi_supervised
+LabelSpreading
+LabelSpreading model for semi-supervised learning.
+sklearn.semi_supervised
+SelfTrainingClassifier
+Self-training classifier.
+sklearn.semi_supervised
+LinearSVC
+Linear Support Vector Classification.
+sklearn.svm
+LinearSVR
+Linear Support Vector Regression.
+sklearn.svm
+NuSVC
+Nu-Support Vector Classification.
+sklearn.svm
+NuSVR
+Nu Support Vector Regression.
+sklearn.svm
+OneClassSVM
+Unsupervised Outlier Detection.
+sklearn.svm
+SVC
+C-Support Vector Classification.
+sklearn.svm
+SVR
+Epsilon-Support Vector Regression.
+sklearn.svm
+l1_min_c
+Return the lowest bound for
+C
+.
+sklearn.svm
+DecisionTreeClassifier
+A decision tree classifier.
+sklearn.tree
+DecisionTreeRegressor
+A decision tree regressor.
+sklearn.tree
+ExtraTreeClassifier
+An extremely randomized tree classifier.
+sklearn.tree
+ExtraTreeRegressor
+An extremely randomized tree regressor.
+sklearn.tree
+export_graphviz
+Export a decision tree in DOT format.
+sklearn.tree
+export_text
+Build a text report showing the rules of a decision tree.
+sklearn.tree
+plot_tree
+Plot a decision tree.
+sklearn.tree
+Bunch
+Container object exposing keys as attributes.
+sklearn.utils
+_safe_indexing
+Return rows, items or columns of X using indices.
+sklearn.utils
+as_float_array
+Convert an array-like to an array of floats.
+sklearn.utils
+assert_all_finite
+Throw a ValueError if X contains NaN or infinity.
+sklearn.utils
+deprecated
+Decorator to mark a function or class as deprecated.
+sklearn.utils
+estimator_html_repr
+Build a HTML representation of an estimator.
+sklearn.utils
+gen_batches
+Generator to create slices containing
+batch_size
+elements from 0 to
+n
+.
+sklearn.utils
+gen_even_slices
+Generator to create
+n_packs
+evenly spaced slices going up to
+n
+.
+sklearn.utils
+indexable
+Make arrays indexable for cross-validation.
+sklearn.utils
+murmurhash3_32
+Compute the 32bit murmurhash3 of key at seed.
+sklearn.utils
+resample
+Resample arrays or sparse matrices in a consistent way.
+sklearn.utils
+safe_mask
+Return a mask which is safe to use on X.
+sklearn.utils
+safe_sqr
+Element wise squaring of array-likes and sparse matrices.
+sklearn.utils
+shuffle
+Shuffle arrays or sparse matrices in a consistent way.
+sklearn.utils
+Tags
+Tags for the estimator.
+sklearn.utils
+InputTags
+Tags for the input data.
+sklearn.utils
+TargetTags
+Tags for the target data.
+sklearn.utils
+ClassifierTags
+Tags for the classifier.
+sklearn.utils
+RegressorTags
+Tags for the regressor.
+sklearn.utils
+TransformerTags
+Tags for the transformer.
+sklearn.utils
+get_tags
+Get estimator tags.
+sklearn.utils
+check_X_y
+Input validation for standard estimators.
+sklearn.utils
+check_array
+Input validation on an array, list, sparse matrix or similar.
+sklearn.utils
+check_consistent_length
+Check that all arrays have consistent first dimensions.
+sklearn.utils
+check_random_state
+Turn seed into a np.random.RandomState instance.
+sklearn.utils
+check_scalar
+Validate scalar parameters type and value.
+sklearn.utils
+check_is_fitted
+Perform is_fitted validation for estimator.
+sklearn.utils.validation
+check_memory
+Check that
+memory
+is joblib.Memory-like.
+sklearn.utils.validation
+check_symmetric
+Make sure that array is 2D, square and symmetric.
+sklearn.utils.validation
+column_or_1d
+Ravel column or 1d numpy array, else raises an error.
+sklearn.utils.validation
+has_fit_parameter
+Check whether the estimator’s fit method supports the given parameter.
+sklearn.utils.validation
+validate_data
+Validate input data and set or check feature names and counts of the input.
+sklearn.utils.validation
+available_if
+An attribute that is available only if check returns a truthy value.
+sklearn.utils.metaestimators
+compute_class_weight
+Estimate class weights for unbalanced datasets.
+sklearn.utils.class_weight
+compute_sample_weight
+Estimate sample weights by class for unbalanced datasets.
+sklearn.utils.class_weight
+is_multilabel
+Check if
+y
+is in a multilabel format.
+sklearn.utils.multiclass
+type_of_target
+Determine the type of data indicated by the target.
+sklearn.utils.multiclass
+unique_labels
+Extract an ordered array of unique labels.
+sklearn.utils.multiclass
+density
+Compute density of a sparse vector.
+sklearn.utils.extmath
+fast_logdet
+Compute logarithm of determinant of a square matrix.
+sklearn.utils.extmath
+randomized_range_finder
+Compute an orthonormal matrix whose range approximates the range of A.
+sklearn.utils.extmath
+randomized_svd
+Compute a truncated randomized SVD.
+sklearn.utils.extmath
+safe_sparse_dot
+Dot product that handle the sparse matrix case correctly.
+sklearn.utils.extmath
+weighted_mode
+Return an array of the weighted modal (most common) value in the passed array.
+sklearn.utils.extmath
+incr_mean_variance_axis
+Compute incremental mean and variance along an axis on a CSR or CSC matrix.
+sklearn.utils.sparsefuncs
+inplace_column_scale
+Inplace column scaling of a CSC/CSR matrix.
+sklearn.utils.sparsefuncs
+inplace_csr_column_scale
+Inplace column scaling of a CSR matrix.
+sklearn.utils.sparsefuncs
+inplace_row_scale
+Inplace row scaling of a CSR or CSC matrix.
+sklearn.utils.sparsefuncs
+inplace_swap_column
+Swap two columns of a CSC/CSR matrix in-place.
+sklearn.utils.sparsefuncs
+inplace_swap_row
+Swap two rows of a CSC/CSR matrix in-place.
+sklearn.utils.sparsefuncs
+mean_variance_axis
+Compute mean and variance along an axis on a CSR or CSC matrix.
+sklearn.utils.sparsefuncs
+inplace_csr_row_normalize_l1
+Normalize inplace the rows of a CSR matrix or array by their L1 norm.
+sklearn.utils.sparsefuncs_fast
+inplace_csr_row_normalize_l2
+Normalize inplace the rows of a CSR matrix or array by their L2 norm.
+sklearn.utils.sparsefuncs_fast
+single_source_shortest_path_length
+Return the length of the shortest path from source to all reachable nodes.
+sklearn.utils.graph
+sample_without_replacement
+Sample integers without replacement.
+sklearn.utils.random
+min_pos
+Find the minimum value of an array over positive values.
+sklearn.utils.arrayfuncs
+MetadataRequest
+Contains the metadata request info of a consumer.
+sklearn.utils.metadata_routing
+MetadataRouter
+Stores and handles metadata routing for a router object.
+sklearn.utils.metadata_routing
+MethodMapping
+Stores the mapping between caller and callee methods for a router.
+sklearn.utils.metadata_routing
+get_routing_for_object
+Get a
+Metadata{Router,
+Request}
+instance from the given object.
+sklearn.utils.metadata_routing
+process_routing
+Validate and route input parameters.
+sklearn.utils.metadata_routing
+all_displays
+Get a list of all displays from
+sklearn
+.
+sklearn.utils.discovery
+all_estimators
+Get a list of all estimators from
+sklearn
+.
+sklearn.utils.discovery
+all_functions
+Get a list of all functions from
+sklearn
+.
+sklearn.utils.discovery
+check_estimator
+Check if estimator adheres to scikit-learn conventions.
+sklearn.utils.estimator_checks
+parametrize_with_checks
+Pytest specific decorator for parametrizing estimator checks.
+sklearn.utils.estimator_checks
+estimator_checks_generator
+Iteratively yield all check callables for an estimator.
+sklearn.utils.estimator_checks
+Parallel
+Tweak of
+joblib.Parallel
+that propagates the scikit-learn configuration.
+sklearn.utils.parallel
+delayed
+Decorator used to capture the arguments of a function.
+sklearn.utils.parallel
+previous
+14.
+External Resources, Videos and Talks
+next
+sklearn
+© Copyright 2007 - 2025, scikit-learn developers (BSD License).

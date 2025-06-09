@@ -1,0 +1,169 @@
+pandas.plotting.bootstrap_plot — pandas 2.3.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Input/output
+General functions
+Series
+DataFrame
+pandas arrays, scalars, and data types
+Index objects
+Date offsets
+Window
+GroupBy
+Resampling
+Style
+Plotting
+pandas.plotting.andrews_curves
+pandas.plotting.autocorrelation_plot
+pandas.plotting.bootstrap_plot
+pandas.plotting.boxplot
+pandas.plotting.deregister_matplotlib_converters
+pandas.plotting.lag_plot
+pandas.plotting.parallel_coordinates
+pandas.plotting.plot_params
+pandas.plotting.radviz
+pandas.plotting.register_matplotlib_converters
+pandas.plotting.scatter_matrix
+pandas.plotting.table
+Options and settings
+Extensions
+Testing
+Missing values
+API reference
+Plotting
+pandas.plott...
+pandas.plotting.bootstrap_plot
+#
+pandas.plotting.
+bootstrap_plot
+(
+series
+,
+fig
+=
+None
+,
+size
+=
+50
+,
+samples
+=
+500
+,
+**
+kwds
+)
+[source]
+#
+Bootstrap plot on mean, median and mid-range statistics.
+The bootstrap plot is used to estimate the uncertainty of a statistic
+by relying on random sampling with replacement
+[1]
+. This function will
+generate bootstrapping plots for mean, median and mid-range statistics
+for the given number of samples of the given size.
+[
+1
+]
+âBootstrapping (statistics)â in
+https://en.wikipedia.org/wiki/Bootstrapping_%28statistics%29
+Parameters
+:
+series
+pandas.Series
+Series from where to get the samplings for the bootstrapping.
+fig
+matplotlib.figure.Figure, default None
+If given, it will use the
+fig
+reference for plotting instead of
+creating a new one with default parameters.
+size
+int, default 50
+Number of data points to consider during each sampling. It must be
+less than or equal to the length of the
+series
+.
+samples
+int, default 500
+Number of times the bootstrap procedure is performed.
+**kwds
+Options to pass to matplotlib plotting method.
+Returns
+:
+matplotlib.figure.Figure
+Matplotlib figure.
+See also
+pandas.DataFrame.plot
+Basic plotting for DataFrame objects.
+pandas.Series.plot
+Basic plotting for Series objects.
+Examples
+This example draws a basic bootstrap plot for a Series.
+>>>
+s
+=
+pd
+.
+Series
+(
+np
+.
+random
+.
+uniform
+(
+size
+=
+100
+))
+>>>
+pd
+.
+plotting
+.
+bootstrap_plot
+(
+s
+)
+<Figure size 640x480 with 6 Axes>
+previous
+pandas.plotting.autocorrelation_plot
+next
+pandas.plotting.boxplot
+On this page
+bootstrap_plot()
+Show Source
+&copy 2025, pandas via
+NumFOCUS, Inc.
+Hosted by
+OVHcloud
+.
+Created using
+Sphinx
+8.1.3.
+Built with the
+PyData Sphinx Theme
+0.14.4.

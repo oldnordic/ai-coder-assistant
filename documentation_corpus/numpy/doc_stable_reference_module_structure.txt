@@ -1,0 +1,136 @@
+NumPy’s module structure — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+NumPy’s module structure
+numpy.exceptions
+numpy.fft
+numpy.linalg
+numpy.polynomial
+numpy.random
+numpy.strings
+numpy.testing
+numpy.typing
+numpy.ctypeslib
+numpy.dtypes
+numpy.emath
+numpy.lib
+numpy.rec
+numpy.version
+numpy.char
+numpy.distutils
+numpy.f2py
+numpy.ma
+numpy.matlib
+Array objects
+Universal functions (
+ufunc
+)
+Routines and objects by topic
+Typing (
+numpy.typing
+)
+Packaging (
+numpy.distutils
+)
+NumPy C-API
+Array API standard compatibility
+CPU/SIMD optimizations
+Thread Safety
+Global Configuration Options
+NumPy security
+Status of
+numpy.distutils
+and migration advice
+numpy.distutils
+user guide
+NumPy and SWIG
+NumPy reference
+NumPy’s module structure
+NumPy’s module structure
+#
+NumPy has a large number of submodules. Most regular usage of NumPy requires
+only the main namespace and a smaller set of submodules. The rest either either
+special-purpose or niche namespaces.
+Main namespaces
+#
+Regular/recommended user-facing namespaces for general use:
+numpy
+numpy.exceptions
+numpy.fft
+numpy.linalg
+numpy.polynomial
+numpy.random
+numpy.strings
+numpy.testing
+numpy.typing
+Special-purpose namespaces
+#
+numpy.ctypeslib
+- interacting with NumPy objects with
+ctypes
+numpy.dtypes
+- dtype classes (typically not used directly by end users)
+numpy.emath
+- mathematical functions with automatic domain
+numpy.lib
+- utilities & functionality which do not fit the main namespace
+numpy.rec
+- record arrays (largely superseded by dataframe libraries)
+numpy.version
+- small module with more detailed version info
+Legacy namespaces
+#
+Prefer not to use these namespaces for new code. There are better alternatives
+and/or this code is deprecated or isn’t reliable.
+numpy.char
+- legacy string functionality, only for fixed-width strings
+numpy.distutils
+(deprecated) - build system support
+numpy.f2py
+- Fortran binding generation (usually used from the command line only)
+numpy.ma
+- masked arrays (not very reliable, needs an overhaul)
+numpy.matlib
+(pending deprecation) - functions supporting
+matrix
+instances
+previous
+NumPy reference
+next
+Exceptions and Warnings (
+numpy.exceptions
+)
+On this page
+Main namespaces
+Special-purpose namespaces
+Legacy namespaces
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

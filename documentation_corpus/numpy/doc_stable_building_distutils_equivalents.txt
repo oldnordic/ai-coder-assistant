@@ -1,0 +1,125 @@
+Meson and distutils ways of doing things — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+Compiler selection and customizing a build
+BLAS and LAPACK
+Cross compilation
+Building redistributable binaries
+Understanding Meson
+Introspecting build steps
+Meson and
+distutils
+ways of doing things
+Building from source
+Meson and
+distutils
+ways of doing things
+Meson and
+distutils
+ways of doing things
+#
+Old workflows (numpy.distutils based):
+python
+runtests.py
+python
+setup.py
+build_ext
+-i
++
+export
+PYTHONPATH=/home/username/path/to/numpy/reporoot
+(and then edit pure
+Python code in NumPy and run it with
+python
+some_script.py
+).
+python
+setup.py
+develop
+- this is similar to (2), except in-place build
+is made permanently visible in env.
+python
+setup.py
+bdist_wheel
++
+pip
+install
+dist/numpy*.whl
+- build
+wheel in current env and install it.
+pip
+install
+.
+- build wheel in an isolated build env against deps in
+pyproject.toml
+and install it.
+Note: be careful, this is usually not
+the correct command for development installs - typically you want to use (4)
+or
+pip
+install
+.
+-v
+--no-build-isolation
+.
+New workflows (Meson and meson-python based):
+spin
+test
+pip
+install
+-e
+.
+--no-build-isolation
+(note: only for working on NumPy
+itself - for more details, see
+IDE support & editable installs
+)
+the same as (2)
+python
+-m
+build
+--no-isolation
++
+pip
+install
+dist/numpy*.whl
+- see
+pypa/build
+.
+pip
+install
+.
+previous
+Introspecting build steps
+next
+Contributing to NumPy
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

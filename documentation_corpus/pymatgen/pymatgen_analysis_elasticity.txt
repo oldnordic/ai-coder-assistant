@@ -1,0 +1,1729 @@
+pymatgen.analysis.elasticity package — pymatgen 2025.5.28 documentation
+pymatgen.analysis.elasticity package
+Submodules
+pymatgen.analysis.elasticity.elastic module
+ComplianceTensor
+ElasticTensor
+ElasticTensor.agne_diffusive_thermalcond()
+ElasticTensor.cahill_thermalcond()
+ElasticTensor.clarke_thermalcond()
+ElasticTensor.compliance_tensor
+ElasticTensor.debye_temperature()
+ElasticTensor.directional_elastic_mod()
+ElasticTensor.directional_poisson_ratio()
+ElasticTensor.from_independent_strains()
+ElasticTensor.from_pseudoinverse()
+ElasticTensor.g_reuss
+ElasticTensor.g_voigt
+ElasticTensor.g_vrh
+ElasticTensor.get_structure_property_dict()
+ElasticTensor.green_kristoffel()
+ElasticTensor.homogeneous_poisson
+ElasticTensor.k_reuss
+ElasticTensor.k_voigt
+ElasticTensor.k_vrh
+ElasticTensor.long_v()
+ElasticTensor.property_dict
+ElasticTensor.snyder_ac()
+ElasticTensor.snyder_opt()
+ElasticTensor.snyder_total()
+ElasticTensor.trans_v()
+ElasticTensor.universal_anisotropy
+ElasticTensor.y_mod
+ElasticTensorExpansion
+ElasticTensorExpansion.calculate_stress()
+ElasticTensorExpansion.energy_density()
+ElasticTensorExpansion.from_diff_fit()
+ElasticTensorExpansion.get_compliance_expansion()
+ElasticTensorExpansion.get_effective_ecs()
+ElasticTensorExpansion.get_ggt()
+ElasticTensorExpansion.get_gruneisen_parameter()
+ElasticTensorExpansion.get_heat_capacity()
+ElasticTensorExpansion.get_stability_criteria()
+ElasticTensorExpansion.get_strain_from_stress()
+ElasticTensorExpansion.get_symmetric_wallace_tensor()
+ElasticTensorExpansion.get_tgt()
+ElasticTensorExpansion.get_wallace_tensor()
+ElasticTensorExpansion.get_yield_stress()
+ElasticTensorExpansion.omega()
+ElasticTensorExpansion.order
+ElasticTensorExpansion.thermal_expansion_coeff()
+NthOrderElasticTensor
+NthOrderElasticTensor.GPa_to_eV_A3
+NthOrderElasticTensor.calculate_stress()
+NthOrderElasticTensor.energy_density()
+NthOrderElasticTensor.from_diff_fit()
+NthOrderElasticTensor.order
+NthOrderElasticTensor.symbol
+diff_fit()
+find_eq_stress()
+generate_pseudo()
+get_diff_coeff()
+get_strain_state_dict()
+get_symbol_list()
+raise_if_unphysical()
+subs()
+pymatgen.analysis.elasticity.strain module
+Deformation
+Deformation.apply_to_structure()
+Deformation.from_index_amount()
+Deformation.get_perturbed_indices()
+Deformation.green_lagrange_strain
+Deformation.is_independent()
+Deformation.symbol
+DeformedStructureSet
+Strain
+Strain.from_deformation()
+Strain.from_index_amount()
+Strain.get_deformation_matrix()
+Strain.symbol
+Strain.von_mises_strain
+convert_strain_to_deformation()
+pymatgen.analysis.elasticity.stress module
+Stress
+Stress.dev_principal_invariants
+Stress.deviator_stress
+Stress.mean_stress
+Stress.piola_kirchoff_1()
+Stress.piola_kirchoff_2()
+Stress.symbol
+Stress.von_mises
+pymatgen
+pymatgen.analysis.elasticity package
+Edit on GitHub
+pymatgen.analysis.elasticity package
+
+Package for analyzing elastic tensors and properties.
+Submodules
+
+pymatgen.analysis.elasticity.elastic module
+
+This module provides a class used to describe the elastic tensor,
+including methods used to fit the elastic tensor from linear response
+stress-strain data.
+class
+ComplianceTensor
+(
+s_array
+)
+[source]
+
+Bases:
+Tensor
+This class represents the compliance tensor, and exists
+primarily to keep the voigt-conversion scheme consistent
+since the compliance tensor has a unique vscale.
+Parameters
+:
+s_array
+(
+np.ndarray
+) – input array for tensor
+class
+ElasticTensor
+(
+input_array
+,
+tol
+:
+float
+=
+0.0001
+)
+[source]
+
+Bases:
+NthOrderElasticTensor
+This class extends Tensor to describe the 3x3x3x3 second-order elastic tensor,
+C_{ijkl}, with various methods for estimating other properties derived from the second
+order elastic tensor (e.g. bulk modulus, shear modulus, Young’s modulus, Poisson’s ratio)
+in units of eV/A^3.
+Create an ElasticTensor object. The constructor throws an error if the shape of
+the input_matrix argument is not 3x3x3x3, i.e. in true tensor notation. Issues a
+warning if the input_matrix argument does not satisfy standard symmetries. Note
+that the constructor uses __new__ rather than __init__ according to the standard
+method of subclassing numpy ndarrays.
+Parameters
+:
+input_array
+(
+3x3x3x3 array-like
+) – the 3x3x3x3 array-like representing the elastic tensor
+tol
+(
+float
+) – tolerance for initial symmetry test of tensor
+agne_diffusive_thermalcond
+(
+*
+args
+,
+**
+kwargs
+)
+[source]
+
+cahill_thermalcond
+(
+*
+args
+,
+**
+kwargs
+)
+[source]
+
+clarke_thermalcond
+(
+*
+args
+,
+**
+kwargs
+)
+[source]
+
+property
+compliance_tensor
+[source]
+
+The Voigt notation compliance tensor, which is the matrix
+inverse of the Voigt notation elastic tensor.
+debye_temperature
+(
+*
+args
+,
+**
+kwargs
+)
+[source]
+
+directional_elastic_mod
+(
+n
+)
+→
+float
+[source]
+
+Calculate directional elastic modulus for a specific vector.
+directional_poisson_ratio
+(
+n
+:
+ArrayLike
+,
+m
+:
+ArrayLike
+,
+tol
+:
+float
+=
+1e-08
+)
+→
+float
+[source]
+
+Calculates the poisson ratio for a specific direction
+relative to a second, orthogonal direction.
+Parameters
+:
+n
+(
+3-d vector
+) – principal direction
+m
+(
+3-d vector
+) – secondary direction orthogonal to n
+tol
+(
+float
+) – tolerance for testing of orthogonality
+classmethod
+from_independent_strains
+(
+strains
+,
+stresses
+,
+eq_stress
+=
+None
+,
+vasp
+=
+False
+,
+tol
+:
+float
+=
+1e-10
+)
+→
+Self
+[source]
+
+Constructs the elastic tensor least-squares fit of independent strains.
+Parameters
+:
+strains
+(
+list
+of
+Strains
+) – list of strain objects to fit
+stresses
+(
+list
+of
+Stresses
+) – list of stress objects to use in fit
+corresponding to the list of strains
+eq_stress
+(
+Stress
+) – equilibrium stress to use in fitting
+vasp
+(
+bool
+) – flag for whether the stress tensor should be
+converted based on vasp units/convention for stress
+tol
+(
+float
+) – tolerance for removing near-zero elements of the
+resulting tensor.
+classmethod
+from_pseudoinverse
+(
+strains
+,
+stresses
+)
+→
+Self
+[source]
+
+Class method to fit an elastic tensor from stress/strain
+data. Method uses Moore-Penrose pseudo-inverse to invert
+the s = C*e equation with elastic tensor, stress, and
+strain in voigt notation.
+Parameters
+:
+stresses
+(
+Nx3x3 array-like
+) – list or array of stresses
+strains
+(
+Nx3x3 array-like
+) – list or array of strains
+property
+g_reuss
+:
+float
+[source]
+
+The G_r shear modulus (in eV/A^3).
+property
+g_voigt
+:
+float
+[source]
+
+The G_v shear modulus (in eV/A^3).
+property
+g_vrh
+:
+float
+[source]
+
+The G_vrh (Voigt-Reuss-Hill) average shear modulus (in eV/A^3).
+get_structure_property_dict
+(
+structure
+:
+Structure
+,
+include_base_props
+:
+bool
+=
+True
+,
+ignore_errors
+:
+bool
+=
+False
+)
+→
+dict
+[
+str
+,
+float
+|
+Structure
+|
+None
+]
+[source]
+
+Get a dictionary of properties derived from the elastic tensor
+and an associated structure.
+Parameters
+:
+structure
+(
+Structure
+) – structure object for which to calculate
+associated properties
+include_base_props
+(
+bool
+) – whether to include base properties,
+like k_vrh, etc.
+ignore_errors
+(
+bool
+) – if set to true, will set problem properties
+that depend on a physical tensor to None, defaults to False
+green_kristoffel
+(
+u
+)
+→
+float
+[source]
+
+Get the Green-Kristoffel tensor for a second-order tensor.
+property
+homogeneous_poisson
+:
+float
+[source]
+
+The homogeneous poisson ratio.
+property
+k_reuss
+:
+float
+[source]
+
+The K_r bulk modulus (in eV/A^3).
+property
+k_voigt
+:
+float
+[source]
+
+The K_v bulk modulus (in eV/A^3).
+property
+k_vrh
+:
+float
+[source]
+
+The K_vrh (Voigt-Reuss-Hill) average bulk modulus (in eV/A^3).
+long_v
+(
+*
+args
+,
+**
+kwargs
+)
+[source]
+
+property
+property_dict
+[source]
+
+A dictionary of properties derived from the elastic tensor.
+snyder_ac
+(
+*
+args
+,
+**
+kwargs
+)
+[source]
+
+snyder_opt
+(
+*
+args
+,
+**
+kwargs
+)
+[source]
+
+snyder_total
+(
+*
+args
+,
+**
+kwargs
+)
+[source]
+
+trans_v
+(
+*
+args
+,
+**
+kwargs
+)
+[source]
+
+property
+universal_anisotropy
+:
+float
+[source]
+
+The universal anisotropy value.
+property
+y_mod
+:
+float
+[source]
+
+Calculates Young’s modulus (in SI units) using the
+Voigt-Reuss-Hill averages of bulk and shear moduli.
+class
+ElasticTensorExpansion
+(
+c_list
+:
+Sequence
+)
+[source]
+
+Bases:
+TensorCollection
+This class is a sequence of elastic tensors corresponding
+to an elastic tensor expansion, which can be used to
+calculate stress and energy density and inherits all
+of the list-based properties of TensorCollection
+(e.g. symmetrization, voigt conversion, etc.).
+Initialization method for ElasticTensorExpansion.
+Parameters
+:
+c_list
+(
+list
+or
+tuple
+) – sequence of Tensor inputs or tensors from which
+the elastic tensor expansion is constructed.
+calculate_stress
+(
+strain
+)
+→
+float
+[source]
+
+Calculate’s a given elastic tensor’s contribution to the
+stress using Einstein summation.
+energy_density
+(
+strain
+,
+convert_GPa_to_eV
+=
+True
+)
+[source]
+
+Calculate the elastic energy density due to a strain in eV/A^3 or GPa.
+classmethod
+from_diff_fit
+(
+strains
+,
+stresses
+,
+eq_stress
+=
+None
+,
+tol
+:
+float
+=
+1e-10
+,
+order
+=
+3
+)
+→
+Self
+[source]
+
+Generate an elastic tensor expansion via the fitting function
+defined below in diff_fit.
+get_compliance_expansion
+(
+)
+[source]
+
+Get a compliance tensor expansion from the elastic
+tensor expansion.
+get_effective_ecs
+(
+strain
+,
+order
+=
+2
+)
+[source]
+
+Get the effective elastic constants
+from the elastic tensor expansion.
+Parameters
+:
+strain
+(
+Strain
+or
+3x3 array-like
+) – strain condition
+under which to calculate the effective constants
+order
+(
+int
+) – order of the ecs to be returned
+get_ggt
+(
+n
+,
+u
+)
+[source]
+
+Get the Generalized Gruneisen tensor for a given
+third-order elastic tensor expansion.
+Parameters
+:
+n
+(
+3x1 array-like
+) – normal mode direction
+u
+(
+3x1 array-like
+) – polarization direction
+get_gruneisen_parameter
+(
+temperature
+=
+None
+,
+structure
+=
+None
+,
+quad
+=
+None
+)
+[source]
+
+Get the single average gruneisen parameter from the TGT.
+Parameters
+:
+temperature
+(
+float
+) – Temperature in kelvin, if not specified
+will return non-cv-normalized value
+structure
+(
+float
+) – Structure to be used in directional heat
+capacity determination, only necessary if temperature
+is specified
+quadct
+(
+dict
+) – quadrature for integration, should be
+dictionary with “points” and “weights” keys defaults
+to quadpy.sphere.Lebedev(19) as read from file
+get_heat_capacity
+(
+temperature
+,
+structure
+:
+Structure
+,
+n
+,
+u
+,
+cutoff
+=
+100.0
+)
+[source]
+
+Get the directional heat capacity for a higher order tensor
+expansion as a function of direction and polarization.
+Parameters
+:
+temperature
+(
+float
+) – Temperature in kelvin
+structure
+(
+float
+) – Structure to be used in directional heat
+capacity determination
+n
+(
+3x1 array-like
+) – direction for Cv determination
+u
+(
+3x1 array-like
+) – polarization direction, note that
+no attempt for verification of eigenvectors is made
+cutoff
+(
+float
+) – cutoff for scale of kt / (hbar * omega)
+if lower than this value, returns 0
+get_stability_criteria
+(
+s
+,
+n
+)
+[source]
+
+Get the stability criteria from the symmetric
+Wallace tensor from an input vector and stress
+value.
+Parameters
+:
+s
+(
+float
+) – Stress value at which to evaluate
+the stability criteria
+n
+(
+3x1 array-like
+) – direction of the applied
+stress
+get_strain_from_stress
+(
+stress
+)
+→
+float
+[source]
+
+Get the strain from a stress state according to the compliance
+expansion corresponding to the tensor expansion.
+get_symmetric_wallace_tensor
+(
+tau
+)
+[source]
+
+Get the symmetrized wallace tensor for determining
+yield strength criteria.
+Parameters
+:
+tau
+(
+3x3 array-like
+) – stress at which to evaluate
+the wallace tensor.
+get_tgt
+(
+temperature
+:
+float
+|
+None
+=
+None
+,
+structure
+:
+Structure
+=
+None
+,
+quad
+=
+None
+)
+[source]
+
+Get the thermodynamic Gruneisen tensor (TGT) by via an
+integration of the GGT weighted by the directional heat
+capacity.
+See refs:
+R. N. Thurston and K. Brugger, Phys. Rev. 113, A1604 (1964).
+K. Brugger Phys. Rev. 137, A1826 (1965).
+Parameters
+:
+temperature
+(
+float
+) – Temperature in kelvin, if not specified
+will return non-cv-normalized value
+structure
+(
+Structure
+) – Structure to be used in directional heat
+capacity determination, only necessary if temperature
+is specified
+quadct
+(
+dict
+) – quadrature for integration, should be
+dictionary with “points” and “weights” keys defaults
+to quadpy.sphere.Lebedev(19) as read from file
+get_wallace_tensor
+(
+tau
+)
+[source]
+
+Get the Wallace Tensor for determining yield strength
+criteria.
+Parameters
+:
+tau
+(
+3x3 array-like
+) – stress at which to evaluate
+the wallace tensor
+get_yield_stress
+(
+n
+)
+[source]
+
+Get the yield stress for a given direction.
+Parameters
+:
+n
+(
+3x1 array-like
+) – direction for which to find the
+yield stress
+omega
+(
+structure
+:
+Structure
+,
+n
+,
+u
+)
+[source]
+
+Find directional frequency contribution to the heat
+capacity from direction and polarization.
+Parameters
+:
+structure
+(
+Structure
+) – Structure to be used in directional heat
+capacity determination
+n
+(
+3x1 array-like
+) – direction for Cv determination
+u
+(
+3x1 array-like
+) – polarization direction, note that
+no attempt for verification of eigenvectors is made
+property
+order
+:
+int
+[source]
+
+Order of the elastic tensor expansion, i.e. the order of the
+highest included set of elastic constants.
+thermal_expansion_coeff
+(
+structure
+:
+Structure
+,
+temperature
+:
+float
+,
+mode
+:
+Literal
+[
+'dulong
+-
+petit'
+,
+'debye'
+]
+=
+'debye'
+)
+[source]
+
+Get thermal expansion coefficient from third-order constants.
+Parameters
+:
+temperature
+(
+float
+) – Temperature in kelvin, if not specified
+will return non-cv-normalized value
+structure
+(
+Structure
+) – Structure to be used in directional heat
+capacity determination, only necessary if temperature
+is specified
+mode
+(
+str
+) – mode for finding average heat-capacity,
+current supported modes are ‘debye’ and ‘dulong-petit’
+class
+NthOrderElasticTensor
+(
+input_array
+,
+check_rank
+=
+None
+,
+tol
+:
+float
+=
+0.0001
+)
+[source]
+
+Bases:
+Tensor
+An object representing an nth-order tensor expansion
+of the stress-strain constitutive equations.
+Parameters
+:
+input_array
+(
+np.ndarray
+) – input array for tensor
+check_rank
+(
+int
+) – rank of tensor to check
+tol
+(
+float
+) – tolerance for initial symmetry test of tensor
+GPa_to_eV_A3
+=
+0.006241509074460764
+[source]
+
+calculate_stress
+(
+strain
+)
+[source]
+
+Calculate’s a given elastic tensor’s contribution to the
+stress using Einstein summation.
+Parameters
+:
+strain
+(
+3x3 array-like
+) – matrix corresponding to strain
+energy_density
+(
+strain
+,
+convert_GPa_to_eV
+=
+True
+)
+[source]
+
+Calculate the elastic energy density due to a strain.
+classmethod
+from_diff_fit
+(
+strains
+,
+stresses
+,
+eq_stress
+=
+None
+,
+order
+=
+2
+,
+tol
+:
+float
+=
+1e-10
+)
+→
+Self
+[source]
+
+Takes a list of strains and stresses, and returns a list of coefficients for a
+polynomial fit of the given order.
+Parameters
+:
+strains
+– a list of strain values
+stresses
+– the stress values
+eq_stress
+– The stress at which the material is assumed to be elastic.
+order
+– The order of the polynomial to fit. Defaults to 2
+tol
+(
+float
+) – tolerance for the fit.
+Returns
+:
+the fitted elastic tensor
+Return type
+:
+NthOrderElasticTensor
+property
+order
+[source]
+
+Order of the elastic tensor.
+symbol
+=
+'C'
+[source]
+
+diff_fit
+(
+strains
+,
+stresses
+,
+eq_stress
+=
+None
+,
+order
+=
+2
+,
+tol
+:
+float
+=
+1e-10
+)
+[source]
+
+nth order elastic constant fitting function based on
+central-difference derivatives with respect to distinct
+strain states. The algorithm is summarized as follows:
+Identify distinct strain states as sets of indices
+for which nonzero strain values exist, typically
+[(0), (1), (2), (3), (4), (5), (0, 1) etc.]
+For each strain state, find and sort strains and
+stresses by strain value.
+Find first, second .. nth derivatives of each stress
+with respect to scalar variable corresponding to
+the smallest perturbation in the strain.
+Use the pseudo-inverse of a matrix-vector expression
+corresponding to the parameterized stress-strain
+relationship and multiply that matrix by the respective
+calculated first or second derivatives from the
+previous step.
+Place the calculated nth-order elastic
+constants appropriately.
+Parameters
+:
+order
+(
+int
+) – order of the elastic tensor set to return
+strains
+(
+nx3x3 array-like
+) – Array of 3x3 strains
+to use in fitting of ECs
+stresses
+(
+nx3x3 array-like
+) – Array of 3x3 stresses
+to use in fitting ECs. These should be PK2 stresses.
+eq_stress
+(
+3x3 array-like
+) – stress corresponding to
+equilibrium strain (i.e. “0” strain state).
+If not specified, function will try to find
+the state in the list of provided stresses
+and strains. If not found, defaults to 0.
+tol
+(
+float
+) – value for which strains below
+are ignored in identifying strain states.
+Returns
+:
+Set of tensors corresponding to nth order expansion of
+the stress/strain relation
+find_eq_stress
+(
+strains
+,
+stresses
+,
+tol
+:
+float
+=
+1e-10
+)
+[source]
+
+Find stress corresponding to zero strain state in stress-strain list.
+Parameters
+:
+strains
+(
+Nx3x3 array-like
+) – array corresponding to strains
+stresses
+(
+Nx3x3 array-like
+) – array corresponding to stresses
+tol
+(
+float
+) – tolerance to find zero strain state
+generate_pseudo
+(
+strain_states
+,
+order
+=
+3
+)
+[source]
+
+Generate the pseudo-inverse for a given set of strains.
+Parameters
+:
+strain_states
+(
+6xN array like
+) – a list of Voigt-notation strain-states,
+i.e. perturbed indices of the strain as a function of the smallest
+strain e.g. (0, 1, 0, 0, 1, 0)
+order
+(
+int
+) – order of pseudo-inverse to calculate
+Returns
+:
+for each order tensor, these can be multiplied by the central
+difference derivative of the stress with respect to the strain state
+absent_syms: symbols of the tensor absent from the PI expression
+Return type
+:
+pseudo_inverses
+get_diff_coeff
+(
+hvec
+,
+n
+=
+1
+)
+[source]
+
+Helper function to find difference coefficients of an
+derivative on an arbitrary mesh.
+Parameters
+:
+hvec
+(
+1D array-like
+) – sampling stencil
+n
+(
+int
+) – degree of derivative to find
+get_strain_state_dict
+(
+strains
+,
+stresses
+,
+eq_stress
+=
+None
+,
+tol
+:
+float
+=
+1e-10
+,
+add_eq
+=
+True
+,
+sort
+=
+True
+)
+[source]
+
+Create a dictionary of voigt notation stress-strain sets
+keyed by “strain state”, i.e. a tuple corresponding to
+the non-zero entries in ratios to the lowest nonzero value,
+e.g. [0, 0.1, 0, 0.2, 0, 0] -> (0,1,0,2,0,0)
+This allows strains to be collected in stencils as to
+evaluate parameterized finite difference derivatives.
+Parameters
+:
+strains
+(
+Nx3x3 array-like
+) – strain matrices
+stresses
+(
+Nx3x3 array-like
+) – stress matrices
+eq_stress
+(
+Nx3x3 array-like
+) – equilibrium stress
+tol
+(
+float
+) – tolerance for sorting strain states
+add_eq
+(
+bool
+) – Whether to add eq_strain to stress-strain sets for each strain state.
+Defaults to True.
+sort
+(
+bool
+) – flag for whether to sort strain states
+Returns
+:
+strain state keys and dictionaries with stress-strain data corresponding to strain state
+Return type
+:
+dict
+get_symbol_list
+(
+rank
+,
+dim
+=
+6
+)
+[source]
+
+Get a symbolic representation of the Voigt-notation
+tensor that places identical symbols for entries related
+by index transposition, i.e. C_1121 = C_1211 etc.
+Parameters
+:
+dim
+(
+int
+) – dimension of matrix/tensor, e.g. 6 for
+voigt notation and 3 for standard
+rank
+(
+int
+) – rank of tensor, e.g. 3 for third-order ECs
+Returns
+:
+tuple of arrays representing the distinct
+indices and the tensor with equivalent indices assigned as above
+Return type
+:
+tuple[np.array, np.array]
+raise_if_unphysical
+(
+func
+)
+[source]
+
+Wrapper for functions or properties that should raise an error
+if tensor is unphysical.
+subs
+(
+entry
+,
+cmap
+)
+[source]
+
+Sympy substitution function, primarily for the purposes
+of numpy vectorization.
+Parameters
+:
+entry
+(
+symbol
+or
+exp
+) – sympy expr to undergo subs
+cmap
+(
+dict
+) – map for symbols to values to use in subs
+Returns
+:
+Evaluated expression with substitution
+pymatgen.analysis.elasticity.strain module
+
+This module provides classes and methods used to describe deformations and
+strains, including applying those deformations to structure objects and
+generating deformed structure sets for further calculations.
+class
+Deformation
+(
+deformation_gradient
+)
+[source]
+
+Bases:
+SquareTensor
+Subclass of SquareTensor that describes the deformation gradient tensor.
+Create a Deformation object. Note that the constructor uses __new__ rather than
+__init__ according to the standard method of subclassing numpy arrays.
+Parameters
+:
+deformation_gradient
+(
+3x3 array-like
+) – the 3x3 array-like
+representing the deformation gradient
+apply_to_structure
+(
+structure
+:
+Structure
+)
+[source]
+
+Apply the deformation gradient to a structure.
+Parameters
+:
+structure
+(
+Structure object
+) – the structure object to
+be modified by the deformation
+classmethod
+from_index_amount
+(
+matrix_pos
+,
+amt
+)
+→
+Self
+[source]
+
+Factory method for constructing a Deformation object
+from a matrix position and amount.
+Parameters
+:
+matrix_pos
+(
+tuple
+) – tuple corresponding the matrix position to
+have a perturbation added
+amt
+(
+float
+) – amount to add to the identity matrix at position
+matrix_pos
+get_perturbed_indices
+(
+tol
+:
+float
+=
+1e-08
+)
+→
+list
+[
+tuple
+[
+int
+,
+int
+]
+]
+[source]
+
+Get indices of perturbed elements of the deformation gradient,
+i.e. those that differ from the identity.
+property
+green_lagrange_strain
+[source]
+
+Calculate the Euler-Lagrange strain from the deformation gradient.
+is_independent
+(
+tol
+:
+float
+=
+1e-08
+)
+[source]
+
+Check to determine whether the deformation is independent.
+symbol
+=
+'d'
+[source]
+
+class
+DeformedStructureSet
+(
+structure
+:
+Structure
+,
+norm_strains
+:
+Sequence
+[
+float
+]
+=
+(-0.01,
+-0.005,
+0.005,
+0.01)
+,
+shear_strains
+:
+Sequence
+[
+float
+]
+=
+(-0.06,
+-0.03,
+0.03,
+0.06)
+,
+symmetry
+=
+False
+)
+[source]
+
+Bases:
+Sequence
+class that generates a set of independently deformed structures that
+can be used to calculate linear stress-strain response.
+Construct the deformed geometries of a structure. Generates m + n deformed structures
+according to the supplied parameters.
+Parameters
+:
+structure
+(
+Structure
+) – structure to undergo deformation
+norm_strains
+(
+list
+of
+floats
+) – strain values to apply
+to each normal mode. Defaults to (-0.01, -0.005, 0.005, 0.01).
+shear_strains
+(
+list
+of
+floats
+) – strain values to apply
+to each shear mode. Defaults to (-0.06, -0.03, 0.03, 0.06).
+symmetry
+(
+bool
+) – whether or not to use symmetry reduction.
+class
+Strain
+(
+strain_matrix
+)
+[source]
+
+Bases:
+SquareTensor
+Subclass of SquareTensor that describes the Green-Lagrange strain tensor.
+Create a Strain object. Note that the constructor uses __new__
+rather than __init__ according to the standard method of
+subclassing numpy ndarrays. Note also that the default constructor
+does not include the deformation gradient.
+Parameters
+:
+strain_matrix
+(
+ArrayLike
+) – 3x3 matrix or length-6 Voigt notation vector
+representing the Green-Lagrange strain
+classmethod
+from_deformation
+(
+deformation
+:
+ArrayLike
+)
+→
+Self
+[source]
+
+Factory method that returns a Strain object from a deformation
+gradient.
+Parameters
+:
+deformation
+(
+ArrayLike
+) – 3x3 array defining the deformation
+classmethod
+from_index_amount
+(
+idx
+:
+tuple
+|
+int
+,
+amount
+:
+float
+)
+→
+Self
+[source]
+
+Like Deformation.from_index_amount, except generates
+a strain from the zero 3x3 tensor or Voigt vector with
+the amount specified in the index location. Ensures
+symmetric strain.
+Parameters
+:
+idx
+(
+tuple
+or
+integer
+) – index to be perturbed, can be Voigt or full-tensor notation
+amount
+(
+float
+) – amount to perturb selected index
+get_deformation_matrix
+(
+shape
+:
+Literal
+[
+'upper'
+,
+'lower'
+,
+'symmetric'
+]
+=
+'upper'
+)
+[source]
+
+Get the deformation matrix.
+Parameters
+:
+shape
+(
+'upper'
+|
+'lower'
+|
+'symmetric'
+) – method for determining deformation
+‘upper’ produces an upper triangular defo
+‘lower’ produces a lower triangular defo
+‘symmetric’ produces a symmetric defo
+symbol
+=
+'e'
+[source]
+
+property
+von_mises_strain
+[source]
+
+Equivalent strain to Von Mises Stress.
+convert_strain_to_deformation
+(
+strain
+,
+shape
+:
+Literal
+[
+'upper'
+,
+'lower'
+,
+'symmetric'
+]
+)
+[source]
+
+This function converts a strain to a deformation gradient that will
+produce that strain. Supports three methods:
+Parameters
+:
+strain
+(
+3x3 array-like
+) – strain matrix
+shape
+– (‘upper’ | ‘lower’ | ‘symmetric’): method for determining deformation
+‘upper’ produces an upper triangular defo
+‘lower’ produces a lower triangular defo
+‘symmetric’ produces a symmetric defo
+pymatgen.analysis.elasticity.stress module
+
+This module provides the Stress class used to create, manipulate, and
+calculate relevant properties of the stress tensor.
+class
+Stress
+(
+stress_matrix
+)
+[source]
+
+Bases:
+SquareTensor
+This class extends SquareTensor as a representation of the
+stress.
+Create a Stress object. Note that the constructor uses __new__
+rather than __init__ according to the standard method of
+subclassing numpy ndarrays.
+Parameters
+:
+stress_matrix
+(
+3x3 array-like
+) – the 3x3 array-like
+representing the stress
+property
+dev_principal_invariants
+[source]
+
+The principal invariants of the deviatoric stress tensor,
+which is calculated by finding the coefficients of the characteristic
+polynomial of the stress tensor minus the identity times the mean
+stress.
+property
+deviator_stress
+[source]
+
+The deviatoric component of the stress.
+property
+mean_stress
+[source]
+
+The mean stress.
+piola_kirchoff_1
+(
+def_grad
+)
+[source]
+
+Calculates the first Piola-Kirchoff stress.
+Parameters
+:
+def_grad
+(
+3x3 array-like
+) – deformation gradient tensor
+piola_kirchoff_2
+(
+def_grad
+)
+[source]
+
+Calculates the second Piola-Kirchoff stress.
+Parameters
+:
+def_grad
+(
+3x3 array-like
+) – rate of deformation tensor
+symbol
+=
+'s'
+[source]
+
+property
+von_mises
+[source]
+
+The von Mises stress.
+© Copyright 2011, Pymatgen Development Team.
+Built with
+Sphinx
+using a
+theme
+provided by
+Read the Docs
+.

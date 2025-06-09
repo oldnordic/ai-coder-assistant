@@ -1,0 +1,4446 @@
+pymatgen.io.lobster package — pymatgen 2025.5.28 documentation
+pymatgen.io.lobster package
+Submodules
+pymatgen.io.lobster.inputs module
+Lobsterin
+Lobsterin.AVAILABLE_KEYWORDS
+Lobsterin.BOOLEAN_KEYWORDS
+Lobsterin.FLOAT_KEYWORDS
+Lobsterin.LIST_KEYWORDS
+Lobsterin.STRING_KEYWORDS
+Lobsterin.as_dict()
+Lobsterin.diff()
+Lobsterin.from_dict()
+Lobsterin.from_file()
+Lobsterin.get_all_possible_basis_functions()
+Lobsterin.get_basis()
+Lobsterin.standard_calculations_from_vasp_files()
+Lobsterin.write_INCAR()
+Lobsterin.write_KPOINTS()
+Lobsterin.write_POSCAR_with_standard_primitive()
+Lobsterin.write_lobsterin()
+get_all_possible_basis_combinations()
+pymatgen.io.lobster.lobsterenv module
+ICOHPNeighborsInfo
+ICOHPNeighborsInfo.atoms
+ICOHPNeighborsInfo.central_isites
+ICOHPNeighborsInfo.labels
+ICOHPNeighborsInfo.list_icohps
+ICOHPNeighborsInfo.n_bonds
+ICOHPNeighborsInfo.total_icohp
+LobsterLightStructureEnvironments
+LobsterLightStructureEnvironments.as_dict()
+LobsterLightStructureEnvironments.from_Lobster()
+LobsterLightStructureEnvironments.uniquely_determines_coordination_environments
+LobsterNeighbors
+LobsterNeighbors.anion_types
+LobsterNeighbors.get_anion_types()
+LobsterNeighbors.get_info_cohps_to_neighbors()
+LobsterNeighbors.get_info_icohps_between_neighbors()
+LobsterNeighbors.get_info_icohps_to_neighbors()
+LobsterNeighbors.get_light_structure_environment()
+LobsterNeighbors.get_nn_info()
+LobsterNeighbors.molecules_allowed
+LobsterNeighbors.plot_cohps_of_neighbors()
+LobsterNeighbors.structures_allowed
+pymatgen.io.lobster.outputs module
+Bandoverlaps
+Bandoverlaps.band_overlaps_dict
+Bandoverlaps.max_deviation
+Bandoverlaps.bandoverlapsdict
+Bandoverlaps.has_good_quality_check_occupied_bands()
+Bandoverlaps.has_good_quality_maxDeviation()
+Bwdf
+Bwdf.centers
+Bwdf.bwdf
+Bwdf.bin_width
+Charge
+Charge.atomlist
+Charge.is_lcfo
+Charge.types
+Charge.mulliken
+Charge.loewdin
+Charge.num_atoms
+Charge.Loewdin
+Charge.Mulliken
+Charge.get_structure_with_charges()
+Cohpcar
+Cohpcar.cohp_data
+Cohpcar.efermi
+Cohpcar.energies
+Cohpcar.is_spin_polarized
+Cohpcar.orb_res_cohp
+Doscar
+Doscar.completedos
+Doscar.pdos
+Doscar.tdos
+Doscar.energies
+Doscar.tdensities
+Doscar.itdensities
+Doscar.is_spin_polarized
+Doscar.completedos
+Doscar.energies
+Doscar.is_spin_polarized
+Doscar.itdensities
+Doscar.pdos
+Doscar.tdensities
+Doscar.tdos
+Fatband
+Fatband.efermi
+Fatband.eigenvals
+Fatband.is_spin_polarized
+Fatband.kpoints_array
+Fatband.label_dict
+Fatband.lattice
+Fatband.nbands
+Fatband.p_eigenvals
+Fatband.structure
+Fatband.get_bandstructure()
+Grosspop
+Grosspop.list_dict_grosspop
+Grosspop.get_structure_with_total_grosspop()
+Icohplist
+Icohplist.are_coops
+Icohplist.is_lcfo
+Icohplist.is_spin_polarized
+Icohplist.Icohplist
+Icohplist.IcohpCollection
+Icohplist.icohpcollection
+Icohplist.icohplist
+LobsterMatrices
+Lobsterout
+Lobsterout.basis_functions
+Lobsterout.basis_type
+Lobsterout.charge_spilling
+Lobsterout.dft_program
+Lobsterout.elements
+Lobsterout.has_charge
+Lobsterout.has_cohpcar
+Lobsterout.has_madelung
+Lobsterout.has_coopcar
+Lobsterout.has_cobicar
+Lobsterout.has_doscar
+Lobsterout.has_doscar_lso
+Lobsterout.has_projection
+Lobsterout.has_bandoverlaps
+Lobsterout.has_density_of_energies
+Lobsterout.has_fatbands
+Lobsterout.has_grosspopulation
+Lobsterout.has_polarization
+Lobsterout.info_lines
+Lobsterout.info_orthonormalization
+Lobsterout.is_restart_from_projection
+Lobsterout.lobster_version
+Lobsterout.number_of_spins
+Lobsterout.number_of_threads
+Lobsterout.timing
+Lobsterout.total_spilling
+Lobsterout.warning_lines
+Lobsterout.as_dict()
+Lobsterout.get_doc()
+MadelungEnergies
+MadelungEnergies.madelungenergies_mulliken
+MadelungEnergies.madelungenergies_loewdin
+MadelungEnergies.ewald_splitting
+MadelungEnergies.madelungenergies_Loewdin
+MadelungEnergies.madelungenergies_Mulliken
+NciCobiList
+NciCobiList.is_spin_polarized
+NciCobiList.NciCobiList
+NciCobiList.ncicobi_list
+Polarization
+Polarization.rel_mulliken_pol_vector
+Polarization.rel_loewdin_pol_vector
+SitePotential
+SitePotential.atomlist
+SitePotential.types
+SitePotential.num_atoms
+SitePotential.sitepotentials_mulliken
+SitePotential.sitepotentials_loewdin
+SitePotential.madelungenergies_mulliken
+SitePotential.madelungenergies_loewdin
+SitePotential.ewald_splitting
+SitePotential.get_structure_with_site_potentials()
+SitePotential.madelungenergies_Loewdin
+SitePotential.madelungenergies_Mulliken
+SitePotential.sitepotentials_Loewdin
+SitePotential.sitepotentials_Mulliken
+Wavefunction
+Wavefunction.grid
+Wavefunction.points
+Wavefunction.real
+Wavefunction.imaginary
+Wavefunction.distance
+Wavefunction.get_volumetricdata_density()
+Wavefunction.get_volumetricdata_imaginary()
+Wavefunction.get_volumetricdata_real()
+Wavefunction.set_volumetric_data()
+Wavefunction.write_file()
+get_orb_from_str()
+pymatgen
+pymatgen.io.lobster package
+Edit on GitHub
+pymatgen.io.lobster package
+
+This package implements modules for input and output to and from LOBSTER. It
+imports the key classes form both lobster.inputs and lobster.outputs to allow most
+classes to be simply called as pymatgen.io.lobster.Lobsterin for example, to retain
+backwards compatibility.
+Submodules
+
+pymatgen.io.lobster.inputs module
+
+Module for reading LOBSTER input files.
+For more information on LOBSTER see www.cohp.de.
+If you use this module, please cite:
+J. George, G. Petretto, A. Naik, M. Esters, A. J. Jackson, R. Nelson, R. Dronskowski, G.-M. Rignanese, G. Hautier,
+“Automated Bonding Analysis with Crystal Orbital Hamilton Populations”,
+ChemPlusChem 2022, e202200123,
+DOI: 10.1002/cplu.202200123.
+class
+Lobsterin
+(
+settingsdict
+:
+dict
+)
+[source]
+
+Bases:
+UserDict
+,
+MSONable
+Handle and generate lobsterin files.
+Furthermore, it can also modify INCAR files for LOBSTER, generate KPOINTS files for fatband calculations in LOBSTER,
+and generate the standard primitive cells in a POSCAR file that are needed for the fatband calculations.
+There are also several standard lobsterin files that can be easily generated.
+Reminder: lobsterin keywords are not case sensitive.
+Parameters
+:
+settingsdict
+– dict to initialize Lobsterin.
+AVAILABLE_KEYWORDS
+:
+ClassVar
+[
+dict
+[
+str
+,
+str
+]
+]
+=
+{'autorotate':
+'autoRotate',
+'bandwisespilling':
+'bandwiseSpilling',
+'basisfunctions':
+'basisfunctions',
+'basisrotation':
+'basisRotation',
+'basisset':
+'basisSet',
+'bwdf':
+'BWDF',
+'bwdfcohp':
+'BWDFCOHP',
+'cobibetween':
+'cobiBetween',
+'cohpbetween':
+'cohpbetween',
+'cohpendenergy':
+'COHPendEnergy',
+'cohpgenerator':
+'cohpGenerator',
+'cohpstartenergy':
+'COHPstartEnergy',
+'cohpsteps':
+'COHPSteps',
+'createfatband':
+'createFatband',
+'customstoforatom':
+'customSTOforAtom',
+'densityofenergy':
+'DensityOfEnergy',
+'donotignoreexcessivebands':
+'doNotIgnoreExcessiveBands',
+'donotorthogonalizebasis':
+'doNotOrthogonalizeBasis',
+'donotuseabsolutespilling':
+'doNotUseAbsoluteSpilling',
+'ewaldsum':
+'EwaldSum',
+'forceenergyrange':
+'forceEnergyRange',
+'forcev1hmatrix':
+'forceV1HMatrix',
+'gaussiansmearingwidth':
+'gaussianSmearingWidth',
+'gridbufferforprinting':
+'gridBufferForPrinting',
+'griddensityforprinting':
+'gridDensityForPrinting',
+'kpointwisespilling':
+'kpointwiseSpilling',
+'kspacecohp':
+'kSpaceCOHP',
+'loadprojectionfromfile':
+'loadProjectionFromFile',
+'lsodos':
+'LSODOS',
+'nofftforvisualization':
+'noFFTforVisualization',
+'nomemorymappedfiles':
+'noMemoryMappedFiles',
+'onlyreadvasprun.xml':
+'onlyReadVasprun.xml',
+'printlcaorealspacewavefunction':
+'printLCAORealSpaceWavefunction',
+'printlmosonatoms':
+'printLmosOnAtoms',
+'printlmosonatomswriteatomicdensities':
+'printLmosOnAtomswriteAtomicDensities',
+'printmofeatomwise':
+'printMofeAtomWise',
+'printmofemoleculewise':
+'printMofeMoleculeWise',
+'printpawrealspacewavefunction':
+'printPAWRealSpaceWavefunction',
+'printtotalspilling':
+'printTotalSpilling',
+'realspacehamiltonian':
+'realspaceHamiltonian',
+'realspaceoverlap':
+'realspaceOverlap',
+'rmsp':
+'RMSp',
+'saveprojectiontofile':
+'saveProjectionToFile',
+'skipcar':
+'skipCar',
+'skipcobi':
+'skipcobi',
+'skipcohp':
+'skipcohp',
+'skipcoop':
+'skipcoop',
+'skipdos':
+'skipdos',
+'skipgrosspopulation':
+'skipGrossPopulation',
+'skipmadelungenergy':
+'skipMadelungEnergy',
+'skipmofe':
+'skipMOFE',
+'skipmolecularorbitals':
+'skipMolecularOrbitals',
+'skippaworthonormalitytest':
+'skipPAWOrthonormalityTest',
+'skippopulationanalysis':
+'skipPopulationAnalysis',
+'skipprojection':
+'skipProjection',
+'skipreorthonormalization':
+'skipReOrthonormalization',
+'usedecimalplaces':
+'useDecimalPlaces',
+'useoriginaltetrahedronmethod':
+'useOriginalTetrahedronMethod',
+'userecommendedbasisfunctions':
+'userecommendedbasisfunctions',
+'writeatomicorbitals':
+'writeAtomicOrbitals',
+'writebasisfunctions':
+'writeBasisFunctions',
+'writematricestofile':
+'writeMatricesToFile'}
+[source]
+
+BOOLEAN_KEYWORDS
+:
+ClassVar
+[
+dict
+[
+str
+,
+str
+]
+]
+=
+{'autorotate':
+'autoRotate',
+'bandwisespilling':
+'bandwiseSpilling',
+'bwdf':
+'BWDF',
+'bwdfcohp':
+'BWDFCOHP',
+'densityofenergy':
+'DensityOfEnergy',
+'donotignoreexcessivebands':
+'doNotIgnoreExcessiveBands',
+'donotorthogonalizebasis':
+'doNotOrthogonalizeBasis',
+'donotuseabsolutespilling':
+'doNotUseAbsoluteSpilling',
+'forceenergyrange':
+'forceEnergyRange',
+'forcev1hmatrix':
+'forceV1HMatrix',
+'kpointwisespilling':
+'kpointwiseSpilling',
+'loadprojectionfromfile':
+'loadProjectionFromFile',
+'lsodos':
+'LSODOS',
+'nofftforvisualization':
+'noFFTforVisualization',
+'nomemorymappedfiles':
+'noMemoryMappedFiles',
+'onlyreadvasprun.xml':
+'onlyReadVasprun.xml',
+'printlmosonatoms':
+'printLmosOnAtoms',
+'printmofeatomwise':
+'printMofeAtomWise',
+'printmofemoleculewise':
+'printMofeMoleculeWise',
+'printtotalspilling':
+'printTotalSpilling',
+'rmsp':
+'RMSp',
+'saveprojectiontofile':
+'saveProjectionToFile',
+'skipcar':
+'skipCar',
+'skipcobi':
+'skipcobi',
+'skipcohp':
+'skipcohp',
+'skipcoop':
+'skipcoop',
+'skipdos':
+'skipdos',
+'skipgrosspopulation':
+'skipGrossPopulation',
+'skipmadelungenergy':
+'skipMadelungEnergy',
+'skipmofe':
+'skipMOFE',
+'skipmolecularorbitals':
+'skipMolecularOrbitals',
+'skippaworthonormalitytest':
+'skipPAWOrthonormalityTest',
+'skippopulationanalysis':
+'skipPopulationAnalysis',
+'skipprojection':
+'skipProjection',
+'skipreorthonormalization':
+'skipReOrthonormalization',
+'useoriginaltetrahedronmethod':
+'useOriginalTetrahedronMethod',
+'userecommendedbasisfunctions':
+'userecommendedbasisfunctions',
+'writeatomicorbitals':
+'writeAtomicOrbitals',
+'writebasisfunctions':
+'writeBasisFunctions',
+'writematricestofile':
+'writeMatricesToFile'}
+[source]
+
+FLOAT_KEYWORDS
+:
+ClassVar
+[
+dict
+[
+str
+,
+str
+]
+]
+=
+{'basisrotation':
+'basisRotation',
+'cohpendenergy':
+'COHPendEnergy',
+'cohpstartenergy':
+'COHPstartEnergy',
+'cohpsteps':
+'COHPSteps',
+'gaussiansmearingwidth':
+'gaussianSmearingWidth',
+'gridbufferforprinting':
+'gridBufferForPrinting',
+'griddensityforprinting':
+'gridDensityForPrinting',
+'usedecimalplaces':
+'useDecimalPlaces'}
+[source]
+
+LIST_KEYWORDS
+:
+ClassVar
+[
+dict
+[
+str
+,
+str
+]
+]
+=
+{'basisfunctions':
+'basisfunctions',
+'cobibetween':
+'cobiBetween',
+'cohpbetween':
+'cohpbetween',
+'createfatband':
+'createFatband',
+'customstoforatom':
+'customSTOforAtom',
+'printlmosonatomswriteatomicdensities':
+'printLmosOnAtomswriteAtomicDensities'}
+[source]
+
+STRING_KEYWORDS
+:
+ClassVar
+[
+dict
+[
+str
+,
+str
+]
+]
+=
+{'basisset':
+'basisSet',
+'cohpgenerator':
+'cohpGenerator',
+'ewaldsum':
+'EwaldSum',
+'kspacecohp':
+'kSpaceCOHP',
+'printlcaorealspacewavefunction':
+'printLCAORealSpaceWavefunction',
+'printpawrealspacewavefunction':
+'printPAWRealSpaceWavefunction',
+'realspacehamiltonian':
+'realspaceHamiltonian',
+'realspaceoverlap':
+'realspaceOverlap'}
+[source]
+
+as_dict
+(
+)
+→
+dict
+[source]
+
+MSONable dict.
+diff
+(
+other
+:
+Self
+)
+→
+dict
+[
+str
+,
+dict
+[
+str
+,
+Any
+]
+]
+[source]
+
+Compare two Lobsterin and find which parameters are the same.
+Similar to the diff method of Incar.
+Parameters
+:
+other
+(
+Lobsterin
+) – Lobsterin object to compare to.
+Returns
+:
+{“Same”: same_params, “Different”: diff_params}
+Return type
+:
+dict
+classmethod
+from_dict
+(
+dct
+:
+dict
+)
+→
+Self
+[source]
+
+Parameters
+:
+dct
+(
+dict
+) – Dict representation.
+Returns
+:
+Lobsterin
+classmethod
+from_file
+(
+lobsterin
+:
+PathLike
+)
+→
+Self
+[source]
+
+Create Lobsterin from lobsterin file.
+Parameters
+:
+lobsterin
+(
+PathLike
+) – path to lobsterin.
+Returns
+:
+Lobsterin object
+static
+get_all_possible_basis_functions
+(
+structure
+:
+Structure
+|
+IStructure
+,
+potcar_symbols
+:
+list
+[
+str
+]
+,
+address_basis_file_min
+:
+PathLike
+|
+None
+=
+None
+,
+address_basis_file_max
+:
+PathLike
+|
+None
+=
+None
+)
+→
+list
+[
+dict
+]
+[source]
+
+Parameters
+:
+structure
+– Structure object
+potcar_symbols
+– list of the potcar symbols
+address_basis_file_min
+– path to file with the minimum required basis by the POTCAR
+address_basis_file_max
+– path to file with the largest possible basis of the POTCAR.
+Returns
+:
+Can be used to create new Lobsterin objects in
+standard_calculations_from_vasp_files as dict_for_basis
+Return type
+:
+list[dict]
+static
+get_basis
+(
+structure
+:
+Structure
+|
+IStructure
+,
+potcar_symbols
+:
+list
+[
+str
+]
+,
+address_basis_file
+:
+PathLike
+|
+None
+=
+None
+)
+→
+list
+[
+str
+]
+[source]
+
+Get the basis functions from given potcar_symbols, e.g., [“Fe_pv”, “Si”].
+Parameters
+:
+structure
+(
+Structure
+) – Structure object
+potcar_symbols
+– list of potcar symbols
+address_basis_file
+(
+PathLike
+) – path to the basis file
+Returns
+:
+basis
+classmethod
+standard_calculations_from_vasp_files
+(
+POSCAR_input
+:
+PathLike
+=
+'POSCAR'
+,
+INCAR_input
+:
+PathLike
+=
+'INCAR'
+,
+POTCAR_input
+:
+PathLike
+|
+None
+=
+None
+,
+Vasprun_output
+:
+PathLike
+=
+'vasprun.xml'
+,
+dict_for_basis
+:
+dict
+|
+None
+=
+None
+,
+option
+:
+str
+=
+'standard'
+)
+→
+Self
+[source]
+
+Generate lobsterin with standard settings.
+Parameters
+:
+POSCAR_input
+(
+PathLike
+) – path to POSCAR
+INCAR_input
+(
+PathLike
+) – path to INCAR
+POTCAR_input
+(
+PathLike
+) – path to POTCAR
+Vasprun_output
+(
+PathLike
+) – path to vasprun.xml
+dict_for_basis
+(
+dict
+) – can be provided: it should look the following:
+dict_for_basis={“Fe”:’3p 3d 4s 4f’, “C”: ‘2s 2p’} and will overwrite all settings from POTCAR_input
+option
+(
+str
+) – ‘standard’ will start a normal LOBSTER run where COHPs, COOPs, DOS, CHARGE etc. will be
+calculated
+‘standard_with_energy_range_from_vasprun’ will start a normal LOBSTER run for entire energy range
+of VASP static run. vasprun.xml file needs to be in current directory.
+‘standard_from_projection’ will start a normal LOBSTER run from a projection
+‘standard_with_fatband’ will do a fatband calculation, run over all orbitals
+‘onlyprojection’ will only do a projection
+‘onlydos’ will only calculate a projected dos
+‘onlycohp’ will only calculate cohp
+‘onlycoop’ will only calculate coop
+‘onlycohpcoop’ will only calculate cohp and coop
+Returns
+:
+Lobsterin with standard settings
+write_INCAR
+(
+incar_input
+:
+PathLike
+=
+'INCAR'
+,
+incar_output
+:
+PathLike
+=
+'INCAR.lobster'
+,
+poscar_input
+:
+PathLike
+=
+'POSCAR'
+,
+isym
+:
+Literal
+[
+-
+1
+,
+0
+]
+=
+0
+,
+further_settings
+:
+dict
+|
+None
+=
+None
+)
+→
+None
+[source]
+
+Write INCAR file. Will only make the run static, insert NBANDS,
+set ISYM=0, LWAVE=True and you have to check for the rest.
+Parameters
+:
+incar_input
+(
+PathLike
+) – path to input INCAR
+incar_output
+(
+PathLike
+) – path to output INCAR
+poscar_input
+(
+PathLike
+) – path to input POSCAR
+isym
+(
+-1
+|
+0
+) – ISYM value.
+further_settings
+(
+dict
+) – A dict can be used to include further settings, e.g. {“ISMEAR”:-5}
+static
+write_KPOINTS
+(
+POSCAR_input
+:
+PathLike
+=
+'POSCAR'
+,
+KPOINTS_output
+:
+PathLike
+=
+'KPOINTS.lobster'
+,
+reciprocal_density
+:
+int
+=
+100
+,
+isym
+:
+Literal
+[
+-
+1
+,
+0
+]
+=
+0
+,
+from_grid
+:
+bool
+=
+False
+,
+input_grid
+:
+tuple
+[
+int
+,
+int
+,
+int
+]
+=
+(5,
+5,
+5)
+,
+line_mode
+:
+bool
+=
+True
+,
+kpoints_line_density
+:
+int
+=
+20
+,
+symprec
+:
+float
+=
+0.01
+)
+→
+None
+[source]
+
+Write a gamma-centered KPOINTS file for LOBSTER.
+Parameters
+:
+POSCAR_input
+(
+PathLike
+) – path to POSCAR
+KPOINTS_output
+(
+PathLike
+) – path to output KPOINTS
+reciprocal_density
+(
+int
+) – Grid density
+isym
+(
+-1
+|
+0
+) – ISYM value.
+from_grid
+(
+bool
+) – If True KPOINTS will be generated with the help of a grid given in input_grid.
+Otherwise, they will be generated from the reciprocal_density
+input_grid
+(
+tuple
+) – grid to generate the KPOINTS file
+line_mode
+(
+bool
+) – If True, band structure will be generated
+kpoints_line_density
+(
+int
+) – density of the lines in the band structure
+symprec
+(
+float
+) – precision to determine symmetry
+static
+write_POSCAR_with_standard_primitive
+(
+POSCAR_input
+:
+PathLike
+=
+'POSCAR'
+,
+POSCAR_output
+:
+PathLike
+=
+'POSCAR.lobster'
+,
+symprec
+:
+float
+=
+0.01
+)
+→
+None
+[source]
+
+Write a POSCAR with the standard primitive cell.
+This is needed to arrive at the correct kpath.
+Parameters
+:
+POSCAR_input
+(
+PathLike
+) – Input POSCAR file
+POSCAR_output
+(
+PathLike
+) – Output POSCAR file
+symprec
+(
+float
+) – precision to find symmetry
+write_lobsterin
+(
+path
+:
+PathLike
+=
+'lobsterin'
+,
+overwritedict
+:
+dict
+|
+None
+=
+None
+)
+→
+None
+[source]
+
+Write a lobsterin file, and recover keys to Camel case.
+Parameters
+:
+path
+(
+str
+) – filename of the output lobsterin file
+overwritedict
+(
+dict
+) – dict that can be used to update lobsterin, e.g. {“skipdos”: True}
+get_all_possible_basis_combinations
+(
+min_basis
+:
+list
+,
+max_basis
+:
+list
+)
+→
+list
+[
+list
+[
+str
+]
+]
+[source]
+
+Get all possible basis combinations.
+Parameters
+:
+min_basis
+– list of basis entries: e.g., [“Si 3p 3s”]
+max_basis
+– list of basis entries: e.g., [“Si 3p 3s”].
+Returns
+:
+all possible combinations of basis functions, e.g. [[“Si 3p 3s”]]
+Return type
+:
+list[list[str]]
+pymatgen.io.lobster.lobsterenv module
+
+This module provides classes to perform analyses of the local
+environments (e.g., finding near neighbors) of single sites in molecules
+and structures based on bonding analysis with LOBSTER.
+If you use this module, please cite:
+J. George, G. Petretto, A. Naik, M. Esters, A. J. Jackson, R. Nelson, R. Dronskowski, G.-M. Rignanese, G. Hautier,
+“Automated Bonding Analysis with Crystal Orbital Hamilton Populations”,
+ChemPlusChem 2022, e202200123,
+DOI: 10.1002/cplu.202200123.
+class
+ICOHPNeighborsInfo
+(
+total_icohp
+:
+float
+,
+list_icohps
+:
+list
+[
+float
+]
+,
+n_bonds
+:
+int
+,
+labels
+:
+list
+[
+str
+]
+,
+atoms
+:
+list
+[
+list
+[
+str
+]
+]
+,
+central_isites
+:
+list
+[
+int
+]
+|
+None
+)
+[source]
+
+Bases:
+NamedTuple
+Tuple to record information on relevant bonds.
+Parameters
+:
+total_icohp
+(
+float
+) – Sum of ICOHP values of neighbors to the selected
+sites (given by the index in structure).
+list_icohps
+(
+list
+) – Summed ICOHP values for all identified interactions with neighbors.
+n_bonds
+(
+int
+) – Number of identified bonds to the selected sites.
+labels
+(
+list
+[
+str
+]
+) – Labels (from ICOHPLIST) for all identified bonds.
+atoms
+(
+list
+[
+list
+[
+str
+]
+]
+) – Lists describing the species present (from ICOHPLIST)
+in the identified interactions , e.g. [“Ag3”, “O5”].
+central_isites
+(
+list
+[
+int
+]
+) – The central site indexes for each identified interaction.
+Create new instance of ICOHPNeighborsInfo(total_icohp, list_icohps, n_bonds, labels, atoms, central_isites)
+atoms
+:
+list
+[
+list
+[
+str
+]
+]
+[source]
+
+Alias for field number 4
+central_isites
+:
+list
+[
+int
+]
+|
+None
+[source]
+
+Alias for field number 5
+labels
+:
+list
+[
+str
+]
+[source]
+
+Alias for field number 3
+list_icohps
+:
+list
+[
+float
+]
+[source]
+
+Alias for field number 1
+n_bonds
+:
+int
+[source]
+
+Alias for field number 2
+total_icohp
+:
+float
+[source]
+
+Alias for field number 0
+class
+LobsterLightStructureEnvironments
+(
+strategy
+,
+coordination_environments
+=
+None
+,
+all_nbs_sites
+=
+None
+,
+neighbors_sets
+=
+None
+,
+structure
+=
+None
+,
+valences
+=
+None
+,
+valences_origin
+=
+None
+)
+[source]
+
+Bases:
+LightStructureEnvironments
+Store LightStructureEnvironments based on LOBSTER outputs.
+Constructor for the LightStructureEnvironments object.
+Parameters
+:
+strategy
+– ChemEnv strategy used to get the environments.
+coordination_environments
+– The coordination environments identified.
+all_nbs_sites
+– All the possible neighbors for each site in the structure.
+neighbors_sets
+– The neighbors sets of each site in the structure.
+structure
+– The structure.
+valences
+– The valences used to get the environments (if needed).
+valences_origin
+– How the valences were obtained (e.g. from the Bond-valence analysis or from the original
+structure).
+as_dict
+(
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Bson-serializable dict representation of the object.
+Returns
+:
+Bson-serializable dict representation.
+classmethod
+from_Lobster
+(
+list_ce_symbol
+:
+list
+[
+str
+]
+,
+list_csm
+:
+list
+[
+float
+]
+,
+list_permutation
+:
+list
+,
+list_neighsite
+:
+list
+[
+PeriodicSite
+]
+,
+list_neighisite
+:
+list
+[
+list
+[
+int
+]
+]
+,
+structure
+:
+Structure
+|
+IStructure
+,
+valences
+:
+list
+[
+float
+]
+|
+None
+=
+None
+)
+→
+Self
+[source]
+
+Set up a LightStructureEnvironments from LOBSTER.
+Parameters
+:
+list_ce_symbol
+(
+list
+[
+str
+]
+) – Coordination environments symbols.
+list_csm
+(
+list
+[
+float
+]
+) – Continuous symmetry measures.
+list_permutation
+(
+list
+) – Permutations.
+list_neighsite
+(
+list
+[
+PeriodicSite
+]
+) – Neighboring sites.
+list_neighisite
+(
+list
+[
+list
+[
+int
+]
+]
+) – Neighboring sites indexes.
+structure
+(
+Structure
+) – Structure object.
+valences
+(
+list
+[
+float
+]
+) – Valences.
+Returns
+:
+LobsterLightStructureEnvironments
+property
+uniquely_determines_coordination_environments
+:
+Literal
+[
+True
+]
+[source]
+
+Whether the coordination environments are uniquely determined.
+class
+LobsterNeighbors
+(
+structure
+:
+Structure
+|
+IStructure
+,
+filename_icohp
+:
+PathLike
+|
+None
+=
+'ICOHPLIST.lobster'
+,
+obj_icohp
+:
+Icohplist
+|
+None
+=
+None
+,
+are_coops
+:
+bool
+=
+False
+,
+are_cobis
+:
+bool
+=
+False
+,
+valences
+:
+list
+[
+float
+]
+|
+None
+=
+None
+,
+limits
+:
+tuple
+[
+float
+,
+float
+]
+|
+None
+=
+None
+,
+additional_condition
+:
+Literal
+[
+0
+,
+1
+,
+2
+,
+3
+,
+4
+,
+5
+,
+6
+]
+=
+0
+,
+only_bonds_to
+:
+list
+[
+str
+]
+|
+None
+=
+None
+,
+perc_strength_icohp
+:
+float
+=
+0.15
+,
+noise_cutoff
+:
+float
+=
+0.1
+,
+valences_from_charges
+:
+bool
+=
+False
+,
+filename_charge
+:
+PathLike
+|
+None
+=
+None
+,
+obj_charge
+:
+Charge
+|
+None
+=
+None
+,
+which_charge
+:
+Literal
+[
+'Mulliken'
+,
+'Loewdin'
+]
+=
+'Mulliken'
+,
+adapt_extremum_to_add_cond
+:
+bool
+=
+False
+,
+add_additional_data_sg
+:
+bool
+=
+False
+,
+filename_blist_sg1
+:
+PathLike
+|
+None
+=
+None
+,
+filename_blist_sg2
+:
+PathLike
+|
+None
+=
+None
+,
+id_blist_sg1
+:
+Literal
+[
+'icoop'
+,
+'icobi'
+]
+=
+'icoop'
+,
+id_blist_sg2
+:
+Literal
+[
+'icoop'
+,
+'icobi'
+]
+=
+'icobi'
+)
+[source]
+
+Bases:
+NearNeighbors
+This class combines capabilities from LocalEnv and ChemEnv to determine
+coordination environments based on bonding analysis.
+Parameters
+:
+filename_icohp
+(
+PathLike
+) – Path to ICOHPLIST.lobster or
+ICOOPLIST.lobster or ICOBILIST.lobster.
+obj_icohp
+(
+Icohplist
+) – Icohplist object.
+structure
+(
+Structure
+) – Typically constructed by Structure.from_file(“POSCAR”).
+are_coops
+(
+bool
+) – Whether the file is a ICOOPLIST.lobster (True) or a
+ICOHPLIST.lobster (False). Only tested for ICOHPLIST.lobster so far.
+are_cobis
+(
+bool
+) – Whether the file is a ICOBILIST.lobster (True) or
+a ICOHPLIST.lobster (False).
+valences
+(
+list
+[
+float
+]
+) – Valence/charge for each element.
+limits
+(
+tuple
+[
+float
+,
+float
+]
+) – Range to decide which ICOHPs (ICOOP
+or ICOBI) should be considered.
+additional_condition
+(
+int
+) –
+Additional condition that decides
+which kind of bonds will be considered:
+0 - NO_ADDITIONAL_CONDITION
+1 - ONLY_ANION_CATION_BONDS
+2 - NO_ELEMENT_TO_SAME_ELEMENT_BONDS
+3 - ONLY_ANION_CATION_BONDS_AND_NO_ELEMENT_TO_SAME_ELEMENT_BONDS
+4 - ONLY_ELEMENT_TO_OXYGEN_BONDS
+5 - DO_NOT_CONSIDER_ANION_CATION_BONDS
+6 - ONLY_CATION_CATION_BONDS
+only_bonds_to
+(
+list
+[
+str
+]
+) – Only consider bonds to certain elements (e.g. [“O”] for oxygen).
+perc_strength_icohp
+(
+float
+) – If no “limits” are given, this will decide
+which ICOHPs will be considered (relative to the strongest ICOHP/ICOOP/ICOBI).
+noise_cutoff
+(
+float
+) – The lower limit of ICOHPs considered.
+valences_from_charges
+(
+bool
+) – If True and path to CHARGE.lobster is provided,
+will use LOBSTER charges (Mulliken) instead of valences.
+filename_charge
+(
+PathLike
+) – Path to Charge.lobster.
+obj_charge
+(
+Charge
+) – Charge object.
+which_charge
+(
+"Mulliken"
+|
+"Loewdin"
+) – Source of charge.
+adapt_extremum_to_add_cond
+(
+bool
+) – Whether to adapt the limits to only
+focus on the bonds determined by the additional condition.
+add_additional_data_sg
+(
+bool
+) – Add the information from filename_add_bondinglist_sg1.
+filename_blist_sg1
+(
+PathLike
+) – Path to additional ICOOP, ICOBI data for structure graphs.
+filename_blist_sg2
+(
+PathLike
+) – Path to additional ICOOP, ICOBI data for structure graphs.
+id_blist_sg1
+(
+"icoop"
+|
+"icobi"
+) – Identity of data in filename_blist_sg1.
+id_blist_sg2
+(
+"icoop"
+|
+"icobi"
+) – Identity of data in filename_blist_sg2.
+property
+anion_types
+:
+set
+[
+Element
+]
+[source]
+
+The set of anion types in crystal structure.
+Returns
+:
+Anions in the crystal structure.
+Return type
+:
+set[
+Element
+]
+get_anion_types
+(
+)
+→
+set
+[
+Element
+]
+[source]
+
+get_info_cohps_to_neighbors
+(
+path_to_cohpcar
+:
+PathLike
+|
+None
+=
+'COHPCAR.lobster'
+,
+obj_cohpcar
+:
+CompleteCohp
+|
+None
+=
+None
+,
+isites
+:
+list
+[
+int
+]
+|
+None
+=
+None
+,
+only_bonds_to
+:
+list
+[
+str
+]
+|
+None
+=
+None
+,
+onlycation_isites
+:
+bool
+=
+True
+,
+per_bond
+:
+bool
+=
+True
+,
+summed_spin_channels
+:
+bool
+=
+False
+)
+→
+tuple
+[
+str
+|
+None
+,
+CompleteCohp
+|
+None
+]
+[source]
+
+Get the COHPs (COOPs or COBIs) as a summed Cohp object
+and a label from all sites mentioned in isites with neighbors.
+Parameters
+:
+path_to_cohpcar
+(
+PathLike
+) – Path to COHPCAR/COOPCAR/COBICAR.
+obj_cohpcar
+(
+CompleteCohp
+) – CompleteCohp object.
+isites
+(
+list
+[
+int
+]
+) – The indexes of the sites.
+only_bonds_to
+(
+list
+[
+str
+]
+) – Only show COHPs to selected element, e.g. [“O”].
+onlycation_isites
+(
+bool
+) – If isites is None, only cation sites will be returned.
+per_bond
+(
+bool
+) – Whether to normalize per bond.
+summed_spin_channels
+(
+bool
+) – Whether to sum both spin channels.
+Returns
+:
+Label for COHP.
+CompleteCohp: Describe all COHPs/COOPs/COBIs of the sites
+as given by isites and the other arguments.
+Return type
+:
+str
+get_info_icohps_between_neighbors
+(
+isites
+:
+list
+[
+int
+]
+|
+None
+=
+None
+,
+onlycation_isites
+:
+bool
+=
+True
+)
+→
+ICOHPNeighborsInfo
+[source]
+
+Get interactions between neighbors of certain sites.
+Parameters
+:
+isites
+(
+list
+[
+int
+]
+) – Site IDs. If is None, all sites will be used.
+onlycation_isites
+(
+bool
+) – Only use cations, if isite is None.
+Returns
+:
+ICOHPNeighborsInfo
+get_info_icohps_to_neighbors
+(
+isites
+:
+list
+[
+int
+]
+|
+None
+=
+None
+,
+onlycation_isites
+:
+bool
+=
+True
+)
+→
+ICOHPNeighborsInfo
+[source]
+
+Get information on the ICOHPs of neighbors for certain sites
+as identified by their site id.
+This is useful for plotting the COHPs (ICOOPLIST.lobster/
+ICOHPLIST.lobster/ICOBILIST.lobster) of a site in the structure.
+Parameters
+:
+isites
+(
+list
+[
+int
+]
+) – Site IDs. If is None, all isites will be used
+to add the ICOHPs of the neighbors.
+onlycation_isites
+(
+bool
+) – If True and if isite is None, will
+only analyse the cations sites.
+Returns
+:
+ICOHPNeighborsInfo
+get_light_structure_environment
+(
+only_cation_environments
+:
+bool
+=
+False
+,
+only_indices
+:
+list
+[
+int
+]
+|
+None
+=
+None
+)
+→
+LobsterLightStructureEnvironments
+[source]
+
+Get a LobsterLightStructureEnvironments object if the structure
+only contains coordination environments smaller 13.
+Parameters
+:
+only_cation_environments
+(
+bool
+) – Only return data for cations.
+only_indices
+(
+list
+[
+int
+]
+) – Only evaluate indexes in this list.
+Returns
+:
+LobsterLightStructureEnvironments
+get_nn_info
+(
+structure
+:
+Structure
+|
+IStructure
+,
+n
+:
+int
+,
+use_weights
+:
+bool
+=
+False
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Get coordination number (CN) of site by index.
+Parameters
+:
+structure
+(
+Structure
+) – Input structure.
+n
+(
+int
+) – Index of site for which to determine CN.
+use_weights
+(
+bool
+) – Whether to use weights for computing
+the CN (True), or each coordinated site has equal weight (False).
+The former is not implemented yet.
+Raises
+:
+ValueError
+– If use_weights is True, or if arg “structure” and structure
+    used to initialize LobsterNeighbors have different lengths.
+Returns
+:
+coordination number and a list of nearest neighbors.
+Return type
+:
+dict[str, Any]
+property
+molecules_allowed
+:
+Literal
+[
+False
+]
+[source]
+
+Whether this LobsterNeighbors class can be used with Molecule objects.
+plot_cohps_of_neighbors
+(
+path_to_cohpcar
+:
+PathLike
+|
+None
+=
+'COHPCAR.lobster'
+,
+obj_cohpcar
+:
+CompleteCohp
+|
+None
+=
+None
+,
+isites
+:
+list
+[
+int
+]
+|
+None
+=
+None
+,
+onlycation_isites
+:
+bool
+=
+True
+,
+only_bonds_to
+:
+list
+[
+str
+]
+|
+None
+=
+None
+,
+per_bond
+:
+bool
+=
+False
+,
+summed_spin_channels
+:
+bool
+=
+False
+,
+xlim
+:
+tuple
+[
+float
+,
+float
+]
+|
+None
+=
+None
+,
+ylim
+:
+tuple
+[
+float
+,
+float
+]
+=
+(-10,
+6)
+,
+integrated
+:
+bool
+=
+False
+)
+→
+mpl.axes.Axes
+[source]
+
+Plot summed COHPs or COBIs or COOPs.
+Please be careful in the spin polarized case (plots might overlap).
+Parameters
+:
+path_to_cohpcar
+(
+PathLike
+) – Path to COHPCAR or COOPCAR or COBICAR.
+obj_cohpcar
+(
+CompleteCohp
+) – CompleteCohp object
+isites
+(
+list
+[
+int
+]
+) – Site IDs. If empty, all sites will be used to add the ICOHPs of the neighbors.
+onlycation_isites
+(
+bool
+) – Only use cations, if isite is empty.
+only_bonds_to
+(
+list
+[
+str
+]
+) – Only anions in this list will be considered.
+per_bond
+(
+bool
+) – Whether to plot a normalization of the plotted COHP
+per number of bond (True), or the sum (False).
+xlim
+(
+tuple
+[
+float
+,
+float
+]
+) – Limits of x values.
+ylim
+(
+tuple
+[
+float
+,
+float
+]
+) – Limits of y values.
+integrated
+(
+bool
+) – Whether to show integrated COHP instead of COHP.
+Returns
+:
+plt of the COHPs or COBIs or COOPs.
+property
+structures_allowed
+:
+Literal
+[
+True
+]
+[source]
+
+Whether this LobsterNeighbors class can be used with Structure objects.
+pymatgen.io.lobster.outputs module
+
+Module for reading Lobster output files.
+For more information on LOBSTER see www.cohp.de.
+If you use this module, please cite:
+J. George, G. Petretto, A. Naik, M. Esters, A. J. Jackson, R. Nelson, R. Dronskowski, G.-M. Rignanese, G. Hautier,
+“Automated Bonding Analysis with Crystal Orbital Hamilton Populations”,
+ChemPlusChem 2022, e202200123,
+DOI: 10.1002/cplu.202200123.
+class
+Bandoverlaps
+(
+filename
+:
+PathLike
+=
+'bandOverlaps.lobster'
+,
+band_overlaps_dict
+:
+dict
+[
+Spin
+,
+dict
+]
+|
+None
+=
+None
+,
+max_deviation
+:
+list
+[
+float
+]
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+Read bandOverlaps.lobster files, which are not created during every LOBSTER run.
+band_overlaps_dict
+[source]
+
+A dictionary
+containing the band overlap data of the form: {spin: {“kpoint as string”: {“maxDeviation”:
+float that describes the max deviation, “matrix”: 2D array of the size number of bands
+times number of bands including the overlap matrices with}}}.
+Type
+:
+dict[
+Spin
+, Dict[str, Dict[str, Union[float, NDArray]]]]
+max_deviation
+[source]
+
+The maximal deviation for each problematic kpoint.
+Type
+:
+list[float]
+Parameters
+:
+filename
+(
+PathLike
+) – The “bandOverlaps.lobster” file.
+band_overlaps_dict
+–
+The band overlap data of the form:
+{
+spin: {
+“k_points” : list of k-point array,
+“max_deviations”: list of max deviations associated with each k-point,
+“matrices”: list of the overlap matrices associated with each k-point,
+}
+}.
+max_deviation
+(
+list
+[
+float
+]
+) – The maximal deviations for each problematic k-point.
+property
+bandoverlapsdict
+:
+dict
+[source]
+
+has_good_quality_check_occupied_bands
+(
+number_occ_bands_spin_up
+:
+int
+,
+number_occ_bands_spin_down
+:
+int
+|
+None
+=
+None
+,
+spin_polarized
+:
+bool
+=
+False
+,
+limit_deviation
+:
+float
+=
+0.1
+)
+→
+bool
+[source]
+
+Check if the deviation from the ideal bandoverlap of all occupied bands
+is smaller or equal to limit_deviation.
+Parameters
+:
+number_occ_bands_spin_up
+(
+int
+) – Number of occupied bands of spin up.
+number_occ_bands_spin_down
+(
+int
+) – Number of occupied bands of spin down.
+spin_polarized
+(
+bool
+) – Whether this is a spin polarized calculation.
+limit_deviation
+(
+float
+) – Upper limit of the maxDeviation.
+Returns
+:
+True if the quality of the projection is good.
+Return type
+:
+bool
+has_good_quality_maxDeviation
+(
+limit_maxDeviation
+:
+float
+=
+0.1
+)
+→
+bool
+[source]
+
+Check if the maxDeviation from the ideal bandoverlap is smaller
+or equal to a limit.
+Parameters
+:
+limit_maxDeviation
+(
+float
+) – Upper Limit of the maxDeviation.
+Returns
+:
+Whether the ideal bandoverlap is smaller or equal to the limit.
+Return type
+:
+bool
+class
+Bwdf
+(
+filename
+:
+PathLike
+=
+'BWDF.lobster'
+,
+centers
+:
+NDArray
+|
+None
+=
+None
+,
+bwdf
+:
+dict
+[
+Spin
+,
+NDArray
+]
+|
+None
+=
+None
+,
+bin_width
+:
+float
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+Read BWDF.lobster/BWDFCOHP.lobster file generated by LOBSTER.
+centers
+[source]
+
+Bond length centers for the distribution.
+Type
+:
+NDArray
+bwdf
+[source]
+
+Bond weighted distribution function.
+Type
+:
+dict[
+Spin
+, NDArray]
+bin_width
+[source]
+
+Bin width used for computing the distribution by LOBSTER.
+Type
+:
+float
+Parameters
+:
+filename
+(
+PathLike
+) – The “BWDF.lobster” file. Can also read BWDFCOHP.lobster.
+centers
+(
+NDArray
+) – Bond length centers for the distribution.
+bwdf
+(
+dict
+[
+Spin
+,
+NDArray
+]
+) – Bond weighted distribution function.
+bin_width
+(
+float
+) – Bin width used for computing the distribution by LOBSTER.
+class
+Charge
+(
+filename
+:
+PathLike
+=
+'CHARGE.lobster'
+,
+is_lcfo
+:
+bool
+=
+False
+,
+num_atoms
+:
+int
+|
+None
+=
+None
+,
+atomlist
+:
+list
+[
+str
+]
+|
+None
+=
+None
+,
+types
+:
+list
+[
+str
+]
+|
+None
+=
+None
+,
+mulliken
+:
+list
+[
+float
+]
+|
+None
+=
+None
+,
+loewdin
+:
+list
+[
+float
+]
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+Read CHARGE.lobster/ CHARGE.LCFO.lobster files generated by LOBSTER.
+atomlist
+[source]
+
+List of atoms in CHARGE.lobster.
+Type
+:
+list[str]
+is_lcfo
+[source]
+
+Whether the CHARGE file is from LCFO analysis. Default is False.
+Type
+:
+bool
+types
+[source]
+
+List of types of atoms in CHARGE.lobster.
+Type
+:
+list[str]
+mulliken
+[source]
+
+List of Mulliken charges of atoms in CHARGE.lobster.
+Type
+:
+list[float]
+loewdin
+[source]
+
+List of Loewdin charges of atoms in CHARGE.Loewdin.
+Type
+:
+list[float]
+num_atoms
+[source]
+
+Number of atoms in CHARGE.lobster.
+Type
+:
+int
+Parameters
+:
+filename
+(
+PathLike
+) – The CHARGE file, typically “CHARGE.lobster”.
+is_lcfo
+(
+bool
+) – Whether the CHARGE file is from LCFO analysis. Default is False.
+num_atoms
+(
+int
+) – Number of atoms in the structure.
+atomlist
+(
+list
+[
+str
+]
+) – Atoms in the structure.
+types
+(
+list
+[
+str
+]
+) – Unique species in the structure.
+mulliken
+(
+list
+[
+float
+]
+) – Mulliken charges.
+loewdin
+(
+list
+[
+float
+]
+) – Loewdin charges.
+property
+Loewdin
+:
+list
+[
+float
+]
+[source]
+
+property
+Mulliken
+:
+list
+[
+float
+]
+[source]
+
+get_structure_with_charges
+(
+structure_filename
+:
+PathLike
+)
+→
+Structure
+[source]
+
+Get a Structure with Mulliken and Loewdin charges as site properties
+Parameters
+:
+structure_filename
+(
+PathLike
+) – The POSCAR file.
+Returns
+:
+Structure Object with Mulliken and Loewdin charges as site properties.
+class
+Cohpcar
+(
+are_coops
+:
+bool
+=
+False
+,
+are_cobis
+:
+bool
+=
+False
+,
+are_multi_center_cobis
+:
+bool
+=
+False
+,
+is_lcfo
+:
+bool
+=
+False
+,
+filename
+:
+PathLike
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+object
+Read COXXCAR.lobster/COXXCAR.LCFO.lobster files generated by LOBSTER.
+cohp_data
+[source]
+
+The COHP data of the form:
+{bond: {“COHP”: {Spin.up: cohps, Spin.down:cohps},
+“ICOHP”: {Spin.up: icohps, Spin.down: icohps},
+“length”: bond length,
+“sites”: sites corresponding to the bond}
+Also contains an entry for the average, which does not have a “length” key.
+Type
+:
+dict[str, Dict[str, Any]]
+efermi
+[source]
+
+The Fermi level in eV.
+Type
+:
+float
+energies
+[source]
+
+Sequence of energies in eV. Note that LOBSTER
+shifts the energies so that the Fermi level is at zero.
+Type
+:
+Sequence[float]
+is_spin_polarized
+[source]
+
+True if the calculation is spin polarized.
+Type
+:
+bool
+orb_res_cohp
+[source]
+
+The orbital-resolved COHPs of the form:
+orb_res_cohp[label] = {bond_data[“orb_label”]: {
+“COHP”: {Spin.up: cohps, Spin.down:cohps},
+“ICOHP”: {Spin.up: icohps, Spin.down: icohps},
+“orbitals”: orbitals,
+“length”: bond lengths,
+“sites”: sites corresponding to the bond},
+}
+Type
+:
+dict[str, Dict[str, Dict[str, Any]]]
+Parameters
+:
+are_coops
+(
+bool
+) – Whether the file includes COOPs (True) or COHPs (False).
+Default is False.
+are_cobis
+(
+bool
+) – Whether the file is COBIs (True) or COHPs (False).
+Default is False.
+are_multi_center_cobis
+(
+bool
+) – Whether the file include multi-center COBIs (True)
+or two-center COBIs (False). Default is False.
+is_lcfo
+(
+bool
+) – Whether the COXXCAR file is from LCFO analysis.
+filename
+(
+PathLike
+) – The COHPCAR file. If it is None, the default
+file name will be chosen, depending on the value of are_coops.
+class
+Doscar
+(
+doscar
+:
+PathLike
+=
+'DOSCAR.lobster'
+,
+is_lcfo
+:
+bool
+=
+False
+,
+structure_file
+:
+PathLike
+|
+None
+=
+'POSCAR'
+,
+structure
+:
+IStructure
+|
+Structure
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+object
+Store LOBSTER’s projected DOS and local projected DOS.
+The beforehand quantum-chemical calculation was performed with VASP.
+completedos
+[source]
+
+LobsterCompleteDos Object.
+Type
+:
+LobsterCompleteDos
+pdos
+[source]
+
+List of Dict including NumPy arrays with pdos. Access as
+pdos[atomindex][‘orbitalstring’][‘Spin.up/Spin.down’].
+Type
+:
+list
+tdos
+[source]
+
+Dos Object of the total density of states.
+Type
+:
+Dos
+energies
+[source]
+
+Numpy array of the energies at which the DOS was calculated
+(in eV, relative to Efermi).
+Type
+:
+NDArray
+tdensities
+[source]
+
+tdensities[Spin.up]: NumPy array of the total density of states for
+the Spin.up contribution at each of the energies. tdensities[Spin.down]: NumPy array
+of the total density of states for the Spin.down contribution at each of the energies.
+If is_spin_polarized=False, tdensities[Spin.up]: NumPy array of the total density of states.
+Type
+:
+dict
+itdensities
+[source]
+
+itdensities[Spin.up]: NumPy array of the total density of states for
+the Spin.up contribution at each of the energies. itdensities[Spin.down]: NumPy array
+of the total density of states for the Spin.down contribution at each of the energies.
+If is_spin_polarized=False, itdensities[Spin.up]: NumPy array of the total density of states.
+Type
+:
+dict
+is_spin_polarized
+[source]
+
+Whether the system is spin polarized.
+Type
+:
+bool
+Parameters
+:
+doscar
+(
+PathLike
+) – The DOSCAR file, typically “DOSCAR.lobster”.
+is_lcfo
+(
+bool
+) – Whether the DOSCAR file is from LCFO analysis.
+structure_file
+(
+PathLike
+) – For VASP, this is typically “POSCAR”.
+structure
+(
+Structure
+) – Instead of a structure file (preferred),
+the Structure can be given directly.
+property
+completedos
+:
+LobsterCompleteDos
+[source]
+
+LobsterCompleteDos.
+property
+energies
+:
+NDArray
+[source]
+
+Energies.
+property
+is_spin_polarized
+:
+bool
+[source]
+
+Whether run is spin polarized.
+property
+itdensities
+:
+dict
+[
+Spin
+,
+NDArray
+]
+[source]
+
+Integrated total DOS as a np.array.
+property
+pdos
+:
+list
+[
+dict
+]
+[source]
+
+Projected DOS (PDOS).
+property
+tdensities
+:
+dict
+[
+Spin
+,
+NDArray
+]
+[source]
+
+Total DOS as a np.array.
+property
+tdos
+:
+Dos
+[source]
+
+Total DOS (TDOS).
+class
+Fatband
+(
+filenames
+:
+PathLike
+|
+list
+[
+PathLike
+]
+=
+'.'
+,
+kpoints_file
+:
+PathLike
+=
+'KPOINTS'
+,
+vasprun_file
+:
+PathLike
+|
+None
+=
+'vasprun.xml'
+,
+structure
+:
+Structure
+|
+IStructure
+|
+None
+=
+None
+,
+efermi
+:
+float
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+object
+Read FATBAND_x_y.lobster files.
+efermi
+[source]
+
+Fermi level read from vasprun.xml.
+Type
+:
+float
+eigenvals
+[source]
+
+Eigenvalues as a dictionary of NumPy arrays of shape (nbands, nkpoints).
+The first index of the array refers to the band and the second to the index of the kpoint.
+The kpoints are ordered according to the order of the kpoints_array attribute.
+If the band structure is not spin polarized, we only store one data set under Spin.up.
+Type
+:
+dict[
+Spin
+, NDArray]
+is_spin_polarized
+[source]
+
+Whether this was a spin-polarized calculation.
+Type
+:
+bool
+kpoints_array
+[source]
+
+List of kpoints as NumPy arrays, in frac_coords of the given
+lattice by default.
+Type
+:
+list[NDArray]
+label_dict
+[source]
+
+Dictionary that links a kpoint (in frac coords or Cartesian
+coordinates depending on the coords attribute) to a label.
+Type
+:
+dict[str, Union[str, NDArray]]
+lattice
+[source]
+
+Lattice object of reciprocal lattice as read from vasprun.xml.
+Type
+:
+Lattice
+nbands
+[source]
+
+Number of bands used in the calculation.
+Type
+:
+int
+p_eigenvals
+[source]
+
+Dictionary of orbital projections as {spin: array of dict}.
+The indices of the array are [band_index, kpoint_index].
+The dict is then built the following way: {“string of element”: “string of orbital as read in
+from FATBAND file”}. If the band structure is not spin polarized, we only store one data set under Spin.up.
+Type
+:
+dict[
+Spin
+, NDArray]
+structure
+[source]
+
+Structure object.
+Type
+:
+Structure
+Parameters
+:
+filenames
+(
+PathLike
+|
+list
+[
+PathLike
+]
+) – File names or path to a
+folder from which all “FATBAND_*” files will be read.
+kpoints_file
+(
+PathLike
+) – KPOINTS file for bandstructure calculation, typically “KPOINTS”.
+vasprun_file
+(
+PathLike
+) – Corresponding vasprun.xml file. Instead, the
+Fermi level from the DFT run can be provided. Then, this should be set to None.
+structure
+(
+Structure
+) – Structure object.
+efermi
+(
+float
+) – Fermi level in eV.
+get_bandstructure
+(
+)
+→
+LobsterBandStructureSymmLine
+[source]
+
+Get a LobsterBandStructureSymmLine object which can be plotted with a normal BSPlotter.
+class
+Grosspop
+(
+filename
+:
+PathLike
+=
+'GROSSPOP.lobster'
+,
+is_lcfo
+:
+bool
+=
+False
+,
+list_dict_grosspop
+:
+list
+[
+dict
+]
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+Read GROSSPOP.lobster/ GROSSPOP.LCFO.lobster files.
+list_dict_grosspop
+[source]
+
+List of dictionaries
+including all information about the grosspopulations. Each dictionary contains the following keys:
+- ‘element’: The element symbol of the atom.
+- ‘Mulliken GP’: A dictionary of Mulliken gross populations, where the keys are the orbital labels and the
+values are the corresponding gross populations as strings.
+‘Loewdin GP’: A dictionary of Loewdin gross populations, where the keys are the orbital labels and the
+values are the corresponding gross populations as strings.
+The 0th entry of the list refers to the first atom in GROSSPOP.lobster and so on.
+Type
+:
+list[dict[str, str| dict[str, str]]]
+Parameters
+:
+filename
+(
+PathLike
+) – The “GROSSPOP.lobster” file.
+is_lcfo
+(
+bool
+) – Whether the GROSSPOP file is in LCFO format.
+list_dict_grosspop
+(
+list
+[
+dict
+]
+) – All information about the gross populations.
+get_structure_with_total_grosspop
+(
+structure_filename
+:
+PathLike
+)
+→
+Structure
+[source]
+
+Get a Structure with Mulliken and Loewdin total grosspopulations as site properties.
+Parameters
+:
+structure_filename
+(
+PathLike
+) – The POSCAR file.
+Returns
+:
+Structure Object with Mulliken and Loewdin total grosspopulations as site properties.
+class
+Icohplist
+(
+is_lcfo
+:
+bool
+=
+False
+,
+are_coops
+:
+bool
+=
+False
+,
+are_cobis
+:
+bool
+=
+False
+,
+filename
+:
+PathLike
+|
+None
+=
+None
+,
+is_spin_polarized
+:
+bool
+=
+False
+,
+orbitalwise
+:
+bool
+=
+False
+,
+icohpcollection
+:
+IcohpCollection
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+Read ICOXXLIST/ICOXXLIST.LCFO.lobster files generated by LOBSTER.
+are_coops
+[source]
+
+Whether the file includes COOPs (True) or COHPs (False).
+Type
+:
+bool
+is_lcfo
+[source]
+
+Whether the ICOXXLIST file is from LCFO analysis.
+Type
+:
+bool
+is_spin_polarized
+[source]
+
+Whether the calculation is spin polarized.
+Type
+:
+bool
+Icohplist
+[source]
+
+The listfile data of the form: {
+bond: {
+“length”: Bond length,
+“number_of_bonds”: Number of bonds,
+“icohp”: {Spin.up: ICOHP(Ef)_up, Spin.down: …},
+}
+}
+Type
+:
+dict[str, Dict[str, Union[float, int, Dict[
+Spin
+, float]]]]
+IcohpCollection
+[source]
+
+IcohpCollection Object.
+Type
+:
+IcohpCollection
+Parameters
+:
+is_lcfo
+(
+bool
+) – Whether the ICOHPLIST file is from LCFO analysis.
+are_coops
+(
+bool
+) – Whether the file includes COOPs (True) or COHPs (False).
+Default is False.
+are_cobis
+(
+bool
+) – Whether the file is COBIs (True) or COHPs (False).
+Default is False.
+filename
+(
+PathLike
+) – The ICOHPLIST file. If it is None, the default
+file name will be chosen, depending on the value of are_coops
+is_spin_polarized
+(
+bool
+) – Whether the calculation is spin polarized.
+orbitalwise
+(
+bool
+) – Whether the calculation is orbitalwise.
+icohpcollection
+(
+IcohpCollection
+) – IcohpCollection Object.
+property
+icohpcollection
+:
+IcohpCollection
+|
+None
+[source]
+
+The IcohpCollection object.
+property
+icohplist
+:
+dict
+[
+Any
+,
+dict
+[
+str
+,
+Any
+]
+]
+[source]
+
+The ICOHP list compatible with older version of this class.
+class
+LobsterMatrices
+(
+e_fermi
+:
+float
+|
+None
+=
+None
+,
+filename
+:
+PathLike
+=
+'hamiltonMatrices.lobster'
+)
+[source]
+
+Bases:
+object
+Read Matrices file generated by LOBSTER (e.g. hamiltonMatrices.lobster).
+If
+filename
+==
+"hamiltonMatrices.lobster"
+onsite_energies (list[NDArray]): Real parts of onsite energies from the
+matrices each k-point.
+average_onsite_energies (dict): Average onsite elements energies for
+all k-points with keys as basis used in the LOBSTER computation
+(uses only real part of matrix).
+hamilton_matrices (dict[Spin, NDArray]): The complex Hamilton matrix at each
+k-point with k-point and spin as keys.
+If
+filename
+==
+"coefficientMatrices.lobster"
+onsite_coefficients (list[NDArray]): Real parts of onsite coefficients
+from the matrices each k-point.
+average_onsite_coefficient (dict): Average onsite elements coefficients
+for all k-points with keys as basis used in the LOBSTER computation
+(uses only real part of matrix).
+coefficient_matrices (dict[Spin, NDArray]): The coefficients matrix
+at each k-point with k-point and spin as keys.
+If
+filename
+==
+"transferMatrices.lobster"
+onsite_transfer (list[NDArray]): Real parts of onsite transfer
+coefficients from the matrices at each k-point.
+average_onsite_transfer (dict): Average onsite elements transfer
+coefficients for all k-points with keys as basis used in the
+LOBSTER computation (uses only real part of matrix).
+transfer_matrices (dict[Spin, NDArray]): The coefficients matrix at
+each k-point with k-point and spin as keys.
+If
+filename
+==
+"overlapMatrices.lobster"
+onsite_overlaps (list[NDArray]): Real parts of onsite overlaps
+from the matrices each k-point.
+average_onsite_overlaps (dict): Average onsite elements overlaps
+for all k-points with keys as basis used in the LOBSTER
+computation (uses only real part of matrix).
+overlap_matrices (dict[NDArray]): The overlap matrix at
+each k-point with k-point as keys.
+Parameters
+:
+e_fermi
+(
+float
+) – Fermi level in eV for the structure only.
+Relevant if input file contains Hamilton matrices data.
+filename
+(
+PathLike
+) – The hamiltonMatrices file, typically “hamiltonMatrices.lobster”.
+class
+Lobsterout
+(
+filename
+:
+PathLike
+|
+None
+,
+**
+kwargs
+)
+[source]
+
+Bases:
+MSONable
+Read the lobsterout and evaluate the spilling, save the basis, save warnings, save info.
+basis_functions
+[source]
+
+Basis functions that were used in lobster run as strings.
+Type
+:
+list[str]
+basis_type
+[source]
+
+Basis types that were used in lobster run as strings.
+Type
+:
+list[str]
+charge_spilling
+[source]
+
+Charge spilling (first entry: result for spin 1,
+second entry: result for spin 2 or not present).
+Type
+:
+list[float]
+dft_program
+[source]
+
+The DFT program used for the calculation of the wave function.
+Type
+:
+str
+elements
+[source]
+
+Elements that were present in LOBSTER calculation.
+Type
+:
+list[str]
+has_charge
+[source]
+
+Whether CHARGE.lobster is present.
+Type
+:
+bool
+has_cohpcar
+[source]
+
+Whether COHPCAR.lobster and ICOHPLIST.lobster are present.
+Type
+:
+bool
+has_madelung
+[source]
+
+Whether SitePotentials.lobster and MadelungEnergies.lobster are present.
+Type
+:
+bool
+has_coopcar
+[source]
+
+Whether COOPCAR.lobster and ICOOPLIST.lobster are present.
+Type
+:
+bool
+has_cobicar
+[source]
+
+Whether COBICAR.lobster and ICOBILIST.lobster are present.
+Type
+:
+bool
+has_doscar
+[source]
+
+Whether DOSCAR.lobster is present.
+Type
+:
+bool
+has_doscar_lso
+[source]
+
+Whether DOSCAR.LSO.lobster is present.
+Type
+:
+bool
+has_projection
+[source]
+
+Whether projectionData.lobster is present.
+Type
+:
+bool
+has_bandoverlaps
+[source]
+
+Whether bandOverlaps.lobster is present.
+Type
+:
+bool
+has_density_of_energies
+[source]
+
+Whether DensityOfEnergy.lobster is present.
+Type
+:
+bool
+has_fatbands
+[source]
+
+Whether fatband calculation was performed.
+Type
+:
+bool
+has_grosspopulation
+[source]
+
+Whether GROSSPOP.lobster is present.
+Type
+:
+bool
+has_polarization
+[source]
+
+Whether POLARIZATION.lobster is present.
+Type
+:
+bool
+info_lines
+[source]
+
+Additional information on the run.
+Type
+:
+str
+info_orthonormalization
+[source]
+
+Information on orthonormalization.
+Type
+:
+str
+is_restart_from_projection
+[source]
+
+Whether that calculation was restarted
+from an existing projection file.
+Type
+:
+bool
+lobster_version
+[source]
+
+The LOBSTER version.
+Type
+:
+str
+number_of_spins
+[source]
+
+The number of spins.
+Type
+:
+int
+number_of_threads
+[source]
+
+How many threads were used.
+Type
+:
+int
+timing
+[source]
+
+Dict with infos on timing.
+Type
+:
+dict[str, float]
+total_spilling
+[source]
+
+The total spilling for spin channel 1 (and spin channel 2).
+Type
+:
+list[float]
+warning_lines
+[source]
+
+String with all warnings.
+Type
+:
+str
+Parameters
+:
+filename
+(
+PathLike
+) – The lobsterout file.
+**kwargs
+– dict to initialize Lobsterout instance
+as_dict
+(
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+MSONable dict.
+get_doc
+(
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Get a dict with all information stored in lobsterout.
+class
+MadelungEnergies
+(
+filename
+:
+PathLike
+=
+'MadelungEnergies.lobster'
+,
+ewald_splitting
+:
+float
+|
+None
+=
+None
+,
+madelungenergies_mulliken
+:
+float
+|
+None
+=
+None
+,
+madelungenergies_loewdin
+:
+float
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+Read MadelungEnergies.lobster files generated by LOBSTER.
+madelungenergies_mulliken
+[source]
+
+The Madelung energy based on the Mulliken approach.
+Type
+:
+float
+madelungenergies_loewdin
+[source]
+
+The Madelung energy based on the Loewdin approach.
+Type
+:
+float
+ewald_splitting
+[source]
+
+The Ewald splitting parameter to compute SitePotentials.
+Type
+:
+float
+Parameters
+:
+filename
+(
+PathLike
+) – The “MadelungEnergies.lobster” file.
+ewald_splitting
+(
+float
+) – The Ewald splitting parameter to compute SitePotentials.
+madelungenergies_mulliken
+(
+float
+) – The Madelung energy based on the Mulliken approach.
+madelungenergies_loewdin
+(
+float
+) – The Madelung energy based on the Loewdin approach.
+property
+madelungenergies_Loewdin
+:
+float
+|
+None
+[source]
+
+property
+madelungenergies_Mulliken
+:
+float
+|
+None
+[source]
+
+class
+NciCobiList
+(
+filename
+:
+PathLike
+=
+'NcICOBILIST.lobster'
+)
+[source]
+
+Bases:
+object
+Read NcICOBILIST (multi-center ICOBI) files generated by LOBSTER.
+is_spin_polarized
+[source]
+
+Whether the calculation is spin polarized.
+Type
+:
+bool
+NciCobiList
+[source]
+
+The listfile data of the form:
+{
+bond: {
+“number_of_atoms”: Number of atoms involved in the multi-center interaction,
+“ncicobi”: {Spin.up: Nc-ICOBI(Ef)_up, Spin.down: …},
+“interaction_type”: Type of the multi-center interaction,
+}
+}
+Type
+:
+dict
+LOBSTER < 4.1.0: no COBI/ICOBI/NcICOBI
+Parameters
+:
+filename
+– Name of the NcICOBILIST file.
+property
+ncicobi_list
+:
+dict
+[
+Any
+,
+dict
+[
+str
+,
+Any
+]
+]
+[source]
+
+Returns:
+dict: ncicobilist.
+class
+Polarization
+(
+filename
+:
+PathLike
+=
+'POLARIZATION.lobster'
+,
+rel_mulliken_pol_vector
+:
+dict
+[
+str
+,
+float
+|
+str
+]
+|
+None
+=
+None
+,
+rel_loewdin_pol_vector
+:
+dict
+[
+str
+,
+float
+|
+str
+]
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+Read POLARIZATION.lobster file generated by LOBSTER.
+rel_mulliken_pol_vector
+[source]
+
+Relative Mulliken polarization vector.
+Type
+:
+dict[str, float]
+rel_loewdin_pol_vector
+[source]
+
+Relative Mulliken polarization vector.
+Type
+:
+dict[str, float]
+Parameters
+:
+filename
+(
+PathLike
+) – The “POLARIZATION.lobster” file.
+rel_mulliken_pol_vector
+(
+dict
+[
+str
+,
+Union
+[
+float
+,
+str
+]
+]
+) – Relative Mulliken polarization vector.
+rel_loewdin_pol_vector
+(
+dict
+[
+str
+,
+Union
+[
+float
+,
+str
+]
+]
+) – Relative Loewdin polarization vector.
+class
+SitePotential
+(
+filename
+:
+PathLike
+=
+'SitePotentials.lobster'
+,
+ewald_splitting
+:
+float
+|
+None
+=
+None
+,
+num_atoms
+:
+int
+|
+None
+=
+None
+,
+atomlist
+:
+list
+[
+str
+]
+|
+None
+=
+None
+,
+types
+:
+list
+[
+str
+]
+|
+None
+=
+None
+,
+sitepotentials_loewdin
+:
+list
+[
+float
+]
+|
+None
+=
+None
+,
+sitepotentials_mulliken
+:
+list
+[
+float
+]
+|
+None
+=
+None
+,
+madelungenergies_mulliken
+:
+float
+|
+None
+=
+None
+,
+madelungenergies_loewdin
+:
+float
+|
+None
+=
+None
+)
+[source]
+
+Bases:
+MSONable
+Read SitePotentials.lobster files generated by LOBSTER.
+atomlist
+[source]
+
+Atoms in SitePotentials.lobster.
+Type
+:
+list[str]
+types
+[source]
+
+Types of atoms in SitePotentials.lobster.
+Type
+:
+list[str]
+num_atoms
+[source]
+
+Number of atoms in SitePotentials.lobster.
+Type
+:
+int
+sitepotentials_mulliken
+[source]
+
+Mulliken potentials of sites in SitePotentials.lobster.
+Type
+:
+list[float]
+sitepotentials_loewdin
+[source]
+
+Loewdin potentials of sites in SitePotentials.lobster.
+Type
+:
+list[float]
+madelungenergies_mulliken
+[source]
+
+The Madelung energy based on the Mulliken approach.
+Type
+:
+float
+madelungenergies_loewdin
+[source]
+
+The Madelung energy based on the Loewdin approach.
+Type
+:
+float
+ewald_splitting
+[source]
+
+The Ewald Splitting parameter to compute SitePotentials.
+Type
+:
+float
+Parameters
+:
+filename
+(
+PathLike
+) – The SitePotentials file, typically “SitePotentials.lobster”.
+ewald_splitting
+(
+float
+) – Ewald splitting parameter used for computing Madelung energies.
+num_atoms
+(
+int
+) – Number of atoms in the structure.
+atomlist
+(
+list
+[
+str
+]
+) – Atoms in the structure.
+types
+(
+list
+[
+str
+]
+) – Unique atom types in the structure.
+sitepotentials_loewdin
+(
+list
+[
+float
+]
+) – Loewdin site potentials.
+sitepotentials_mulliken
+(
+list
+[
+float
+]
+) – Mulliken site potentials.
+madelungenergies_mulliken
+(
+float
+) – Madelung energy based on the Mulliken approach.
+madelungenergies_loewdin
+(
+float
+) – Madelung energy based on the Loewdin approach.
+get_structure_with_site_potentials
+(
+structure_filename
+:
+PathLike
+)
+→
+Structure
+[source]
+
+Get a Structure with Mulliken and Loewdin charges as site properties.
+Parameters
+:
+structure_filename
+(
+PathLike
+) – The POSCAR file.
+Returns
+:
+Structure Object with Mulliken and Loewdin charges as site properties.
+property
+madelungenergies_Loewdin
+[source]
+
+property
+madelungenergies_Mulliken
+[source]
+
+property
+sitepotentials_Loewdin
+:
+list
+[
+float
+]
+[source]
+
+property
+sitepotentials_Mulliken
+:
+list
+[
+float
+]
+[source]
+
+class
+Wavefunction
+(
+filename
+:
+PathLike
+,
+structure
+:
+Structure
+)
+[source]
+
+Bases:
+object
+Read wave function files from LOBSTER and create an VolumetricData object.
+grid
+[source]
+
+Grid for the wave function [Nx+1, Ny+1, Nz+1].
+Type
+:
+tuple[int, int, int]
+points
+[source]
+
+Points.
+Type
+:
+list[Tuple[float, float, float]]
+real
+[source]
+
+Real parts of wave function.
+Type
+:
+list[float]
+imaginary
+[source]
+
+Imaginary parts of wave function.
+Type
+:
+list[float]
+distance
+[source]
+
+Distances to the first point in wave function file.
+Type
+:
+list[float]
+Parameters
+:
+filename
+(
+PathLike
+) – The wavecar file from LOBSTER.
+structure
+(
+Structure
+) – The Structure object.
+get_volumetricdata_density
+(
+)
+→
+VolumetricData
+[source]
+
+Get a VolumetricData object including the density part of the wave function.
+Returns
+:
+VolumetricData
+get_volumetricdata_imaginary
+(
+)
+→
+VolumetricData
+[source]
+
+Get a VolumetricData object including the imaginary part of the wave function.
+Returns
+:
+VolumetricData
+get_volumetricdata_real
+(
+)
+→
+VolumetricData
+[source]
+
+Get a VolumetricData object including the real part of the wave function.
+Returns
+:
+VolumetricData
+set_volumetric_data
+(
+grid
+:
+tuple
+[
+int
+,
+int
+,
+int
+]
+,
+structure
+:
+Structure
+)
+→
+None
+[source]
+
+Create the VolumetricData instances.
+Parameters
+:
+grid
+(
+tuple
+[
+int
+,
+int
+,
+int
+]
+) – Grid on which wavefunction was calculated, e.g. (1, 2, 2).
+structure
+(
+Structure
+) – The Structure object.
+write_file
+(
+filename
+:
+PathLike
+=
+'WAVECAR.vasp'
+,
+part
+:
+Literal
+[
+'real'
+,
+'imaginary'
+,
+'density'
+]
+=
+'real'
+)
+→
+None
+[source]
+
+Save the wave function in a file that can be read by VESTA.
+This will only work if the wavefunction from lobster is constructed with:
+“printLCAORealSpaceWavefunction kpoint 1 coordinates 0.0 0.0 0.0
+coordinates 1.0 1.0 1.0 box bandlist 1 2 3 4 5 6 ”
+or similar (the whole unit cell has to be covered!).
+Parameters
+:
+filename
+(
+PathLike
+) – The output file, e.g. “WAVECAR.vasp”.
+part
+(
+"real"
+|
+"imaginary"
+|
+"density"
+]
+) – Part of the wavefunction to save.
+get_orb_from_str
+(
+orbs
+:
+list
+[
+str
+]
+)
+→
+tuple
+[
+str
+,
+list
+[
+tuple
+[
+int
+,
+Orbital
+]
+]
+]
+[source]
+
+Get Orbitals from string representations.
+Parameters
+:
+orbs
+(
+list
+[
+str
+]
+) – Orbitals, e.g. [“2p_x”, “3s”].
+Returns
+:
+Orbital label, orbitals.
+Return type
+:
+tuple[str, list[tuple[int,
+Orbital
+]]]
+© Copyright 2011, Pymatgen Development Team.
+Built with
+Sphinx
+using a
+theme
+provided by
+Read the Docs
+.

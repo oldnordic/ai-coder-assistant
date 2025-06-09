@@ -1,0 +1,75 @@
+Under-the-hood documentation for developers — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+Getting started
+What is NumPy?
+Installation
+NumPy quickstart
+NumPy: the absolute basics for beginners
+Fundamentals and usage
+NumPy fundamentals
+NumPy for MATLAB users
+NumPy tutorials
+NumPy how-tos
+Advanced usage and interoperability
+Using NumPy C-API
+F2PY user guide and reference manual
+Under-the-hood documentation for developers
+Internal organization of NumPy arrays
+NumPy C code explanations
+Memory alignment
+Byte-swapping
+Writing custom array containers
+Subclassing ndarray
+Interoperability with NumPy
+Extras
+Glossary
+Release notes
+NumPy 2.0 migration guide
+NumPy license
+NumPy user guide
+Under-the-hood documentation for developers
+Under-the-hood documentation for developers
+#
+These documents are intended as a low-level look into NumPy; focused
+towards developers.
+Internal organization of NumPy arrays
+NumPy C code explanations
+Memory alignment
+Byte-swapping
+Writing custom array containers
+Subclassing ndarray
+previous
+F2PY and PGI Fortran on Windows
+next
+Internal organization of NumPy arrays
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

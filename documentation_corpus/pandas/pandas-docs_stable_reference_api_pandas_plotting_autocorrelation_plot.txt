@@ -1,0 +1,165 @@
+pandas.plotting.autocorrelation_plot — pandas 2.3.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Input/output
+General functions
+Series
+DataFrame
+pandas arrays, scalars, and data types
+Index objects
+Date offsets
+Window
+GroupBy
+Resampling
+Style
+Plotting
+pandas.plotting.andrews_curves
+pandas.plotting.autocorrelation_plot
+pandas.plotting.bootstrap_plot
+pandas.plotting.boxplot
+pandas.plotting.deregister_matplotlib_converters
+pandas.plotting.lag_plot
+pandas.plotting.parallel_coordinates
+pandas.plotting.plot_params
+pandas.plotting.radviz
+pandas.plotting.register_matplotlib_converters
+pandas.plotting.scatter_matrix
+pandas.plotting.table
+Options and settings
+Extensions
+Testing
+Missing values
+API reference
+Plotting
+pandas.plott...
+pandas.plotting.autocorrelation_plot
+#
+pandas.plotting.
+autocorrelation_plot
+(
+series
+,
+ax
+=
+None
+,
+**
+kwargs
+)
+[source]
+#
+Autocorrelation plot for time series.
+Parameters
+:
+series
+Series
+The time series to visualize.
+ax
+Matplotlib axis object, optional
+The matplotlib axis object to use.
+**kwargs
+Options to pass to matplotlib plotting method.
+Returns
+:
+matplotlib.axes.Axes
+Examples
+The horizontal lines in the plot correspond to 95% and 99% confidence bands.
+The dashed line is 99% confidence band.
+>>>
+spacing
+=
+np
+.
+linspace
+(
+-
+9
+*
+np
+.
+pi
+,
+9
+*
+np
+.
+pi
+,
+num
+=
+1000
+)
+>>>
+s
+=
+pd
+.
+Series
+(
+0.7
+*
+np
+.
+random
+.
+rand
+(
+1000
+)
++
+0.3
+*
+np
+.
+sin
+(
+spacing
+))
+>>>
+pd
+.
+plotting
+.
+autocorrelation_plot
+(
+s
+)
+previous
+pandas.plotting.andrews_curves
+next
+pandas.plotting.bootstrap_plot
+On this page
+autocorrelation_plot()
+Show Source
+&copy 2025, pandas via
+NumFOCUS, Inc.
+Hosted by
+OVHcloud
+.
+Created using
+Sphinx
+8.1.3.
+Built with the
+PyData Sphinx Theme
+0.14.4.

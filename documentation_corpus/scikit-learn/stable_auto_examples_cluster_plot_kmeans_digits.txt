@@ -1,0 +1,1182 @@
+A demo of K-Means clustering on the handwritten digits data — scikit-learn 1.7.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Install
+User Guide
+API
+Examples
+Community
+More
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Install
+User Guide
+API
+Examples
+Community
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Section Navigation
+Release Highlights
+Release Highlights for scikit-learn 1.7
+Release Highlights for scikit-learn 1.6
+Release Highlights for scikit-learn 1.5
+Release Highlights for scikit-learn 1.4
+Release Highlights for scikit-learn 1.3
+Release Highlights for scikit-learn 1.2
+Release Highlights for scikit-learn 1.1
+Release Highlights for scikit-learn 1.0
+Release Highlights for scikit-learn 0.24
+Release Highlights for scikit-learn 0.23
+Release Highlights for scikit-learn 0.22
+Biclustering
+A demo of the Spectral Biclustering algorithm
+A demo of the Spectral Co-Clustering algorithm
+Biclustering documents with the Spectral Co-clustering algorithm
+Calibration
+Comparison of Calibration of Classifiers
+Probability Calibration curves
+Probability Calibration for 3-class classification
+Probability calibration of classifiers
+Classification
+Classifier comparison
+Linear and Quadratic Discriminant Analysis with covariance ellipsoid
+Normal, Ledoit-Wolf and OAS Linear Discriminant Analysis for classification
+Plot classification probability
+Recognizing hand-written digits
+Clustering
+A demo of K-Means clustering on the handwritten digits data
+A demo of structured Ward hierarchical clustering on an image of coins
+A demo of the mean-shift clustering algorithm
+Adjustment for chance in clustering performance evaluation
+Agglomerative clustering with and without structure
+Agglomerative clustering with different metrics
+An example of K-Means++ initialization
+Bisecting K-Means and Regular K-Means Performance Comparison
+Compare BIRCH and MiniBatchKMeans
+Comparing different clustering algorithms on toy datasets
+Comparing different hierarchical linkage methods on toy datasets
+Comparison of the K-Means and MiniBatchKMeans clustering algorithms
+Demo of DBSCAN clustering algorithm
+Demo of HDBSCAN clustering algorithm
+Demo of OPTICS clustering algorithm
+Demo of affinity propagation clustering algorithm
+Demonstration of k-means assumptions
+Empirical evaluation of the impact of k-means initialization
+Feature agglomeration
+Feature agglomeration vs. univariate selection
+Hierarchical clustering: structured vs unstructured ward
+Inductive Clustering
+Online learning of a dictionary of parts of faces
+Plot Hierarchical Clustering Dendrogram
+Segmenting the picture of greek coins in regions
+Selecting the number of clusters with silhouette analysis on KMeans clustering
+Spectral clustering for image segmentation
+Various Agglomerative Clustering on a 2D embedding of digits
+Vector Quantization Example
+Covariance estimation
+Ledoit-Wolf vs OAS estimation
+Robust covariance estimation and Mahalanobis distances relevance
+Robust vs Empirical covariance estimate
+Shrinkage covariance estimation: LedoitWolf vs OAS and max-likelihood
+Sparse inverse covariance estimation
+Cross decomposition
+Compare cross decomposition methods
+Principal Component Regression vs Partial Least Squares Regression
+Dataset examples
+Plot randomly generated multilabel dataset
+Decision Trees
+Decision Tree Regression
+Plot the decision surface of decision trees trained on the iris dataset
+Post pruning decision trees with cost complexity pruning
+Understanding the decision tree structure
+Decomposition
+Blind source separation using FastICA
+Comparison of LDA and PCA 2D projection of Iris dataset
+Faces dataset decompositions
+Factor Analysis (with rotation) to visualize patterns
+FastICA on 2D point clouds
+Image denoising using dictionary learning
+Incremental PCA
+Kernel PCA
+Model selection with Probabilistic PCA and Factor Analysis (FA)
+Principal Component Analysis (PCA) on Iris Dataset
+Sparse coding with a precomputed dictionary
+Developing Estimators
+__sklearn_is_fitted__
+as Developer API
+Ensemble methods
+Categorical Feature Support in Gradient Boosting
+Combine predictors using stacking
+Comparing Random Forests and Histogram Gradient Boosting models
+Comparing random forests and the multi-output meta estimator
+Decision Tree Regression with AdaBoost
+Early stopping in Gradient Boosting
+Feature importances with a forest of trees
+Feature transformations with ensembles of trees
+Features in Histogram Gradient Boosting Trees
+Gradient Boosting Out-of-Bag estimates
+Gradient Boosting regression
+Gradient Boosting regularization
+Hashing feature transformation using Totally Random Trees
+IsolationForest example
+Monotonic Constraints
+Multi-class AdaBoosted Decision Trees
+OOB Errors for Random Forests
+Plot individual and voting regression predictions
+Plot the decision surfaces of ensembles of trees on the iris dataset
+Prediction Intervals for Gradient Boosting Regression
+Single estimator versus bagging: bias-variance decomposition
+Two-class AdaBoost
+Visualizing the probabilistic predictions of a VotingClassifier
+Examples based on real world datasets
+Compressive sensing: tomography reconstruction with L1 prior (Lasso)
+Faces recognition example using eigenfaces and SVMs
+Image denoising using kernel PCA
+Lagged features for time series forecasting
+Model Complexity Influence
+Out-of-core classification of text documents
+Outlier detection on a real data set
+Prediction Latency
+Species distribution modeling
+Time-related feature engineering
+Topic extraction with Non-negative Matrix Factorization and Latent Dirichlet Allocation
+Visualizing the stock market structure
+Wikipedia principal eigenvector
+Feature Selection
+Comparison of F-test and mutual information
+Model-based and sequential feature selection
+Pipeline ANOVA SVM
+Recursive feature elimination
+Recursive feature elimination with cross-validation
+Univariate Feature Selection
+Frozen Estimators
+Examples of Using
+FrozenEstimator
+Gaussian Mixture Models
+Concentration Prior Type Analysis of Variation Bayesian Gaussian Mixture
+Density Estimation for a Gaussian mixture
+GMM Initialization Methods
+GMM covariances
+Gaussian Mixture Model Ellipsoids
+Gaussian Mixture Model Selection
+Gaussian Mixture Model Sine Curve
+Gaussian Process for Machine Learning
+Ability of Gaussian process regression (GPR) to estimate data noise-level
+Comparison of kernel ridge and Gaussian process regression
+Forecasting of CO2 level on Mona Loa dataset using Gaussian process regression (GPR)
+Gaussian Processes regression: basic introductory example
+Gaussian process classification (GPC) on iris dataset
+Gaussian processes on discrete data structures
+Illustration of Gaussian process classification (GPC) on the XOR dataset
+Illustration of prior and posterior Gaussian process for different kernels
+Iso-probability lines for Gaussian Processes classification (GPC)
+Probabilistic predictions with Gaussian process classification (GPC)
+Generalized Linear Models
+Comparing Linear Bayesian Regressors
+Curve Fitting with Bayesian Ridge Regression
+Decision Boundaries of Multinomial and One-vs-Rest Logistic Regression
+Early stopping of Stochastic Gradient Descent
+Fitting an Elastic Net with a precomputed Gram Matrix and Weighted Samples
+HuberRegressor vs Ridge on dataset with strong outliers
+Joint feature selection with multi-task Lasso
+L1 Penalty and Sparsity in Logistic Regression
+L1-based models for Sparse Signals
+Lasso model selection via information criteria
+Lasso model selection: AIC-BIC / cross-validation
+Lasso on dense and sparse data
+Lasso, Lasso-LARS, and Elastic Net paths
+Logistic function
+MNIST classification using multinomial logistic + L1
+Multiclass sparse logistic regression on 20newgroups
+Non-negative least squares
+One-Class SVM versus One-Class SVM using Stochastic Gradient Descent
+Ordinary Least Squares and Ridge Regression
+Orthogonal Matching Pursuit
+Plot Ridge coefficients as a function of the regularization
+Plot multi-class SGD on the iris dataset
+Poisson regression and non-normal loss
+Polynomial and Spline interpolation
+Quantile regression
+Regularization path of L1- Logistic Regression
+Ridge coefficients as a function of the L2 Regularization
+Robust linear estimator fitting
+Robust linear model estimation using RANSAC
+SGD: Maximum margin separating hyperplane
+SGD: Penalties
+SGD: Weighted samples
+SGD: convex loss functions
+Theil-Sen Regression
+Tweedie regression on insurance claims
+Inspection
+Common pitfalls in the interpretation of coefficients of linear models
+Failure of Machine Learning to infer causal effects
+Partial Dependence and Individual Conditional Expectation Plots
+Permutation Importance vs Random Forest Feature Importance (MDI)
+Permutation Importance with Multicollinear or Correlated Features
+Kernel Approximation
+Scalable learning with polynomial kernel approximation
+Manifold learning
+Comparison of Manifold Learning methods
+Manifold Learning methods on a severed sphere
+Manifold learning on handwritten digits: Locally Linear Embedding, Isomap…
+Multi-dimensional scaling
+Swiss Roll And Swiss-Hole Reduction
+t-SNE: The effect of various perplexity values on the shape
+Miscellaneous
+Advanced Plotting With Partial Dependence
+Comparing anomaly detection algorithms for outlier detection on toy datasets
+Comparison of kernel ridge regression and SVR
+Displaying Pipelines
+Displaying estimators and complex pipelines
+Evaluation of outlier detection estimators
+Explicit feature map approximation for RBF kernels
+Face completion with a multi-output estimators
+Introducing the
+set_output
+API
+Isotonic Regression
+Metadata Routing
+Multilabel classification
+ROC Curve with Visualization API
+The Johnson-Lindenstrauss bound for embedding with random projections
+Visualizations with Display Objects
+Missing Value Imputation
+Imputing missing values before building an estimator
+Imputing missing values with variants of IterativeImputer
+Model Selection
+Balance model complexity and cross-validated score
+Class Likelihood Ratios to measure classification performance
+Comparing randomized search and grid search for hyperparameter estimation
+Comparison between grid search and successive halving
+Confusion matrix
+Custom refit strategy of a grid search with cross-validation
+Demonstration of multi-metric evaluation on cross_val_score and GridSearchCV
+Detection error tradeoff (DET) curve
+Effect of model regularization on training and test error
+Multiclass Receiver Operating Characteristic (ROC)
+Nested versus non-nested cross-validation
+Plotting Cross-Validated Predictions
+Plotting Learning Curves and Checking Models’ Scalability
+Post-hoc tuning the cut-off point of decision function
+Post-tuning the decision threshold for cost-sensitive learning
+Precision-Recall
+Receiver Operating Characteristic (ROC) with cross validation
+Sample pipeline for text feature extraction and evaluation
+Statistical comparison of models using grid search
+Successive Halving Iterations
+Test with permutations the significance of a classification score
+Underfitting vs. Overfitting
+Visualizing cross-validation behavior in scikit-learn
+Multiclass methods
+Overview of multiclass training meta-estimators
+Multioutput methods
+Multilabel classification using a classifier chain
+Nearest Neighbors
+Approximate nearest neighbors in TSNE
+Caching nearest neighbors
+Comparing Nearest Neighbors with and without Neighborhood Components Analysis
+Dimensionality Reduction with Neighborhood Components Analysis
+Kernel Density Estimate of Species Distributions
+Kernel Density Estimation
+Nearest Centroid Classification
+Nearest Neighbors Classification
+Nearest Neighbors regression
+Neighborhood Components Analysis Illustration
+Novelty detection with Local Outlier Factor (LOF)
+Outlier detection with Local Outlier Factor (LOF)
+Simple 1D Kernel Density Estimation
+Neural Networks
+Compare Stochastic learning strategies for MLPClassifier
+Restricted Boltzmann Machine features for digit classification
+Varying regularization in Multi-layer Perceptron
+Visualization of MLP weights on MNIST
+Pipelines and composite estimators
+Column Transformer with Heterogeneous Data Sources
+Column Transformer with Mixed Types
+Concatenating multiple feature extraction methods
+Effect of transforming the targets in regression model
+Pipelining: chaining a PCA and a logistic regression
+Selecting dimensionality reduction with Pipeline and GridSearchCV
+Preprocessing
+Compare the effect of different scalers on data with outliers
+Comparing Target Encoder with Other Encoders
+Demonstrating the different strategies of KBinsDiscretizer
+Feature discretization
+Importance of Feature Scaling
+Map data to a normal distribution
+Target Encoder’s Internal Cross fitting
+Using KBinsDiscretizer to discretize continuous features
+Semi Supervised Classification
+Decision boundary of semi-supervised classifiers versus SVM on the Iris dataset
+Effect of varying threshold for self-training
+Label Propagation circles: Learning a complex structure
+Label Propagation digits: Active learning
+Label Propagation digits: Demonstrating performance
+Semi-supervised Classification on a Text Dataset
+Support Vector Machines
+One-class SVM with non-linear kernel (RBF)
+Plot classification boundaries with different SVM Kernels
+Plot different SVM classifiers in the iris dataset
+Plot the support vectors in LinearSVC
+RBF SVM parameters
+SVM Margins Example
+SVM Tie Breaking Example
+SVM with custom kernel
+SVM-Anova: SVM with univariate feature selection
+SVM: Maximum margin separating hyperplane
+SVM: Separating hyperplane for unbalanced classes
+SVM: Weighted samples
+Scaling the regularization parameter for SVCs
+Support Vector Regression (SVR) using linear and non-linear kernels
+Working with text documents
+Classification of text documents using sparse features
+Clustering text documents using k-means
+FeatureHasher and DictVectorizer Comparison
+Examples
+Clustering
+A demo of K-Means clustering on the handwritten digits data
+Note
+Go to the end
+to download the full example code. or to run this example in your browser via JupyterLite or Binder
+A demo of K-Means clustering on the handwritten digits data
+#
+In this example we compare the various initialization strategies for K-means in
+terms of runtime and quality of the results.
+As the ground truth is known here, we also apply different cluster quality
+metrics to judge the goodness of fit of the cluster labels to the ground truth.
+Cluster quality metrics evaluated (see
+Clustering performance evaluation
+for
+definitions and discussions of the metrics):
+Shorthand
+full name
+homo
+homogeneity score
+compl
+completeness score
+v-meas
+V measure
+ARI
+adjusted Rand index
+AMI
+adjusted mutual information
+silhouette
+silhouette coefficient
+# Authors: The scikit-learn developers
+# SPDX-License-Identifier: BSD-3-Clause
+Load the dataset
+#
+We will start by loading the
+digits
+dataset. This dataset contains
+handwritten digits from 0 to 9. In the context of clustering, one would like
+to group images such that the handwritten digits on the image are the same.
+import
+numpy
+as
+np
+from
+sklearn.datasets
+import
+load_digits
+data
+,
+labels
+=
+load_digits
+(
+return_X_y
+=
+True
+)
+(
+n_samples
+,
+n_features
+),
+n_digits
+=
+data
+.
+shape
+,
+np
+.
+unique
+(
+labels
+)
+.
+size
+print
+(
+f
+"# digits:
+{
+n_digits
+}
+; # samples:
+{
+n_samples
+}
+; # features
+{
+n_features
+}
+"
+)
+# digits: 10; # samples: 1797; # features 64
+Define our evaluation benchmark
+#
+We will first our evaluation benchmark. During this benchmark, we intend to
+compare different initialization methods for KMeans. Our benchmark will:
+create a pipeline which will scale the data using a
+StandardScaler
+;
+train and time the pipeline fitting;
+measure the performance of the clustering obtained via different metrics.
+from
+time
+import
+time
+from
+sklearn
+import
+metrics
+from
+sklearn.pipeline
+import
+make_pipeline
+from
+sklearn.preprocessing
+import
+StandardScaler
+def
+bench_k_means
+(
+kmeans
+,
+name
+,
+data
+,
+labels
+):
+"""Benchmark to evaluate the KMeans initialization methods.
+Parameters
+----------
+kmeans : KMeans instance
+A :class:`~sklearn.cluster.KMeans` instance with the initialization
+already set.
+name : str
+Name given to the strategy. It will be used to show the results in a
+table.
+data : ndarray of shape (n_samples, n_features)
+The data to cluster.
+labels : ndarray of shape (n_samples,)
+The labels used to compute the clustering metrics which requires some
+supervision.
+"""
+t0
+=
+time
+()
+estimator
+=
+make_pipeline
+(
+StandardScaler
+(),
+kmeans
+)
+.
+fit
+(
+data
+)
+fit_time
+=
+time
+()
+-
+t0
+results
+=
+[
+name
+,
+fit_time
+,
+estimator
+[
+-
+1
+]
+.
+inertia_
+]
+# Define the metrics which require only the true labels and estimator
+# labels
+clustering_metrics
+=
+[
+metrics
+.
+homogeneity_score
+,
+metrics
+.
+completeness_score
+,
+metrics
+.
+v_measure_score
+,
+metrics
+.
+adjusted_rand_score
+,
+metrics
+.
+adjusted_mutual_info_score
+,
+]
+results
++=
+[
+m
+(
+labels
+,
+estimator
+[
+-
+1
+]
+.
+labels_
+)
+for
+m
+in
+clustering_metrics
+]
+# The silhouette score requires the full dataset
+results
++=
+[
+metrics
+.
+silhouette_score
+(
+data
+,
+estimator
+[
+-
+1
+]
+.
+labels_
+,
+metric
+=
+"euclidean"
+,
+sample_size
+=
+300
+,
+)
+]
+# Show the results
+formatter_result
+=
+(
+"
+{:9s}
+\t
+{:.3f}
+s
+\t
+{:.0f}
+\t
+{:.3f}
+\t
+{:.3f}
+\t
+{:.3f}
+\t
+{:.3f}
+\t
+{:.3f}
+\t
+{:.3f}
+"
+)
+print
+(
+formatter_result
+.
+format
+(
+*
+results
+))
+Run the benchmark
+#
+We will compare three approaches:
+an initialization using
+k-means++
+. This method is stochastic and we will
+run the initialization 4 times;
+a random initialization. This method is stochastic as well and we will run
+the initialization 4 times;
+an initialization based on a
+PCA
+projection. Indeed, we will use the components of the
+PCA
+to initialize KMeans. This method is
+deterministic and a single initialization suffice.
+from
+sklearn.cluster
+import
+KMeans
+from
+sklearn.decomposition
+import
+PCA
+print
+(
+82
+*
+"_"
+)
+print
+(
+"init
+\t\t
+time
+\t
+inertia
+\t
+homo
+\t
+compl
+\t
+v-meas
+\t
+ARI
+\t
+AMI
+\t
+silhouette"
+)
+kmeans
+=
+KMeans
+(
+init
+=
+"k-means++"
+,
+n_clusters
+=
+n_digits
+,
+n_init
+=
+4
+,
+random_state
+=
+0
+)
+bench_k_means
+(
+kmeans
+=
+kmeans
+,
+name
+=
+"k-means++"
+,
+data
+=
+data
+,
+labels
+=
+labels
+)
+kmeans
+=
+KMeans
+(
+init
+=
+"random"
+,
+n_clusters
+=
+n_digits
+,
+n_init
+=
+4
+,
+random_state
+=
+0
+)
+bench_k_means
+(
+kmeans
+=
+kmeans
+,
+name
+=
+"random"
+,
+data
+=
+data
+,
+labels
+=
+labels
+)
+pca
+=
+PCA
+(
+n_components
+=
+n_digits
+)
+.
+fit
+(
+data
+)
+kmeans
+=
+KMeans
+(
+init
+=
+pca
+.
+components_
+,
+n_clusters
+=
+n_digits
+,
+n_init
+=
+1
+)
+bench_k_means
+(
+kmeans
+=
+kmeans
+,
+name
+=
+"PCA-based"
+,
+data
+=
+data
+,
+labels
+=
+labels
+)
+print
+(
+82
+*
+"_"
+)
+__________________________________________________________________________________
+init            time    inertia homo    compl   v-meas  ARI     AMI     silhouette
+k-means++       0.033s  69545   0.598   0.645   0.621   0.469   0.617   0.158
+random          0.036s  69735   0.681   0.723   0.701   0.574   0.698   0.173
+PCA-based       0.012s  69513   0.600   0.647   0.622   0.468   0.618   0.162
+__________________________________________________________________________________
+Visualize the results on PCA-reduced data
+#
+PCA
+allows to project the data from the
+original 64-dimensional space into a lower dimensional space. Subsequently,
+we can use
+PCA
+to project into a
+2-dimensional space and plot the data and the clusters in this new space.
+import
+matplotlib.pyplot
+as
+plt
+reduced_data
+=
+PCA
+(
+n_components
+=
+2
+)
+.
+fit_transform
+(
+data
+)
+kmeans
+=
+KMeans
+(
+init
+=
+"k-means++"
+,
+n_clusters
+=
+n_digits
+,
+n_init
+=
+4
+)
+kmeans
+.
+fit
+(
+reduced_data
+)
+# Step size of the mesh. Decrease to increase the quality of the VQ.
+h
+=
+0.02
+# point in the mesh [x_min, x_max]x[y_min, y_max].
+# Plot the decision boundary. For that, we will assign a color to each
+x_min
+,
+x_max
+=
+reduced_data
+[:,
+0
+]
+.
+min
+()
+-
+1
+,
+reduced_data
+[:,
+0
+]
+.
+max
+()
++
+1
+y_min
+,
+y_max
+=
+reduced_data
+[:,
+1
+]
+.
+min
+()
+-
+1
+,
+reduced_data
+[:,
+1
+]
+.
+max
+()
++
+1
+xx
+,
+yy
+=
+np
+.
+meshgrid
+(
+np
+.
+arange
+(
+x_min
+,
+x_max
+,
+h
+),
+np
+.
+arange
+(
+y_min
+,
+y_max
+,
+h
+))
+# Obtain labels for each point in mesh. Use last trained model.
+Z
+=
+kmeans
+.
+predict
+(
+np
+.
+c_
+[
+xx
+.
+ravel
+(),
+yy
+.
+ravel
+()])
+# Put the result into a color plot
+Z
+=
+Z
+.
+reshape
+(
+xx
+.
+shape
+)
+plt
+.
+figure
+(
+1
+)
+plt
+.
+clf
+()
+plt
+.
+imshow
+(
+Z
+,
+interpolation
+=
+"nearest"
+,
+extent
+=
+(
+xx
+.
+min
+(),
+xx
+.
+max
+(),
+yy
+.
+min
+(),
+yy
+.
+max
+()),
+cmap
+=
+plt
+.
+cm
+.
+Paired
+,
+aspect
+=
+"auto"
+,
+origin
+=
+"lower"
+,
+)
+plt
+.
+plot
+(
+reduced_data
+[:,
+0
+],
+reduced_data
+[:,
+1
+],
+"k."
+,
+markersize
+=
+2
+)
+# Plot the centroids as a white X
+centroids
+=
+kmeans
+.
+cluster_centers_
+plt
+.
+scatter
+(
+centroids
+[:,
+0
+],
+centroids
+[:,
+1
+],
+marker
+=
+"x"
+,
+s
+=
+169
+,
+linewidths
+=
+3
+,
+color
+=
+"w"
+,
+zorder
+=
+10
+,
+)
+plt
+.
+title
+(
+"K-means clustering on the digits dataset (PCA-reduced data)
+\n
+"
+"Centroids are marked with white cross"
+)
+plt
+.
+xlim
+(
+x_min
+,
+x_max
+)
+plt
+.
+ylim
+(
+y_min
+,
+y_max
+)
+plt
+.
+xticks
+(())
+plt
+.
+yticks
+(())
+plt
+.
+show
+()
+Total running time of the script:
+(0 minutes 1.123 seconds)
+Download
+Jupyter
+notebook:
+plot_kmeans_digits.ipynb
+Download
+Python
+source
+code:
+plot_kmeans_digits.py
+Download
+zipped:
+plot_kmeans_digits.zip
+Related examples
+Clustering text documents using k-means
+Clustering text documents using k-means
+Comparison of the K-Means and MiniBatchKMeans clustering algorithms
+Comparison of the K-Means and MiniBatchKMeans clustering algorithms
+Bisecting K-Means and Regular K-Means Performance Comparison
+Bisecting K-Means and Regular K-Means Performance Comparison
+Empirical evaluation of the impact of k-means initialization
+Empirical evaluation of the impact of k-means initialization
+Gallery generated by Sphinx-Gallery
+previous
+Clustering
+next
+A demo of structured Ward hierarchical clustering on an image of coins
+On this page
+Load the dataset
+Define our evaluation benchmark
+Run the benchmark
+Visualize the results on PCA-reduced data
+This Page
+Show Source
+Download source code
+Download Jupyter notebook
+Download zipped
+© Copyright 2007 - 2025, scikit-learn developers (BSD License).

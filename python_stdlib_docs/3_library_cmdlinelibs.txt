@@ -1,0 +1,3 @@
+The modules described in this chapter assist with implementing
+command line and terminal interfaces for applications.
+Hereâs an overview:

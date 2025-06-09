@@ -1,0 +1,1771 @@
+pymatgen.io.aims.sets package — pymatgen 2025.5.28 documentation
+pymatgen.io.aims.sets package
+Submodules
+pymatgen.io.aims.sets.base module
+AimsInputGenerator
+AimsInputGenerator.user_params
+AimsInputGenerator.user_kpoints_settings
+AimsInputGenerator.use_structure_charge
+AimsInputGenerator.d2k()
+AimsInputGenerator.d2k_recip_cell()
+AimsInputGenerator.get_input_set()
+AimsInputGenerator.get_parameter_updates()
+AimsInputGenerator.k2d()
+AimsInputGenerator.use_structure_charge
+AimsInputGenerator.user_kpoints_settings
+AimsInputGenerator.user_params
+AimsInputSet
+AimsInputSet.control_in
+AimsInputSet.geometry_in
+AimsInputSet.get_input_files()
+AimsInputSet.params_json
+AimsInputSet.remove_parameters()
+AimsInputSet.set_parameters()
+AimsInputSet.set_structure()
+recursive_update()
+pymatgen.io.aims.sets.bs module
+BandStructureSetGenerator
+BandStructureSetGenerator.calc_type
+BandStructureSetGenerator.k_point_density
+BandStructureSetGenerator.calc_type
+BandStructureSetGenerator.get_parameter_updates()
+BandStructureSetGenerator.k_point_density
+GWSetGenerator
+GWSetGenerator.calc_type
+GWSetGenerator.k_point_density
+GWSetGenerator.calc_type
+GWSetGenerator.get_parameter_updates()
+GWSetGenerator.k_point_density
+prepare_band_input()
+pymatgen.io.aims.sets.core module
+MDSetGenerator
+MDSetGenerator.calc_type
+MDSetGenerator.ensemble
+MDSetGenerator.ensemble_specs
+MDSetGenerator.get_parameter_updates()
+MDSetGenerator.init_velocities
+MDSetGenerator.temp
+MDSetGenerator.time
+MDSetGenerator.time_step
+RelaxSetGenerator
+RelaxSetGenerator.calc_type
+RelaxSetGenerator.relax_cell
+RelaxSetGenerator.max_force
+RelaxSetGenerator.method
+RelaxSetGenerator.calc_type
+RelaxSetGenerator.get_parameter_updates()
+RelaxSetGenerator.max_force
+RelaxSetGenerator.method
+RelaxSetGenerator.relax_cell
+SocketIOSetGenerator
+SocketIOSetGenerator.calc_type
+SocketIOSetGenerator.host
+SocketIOSetGenerator.port
+SocketIOSetGenerator.calc_type
+SocketIOSetGenerator.get_parameter_updates()
+SocketIOSetGenerator.host
+SocketIOSetGenerator.port
+StaticSetGenerator
+StaticSetGenerator.calc_type
+StaticSetGenerator.calc_type
+StaticSetGenerator.get_parameter_updates()
+pymatgen.io.aims.sets.magnetism module
+MagneticRelaxSetGenerator
+MagneticRelaxSetGenerator.calc_type
+MagneticRelaxSetGenerator.relax_cell
+MagneticRelaxSetGenerator.max_force
+MagneticRelaxSetGenerator.method
+MagneticRelaxSetGenerator.get_parameter_updates()
+MagneticStaticSetGenerator
+MagneticStaticSetGenerator.calc_type
+MagneticStaticSetGenerator.calc_type
+MagneticStaticSetGenerator.get_parameter_updates()
+pymatgen
+pymatgen.io.aims.sets package
+Edit on GitHub
+pymatgen.io.aims.sets package
+
+Submodules
+
+pymatgen.io.aims.sets.base module
+
+Module defining base FHI-aims input set and generator.
+class
+AimsInputGenerator
+(
+user_params:
+dict[str
+,
+~typing.Any]
+=
+<factory>
+,
+user_kpoints_settings:
+dict[str
+,
+~typing.Any]
+=
+<factory>
+,
+use_structure_charge:
+bool
+=
+False
+)
+[source]
+
+Bases:
+InputGenerator
+A class to generate Aims input sets.
+user_params
+[source]
+
+Updates the default
+parameters for the FHI-aims calculator
+Type
+:
+dict[str, Any]
+user_kpoints_settings
+[source]
+
+The settings
+used to create the k-grid parameters for FHI-aims
+Type
+:
+dict[str, Any]
+use_structure_charge
+[source]
+
+If set to True, then the overall charge of the
+structure (structure.charge) is used to set the
+charge
+variable in the
+control.in
+. Default is False.
+Type
+:
+bool
+d2k
+(
+structure
+:
+Structure
+|
+IStructure
+,
+kpt_density
+:
+float
+|
+tuple
+[
+float
+,
+float
+,
+float
+]
+=
+5.0
+,
+even
+:
+bool
+=
+True
+)
+→
+Iterable
+[
+float
+]
+[source]
+
+Convert k-point density to Monkhorst-Pack grid size.
+inspired by [ase.calculators.calculator.kptdensity2monkhorstpack]
+Parameters
+:
+structure
+(
+Structure
+) – Contains unit cell and
+information about boundary conditions.
+kpt_density
+(
+float
+|
+list
+[
+float
+]
+) – Required k-point
+density.  Default value is 5.0 point per Ang^-1.
+even
+(
+bool
+) – Round up to even numbers.
+Returns
+:
+Monkhorst-Pack grid size in all directions
+Return type
+:
+dict
+static
+d2k_recip_cell
+(
+recip_cell
+:
+np.ndarray
+,
+pbc
+:
+Sequence
+[
+bool
+]
+,
+kpt_density
+:
+float
+|
+tuple
+[
+float
+,
+float
+,
+float
+]
+=
+5.0
+,
+even
+:
+bool
+=
+True
+)
+→
+Sequence
+[
+int
+]
+[source]
+
+Convert k-point density to Monkhorst-Pack grid size.
+Parameters
+:
+recip_cell
+(
+Cell
+) – The reciprocal cell
+pbc
+(
+Sequence
+[
+bool
+]
+) – If element of pbc is True
+then system is periodic in that direction
+kpt_density
+(
+float
+or
+list
+[
+floats
+]
+) – Required k-point
+density. Default value is 5 points per Ang^-1.
+even(bool): Round up to even numbers.
+Returns
+:
+Monkhorst-Pack grid size in all directions
+Return type
+:
+dict
+get_input_set
+(
+structure
+:
+Structure
+|
+Molecule
+|
+None
+=
+None
+,
+prev_dir
+:
+PathLike
+|
+None
+=
+None
+,
+properties
+:
+list
+[
+str
+]
+|
+None
+=
+None
+)
+→
+AimsInputSet
+[source]
+
+Generate an AimsInputSet object.
+Parameters
+:
+structure
+(
+Structure
+or
+Molecule
+) – Structure or
+Molecule to generate the input set for.
+prev_dir
+(
+str
+or
+Path
+) – Path to the previous working directory
+properties
+(
+list
+[
+str
+]
+) – System properties that are being calculated
+Returns
+:
+The input set for the calculation of structure
+Return type
+:
+AimsInputSet
+get_parameter_updates
+(
+structure
+:
+Structure
+|
+Molecule
+,
+prev_parameters
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Update the parameters for a given calculation type.
+Parameters
+:
+structure
+(
+Structure
+or
+Molecule
+) – The system to run
+prev_parameters
+(
+dict
+[
+str
+,
+Any
+]
+) – Previous calculation parameters.
+Returns
+:
+A dictionary of updates to apply.
+Return type
+:
+dict
+k2d
+(
+structure
+:
+Structure
+|
+IStructure
+,
+k_grid
+:
+np.ndarray
+)
+[source]
+
+Generate the kpoint density in each direction from given k_grid.
+Parameters
+:
+structure
+– Structure
+Contains unit cell and information about boundary conditions.
+k_grid
+– np.ndarray[int]
+k_grid that was used.
+Returns
+:
+Density of kpoints in each direction. result.mean() computes average density
+Return type
+:
+dict
+use_structure_charge
+:
+bool
+=
+False
+[source]
+
+user_kpoints_settings
+:
+dict
+[
+str
+,
+Any
+]
+[source]
+
+user_params
+:
+dict
+[
+str
+,
+Any
+]
+[source]
+
+class
+AimsInputSet
+(
+parameters
+:
+dict
+[
+str
+,
+Any
+]
+,
+structure
+:
+Structure
+|
+Molecule
+,
+properties
+:
+Sequence
+[
+str
+]
+=
+('energy',
+'free_energy')
+)
+[source]
+
+Bases:
+InputSet
+A class to represent a set of Aims inputs.
+Construct the AimsInputSet.
+Parameters
+:
+parameters
+(
+dict
+[
+str
+,
+Any
+]
+) – The ASE parameters object for the calculation
+structure
+(
+Structure
+or
+Molecule
+) – The Structure/Molecule objects to
+create the inputs for
+properties
+(
+Sequence
+[
+str
+]
+) – The properties to calculate for the calculation
+property
+control_in
+:
+str
+|
+slice
+|
+InputFile
+[source]
+
+The control.in file contents.
+property
+geometry_in
+:
+str
+|
+slice
+|
+InputFile
+[source]
+
+The geometry.in file contents.
+get_input_files
+(
+)
+→
+tuple
+[
+str
+,
+str
+]
+[source]
+
+Get the input file contents for the calculation.
+Returns
+:
+The contents of the control.in and geometry.in file
+Return type
+:
+tuple[str, str]
+property
+params_json
+:
+str
+|
+slice
+|
+InputFile
+[source]
+
+The JSON representation of the parameters dict.
+remove_parameters
+(
+keys
+:
+Iterable
+[
+str
+]
+|
+str
+,
+strict
+:
+bool
+=
+True
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Remove the aims parameters listed in keys.
+This removes the aims variables from the parameters object.
+Parameters
+:
+keys
+(
+Iterable
+[
+str
+] or
+str
+) – string or list of strings with the names of
+the aims parameters to be removed.
+strict
+(
+bool
+) – whether to raise a KeyError if one of the aims parameters
+to be removed is not present.
+Returns
+:
+Dictionary with the variables that have been removed.
+Return type
+:
+dict[str, Any]
+set_parameters
+(
+*
+args
+,
+**
+kwargs
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Set the parameters object for the AimsTemplate.
+This sets the parameters object that is passed to an AimsTemplate and
+resets the control.in file
+One can pass a dictionary mapping the aims variables to their values or
+the aims variables as keyword arguments. A combination of the two
+options is also allowed.
+Returns
+:
+dictionary with the variables that have been added.
+Return type
+:
+dict[str, Any]
+set_structure
+(
+structure
+:
+Structure
+|
+Molecule
+)
+[source]
+
+Set the structure object for this input set.
+Parameters
+:
+structure
+(
+Structure
+or
+Molecule
+) – The new Structure or Molecule
+for the calculation
+recursive_update
+(
+dct
+:
+dict
+,
+up
+:
+dict
+)
+→
+dict
+[source]
+
+Update a dictionary recursively and return it.
+Parameters
+:
+dct
+(
+dict
+) – Input dictionary to modify
+up
+(
+dict
+) – updates to apply
+Returns
+:
+The updated dictionary.
+Return type
+:
+dict
+Example
+d = {‘activate_hybrid’: {“hybrid_functional”: “HSE06”}}
+u = {‘activate_hybrid’: {“cutoff_radius”: 8}}
+yields {‘activate_hybrid’: {“hybrid_functional”: “HSE06”, “cutoff_radius”: 8}}}
+pymatgen.io.aims.sets.bs module
+
+Input sets for band structure calculations.
+class
+BandStructureSetGenerator
+(
+user_params:
+dict[str
+,
+Any]
+=
+<factory>
+,
+user_kpoints_settings:
+dict[str
+,
+Any]
+=
+<factory>
+,
+use_structure_charge:
+bool
+=
+False
+,
+calc_type:
+str
+=
+'bands'
+,
+k_point_density:
+float
+=
+20
+)
+[source]
+
+Bases:
+AimsInputGenerator
+A generator for the band structure calculation input set.
+calc_type
+[source]
+
+The type of calculations
+Type
+:
+str
+k_point_density
+[source]
+
+The number of k_points per angstrom
+Type
+:
+float
+calc_type
+:
+str
+=
+'bands'
+[source]
+
+get_parameter_updates
+(
+structure
+:
+Structure
+|
+Molecule
+,
+prev_parameters
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+dict
+[
+str
+,
+Sequence
+[
+str
+]
+]
+[source]
+
+Get the parameter updates for the calculation.
+Parameters
+:
+structure
+(
+Structure
+) – The structure to calculate the bands for
+prev_parameters
+(
+Dict
+[
+str
+,
+Any
+]
+) – The previous parameters
+Returns
+:
+The updated for the parameters for the output section of FHI-aims
+Return type
+:
+dict
+k_point_density
+:
+float
+=
+20
+[source]
+
+class
+GWSetGenerator
+(
+user_params:
+dict[str
+,
+Any]
+=
+<factory>
+,
+user_kpoints_settings:
+dict[str
+,
+Any]
+=
+<factory>
+,
+use_structure_charge:
+bool
+=
+False
+,
+calc_type:
+str
+=
+'GW'
+,
+k_point_density:
+float
+=
+20
+)
+[source]
+
+Bases:
+AimsInputGenerator
+A generator for the input set for calculations employing GW self-energy correction.
+calc_type
+[source]
+
+The type of calculations
+Type
+:
+str
+k_point_density
+[source]
+
+The number of k_points per angstrom
+Type
+:
+float
+calc_type
+:
+str
+=
+'GW'
+[source]
+
+get_parameter_updates
+(
+structure
+:
+Structure
+|
+Molecule
+,
+prev_parameters
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Get the parameter updates for the calculation.
+Parameters
+:
+structure
+(
+Structure
+or
+Molecule
+) – The structure to calculate the bands for
+prev_parameters
+(
+Dict
+[
+str
+,
+Any
+]
+) – The previous parameters
+Returns
+:
+The updated for the parameters for the output section of FHI-aims
+Return type
+:
+dict
+k_point_density
+:
+float
+=
+20
+[source]
+
+prepare_band_input
+(
+structure
+:
+Structure
+|
+IStructure
+,
+density
+:
+float
+=
+20
+)
+[source]
+
+Prepare the band information needed for the FHI-aims control.in file.
+Parameters
+:
+structure
+(
+Structure
+) – The structure for which the band path is calculated
+density
+(
+float
+) – Number of kpoints per Angstrom.
+pymatgen.io.aims.sets.core module
+
+Module defining core FHI-aims input set generators.
+class
+MDSetGenerator
+(
+user_params:
+dict[str
+,
+Any]
+=
+<factory>
+,
+user_kpoints_settings:
+dict[str
+,
+Any]
+=
+<factory>
+,
+use_structure_charge:
+bool
+=
+False
+,
+calc_type:
+str
+=
+'md'
+,
+ensemble:
+str
+=
+'nve'
+,
+ensemble_specs:
+dict[str
+,
+Any]
+=
+<factory>
+,
+temp:
+float
+|
+None
+=
+None
+,
+time:
+float
+=
+5.0
+,
+time_step:
+float
+=
+0.001
+,
+init_velocities:
+bool
+=
+True
+)
+[source]
+
+Bases:
+AimsInputGenerator
+A class for generating FHI-aims input sets for molecular dynamics calculations.
+Parameters
+:
+ensemble
+(
+str
+) – Molecular dynamics ensemble to run. Options include
+nvt
+,
+nve
+, and
+gle
+.
+Default:
+nve
+ensemble_specs
+(
+dict
+[
+str
+,
+Any
+]
+) – A dictionary containing the specifications of the molecular dynamics ensemble.
+Valid keys are
+type
+(the ensemble type, valid types are defined in
+_valid_dynamics
+dict), and
+parameter
+- the control parameter for the thermostat
+(not used for
+nve
+and
+nve_4th_order
+).
+temp
+(
+float
+|
+None
+) – Thermostat temperature. Default: None
+time
+(
+float
+) – Simulation time (in picoseconds). Negative value stands for indefinite run.
+Default: 5 ps
+time_step
+(
+float
+) – The time step (in picoseconds) for the simulation. default: 1 fs
+**kwargs
+– Other keyword arguments that will be passed to
+AimsInputGenerator
+.
+calc_type
+:
+str
+=
+'md'
+[source]
+
+ensemble
+:
+str
+=
+'nve'
+[source]
+
+ensemble_specs
+:
+dict
+[
+str
+,
+Any
+]
+[source]
+
+get_parameter_updates
+(
+structure
+:
+Structure
+|
+Molecule
+,
+prev_parameters
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+dict
+[source]
+
+Get the parameter updates for the calculation.
+Parameters
+:
+Molecule
+)
+(
+structure
+(
+Structure or
+) – The structure to calculate the bands for
+(
+Dict
+[
+str
+(
+prev_parameters
+) – The previous parameters
+Any
+]
+)
+– The previous parameters
+Returns
+:
+A dictionary of updates to apply.
+Return type
+:
+dict
+init_velocities
+:
+bool
+=
+True
+[source]
+
+temp
+:
+float
+|
+None
+=
+None
+[source]
+
+time
+:
+float
+=
+5.0
+[source]
+
+time_step
+:
+float
+=
+0.001
+[source]
+
+class
+RelaxSetGenerator
+(
+user_params:
+dict[str
+,
+Any]
+=
+<factory>
+,
+user_kpoints_settings:
+dict[str
+,
+Any]
+=
+<factory>
+,
+use_structure_charge:
+bool
+=
+False
+,
+calc_type:
+str
+=
+'relaxation'
+,
+relax_cell:
+bool
+=
+True
+,
+max_force:
+float
+=
+0.001
+,
+method:
+str
+=
+'trm'
+)
+[source]
+
+Bases:
+AimsInputGenerator
+Generate FHI-aims relax sets for optimizing internal coordinates and lattice params.
+calc_type
+[source]
+
+The type of calculation
+Type
+:
+str
+relax_cell
+[source]
+
+If True then relax the unit cell from the structure
+Type
+:
+bool
+max_force
+[source]
+
+Maximum allowed force in the calculation
+Type
+:
+float
+method
+[source]
+
+Method used for the geometry optimization
+Type
+:
+str
+calc_type
+:
+str
+=
+'relaxation'
+[source]
+
+get_parameter_updates
+(
+structure
+:
+Structure
+|
+Molecule
+,
+prev_parameters
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+dict
+[source]
+
+Get the parameter updates for the calculation.
+Parameters
+:
+structure
+(
+Structure
+or
+Molecule
+) – The structure to calculate the bands for
+prev_parameters (Dict[str, Any]): The previous parameters
+Returns
+:
+The updated for the parameters for the output section of FHI-aims
+Return type
+:
+dict
+max_force
+:
+float
+=
+0.001
+[source]
+
+method
+:
+str
+=
+'trm'
+[source]
+
+relax_cell
+:
+bool
+=
+True
+[source]
+
+class
+SocketIOSetGenerator
+(
+user_params:
+dict[str
+,
+Any]
+=
+<factory>
+,
+user_kpoints_settings:
+dict[str
+,
+Any]
+=
+<factory>
+,
+use_structure_charge:
+bool
+=
+False
+,
+calc_type:
+str
+=
+'multi_scf'
+,
+host:
+str
+=
+'localhost'
+,
+port:
+int
+=
+12345
+)
+[source]
+
+Bases:
+AimsInputGenerator
+Generate FHI-aims input sets for running with the socket.
+calc_type
+[source]
+
+The type of calculation
+Type
+:
+str
+host
+[source]
+
+The hostname for the server the socket is on
+Type
+:
+str
+port
+[source]
+
+The port the socket server is listening on
+Type
+:
+int
+calc_type
+:
+str
+=
+'multi_scf'
+[source]
+
+get_parameter_updates
+(
+structure
+:
+Structure
+|
+Molecule
+,
+prev_parameters
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+dict
+[source]
+
+Get the parameter updates for the calculation.
+Parameters
+:
+structure
+(
+Structure
+or
+Molecule
+) – The structure to calculate the bands for
+prev_parameters
+(
+Dict
+[
+str
+,
+Any
+]
+) – The previous parameters
+Returns
+:
+The updated for the parameters for the output section of FHI-aims
+Return type
+:
+dict
+host
+:
+str
+=
+'localhost'
+[source]
+
+port
+:
+int
+=
+12345
+[source]
+
+class
+StaticSetGenerator
+(
+user_params:
+dict[str
+,
+Any]
+=
+<factory>
+,
+user_kpoints_settings:
+dict[str
+,
+Any]
+=
+<factory>
+,
+use_structure_charge:
+bool
+=
+False
+,
+calc_type:
+str
+=
+'static'
+)
+[source]
+
+Bases:
+AimsInputGenerator
+Common class for ground-state generators.
+calc_type
+[source]
+
+The type of calculation
+Type
+:
+str
+calc_type
+:
+str
+=
+'static'
+[source]
+
+get_parameter_updates
+(
+structure
+:
+Structure
+|
+Molecule
+,
+prev_parameters
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Get the parameter updates for the calculation.
+Parameters
+:
+structure
+(
+Structure
+or
+Molecule
+) – The structure to calculate the bands for
+prev_parameters
+(
+Dict
+[
+str
+,
+Any
+]
+) – The previous parameters
+Returns
+:
+The updated for the parameters for the output section of FHI-aims
+Return type
+:
+dict
+pymatgen.io.aims.sets.magnetism module
+
+Define the InputSetGenerators for FHI-aims magnetism calculations.
+class
+MagneticRelaxSetGenerator
+(
+user_params:
+dict[str
+,
+Any]
+=
+<factory>
+,
+user_kpoints_settings:
+dict[str
+,
+Any]
+=
+<factory>
+,
+use_structure_charge:
+bool
+=
+False
+,
+calc_type:
+str
+=
+'relaxation'
+,
+relax_cell:
+bool
+=
+True
+,
+max_force:
+float
+=
+0.001
+,
+method:
+str
+=
+'trm'
+)
+[source]
+
+Bases:
+RelaxSetGenerator
+Generate FHI-aims relax sets for optimizing internal coordinates and lattice params.
+calc_type
+[source]
+
+The type of calculation
+Type
+:
+str
+relax_cell
+[source]
+
+If True then relax the unit cell from the structure
+Type
+:
+bool
+max_force
+[source]
+
+Maximum allowed force in the calculation
+Type
+:
+float
+method
+[source]
+
+Method used for the geometry optimization
+Type
+:
+str
+get_parameter_updates
+(
+structure
+:
+Structure
+|
+Molecule
+,
+prev_parameters
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+dict
+[source]
+
+Get the parameter updates for the calculation.
+Parameters
+:
+structure
+(
+Structure
+or
+Molecule
+) – The structure to calculate the bands for
+prev_parameters (Dict[str, Any]): The previous parameters
+Returns
+:
+The updated for the parameters for the output section of FHI-aims
+Return type
+:
+dict
+class
+MagneticStaticSetGenerator
+(
+user_params:
+dict[str
+,
+Any]
+=
+<factory>
+,
+user_kpoints_settings:
+dict[str
+,
+Any]
+=
+<factory>
+,
+use_structure_charge:
+bool
+=
+False
+,
+calc_type:
+str
+=
+'static'
+)
+[source]
+
+Bases:
+StaticSetGenerator
+Common class for ground-state generators.
+calc_type
+[source]
+
+The type of calculation
+Type
+:
+str
+calc_type
+:
+str
+=
+'static'
+[source]
+
+get_parameter_updates
+(
+structure
+:
+Structure
+|
+Molecule
+,
+prev_parameters
+:
+dict
+[
+str
+,
+Any
+]
+)
+→
+dict
+[
+str
+,
+Any
+]
+[source]
+
+Get the parameter updates for the calculation.
+Parameters
+:
+structure
+(
+Structure
+or
+Molecule
+) – The structure to calculate the bands for
+prev_parameters
+(
+Dict
+[
+str
+,
+Any
+]
+) – The previous parameters
+Returns
+:
+The updated for the parameters for the output section of FHI-aims
+Return type
+:
+dict
+© Copyright 2011, Pymatgen Development Team.
+Built with
+Sphinx
+using a
+theme
+provided by
+Read the Docs
+.

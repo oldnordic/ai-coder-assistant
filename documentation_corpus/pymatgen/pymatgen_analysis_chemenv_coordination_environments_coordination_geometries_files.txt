@@ -1,0 +1,16 @@
+pymatgen.analysis.chemenv.coordination_environments.coordination_geometries_files package — pymatgen 2025.5.28 documentation
+pymatgen.analysis.chemenv.coordination_environments.coordination_geometries_files package
+pymatgen
+pymatgen.analysis.chemenv.coordination_environments.coordination_geometries_files package
+Edit on GitHub
+pymatgen.analysis.chemenv.coordination_environments.coordination_geometries_files package
+
+Coordination geometry files.
+© Copyright 2011, Pymatgen Development Team.
+Built with
+Sphinx
+using a
+theme
+provided by
+Read the Docs
+.

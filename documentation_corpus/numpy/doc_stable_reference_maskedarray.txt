@@ -1,0 +1,144 @@
+Masked arrays — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+NumPy’s module structure
+Array objects
+The N-dimensional array (
+ndarray
+)
+Scalars
+Data type objects (
+dtype
+)
+Data type promotion in NumPy
+Iterating over arrays
+Standard array subclasses
+Masked arrays
+The
+numpy.ma
+module
+Constants of the
+numpy.ma
+module
+Masked array operations
+The array interface protocol
+Datetimes and timedeltas
+Universal functions (
+ufunc
+)
+Routines and objects by topic
+Typing (
+numpy.typing
+)
+Packaging (
+numpy.distutils
+)
+NumPy C-API
+Array API standard compatibility
+CPU/SIMD optimizations
+Thread Safety
+Global Configuration Options
+NumPy security
+Status of
+numpy.distutils
+and migration advice
+numpy.distutils
+user guide
+NumPy and SWIG
+NumPy reference
+Array objects
+Masked arrays
+Masked arrays
+#
+Masked arrays are arrays that may have missing or invalid entries.
+The
+numpy.ma
+module provides a nearly work-alike replacement for numpy
+that supports data arrays with masks.
+The
+numpy.ma
+module
+Rationale
+What is a masked array?
+The
+numpy.ma
+module
+Using numpy.ma
+Constructing masked arrays
+Accessing the data
+Accessing the mask
+Accessing only the valid entries
+Modifying the mask
+Indexing and slicing
+Operations on masked arrays
+Examples
+Data with a given value representing missing data
+Filling in the missing data
+Numerical operations
+Ignoring extreme values
+Constants of the
+numpy.ma
+module
+masked
+nomask
+masked_print_option
+The
+MaskedArray
+class
+MaskedArray
+Attributes and properties of masked arrays
+MaskedArray
+methods
+Conversion
+Shape manipulation
+Item selection and manipulation
+Pickling and copy
+Calculations
+Arithmetic and comparison operations
+Representation
+Special methods
+Specific methods
+Masked array operations
+Constants
+Creation
+Inspecting the array
+Manipulating a MaskedArray
+Operations on masks
+Conversion operations
+Masked arrays arithmetic
+previous
+numpy.broadcast.reset
+next
+The
+numpy.ma
+module
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

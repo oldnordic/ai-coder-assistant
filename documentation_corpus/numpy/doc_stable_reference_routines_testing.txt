@@ -1,0 +1,285 @@
+Test support (numpy.testing) — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+NumPy’s module structure
+Array objects
+Universal functions (
+ufunc
+)
+Routines and objects by topic
+Constants
+Array creation routines
+Array manipulation routines
+Bit-wise operations
+String functionality
+Datetime support functions
+Data type routines
+Mathematical functions with automatic domain
+Floating point error handling
+Exceptions and Warnings (
+numpy.exceptions
+)
+Discrete Fourier Transform (
+numpy.fft
+)
+Functional programming
+Input and output
+Indexing routines
+Linear algebra (
+numpy.linalg
+)
+Logic functions
+Masked array operations
+Mathematical functions
+Miscellaneous routines
+Polynomials
+Random sampling (
+numpy.random
+)
+Set routines
+Sorting, searching, and counting
+Statistics
+Test support (
+numpy.testing
+)
+numpy.testing.assert_allclose
+numpy.testing.assert_array_almost_equal_nulp
+numpy.testing.assert_array_max_ulp
+numpy.testing.assert_array_equal
+numpy.testing.assert_array_less
+numpy.testing.assert_equal
+numpy.testing.assert_raises
+numpy.testing.assert_raises_regex
+numpy.testing.assert_warns
+numpy.testing.assert_no_warnings
+numpy.testing.assert_no_gc_cycles
+numpy.testing.assert_string_equal
+numpy.testing.assert_
+numpy.testing.assert_almost_equal
+numpy.testing.assert_approx_equal
+numpy.testing.assert_array_almost_equal
+numpy.testing.print_assert_equal
+numpy.testing.decorate_methods
+numpy.testing.clear_and_catch_warnings
+numpy.testing.measure
+numpy.testing.rundocs
+numpy.testing.suppress_warnings
+numpy.testing.overrides.allows_array_function_override
+numpy.testing.overrides.allows_array_ufunc_override
+numpy.testing.overrides.get_overridable_numpy_ufuncs
+numpy.testing.overrides.get_overridable_numpy_array_functions
+Testing guidelines
+Window functions
+Typing (
+numpy.typing
+)
+Packaging (
+numpy.distutils
+)
+NumPy C-API
+Array API standard compatibility
+CPU/SIMD optimizations
+Thread Safety
+Global Configuration Options
+NumPy security
+Status of
+numpy.distutils
+and migration advice
+numpy.distutils
+user guide
+NumPy and SWIG
+NumPy reference
+NumPy’s module structure
+Test support (
+numpy.testing
+)
+Test support (
+numpy.testing
+)
+#
+Common test support for all numpy test scripts.
+This single module should provide all the common functionality for numpy
+tests in a single location, so that
+test scripts
+can just import it and work right away. For
+background, see the
+Testing guidelines
+Asserts
+#
+assert_allclose
+(actual, desired[, rtol, ...])
+Raises an AssertionError if two objects are not equal up to desired tolerance.
+assert_array_almost_equal_nulp
+(x, y[, nulp])
+Compare two arrays relatively to their spacing.
+assert_array_max_ulp
+(a, b[, maxulp, dtype])
+Check that all items of arrays differ in at most N Units in the Last Place.
+assert_array_equal
+(actual, desired[, ...])
+Raises an AssertionError if two array_like objects are not equal.
+assert_array_less
+(x, y[, err_msg, verbose, ...])
+Raises an AssertionError if two array_like objects are not ordered by less than.
+assert_equal
+(actual, desired[, err_msg, ...])
+Raises an AssertionError if two objects are not equal.
+assert_raises
+(assert_raises)
+Fail unless an exception of class exception_class is thrown by callable when invoked with arguments args and keyword arguments kwargs.
+assert_raises_regex
+(exception_class, ...)
+Fail unless an exception of class exception_class and with message that matches expected_regexp is thrown by callable when invoked with arguments args and keyword arguments kwargs.
+assert_warns
+(warning_class, *args, **kwargs)
+Fail unless the given callable throws the specified warning.
+assert_no_warnings
+(*args, **kwargs)
+Fail if the given callable produces any warnings.
+assert_no_gc_cycles
+(*args, **kwargs)
+Fail if the given callable produces any reference cycles.
+assert_string_equal
+(actual, desired)
+Test if two strings are equal.
+Asserts (not recommended)
+#
+It is recommended to use one of
+assert_allclose
+,
+assert_array_almost_equal_nulp
+or
+assert_array_max_ulp
+instead of these
+functions for more consistent floating point comparisons.
+assert_
+(val[, msg])
+Assert that works in release mode.
+assert_almost_equal
+(actual, desired[, ...])
+Raises an AssertionError if two items are not equal up to desired precision.
+assert_approx_equal
+(actual, desired[, ...])
+Raises an AssertionError if two items are not equal up to significant digits.
+assert_array_almost_equal
+(actual, desired[, ...])
+Raises an AssertionError if two objects are not equal up to desired precision.
+print_assert_equal
+(test_string, actual, desired)
+Test if two objects are equal, and print an error message if test fails.
+Decorators
+#
+decorate_methods
+(cls, decorator[, testmatch])
+Apply a decorator to all methods in a class matching a regular expression.
+Test running
+#
+clear_and_catch_warnings
+([record, modules])
+Context manager that resets warning registry for catching warnings
+measure
+(code_str[, times, label])
+Return elapsed time for executing code in the namespace of the caller.
+rundocs
+([filename, raise_on_error])
+Run doctests found in the given file.
+suppress_warnings
+([forwarding_rule])
+Context manager and decorator doing much the same as
+warnings.catch_warnings
+.
+Testing custom array containers (
+numpy.testing.overrides
+)
+#
+These functions can be useful when testing custom array container
+implementations which make use of
+__array_ufunc__
+/
+__array_function__
+.
+allows_array_function_override
+(func)
+Determine if a Numpy function can be overridden via
+__array_function__
+allows_array_ufunc_override
+(func)
+Determine if a function can be overridden via
+__array_ufunc__
+get_overridable_numpy_ufuncs
+()
+List all numpy ufuncs overridable via
+__array_ufunc__
+get_overridable_numpy_array_functions
+()
+List all numpy functions overridable via
+__array_function__
+Guidelines
+#
+Testing guidelines
+Introduction
+Testing NumPy
+Running tests from inside Python
+Running tests from the command line
+Running doctests
+Other methods of running tests
+Writing your own tests
+Using C code in tests
+build_and_import_extension
+Labeling tests
+Easier setup and teardown functions / methods
+Parametric tests
+Doctests
+tests/
+__init__.py
+and
+setup.py
+Tips & Tricks
+Known failures & skipping tests
+Tests on random data
+Documentation for
+numpy.test
+test
+previous
+numpy.strings.str_len
+next
+numpy.testing.assert_allclose
+On this page
+Asserts
+Asserts (not recommended)
+Decorators
+Test running
+Testing custom array containers (
+numpy.testing.overrides
+)
+Guidelines
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

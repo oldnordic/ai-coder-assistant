@@ -1,0 +1,622 @@
+12.1. Array API support (experimental) — scikit-learn 1.7.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Install
+User Guide
+API
+Examples
+Community
+More
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Install
+User Guide
+API
+Examples
+Community
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Section Navigation
+1. Supervised learning
+1.1. Linear Models
+1.2. Linear and Quadratic Discriminant Analysis
+1.3. Kernel ridge regression
+1.4. Support Vector Machines
+1.5. Stochastic Gradient Descent
+1.6. Nearest Neighbors
+1.7. Gaussian Processes
+1.8. Cross decomposition
+1.9. Naive Bayes
+1.10. Decision Trees
+1.11. Ensembles: Gradient boosting, random forests, bagging, voting, stacking
+1.12. Multiclass and multioutput algorithms
+1.13. Feature selection
+1.14. Semi-supervised learning
+1.15. Isotonic regression
+1.16. Probability calibration
+1.17. Neural network models (supervised)
+2. Unsupervised learning
+2.1. Gaussian mixture models
+2.2. Manifold learning
+2.3. Clustering
+2.4. Biclustering
+2.5. Decomposing signals in components (matrix factorization problems)
+2.6. Covariance estimation
+2.7. Novelty and Outlier Detection
+2.8. Density Estimation
+2.9. Neural network models (unsupervised)
+3. Model selection and evaluation
+3.1. Cross-validation: evaluating estimator performance
+3.2. Tuning the hyper-parameters of an estimator
+3.3. Tuning the decision threshold for class prediction
+3.4. Metrics and scoring: quantifying the quality of predictions
+3.5. Validation curves: plotting scores to evaluate models
+4. Metadata Routing
+5. Inspection
+5.1. Partial Dependence and Individual Conditional Expectation plots
+5.2. Permutation feature importance
+6. Visualizations
+7. Dataset transformations
+7.1. Pipelines and composite estimators
+7.2. Feature extraction
+7.3. Preprocessing data
+7.4. Imputation of missing values
+7.5. Unsupervised dimensionality reduction
+7.6. Random Projection
+7.7. Kernel Approximation
+7.8. Pairwise metrics, Affinities and Kernels
+7.9. Transforming the prediction target (
+y
+)
+8. Dataset loading utilities
+8.1. Toy datasets
+8.2. Real world datasets
+8.3. Generated datasets
+8.4. Loading other datasets
+9. Computing with scikit-learn
+9.1. Strategies to scale computationally: bigger data
+9.2. Computational Performance
+9.3. Parallelism, resource management, and configuration
+10. Model persistence
+11. Common pitfalls and recommended practices
+12. Dispatching
+12.1. Array API support (experimental)
+13. Choosing the right estimator
+14. External Resources, Videos and Talks
+User Guide
+12.
+Dispatching
+12.1.
+Array API support (experimental)
+12.1.
+Array API support (experimental)
+#
+The
+Array API
+specification defines
+a standard API for all array manipulation libraries with a NumPy-like API.
+Scikit-learn vendors pinned copies of
+array-api-compat
+and
+array-api-extra
+.
+Scikit-learn’s support for the array API standard requires the environment variable
+SCIPY_ARRAY_API
+to be set to
+1
+before importing
+scipy
+and
+scikit-learn
+:
+export
+SCIPY_ARRAY_API
+=
+1
+Please note that this environment variable is intended for temporary use.
+For more details, refer to SciPy’s
+Array API documentation
+.
+Some scikit-learn estimators that primarily rely on NumPy (as opposed to using
+Cython) to implement the algorithmic logic of their
+fit
+,
+predict
+or
+transform
+methods can be configured to accept any Array API compatible input
+data structures and automatically dispatch operations to the underlying namespace
+instead of relying on NumPy.
+At this stage, this support is
+considered experimental
+and must be enabled
+explicitly as explained in the following.
+Note
+Currently, only
+array-api-strict
+,
+cupy
+, and
+PyTorch
+are known to work
+with scikit-learn’s estimators.
+The following video provides an overview of the standard’s design principles
+and how it facilitates interoperability between array libraries:
+Scikit-learn on GPUs with Array API
+by
+Thomas Fan
+at PyData NYC 2023.
+12.1.1.
+Example usage
+#
+Here is an example code snippet to demonstrate how to use
+CuPy
+to run
+LinearDiscriminantAnalysis
+on a GPU:
+>>>
+from
+sklearn.datasets
+import
+make_classification
+>>>
+from
+sklearn
+import
+config_context
+>>>
+from
+sklearn.discriminant_analysis
+import
+LinearDiscriminantAnalysis
+>>>
+import
+cupy
+>>>
+X_np
+,
+y_np
+=
+make_classification
+(
+random_state
+=
+0
+)
+>>>
+X_cu
+=
+cupy
+.
+asarray
+(
+X_np
+)
+>>>
+y_cu
+=
+cupy
+.
+asarray
+(
+y_np
+)
+>>>
+X_cu
+.
+device
+<CUDA Device 0>
+>>>
+with
+config_context
+(
+array_api_dispatch
+=
+True
+):
+...
+lda
+=
+LinearDiscriminantAnalysis
+()
+...
+X_trans
+=
+lda
+.
+fit_transform
+(
+X_cu
+,
+y_cu
+)
+>>>
+X_trans
+.
+device
+<CUDA Device 0>
+After the model is trained, fitted attributes that are arrays will also be
+from the same Array API namespace as the training data. For example, if CuPy’s
+Array API namespace was used for training, then fitted attributes will be on the
+GPU. We provide an experimental
+_estimator_with_converted_arrays
+utility that
+transfers an estimator attributes from Array API to a ndarray:
+>>>
+from
+sklearn.utils._array_api
+import
+_estimator_with_converted_arrays
+>>>
+cupy_to_ndarray
+=
+lambda
+array
+:
+array
+.
+get
+()
+>>>
+lda_np
+=
+_estimator_with_converted_arrays
+(
+lda
+,
+cupy_to_ndarray
+)
+>>>
+X_trans
+=
+lda_np
+.
+transform
+(
+X_np
+)
+>>>
+type
+(
+X_trans
+)
+<class 'numpy.ndarray'>
+12.1.1.1.
+PyTorch Support
+#
+PyTorch Tensors are supported by setting
+array_api_dispatch=True
+and passing in
+the tensors directly:
+>>>
+import
+torch
+>>>
+X_torch
+=
+torch
+.
+asarray
+(
+X_np
+,
+device
+=
+"cuda"
+,
+dtype
+=
+torch
+.
+float32
+)
+>>>
+y_torch
+=
+torch
+.
+asarray
+(
+y_np
+,
+device
+=
+"cuda"
+,
+dtype
+=
+torch
+.
+float32
+)
+>>>
+with
+config_context
+(
+array_api_dispatch
+=
+True
+):
+...
+lda
+=
+LinearDiscriminantAnalysis
+()
+...
+X_trans
+=
+lda
+.
+fit_transform
+(
+X_torch
+,
+y_torch
+)
+>>>
+type
+(
+X_trans
+)
+<class 'torch.Tensor'>
+>>>
+X_trans
+.
+device
+.
+type
+'cuda'
+12.1.2.
+Support for
+Array
+API
+-compatible inputs
+#
+Estimators and other tools in scikit-learn that support Array API compatible inputs.
+12.1.2.1.
+Estimators
+#
+decomposition.PCA
+(with
+svd_solver="full"
+,
+svd_solver="randomized"
+and
+power_iteration_normalizer="QR"
+)
+linear_model.Ridge
+(with
+solver="svd"
+)
+discriminant_analysis.LinearDiscriminantAnalysis
+(with
+solver="svd"
+)
+preprocessing.Binarizer
+preprocessing.KernelCenterer
+preprocessing.LabelEncoder
+preprocessing.MaxAbsScaler
+preprocessing.MinMaxScaler
+preprocessing.Normalizer
+12.1.2.2.
+Meta-estimators
+#
+Meta-estimators that accept Array API inputs conditioned on the fact that the
+base estimator also does:
+model_selection.GridSearchCV
+model_selection.RandomizedSearchCV
+model_selection.HalvingGridSearchCV
+model_selection.HalvingRandomSearchCV
+12.1.2.3.
+Metrics
+#
+sklearn.metrics.cluster.entropy
+sklearn.metrics.accuracy_score
+sklearn.metrics.d2_tweedie_score
+sklearn.metrics.explained_variance_score
+sklearn.metrics.f1_score
+sklearn.metrics.fbeta_score
+sklearn.metrics.hamming_loss
+sklearn.metrics.jaccard_score
+sklearn.metrics.max_error
+sklearn.metrics.mean_absolute_error
+sklearn.metrics.mean_absolute_percentage_error
+sklearn.metrics.mean_gamma_deviance
+sklearn.metrics.mean_pinball_loss
+sklearn.metrics.mean_poisson_deviance
+(requires
+enabling array API support for SciPy
+)
+sklearn.metrics.mean_squared_error
+sklearn.metrics.mean_squared_log_error
+sklearn.metrics.mean_tweedie_deviance
+sklearn.metrics.multilabel_confusion_matrix
+sklearn.metrics.pairwise.additive_chi2_kernel
+sklearn.metrics.pairwise.chi2_kernel
+sklearn.metrics.pairwise.cosine_similarity
+sklearn.metrics.pairwise.cosine_distances
+sklearn.metrics.pairwise.euclidean_distances
+(see
+Note on device support for float64
+)
+sklearn.metrics.pairwise.linear_kernel
+sklearn.metrics.pairwise.paired_cosine_distances
+sklearn.metrics.pairwise.paired_euclidean_distances
+sklearn.metrics.pairwise.polynomial_kernel
+sklearn.metrics.pairwise.rbf_kernel
+(see
+Note on device support for float64
+)
+sklearn.metrics.pairwise.sigmoid_kernel
+sklearn.metrics.precision_score
+sklearn.metrics.precision_recall_fscore_support
+sklearn.metrics.r2_score
+sklearn.metrics.recall_score
+sklearn.metrics.root_mean_squared_error
+sklearn.metrics.root_mean_squared_log_error
+sklearn.metrics.zero_one_loss
+12.1.2.4.
+Tools
+#
+model_selection.train_test_split
+utils.check_consistent_length
+Coverage is expected to grow over time. Please follow the dedicated
+meta-issue on GitHub
+to track progress.
+12.1.2.5.
+Type of return values and fitted attributes
+#
+When calling functions or methods with Array API compatible inputs, the
+convention is to return array values of the same array container type and
+device as the input data.
+Similarly, when an estimator is fitted with Array API compatible inputs, the
+fitted attributes will be arrays from the same library as the input and stored
+on the same device. The
+predict
+and
+transform
+method subsequently expect
+inputs from the same array library and device as the data passed to the
+fit
+method.
+Note however that scoring functions that return scalar values return Python
+scalars (typically a
+float
+instance) instead of an array scalar value.
+12.1.3.
+Common estimator checks
+#
+Add the
+array_api_support
+tag to an estimator’s set of tags to indicate that
+it supports the Array API. This will enable dedicated checks as part of the
+common tests to verify that the estimators’ results are the same when using
+vanilla NumPy and Array API inputs.
+To run these checks you need to install
+array-api-strict
+in your
+test environment. This allows you to run checks without having a
+GPU. To run the full set of checks you also need to install
+PyTorch
+,
+CuPy
+and have
+a GPU. Checks that can not be executed or have missing dependencies will be
+automatically skipped. Therefore it’s important to run the tests with the
+-v
+flag to see which checks are skipped:
+pip
+install
+array-api-strict
+# and other libraries as needed
+pytest
+-k
+"array_api"
+-v
+Running the scikit-learn tests against
+array-api-strict
+should help reveal
+most code problems related to handling multiple device inputs via the use of
+simulated non-CPU devices. This allows for fast iterative development and debugging of
+array API related code.
+However, to ensure full handling of PyTorch or CuPy inputs allocated on actual GPU
+devices, it is necessary to run the tests against those libraries and hardware.
+This can either be achieved by using
+Google Colab
+or leveraging our CI infrastructure on pull requests (manually triggered by maintainers
+for cost reasons).
+12.1.3.1.
+Note on MPS device support
+#
+On macOS, PyTorch can use the Metal Performance Shaders (MPS) to access
+hardware accelerators (e.g. the internal GPU component of the M1 or M2 chips).
+However, the MPS device support for PyTorch is incomplete at the time of
+writing. See the following github issue for more details:
+pytorch/pytorch#77764
+To enable the MPS support in PyTorch, set the environment variable
+PYTORCH_ENABLE_MPS_FALLBACK=1
+before running the tests:
+PYTORCH_ENABLE_MPS_FALLBACK
+=
+1
+pytest
+-k
+"array_api"
+-v
+At the time of writing all scikit-learn tests should pass, however, the
+computational speed is not necessarily better than with the CPU device.
+12.1.3.2.
+Note on device support for
+float64
+#
+Certain operations within scikit-learn will automatically perform operations
+on floating-point values with
+float64
+precision to prevent overflows and ensure
+correctness (e.g.,
+metrics.pairwise.euclidean_distances
+). However,
+certain combinations of array namespaces and devices, such as
+PyTorch
+on
+MPS
+(see
+Note on MPS device support
+) do not support the
+float64
+data type. In these cases,
+scikit-learn will revert to using the
+float32
+data type instead. This can result in
+different behavior (typically numerically unstable results) compared to not using array
+API dispatching or using a device with
+float64
+support.
+previous
+12.
+Dispatching
+next
+13.
+Choosing the right estimator
+On this page
+12.1.1. Example usage
+12.1.1.1. PyTorch Support
+12.1.2. Support for
+Array
+API
+-compatible inputs
+12.1.2.1. Estimators
+12.1.2.2. Meta-estimators
+12.1.2.3. Metrics
+12.1.2.4. Tools
+12.1.2.5. Type of return values and fitted attributes
+12.1.3. Common estimator checks
+12.1.3.1. Note on MPS device support
+12.1.3.2. Note on device support for
+float64
+This Page
+Show Source
+© Copyright 2007 - 2025, scikit-learn developers (BSD License).

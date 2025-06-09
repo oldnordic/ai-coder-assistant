@@ -1,0 +1,78 @@
+NumPy how-tos — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+Getting started
+What is NumPy?
+Installation
+NumPy quickstart
+NumPy: the absolute basics for beginners
+Fundamentals and usage
+NumPy fundamentals
+NumPy for MATLAB users
+NumPy tutorials
+NumPy how-tos
+How to write a NumPy how-to
+Reading and writing files
+How to index
+ndarrays
+Verifying bugs and bug fixes in NumPy
+How to create arrays with regularly-spaced values
+Advanced usage and interoperability
+Using NumPy C-API
+F2PY user guide and reference manual
+Under-the-hood documentation for developers
+Interoperability with NumPy
+Extras
+Glossary
+Release notes
+NumPy 2.0 migration guide
+NumPy license
+NumPy user guide
+NumPy how-tos
+NumPy how-tos
+#
+These documents are intended as recipes to common tasks using NumPy. For
+detailed reference documentation of the functions and classes contained in
+the package, see the
+API reference
+.
+How to write a NumPy how-to
+Reading and writing files
+How to index
+ndarrays
+Verifying bugs and bug fixes in NumPy
+How to create arrays with regularly-spaced values
+previous
+NumPy for MATLAB users
+next
+How to write a NumPy how-to
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

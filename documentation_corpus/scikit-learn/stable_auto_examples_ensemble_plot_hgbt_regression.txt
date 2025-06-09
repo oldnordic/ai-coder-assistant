@@ -1,0 +1,2102 @@
+Features in Histogram Gradient Boosting Trees — scikit-learn 1.7.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Install
+User Guide
+API
+Examples
+Community
+More
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Install
+User Guide
+API
+Examples
+Community
+Getting Started
+Release History
+Glossary
+Development
+FAQ
+Support
+Related Projects
+Roadmap
+Governance
+About us
+GitHub
+Choose version
+Section Navigation
+Release Highlights
+Release Highlights for scikit-learn 1.7
+Release Highlights for scikit-learn 1.6
+Release Highlights for scikit-learn 1.5
+Release Highlights for scikit-learn 1.4
+Release Highlights for scikit-learn 1.3
+Release Highlights for scikit-learn 1.2
+Release Highlights for scikit-learn 1.1
+Release Highlights for scikit-learn 1.0
+Release Highlights for scikit-learn 0.24
+Release Highlights for scikit-learn 0.23
+Release Highlights for scikit-learn 0.22
+Biclustering
+A demo of the Spectral Biclustering algorithm
+A demo of the Spectral Co-Clustering algorithm
+Biclustering documents with the Spectral Co-clustering algorithm
+Calibration
+Comparison of Calibration of Classifiers
+Probability Calibration curves
+Probability Calibration for 3-class classification
+Probability calibration of classifiers
+Classification
+Classifier comparison
+Linear and Quadratic Discriminant Analysis with covariance ellipsoid
+Normal, Ledoit-Wolf and OAS Linear Discriminant Analysis for classification
+Plot classification probability
+Recognizing hand-written digits
+Clustering
+A demo of K-Means clustering on the handwritten digits data
+A demo of structured Ward hierarchical clustering on an image of coins
+A demo of the mean-shift clustering algorithm
+Adjustment for chance in clustering performance evaluation
+Agglomerative clustering with and without structure
+Agglomerative clustering with different metrics
+An example of K-Means++ initialization
+Bisecting K-Means and Regular K-Means Performance Comparison
+Compare BIRCH and MiniBatchKMeans
+Comparing different clustering algorithms on toy datasets
+Comparing different hierarchical linkage methods on toy datasets
+Comparison of the K-Means and MiniBatchKMeans clustering algorithms
+Demo of DBSCAN clustering algorithm
+Demo of HDBSCAN clustering algorithm
+Demo of OPTICS clustering algorithm
+Demo of affinity propagation clustering algorithm
+Demonstration of k-means assumptions
+Empirical evaluation of the impact of k-means initialization
+Feature agglomeration
+Feature agglomeration vs. univariate selection
+Hierarchical clustering: structured vs unstructured ward
+Inductive Clustering
+Online learning of a dictionary of parts of faces
+Plot Hierarchical Clustering Dendrogram
+Segmenting the picture of greek coins in regions
+Selecting the number of clusters with silhouette analysis on KMeans clustering
+Spectral clustering for image segmentation
+Various Agglomerative Clustering on a 2D embedding of digits
+Vector Quantization Example
+Covariance estimation
+Ledoit-Wolf vs OAS estimation
+Robust covariance estimation and Mahalanobis distances relevance
+Robust vs Empirical covariance estimate
+Shrinkage covariance estimation: LedoitWolf vs OAS and max-likelihood
+Sparse inverse covariance estimation
+Cross decomposition
+Compare cross decomposition methods
+Principal Component Regression vs Partial Least Squares Regression
+Dataset examples
+Plot randomly generated multilabel dataset
+Decision Trees
+Decision Tree Regression
+Plot the decision surface of decision trees trained on the iris dataset
+Post pruning decision trees with cost complexity pruning
+Understanding the decision tree structure
+Decomposition
+Blind source separation using FastICA
+Comparison of LDA and PCA 2D projection of Iris dataset
+Faces dataset decompositions
+Factor Analysis (with rotation) to visualize patterns
+FastICA on 2D point clouds
+Image denoising using dictionary learning
+Incremental PCA
+Kernel PCA
+Model selection with Probabilistic PCA and Factor Analysis (FA)
+Principal Component Analysis (PCA) on Iris Dataset
+Sparse coding with a precomputed dictionary
+Developing Estimators
+__sklearn_is_fitted__
+as Developer API
+Ensemble methods
+Categorical Feature Support in Gradient Boosting
+Combine predictors using stacking
+Comparing Random Forests and Histogram Gradient Boosting models
+Comparing random forests and the multi-output meta estimator
+Decision Tree Regression with AdaBoost
+Early stopping in Gradient Boosting
+Feature importances with a forest of trees
+Feature transformations with ensembles of trees
+Features in Histogram Gradient Boosting Trees
+Gradient Boosting Out-of-Bag estimates
+Gradient Boosting regression
+Gradient Boosting regularization
+Hashing feature transformation using Totally Random Trees
+IsolationForest example
+Monotonic Constraints
+Multi-class AdaBoosted Decision Trees
+OOB Errors for Random Forests
+Plot individual and voting regression predictions
+Plot the decision surfaces of ensembles of trees on the iris dataset
+Prediction Intervals for Gradient Boosting Regression
+Single estimator versus bagging: bias-variance decomposition
+Two-class AdaBoost
+Visualizing the probabilistic predictions of a VotingClassifier
+Examples based on real world datasets
+Compressive sensing: tomography reconstruction with L1 prior (Lasso)
+Faces recognition example using eigenfaces and SVMs
+Image denoising using kernel PCA
+Lagged features for time series forecasting
+Model Complexity Influence
+Out-of-core classification of text documents
+Outlier detection on a real data set
+Prediction Latency
+Species distribution modeling
+Time-related feature engineering
+Topic extraction with Non-negative Matrix Factorization and Latent Dirichlet Allocation
+Visualizing the stock market structure
+Wikipedia principal eigenvector
+Feature Selection
+Comparison of F-test and mutual information
+Model-based and sequential feature selection
+Pipeline ANOVA SVM
+Recursive feature elimination
+Recursive feature elimination with cross-validation
+Univariate Feature Selection
+Frozen Estimators
+Examples of Using
+FrozenEstimator
+Gaussian Mixture Models
+Concentration Prior Type Analysis of Variation Bayesian Gaussian Mixture
+Density Estimation for a Gaussian mixture
+GMM Initialization Methods
+GMM covariances
+Gaussian Mixture Model Ellipsoids
+Gaussian Mixture Model Selection
+Gaussian Mixture Model Sine Curve
+Gaussian Process for Machine Learning
+Ability of Gaussian process regression (GPR) to estimate data noise-level
+Comparison of kernel ridge and Gaussian process regression
+Forecasting of CO2 level on Mona Loa dataset using Gaussian process regression (GPR)
+Gaussian Processes regression: basic introductory example
+Gaussian process classification (GPC) on iris dataset
+Gaussian processes on discrete data structures
+Illustration of Gaussian process classification (GPC) on the XOR dataset
+Illustration of prior and posterior Gaussian process for different kernels
+Iso-probability lines for Gaussian Processes classification (GPC)
+Probabilistic predictions with Gaussian process classification (GPC)
+Generalized Linear Models
+Comparing Linear Bayesian Regressors
+Curve Fitting with Bayesian Ridge Regression
+Decision Boundaries of Multinomial and One-vs-Rest Logistic Regression
+Early stopping of Stochastic Gradient Descent
+Fitting an Elastic Net with a precomputed Gram Matrix and Weighted Samples
+HuberRegressor vs Ridge on dataset with strong outliers
+Joint feature selection with multi-task Lasso
+L1 Penalty and Sparsity in Logistic Regression
+L1-based models for Sparse Signals
+Lasso model selection via information criteria
+Lasso model selection: AIC-BIC / cross-validation
+Lasso on dense and sparse data
+Lasso, Lasso-LARS, and Elastic Net paths
+Logistic function
+MNIST classification using multinomial logistic + L1
+Multiclass sparse logistic regression on 20newgroups
+Non-negative least squares
+One-Class SVM versus One-Class SVM using Stochastic Gradient Descent
+Ordinary Least Squares and Ridge Regression
+Orthogonal Matching Pursuit
+Plot Ridge coefficients as a function of the regularization
+Plot multi-class SGD on the iris dataset
+Poisson regression and non-normal loss
+Polynomial and Spline interpolation
+Quantile regression
+Regularization path of L1- Logistic Regression
+Ridge coefficients as a function of the L2 Regularization
+Robust linear estimator fitting
+Robust linear model estimation using RANSAC
+SGD: Maximum margin separating hyperplane
+SGD: Penalties
+SGD: Weighted samples
+SGD: convex loss functions
+Theil-Sen Regression
+Tweedie regression on insurance claims
+Inspection
+Common pitfalls in the interpretation of coefficients of linear models
+Failure of Machine Learning to infer causal effects
+Partial Dependence and Individual Conditional Expectation Plots
+Permutation Importance vs Random Forest Feature Importance (MDI)
+Permutation Importance with Multicollinear or Correlated Features
+Kernel Approximation
+Scalable learning with polynomial kernel approximation
+Manifold learning
+Comparison of Manifold Learning methods
+Manifold Learning methods on a severed sphere
+Manifold learning on handwritten digits: Locally Linear Embedding, Isomap…
+Multi-dimensional scaling
+Swiss Roll And Swiss-Hole Reduction
+t-SNE: The effect of various perplexity values on the shape
+Miscellaneous
+Advanced Plotting With Partial Dependence
+Comparing anomaly detection algorithms for outlier detection on toy datasets
+Comparison of kernel ridge regression and SVR
+Displaying Pipelines
+Displaying estimators and complex pipelines
+Evaluation of outlier detection estimators
+Explicit feature map approximation for RBF kernels
+Face completion with a multi-output estimators
+Introducing the
+set_output
+API
+Isotonic Regression
+Metadata Routing
+Multilabel classification
+ROC Curve with Visualization API
+The Johnson-Lindenstrauss bound for embedding with random projections
+Visualizations with Display Objects
+Missing Value Imputation
+Imputing missing values before building an estimator
+Imputing missing values with variants of IterativeImputer
+Model Selection
+Balance model complexity and cross-validated score
+Class Likelihood Ratios to measure classification performance
+Comparing randomized search and grid search for hyperparameter estimation
+Comparison between grid search and successive halving
+Confusion matrix
+Custom refit strategy of a grid search with cross-validation
+Demonstration of multi-metric evaluation on cross_val_score and GridSearchCV
+Detection error tradeoff (DET) curve
+Effect of model regularization on training and test error
+Multiclass Receiver Operating Characteristic (ROC)
+Nested versus non-nested cross-validation
+Plotting Cross-Validated Predictions
+Plotting Learning Curves and Checking Models’ Scalability
+Post-hoc tuning the cut-off point of decision function
+Post-tuning the decision threshold for cost-sensitive learning
+Precision-Recall
+Receiver Operating Characteristic (ROC) with cross validation
+Sample pipeline for text feature extraction and evaluation
+Statistical comparison of models using grid search
+Successive Halving Iterations
+Test with permutations the significance of a classification score
+Underfitting vs. Overfitting
+Visualizing cross-validation behavior in scikit-learn
+Multiclass methods
+Overview of multiclass training meta-estimators
+Multioutput methods
+Multilabel classification using a classifier chain
+Nearest Neighbors
+Approximate nearest neighbors in TSNE
+Caching nearest neighbors
+Comparing Nearest Neighbors with and without Neighborhood Components Analysis
+Dimensionality Reduction with Neighborhood Components Analysis
+Kernel Density Estimate of Species Distributions
+Kernel Density Estimation
+Nearest Centroid Classification
+Nearest Neighbors Classification
+Nearest Neighbors regression
+Neighborhood Components Analysis Illustration
+Novelty detection with Local Outlier Factor (LOF)
+Outlier detection with Local Outlier Factor (LOF)
+Simple 1D Kernel Density Estimation
+Neural Networks
+Compare Stochastic learning strategies for MLPClassifier
+Restricted Boltzmann Machine features for digit classification
+Varying regularization in Multi-layer Perceptron
+Visualization of MLP weights on MNIST
+Pipelines and composite estimators
+Column Transformer with Heterogeneous Data Sources
+Column Transformer with Mixed Types
+Concatenating multiple feature extraction methods
+Effect of transforming the targets in regression model
+Pipelining: chaining a PCA and a logistic regression
+Selecting dimensionality reduction with Pipeline and GridSearchCV
+Preprocessing
+Compare the effect of different scalers on data with outliers
+Comparing Target Encoder with Other Encoders
+Demonstrating the different strategies of KBinsDiscretizer
+Feature discretization
+Importance of Feature Scaling
+Map data to a normal distribution
+Target Encoder’s Internal Cross fitting
+Using KBinsDiscretizer to discretize continuous features
+Semi Supervised Classification
+Decision boundary of semi-supervised classifiers versus SVM on the Iris dataset
+Effect of varying threshold for self-training
+Label Propagation circles: Learning a complex structure
+Label Propagation digits: Active learning
+Label Propagation digits: Demonstrating performance
+Semi-supervised Classification on a Text Dataset
+Support Vector Machines
+One-class SVM with non-linear kernel (RBF)
+Plot classification boundaries with different SVM Kernels
+Plot different SVM classifiers in the iris dataset
+Plot the support vectors in LinearSVC
+RBF SVM parameters
+SVM Margins Example
+SVM Tie Breaking Example
+SVM with custom kernel
+SVM-Anova: SVM with univariate feature selection
+SVM: Maximum margin separating hyperplane
+SVM: Separating hyperplane for unbalanced classes
+SVM: Weighted samples
+Scaling the regularization parameter for SVCs
+Support Vector Regression (SVR) using linear and non-linear kernels
+Working with text documents
+Classification of text documents using sparse features
+Clustering text documents using k-means
+FeatureHasher and DictVectorizer Comparison
+Examples
+Ensemble methods
+Features in Histogram Gradient Boosting Trees
+Note
+Go to the end
+to download the full example code. or to run this example in your browser via JupyterLite or Binder
+Features in Histogram Gradient Boosting Trees
+#
+Histogram-Based Gradient Boosting
+(HGBT) models may be one of the most
+useful supervised learning models in scikit-learn. They are based on a modern
+gradient boosting implementation comparable to LightGBM and XGBoost. As such,
+HGBT models are more feature rich than and often outperform alternative models
+like random forests, especially when the number of samples is larger than some
+ten thousands (see
+Comparing Random Forests and Histogram Gradient Boosting models
+).
+The top usability features of HGBT models are:
+Several available loss functions for mean and quantile regression tasks, see
+Quantile loss
+.
+Categorical Features Support
+, see
+Categorical Feature Support in Gradient Boosting
+.
+Early stopping.
+Missing values support
+, which avoids the need for an imputer.
+Monotonic Constraints
+.
+Interaction constraints
+.
+This example aims at showcasing all points except 2 and 6 in a real life
+setting.
+# Authors: The scikit-learn developers
+# SPDX-License-Identifier: BSD-3-Clause
+Preparing the data
+#
+The
+electricity dataset
+consists of data
+collected from the Australian New South Wales Electricity Market. In this
+market, prices are not fixed and are affected by supply and demand. They are
+set every five minutes. Electricity transfers to/from the neighboring state of
+Victoria were done to alleviate fluctuations.
+The dataset, originally named ELEC2, contains 45,312 instances dated from 7
+May 1996 to 5 December 1998. Each sample of the dataset refers to a period of
+30 minutes, i.e. there are 48 instances for each time period of one day. Each
+sample on the dataset has 7 columns:
+date: between 7 May 1996 to 5 December 1998. Normalized between 0 and 1;
+day: day of week (1-7);
+period: half hour intervals over 24 hours. Normalized between 0 and 1;
+nswprice/nswdemand: electricity price/demand of New South Wales;
+vicprice/vicdemand: electricity price/demand of Victoria.
+Originally, it is a classification task, but here we use it for the regression
+task to predict the scheduled electricity transfer between states.
+from
+sklearn.datasets
+import
+fetch_openml
+electricity
+=
+fetch_openml
+(
+name
+=
+"electricity"
+,
+version
+=
+1
+,
+as_frame
+=
+True
+,
+parser
+=
+"pandas"
+)
+df
+=
+electricity
+.
+frame
+This particular dataset has a stepwise constant target for the first 17,760
+samples:
+df
+[
+"transfer"
+][:
+17_760
+]
+.
+unique
+()
+array([0.414912, 0.500526])
+Let us drop those entries and explore the hourly electricity transfer over
+different days of the week:
+import
+matplotlib.pyplot
+as
+plt
+import
+seaborn
+as
+sns
+df
+=
+electricity
+.
+frame
+.
+iloc
+[
+17_760
+:]
+X
+=
+df
+.
+drop
+(
+columns
+=
+[
+"transfer"
+,
+"class"
+])
+y
+=
+df
+[
+"transfer"
+]
+fig
+,
+ax
+=
+plt
+.
+subplots
+(
+figsize
+=
+(
+15
+,
+10
+))
+pointplot
+=
+sns
+.
+lineplot
+(
+x
+=
+df
+[
+"period"
+],
+y
+=
+df
+[
+"transfer"
+],
+hue
+=
+df
+[
+"day"
+],
+ax
+=
+ax
+)
+handles
+,
+labels
+=
+ax
+.
+get_legend_handles_labels
+()
+ax
+.
+set
+(
+title
+=
+"Hourly energy transfer for different days of the week"
+,
+xlabel
+=
+"Normalized time of the day"
+,
+ylabel
+=
+"Normalized energy transfer"
+,
+)
+_
+=
+ax
+.
+legend
+(
+handles
+,
+[
+"Sun"
+,
+"Mon"
+,
+"Tue"
+,
+"Wed"
+,
+"Thu"
+,
+"Fri"
+,
+"Sat"
+])
+Notice that energy transfer increases systematically during weekends.
+Effect of number of trees and early stopping
+#
+For the sake of illustrating the effect of the (maximum) number of trees, we
+train a
+HistGradientBoostingRegressor
+over the
+daily electricity transfer using the whole dataset. Then we visualize its
+predictions depending on the
+max_iter
+parameter. Here we don’t try to
+evaluate the performance of the model and its capacity to generalize but
+rather its capability to learn from the training data.
+from
+sklearn.ensemble
+import
+HistGradientBoostingRegressor
+from
+sklearn.model_selection
+import
+train_test_split
+X_train
+,
+X_test
+,
+y_train
+,
+y_test
+=
+train_test_split
+(
+X
+,
+y
+,
+test_size
+=
+0.4
+,
+shuffle
+=
+False
+)
+print
+(
+f
+"Training sample size:
+{
+X_train
+.
+shape
+[
+0
+]
+}
+"
+)
+print
+(
+f
+"Test sample size:
+{
+X_test
+.
+shape
+[
+0
+]
+}
+"
+)
+print
+(
+f
+"Number of features:
+{
+X_train
+.
+shape
+[
+1
+]
+}
+"
+)
+Training sample size: 16531
+Test sample size: 11021
+Number of features: 7
+max_iter_list
+=
+[
+5
+,
+50
+]
+average_week_demand
+=
+(
+df
+.
+loc
+[
+X_test
+.
+index
+]
+.
+groupby
+([
+"day"
+,
+"period"
+],
+observed
+=
+False
+)[
+"transfer"
+]
+.
+mean
+()
+)
+colors
+=
+sns
+.
+color_palette
+(
+"colorblind"
+)
+fig
+,
+ax
+=
+plt
+.
+subplots
+(
+figsize
+=
+(
+10
+,
+5
+))
+average_week_demand
+.
+plot
+(
+color
+=
+colors
+[
+0
+],
+label
+=
+"recorded average"
+,
+linewidth
+=
+2
+,
+ax
+=
+ax
+)
+for
+idx
+,
+max_iter
+in
+enumerate
+(
+max_iter_list
+):
+hgbt
+=
+HistGradientBoostingRegressor
+(
+max_iter
+=
+max_iter
+,
+categorical_features
+=
+None
+,
+random_state
+=
+42
+)
+hgbt
+.
+fit
+(
+X_train
+,
+y_train
+)
+y_pred
+=
+hgbt
+.
+predict
+(
+X_test
+)
+prediction_df
+=
+df
+.
+loc
+[
+X_test
+.
+index
+]
+.
+copy
+()
+prediction_df
+[
+"y_pred"
+]
+=
+y_pred
+average_pred
+=
+prediction_df
+.
+groupby
+([
+"day"
+,
+"period"
+],
+observed
+=
+False
+)[
+"y_pred"
+]
+.
+mean
+()
+average_pred
+.
+plot
+(
+color
+=
+colors
+[
+idx
++
+1
+],
+label
+=
+f
+"max_iter=
+{
+max_iter
+}
+"
+,
+linewidth
+=
+2
+,
+ax
+=
+ax
+)
+ax
+.
+set
+(
+title
+=
+"Predicted average energy transfer during the week"
+,
+xticks
+=
+[(
+i
++
+0.2
+)
+*
+48
+for
+i
+in
+range
+(
+7
+)],
+xticklabels
+=
+[
+"Sun"
+,
+"Mon"
+,
+"Tue"
+,
+"Wed"
+,
+"Thu"
+,
+"Fri"
+,
+"Sat"
+],
+xlabel
+=
+"Time of the week"
+,
+ylabel
+=
+"Normalized energy transfer"
+,
+)
+_
+=
+ax
+.
+legend
+()
+With just a few iterations, HGBT models can achieve convergence (see
+Comparing Random Forests and Histogram Gradient Boosting models
+),
+meaning that adding more trees does not improve the model anymore. In the
+figure above, 5 iterations are not enough to get good predictions. With 50
+iterations, we are already able to do a good job.
+Setting
+max_iter
+too high might degrade the prediction quality and cost a lot of
+avoidable computing resources. Therefore, the HGBT implementation in scikit-learn
+provides an automatic
+early stopping
+strategy. With it, the model
+uses a fraction of the training data as internal validation set
+(
+validation_fraction
+) and stops training if the validation score does not
+improve (or degrades) after
+n_iter_no_change
+iterations up to a certain
+tolerance (
+tol
+).
+Notice that there is a trade-off between
+learning_rate
+and
+max_iter
+:
+Generally, smaller learning rates are preferable but require more iterations
+to converge to the minimum loss, while larger learning rates converge faster
+(less iterations/trees needed) but at the cost of a larger minimum loss.
+Because of this high correlation between the learning rate the number of iterations,
+a good practice is to tune the learning rate along with all (important) other
+hyperparameters, fit the HBGT on the training set with a large enough value
+for
+max_iter
+and determine the best
+max_iter
+via early stopping and some
+explicit
+validation_fraction
+.
+common_params
+=
+{
+"max_iter"
+:
+1_000
+,
+"learning_rate"
+:
+0.3
+,
+"validation_fraction"
+:
+0.2
+,
+"random_state"
+:
+42
+,
+"categorical_features"
+:
+None
+,
+"scoring"
+:
+"neg_root_mean_squared_error"
+,
+}
+hgbt
+=
+HistGradientBoostingRegressor
+(
+early_stopping
+=
+True
+,
+**
+common_params
+)
+hgbt
+.
+fit
+(
+X_train
+,
+y_train
+)
+_
+,
+ax
+=
+plt
+.
+subplots
+()
+plt
+.
+plot
+(
+-
+hgbt
+.
+validation_score_
+)
+_
+=
+ax
+.
+set
+(
+xlabel
+=
+"number of iterations"
+,
+ylabel
+=
+"root mean squared error"
+,
+title
+=
+f
+"Loss of hgbt with early stopping (n_iter=
+{
+hgbt
+.
+n_iter_
+}
+)"
+,
+)
+We can then overwrite the value for
+max_iter
+to a reasonable value and avoid
+the extra computational cost of the inner validation. Rounding up the number
+of iterations may account for variability of the training set:
+import
+math
+common_params
+[
+"max_iter"
+]
+=
+math
+.
+ceil
+(
+hgbt
+.
+n_iter_
+/
+100
+)
+*
+100
+common_params
+[
+"early_stopping"
+]
+=
+False
+hgbt
+=
+HistGradientBoostingRegressor
+(
+**
+common_params
+)
+Note
+The inner validation done during early stopping is not optimal for
+time series.
+Support for missing values
+#
+HGBT models have native support of missing values. During training, the tree
+grower decides where samples with missing values should go (left or right
+child) at each split, based on the potential gain. When predicting, these
+samples are sent to the learnt child accordingly. If a feature had no missing
+values during training, then for prediction, samples with missing values for that
+feature are sent to the child with the most samples (as seen during fit).
+The present example shows how HGBT regressions deal with values missing
+completely at random (MCAR), i.e. the missingness does not depend on the
+observed data or the unobserved data. We can simulate such scenario by
+randomly replacing values from randomly selected features with
+nan
+values.
+import
+numpy
+as
+np
+from
+sklearn.metrics
+import
+root_mean_squared_error
+rng
+=
+np
+.
+random
+.
+RandomState
+(
+42
+)
+first_week
+=
+slice
+(
+0
+,
+336
+)
+# first week in the test set as 7 * 48 = 336
+missing_fraction_list
+=
+[
+0
+,
+0.01
+,
+0.03
+]
+def
+generate_missing_values
+(
+X
+,
+missing_fraction
+):
+total_cells
+=
+X
+.
+shape
+[
+0
+]
+*
+X
+.
+shape
+[
+1
+]
+num_missing_cells
+=
+int
+(
+total_cells
+*
+missing_fraction
+)
+row_indices
+=
+rng
+.
+choice
+(
+X
+.
+shape
+[
+0
+],
+num_missing_cells
+,
+replace
+=
+True
+)
+col_indices
+=
+rng
+.
+choice
+(
+X
+.
+shape
+[
+1
+],
+num_missing_cells
+,
+replace
+=
+True
+)
+X_missing
+=
+X
+.
+copy
+()
+X_missing
+.
+iloc
+[
+row_indices
+,
+col_indices
+]
+=
+np
+.
+nan
+return
+X_missing
+fig
+,
+ax
+=
+plt
+.
+subplots
+(
+figsize
+=
+(
+12
+,
+6
+))
+ax
+.
+plot
+(
+y_test
+.
+values
+[
+first_week
+],
+label
+=
+"Actual transfer"
+)
+for
+missing_fraction
+in
+missing_fraction_list
+:
+X_train_missing
+=
+generate_missing_values
+(
+X_train
+,
+missing_fraction
+)
+X_test_missing
+=
+generate_missing_values
+(
+X_test
+,
+missing_fraction
+)
+hgbt
+.
+fit
+(
+X_train_missing
+,
+y_train
+)
+y_pred
+=
+hgbt
+.
+predict
+(
+X_test_missing
+[
+first_week
+])
+rmse
+=
+root_mean_squared_error
+(
+y_test
+[
+first_week
+],
+y_pred
+)
+ax
+.
+plot
+(
+y_pred
+[
+first_week
+],
+label
+=
+f
+"missing_fraction=
+{
+missing_fraction
+}
+, RMSE=
+{
+rmse
+:
+.3f
+}
+"
+,
+alpha
+=
+0.5
+,
+)
+ax
+.
+set
+(
+title
+=
+"Daily energy transfer predictions on data with MCAR values"
+,
+xticks
+=
+[(
+i
++
+0.2
+)
+*
+48
+for
+i
+in
+range
+(
+7
+)],
+xticklabels
+=
+[
+"Mon"
+,
+"Tue"
+,
+"Wed"
+,
+"Thu"
+,
+"Fri"
+,
+"Sat"
+,
+"Sun"
+],
+xlabel
+=
+"Time of the week"
+,
+ylabel
+=
+"Normalized energy transfer"
+,
+)
+_
+=
+ax
+.
+legend
+(
+loc
+=
+"lower right"
+)
+As expected, the model degrades as the proportion of missing values increases.
+Support for quantile loss
+#
+The quantile loss in regression enables a view of the variability or
+uncertainty of the target variable. For instance, predicting the 5th and 95th
+percentiles can provide a 90% prediction interval, i.e. the range within which
+we expect a new observed value to fall with 90% probability.
+from
+sklearn.metrics
+import
+mean_pinball_loss
+quantiles
+=
+[
+0.95
+,
+0.05
+]
+predictions
+=
+[]
+fig
+,
+ax
+=
+plt
+.
+subplots
+(
+figsize
+=
+(
+12
+,
+6
+))
+ax
+.
+plot
+(
+y_test
+.
+values
+[
+first_week
+],
+label
+=
+"Actual transfer"
+)
+for
+quantile
+in
+quantiles
+:
+hgbt_quantile
+=
+HistGradientBoostingRegressor
+(
+loss
+=
+"quantile"
+,
+quantile
+=
+quantile
+,
+**
+common_params
+)
+hgbt_quantile
+.
+fit
+(
+X_train
+,
+y_train
+)
+y_pred
+=
+hgbt_quantile
+.
+predict
+(
+X_test
+[
+first_week
+])
+predictions
+.
+append
+(
+y_pred
+)
+score
+=
+mean_pinball_loss
+(
+y_test
+[
+first_week
+],
+y_pred
+)
+ax
+.
+plot
+(
+y_pred
+[
+first_week
+],
+label
+=
+f
+"quantile=
+{
+quantile
+}
+, pinball loss=
+{
+score
+:
+.2f
+}
+"
+,
+alpha
+=
+0.5
+,
+)
+ax
+.
+fill_between
+(
+range
+(
+len
+(
+predictions
+[
+0
+][
+first_week
+])),
+predictions
+[
+0
+][
+first_week
+],
+predictions
+[
+1
+][
+first_week
+],
+color
+=
+colors
+[
+0
+],
+alpha
+=
+0.1
+,
+)
+ax
+.
+set
+(
+title
+=
+"Daily energy transfer predictions with quantile loss"
+,
+xticks
+=
+[(
+i
++
+0.2
+)
+*
+48
+for
+i
+in
+range
+(
+7
+)],
+xticklabels
+=
+[
+"Mon"
+,
+"Tue"
+,
+"Wed"
+,
+"Thu"
+,
+"Fri"
+,
+"Sat"
+,
+"Sun"
+],
+xlabel
+=
+"Time of the week"
+,
+ylabel
+=
+"Normalized energy transfer"
+,
+)
+_
+=
+ax
+.
+legend
+(
+loc
+=
+"lower right"
+)
+We observe a tendence to over-estimate the energy transfer. This could be be
+quantitatively confirmed by computing empirical coverage numbers as done in
+the
+calibration of confidence intervals section
+.
+Keep in mind that those predicted percentiles are just estimations from a
+model. One can still improve the quality of such estimations by:
+collecting more data-points;
+better tuning of the model hyperparameters, see
+Prediction Intervals for Gradient Boosting Regression
+;
+engineering more predictive features from the same data, see
+Time-related feature engineering
+.
+Monotonic constraints
+#
+Given specific domain knowledge that requires the relationship between a
+feature and the target to be monotonically increasing or decreasing, one can
+enforce such behaviour in the predictions of a HGBT model using monotonic
+constraints. This makes the model more interpretable and can reduce its
+variance (and potentially mitigate overfitting) at the risk of increasing
+bias. Monotonic constraints can also be used to enforce specific regulatory
+requirements, ensure compliance and align with ethical considerations.
+In the present example, the policy of transferring energy from Victoria to New
+South Wales is meant to alleviate price fluctuations, meaning that the model
+predictions have to enforce such goal, i.e. transfer should increase with
+price and demand in New South Wales, but also decrease with price and demand
+in Victoria, in order to benefit both populations.
+If the training data has feature names, it’s possible to specify the monotonic
+constraints by passing a dictionary with the convention:
+1: monotonic increase
+0: no constraint
+-1: monotonic decrease
+Alternatively, one can pass an array-like object encoding the above convention by
+position.
+from
+sklearn.inspection
+import
+PartialDependenceDisplay
+monotonic_cst
+=
+{
+"date"
+:
+0
+,
+"day"
+:
+0
+,
+"period"
+:
+0
+,
+"nswdemand"
+:
+1
+,
+"nswprice"
+:
+1
+,
+"vicdemand"
+:
+-
+1
+,
+"vicprice"
+:
+-
+1
+,
+}
+hgbt_no_cst
+=
+HistGradientBoostingRegressor
+(
+categorical_features
+=
+None
+,
+random_state
+=
+42
+)
+.
+fit
+(
+X
+,
+y
+)
+hgbt_cst
+=
+HistGradientBoostingRegressor
+(
+monotonic_cst
+=
+monotonic_cst
+,
+categorical_features
+=
+None
+,
+random_state
+=
+42
+)
+.
+fit
+(
+X
+,
+y
+)
+fig
+,
+ax
+=
+plt
+.
+subplots
+(
+nrows
+=
+2
+,
+figsize
+=
+(
+15
+,
+10
+))
+disp
+=
+PartialDependenceDisplay
+.
+from_estimator
+(
+hgbt_no_cst
+,
+X
+,
+features
+=
+[
+"nswdemand"
+,
+"nswprice"
+],
+line_kw
+=
+{
+"linewidth"
+:
+2
+,
+"label"
+:
+"unconstrained"
+,
+"color"
+:
+"tab:blue"
+},
+ax
+=
+ax
+[
+0
+],
+)
+PartialDependenceDisplay
+.
+from_estimator
+(
+hgbt_cst
+,
+X
+,
+features
+=
+[
+"nswdemand"
+,
+"nswprice"
+],
+line_kw
+=
+{
+"linewidth"
+:
+2
+,
+"label"
+:
+"constrained"
+,
+"color"
+:
+"tab:orange"
+},
+ax
+=
+disp
+.
+axes_
+,
+)
+disp
+=
+PartialDependenceDisplay
+.
+from_estimator
+(
+hgbt_no_cst
+,
+X
+,
+features
+=
+[
+"vicdemand"
+,
+"vicprice"
+],
+line_kw
+=
+{
+"linewidth"
+:
+2
+,
+"label"
+:
+"unconstrained"
+,
+"color"
+:
+"tab:blue"
+},
+ax
+=
+ax
+[
+1
+],
+)
+PartialDependenceDisplay
+.
+from_estimator
+(
+hgbt_cst
+,
+X
+,
+features
+=
+[
+"vicdemand"
+,
+"vicprice"
+],
+line_kw
+=
+{
+"linewidth"
+:
+2
+,
+"label"
+:
+"constrained"
+,
+"color"
+:
+"tab:orange"
+},
+ax
+=
+disp
+.
+axes_
+,
+)
+_
+=
+plt
+.
+legend
+()
+Observe that
+nswdemand
+and
+vicdemand
+seem already monotonic without constraint.
+This is a good example to show that the model with monotonicity constraints is
+“overconstraining”.
+Additionally, we can verify that the predictive quality of the model is not
+significantly degraded by introducing the monotonic constraints. For such
+purpose we use
+TimeSeriesSplit
+cross-validation to estimate the variance of the test score. By doing so we
+guarantee that the training data does not succeed the testing data, which is
+crucial when dealing with data that have a temporal relationship.
+from
+sklearn.metrics
+import
+make_scorer
+,
+root_mean_squared_error
+from
+sklearn.model_selection
+import
+TimeSeriesSplit
+,
+cross_validate
+ts_cv
+=
+TimeSeriesSplit
+(
+n_splits
+=
+5
+,
+gap
+=
+48
+,
+test_size
+=
+336
+)
+# a week has 336 samples
+scorer
+=
+make_scorer
+(
+root_mean_squared_error
+)
+cv_results
+=
+cross_validate
+(
+hgbt_no_cst
+,
+X
+,
+y
+,
+cv
+=
+ts_cv
+,
+scoring
+=
+scorer
+)
+rmse
+=
+cv_results
+[
+"test_score"
+]
+print
+(
+f
+"RMSE without constraints =
+{
+rmse
+.
+mean
+()
+:
+.3f
+}
++/-
+{
+rmse
+.
+std
+()
+:
+.3f
+}
+"
+)
+cv_results
+=
+cross_validate
+(
+hgbt_cst
+,
+X
+,
+y
+,
+cv
+=
+ts_cv
+,
+scoring
+=
+scorer
+)
+rmse
+=
+cv_results
+[
+"test_score"
+]
+print
+(
+f
+"RMSE with constraints    =
+{
+rmse
+.
+mean
+()
+:
+.3f
+}
++/-
+{
+rmse
+.
+std
+()
+:
+.3f
+}
+"
+)
+RMSE without constraints = 0.103 +/- 0.030
+RMSE with constraints    = 0.107 +/- 0.034
+That being said, notice the comparison is between two different models that
+may be optimized by a different combination of hyperparameters. That is the
+reason why we do no use the
+common_params
+in this section as done before.
+Total running time of the script:
+(0 minutes 19.658 seconds)
+Download
+Jupyter
+notebook:
+plot_hgbt_regression.ipynb
+Download
+Python
+source
+code:
+plot_hgbt_regression.py
+Download
+zipped:
+plot_hgbt_regression.zip
+Related examples
+Lagged features for time series forecasting
+Lagged features for time series forecasting
+Comparing Random Forests and Histogram Gradient Boosting models
+Comparing Random Forests and Histogram Gradient Boosting models
+Monotonic Constraints
+Monotonic Constraints
+Time-related feature engineering
+Time-related feature engineering
+Gallery generated by Sphinx-Gallery
+previous
+Feature transformations with ensembles of trees
+next
+Gradient Boosting Out-of-Bag estimates
+On this page
+Preparing the data
+Effect of number of trees and early stopping
+Support for missing values
+Support for quantile loss
+Monotonic constraints
+This Page
+Show Source
+Download source code
+Download Jupyter notebook
+Download zipped
+© Copyright 2007 - 2025, scikit-learn developers (BSD License).

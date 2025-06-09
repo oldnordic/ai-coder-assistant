@@ -1,0 +1,110 @@
+Plotting — pandas 2.3.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Input/output
+General functions
+Series
+DataFrame
+pandas arrays, scalars, and data types
+Index objects
+Date offsets
+Window
+GroupBy
+Resampling
+Style
+Plotting
+pandas.plotting.andrews_curves
+pandas.plotting.autocorrelation_plot
+pandas.plotting.bootstrap_plot
+pandas.plotting.boxplot
+pandas.plotting.deregister_matplotlib_converters
+pandas.plotting.lag_plot
+pandas.plotting.parallel_coordinates
+pandas.plotting.plot_params
+pandas.plotting.radviz
+pandas.plotting.register_matplotlib_converters
+pandas.plotting.scatter_matrix
+pandas.plotting.table
+Options and settings
+Extensions
+Testing
+Missing values
+API reference
+Plotting
+Plotting
+#
+The following functions are contained in the
+pandas.plotting
+module.
+andrews_curves
+(frame,Â class_column[,Â ax,Â ...])
+Generate a matplotlib plot for visualizing clusters of multivariate data.
+autocorrelation_plot
+(series[,Â ax])
+Autocorrelation plot for time series.
+bootstrap_plot
+(series[,Â fig,Â size,Â samples])
+Bootstrap plot on mean, median and mid-range statistics.
+boxplot
+(data[,Â column,Â by,Â ax,Â fontsize,Â ...])
+Make a box plot from DataFrame columns.
+deregister_matplotlib_converters
+()
+Remove pandas formatters and converters.
+lag_plot
+(series[,Â lag,Â ax])
+Lag plot for time series.
+parallel_coordinates
+(frame,Â class_column[,Â ...])
+Parallel coordinates plotting.
+plot_params
+Stores pandas plotting options.
+radviz
+(frame,Â class_column[,Â ax,Â color,Â ...])
+Plot a multidimensional dataset in 2D.
+register_matplotlib_converters
+()
+Register pandas formatters and converters with matplotlib.
+scatter_matrix
+(frame[,Â alpha,Â figsize,Â ax,Â ...])
+Draw a matrix of scatter plots.
+table
+(ax,Â data,Â **kwargs)
+Helper function to convert DataFrame and Series to matplotlib.table.
+previous
+pandas.io.formats.style.Styler.use
+next
+pandas.plotting.andrews_curves
+Show Source
+&copy 2025, pandas via
+NumFOCUS, Inc.
+Hosted by
+OVHcloud
+.
+Created using
+Sphinx
+8.1.3.
+Built with the
+PyData Sphinx Theme
+0.14.4.

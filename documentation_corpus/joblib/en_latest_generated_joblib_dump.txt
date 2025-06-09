@@ -1,0 +1,100 @@
+joblib.dump — joblib 1.6.dev0 documentation
+joblib
+.dump
+¶
+joblib.
+dump
+(
+value
+,
+filename
+,
+compress
+=
+0
+,
+protocol
+=
+None
+)
+¶
+Persist an arbitrary Python object into one file.
+Read more in the
+User Guide
+.
+Parameters
+:
+value: any Python object
+The object to store to disk.
+filename: str, pathlib.Path, or file object.
+The file object or path of the file in which it is to be stored.
+The compression method corresponding to one of the supported filename
+extensions (‘.z’, ‘.gz’, ‘.bz2’, ‘.xz’ or ‘.lzma’) will be used
+automatically.
+compress: int from 0 to 9 or bool or 2-tuple, optional
+Optional compression level for the data. 0 or False is no compression.
+Higher value means more compression, but also slower read and
+write times. Using a value of 3 is often a good compromise.
+See the notes for more details.
+If compress is True, the compression level used is 3.
+If compress is a 2-tuple, the first element must correspond to a string
+between supported compressors (e.g ‘zlib’, ‘gzip’, ‘bz2’, ‘lzma’
+‘xz’), the second element must be an integer from 0 to 9, corresponding
+to the compression level.
+protocol: int, optional
+Pickle protocol, see pickle.dump documentation for more details.
+Returns
+:
+filenames: list of strings
+The list of file names in which the data is stored. If
+compress is false, each array is stored in a different file.
+See also
+joblib.load
+corresponding loader
+Notes
+Memmapping on load cannot be used for compressed files. Thus
+using compression can significantly slow down loading. In
+addition, compressed files take up extra memory during
+dump and load.
+Examples using
+joblib.dump
+¶
+NumPy memmap in joblib.Parallel
+NumPy memmap in joblib.Parallel
+Improving I/O using compressors
+Improving I/O using compressors
+Navigation
+User manual
+Why joblib: project goals
+Installing joblib
+On demand recomputing: the
+Memory
+class
+Embarrassingly parallel for loops
+Persistence
+Parallel backend customization API
+Examples
+Development
+Module reference
+joblib.Memory
+joblib.Parallel
+joblib.parallel_config
+joblib
+.cpu_count
+joblib
+.dump
+dump()
+Examples using
+joblib.dump
+joblib
+.load
+joblib
+.hash
+joblib
+.register_compressor
+Deprecated functionalities
+joblib.parallel_backend
+©2008-2021, Joblib developers.
+      
+      |
+Page source

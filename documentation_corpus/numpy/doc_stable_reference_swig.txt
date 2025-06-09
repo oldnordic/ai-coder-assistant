@@ -1,0 +1,83 @@
+NumPy and SWIG — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+NumPy’s module structure
+Array objects
+Universal functions (
+ufunc
+)
+Routines and objects by topic
+Typing (
+numpy.typing
+)
+Packaging (
+numpy.distutils
+)
+NumPy C-API
+Array API standard compatibility
+CPU/SIMD optimizations
+Thread Safety
+Global Configuration Options
+NumPy security
+Status of
+numpy.distutils
+and migration advice
+numpy.distutils
+user guide
+NumPy and SWIG
+numpy.i: a SWIG interface file for NumPy
+Testing the numpy.i typemaps
+NumPy reference
+NumPy and SWIG
+NumPy and SWIG
+#
+numpy.i: a SWIG interface file for NumPy
+Introduction
+Using numpy.i
+Available typemaps
+NumPy array scalars and SWIG
+Helper functions
+Beyond the provided typemaps
+Summary
+Testing the numpy.i typemaps
+Introduction
+Testing organization
+Testing header files
+Testing source files
+Testing SWIG interface files
+Testing Python scripts
+previous
+numpy.distutils
+user guide
+next
+numpy.i: a SWIG interface file for NumPy
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.

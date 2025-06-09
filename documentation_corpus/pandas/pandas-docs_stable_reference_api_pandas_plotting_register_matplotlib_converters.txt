@@ -1,0 +1,184 @@
+pandas.plotting.register_matplotlib_converters — pandas 2.3.0 documentation
+Skip to main content
+Back to top
+Ctrl
++
+K
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Site Navigation
+Getting started
+User Guide
+API reference
+Development
+Release notes
+GitHub
+Twitter
+Mastodon
+Input/output
+General functions
+Series
+DataFrame
+pandas arrays, scalars, and data types
+Index objects
+Date offsets
+Window
+GroupBy
+Resampling
+Style
+Plotting
+pandas.plotting.andrews_curves
+pandas.plotting.autocorrelation_plot
+pandas.plotting.bootstrap_plot
+pandas.plotting.boxplot
+pandas.plotting.deregister_matplotlib_converters
+pandas.plotting.lag_plot
+pandas.plotting.parallel_coordinates
+pandas.plotting.plot_params
+pandas.plotting.radviz
+pandas.plotting.register_matplotlib_converters
+pandas.plotting.scatter_matrix
+pandas.plotting.table
+Options and settings
+Extensions
+Testing
+Missing values
+API reference
+Plotting
+pandas.plott...
+pandas.plotting.register_matplotlib_converters
+#
+pandas.plotting.
+register_matplotlib_converters
+(
+)
+[source]
+#
+Register pandas formatters and converters with matplotlib.
+This function modifies the global
+matplotlib.units.registry
+dictionary. pandas adds custom converters for
+pd.Timestamp
+pd.Period
+np.datetime64
+datetime.datetime
+datetime.date
+datetime.time
+See also
+deregister_matplotlib_converters
+Remove pandas formatters and converters.
+Examples
+The following line is done automatically by pandas so
+the plot can be rendered:
+>>>
+pd
+.
+plotting
+.
+register_matplotlib_converters
+()
+>>>
+df
+=
+pd
+.
+DataFrame
+({
+'ts'
+:
+pd
+.
+period_range
+(
+'2020'
+,
+periods
+=
+2
+,
+freq
+=
+'M'
+),
+...
+'y'
+:
+[
+1
+,
+2
+]
+...
+})
+>>>
+plot
+=
+df
+.
+plot
+.
+line
+(
+x
+=
+'ts'
+,
+y
+=
+'y'
+)
+Unsetting the register manually an error will be raised:
+>>>
+pd
+.
+set_option
+(
+"plotting.matplotlib.register_converters"
+,
+...
+False
+)
+>>>
+df
+.
+plot
+.
+line
+(
+x
+=
+'ts'
+,
+y
+=
+'y'
+)
+Traceback (most recent call last):
+TypeError
+:
+float() argument must be a string or a real number, not 'Period'
+previous
+pandas.plotting.radviz
+next
+pandas.plotting.scatter_matrix
+On this page
+register_matplotlib_converters()
+Show Source
+&copy 2025, pandas via
+NumFOCUS, Inc.
+Hosted by
+OVHcloud
+.
+Created using
+Sphinx
+8.1.3.
+Built with the
+PyData Sphinx Theme
+0.14.4.

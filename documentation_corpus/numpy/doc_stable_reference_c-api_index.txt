@@ -1,0 +1,180 @@
+NumPy C-API — NumPy v2.2 Manual
+Skip to main content
+Back to top
+Ctrl
++
+K
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+More
+NEPs
+Choose version
+GitHub
+User Guide
+API reference
+Building from source
+Development
+Release notes
+Learn
+NEPs
+Choose version
+GitHub
+Section Navigation
+NumPy’s module structure
+Array objects
+Universal functions (
+ufunc
+)
+Routines and objects by topic
+Typing (
+numpy.typing
+)
+Packaging (
+numpy.distutils
+)
+NumPy C-API
+Python types and C-structures
+System configuration
+Data type API
+Array API
+Array iterator API
+ufunc API
+Generalized universal function API
+NpyString API
+NumPy core math library
+Datetime API
+C API deprecations
+Memory management in NumPy
+Array API standard compatibility
+CPU/SIMD optimizations
+Thread Safety
+Global Configuration Options
+NumPy security
+Status of
+numpy.distutils
+and migration advice
+numpy.distutils
+user guide
+NumPy and SWIG
+NumPy reference
+NumPy C-API
+NumPy C-API
+#
+Beware of the man who won’t be bothered with details.
+—
+William Feather, Sr.
+The truth is out there.
+—
+Chris Carter, The X Files
+NumPy provides a C-API to enable users to extend the system and get
+access to the array object for use in other routines. The best way to
+truly understand the C-API is to read the source code. If you are
+unfamiliar with (C) source code, however, this can be a daunting
+experience at first. Be assured that the task becomes easier with
+practice, and you may be surprised at how simple the C-code can be to
+understand. Even if you don’t think you can write C-code from scratch,
+it is much easier to understand and modify already-written source code
+than create it
+de novo
+.
+Python extensions are especially straightforward to understand because
+they all have a very similar structure. Admittedly, NumPy is not a
+trivial extension to Python, and may take a little more snooping to
+grasp. This is especially true because of the code-generation
+techniques, which simplify maintenance of very similar code, but can
+make the code a little less readable to beginners. Still, with a
+little persistence, the code can be opened to your understanding. It
+is my hope, that this guide to the C-API can assist in the process of
+becoming familiar with the compiled-level work that can be done with
+NumPy in order to squeeze that last bit of necessary speed out of your
+code.
+Python types and C-structures
+New Python types defined
+Other C-structures
+NumPy C-API and C complex
+System configuration
+Data type sizes
+Platform information
+Compiler directives
+Data type API
+Enumerated types
+Defines
+C-type names
+Printf formatting
+Array API
+Array structure and data access
+Creating arrays
+Dealing with types
+Array flags
+ArrayMethod API
+API for calling array methods
+Functions
+Auxiliary data with object semantics
+Array iterators
+Broadcasting (multi-iterators)
+Neighborhood iterator
+Array scalars
+Data-type descriptors
+Data Type Promotion and Inspection
+Custom Data Types
+Conversion utilities
+Including and importing the C API
+Array iterator API
+Array iterator
+Iteration example
+Multi-iteration example
+Multi index tracking example
+Iterator data types
+Construction and destruction
+Functions for iteration
+Converting from previous NumPy iterators
+ufunc API
+Constants
+Macros
+Types
+Functions
+Generic functions
+Importing the API
+Generalized universal function API
+Definitions
+Details of signature
+C-API for implementing elementary functions
+Customizing core dimension size processing
+NpyString API
+Examples
+Types
+Functions
+NumPy core math library
+Floating point classification
+Useful math constants
+Low-level floating point manipulation
+Support for complex numbers
+Linking against the core math library in an extension
+Half-precision functions
+Datetime API
+Data types
+Conversion functions
+C API deprecations
+Background
+Deprecation mechanism NPY_NO_DEPRECATED_API
+Memory management in NumPy
+Historical overview
+Configurable memory routines in NumPy (NEP 49)
+What happens when deallocating if there is no policy set
+Example of memory tracing with
+np.lib.tracemalloc_domain
+previous
+numpy.kaiser
+next
+Python types and C-structures
+© Copyright 2008-2024, NumPy Developers.
+Created using
+Sphinx
+7.2.6.
+Built with the
+PyData Sphinx Theme
+0.16.0.
