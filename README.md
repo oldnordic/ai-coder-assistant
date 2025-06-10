@@ -84,6 +84,7 @@ The AI Coder Assistant is a desktop application built with PyQt5 that provides a
 
 Contributions are welcome! Please feel free to open issues or submit pull requests.
 
+## Testing a change
 ## License
 
 This project is open-sourced. *(A license like MIT or Apache 2.0 is recommended.)*
