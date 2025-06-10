@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
 from PyQt5.QtCore import (QObject, QThread, pyqtSignal, Qt, QCoreApplication, QTimer, QSettings)
 from PyQt5.QtGui import QTextCursor, QFont, QTextCharFormat
 
+# Import all our local modules
 import worker_threads as wt
 import data_tab_widgets
 import ai_tab_widgets
@@ -13,7 +14,7 @@ import preprocess_docs
 import train_language_model
 import ai_coder_scanner
 import ollama_client
-import ai_tools # NEW: Import our new tools file
+import ai_tools
 
 class SuggestionDialog(QDialog):
     def __init__(self, description, original_code, proposed_code, parent=None):
@@ -39,9 +40,9 @@ class SuggestionDialog(QDialog):
         self.diff_text.setText("".join(diff))
         self.highlight_diff()
 
-        ollama_group = QGroupBox("Enhanced Analysis with Ollama (MCP)")
+        ollama_group = QGroupBox("Enhanced Analysis with AI Agent")
         ollama_layout = QVBoxLayout(ollama_group)
-        self.ollama_checkbox = QCheckBox("Get enhanced analysis from Ollama (requires Ollama to be running)")
+        self.ollama_checkbox = QCheckBox("Activate AI Agent to analyze and refactor (requires Ollama)")
         self.ollama_checkbox.stateChanged.connect(self.on_ollama_toggled)
         
         self.ollama_response_text = QTextEdit()
@@ -67,45 +68,58 @@ class SuggestionDialog(QDialog):
             self.ollama_response_text.setVisible(False)
 
     def run_agentic_loop(self):
-        # This is where the new multi-step logic happens
+        self.ollama_checkbox.setText("Agent is thinking...")
         QApplication.processEvents()
         
-        # 1. Construct the initial prompt with tool instructions
-        initial_prompt = self.construct_initial_prompt()
-        self.conversation_history.append({"role": "user", "content": initial_prompt})
-        self.ollama_response_text.setText("Asking AI for initial analysis...")
+        prompt = self.construct_initial_prompt()
+        self.ollama_response_text.setText(f"User Prompt:\n{prompt}\n\n---")
 
-        # Get response from Ollama
-        response_text = ollama_client.get_ollama_response(initial_prompt, self.get_selected_model())
-        self.conversation_history.append({"role": "assistant", "content": response_text})
-        self.ollama_response_text.append(f"\n\nAI Response:\n{response_text}")
-        
-        # 2. Check if the AI wants to use a tool
-        tool_name, parameters = ollama_client.parse_tool_call(response_text)
-
-        if tool_name and tool_name in ai_tools.AVAILABLE_TOOLS:
-            self.ollama_response_text.append(f"\n\nAI wants to use tool: '{tool_name}' with parameters: {parameters}")
+        # This loop allows the AI to use tools multiple times if needed
+        for _ in range(5): # Limit to 5 tool calls to prevent infinite loops
+            response_text = ollama_client.get_ollama_response(prompt, self.get_selected_model())
+            self.ollama_response_text.append(f"\nAI Response:\n{response_text}\n\n---")
             QApplication.processEvents()
 
-            # 3. Execute the tool
-            tool_function = ai_tools.AVAILABLE_TOOLS[tool_name]
-            # Assuming 'filepath' is a parameter and project_root is accessible
-            project_root = os.path.dirname(self.main_app_instance.scan_dir_entry.text())
-            tool_result = tool_function(parameters['filepath'], project_root)
-            
-            self.ollama_response_text.append(f"\n\nTool Result:\n{tool_result[:200]}...") # Show partial result
-            QApplication.processEvents()
+            tool_name, parameters = ollama_client.parse_tool_call(response_text)
 
-            # 4. Send the result back to the AI for a final answer
-            follow_up_prompt = (
-                f"{initial_prompt}\n\n{response_text}\n\n"
-                f"I have executed the '{tool_name}' tool for you. Here is the result:\n"
-                f"<tool_result>\n{tool_result}\n</tool_result>\n\n"
-                "Based on this new information, please provide your final analysis and suggested code."
-            )
-            self.ollama_response_text.append("\n\nAsking AI for final analysis based on tool result...")
-            final_response = ollama_client.get_ollama_response(follow_up_prompt, self.get_selected_model())
-            self.ollama_response_text.append(f"\n\nFinal AI Analysis:\n{final_response}")
+            if tool_name and tool_name in ai_tools.AVAILABLE_TOOLS:
+                self.ollama_response_text.append(f"\nAI requested tool: '{tool_name}' with parameters: {parameters}")
+                QApplication.processEvents()
+
+                tool_function = ai_tools.AVAILABLE_TOOLS[tool_name]
+                tool_result = ""
+                
+                # Get the root directory of the scanned project
+                project_root = os.path.dirname(self.main_app_instance.scan_dir_entry.text())
+
+                # Handle the write_file tool with a confirmation dialog
+                if tool_name == "write_file":
+                    reply = QMessageBox.question(self, 'Confirm File Write',
+                                                 f"The AI Agent wants to overwrite the file:\n\n{parameters.get('filepath')}\n\nDo you want to allow this action?",
+                                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                    if reply == QMessageBox.Yes:
+                        self.log_message(f"User approved AI write to {parameters.get('filepath')}")
+                        tool_result = tool_function(parameters.get('filepath'), parameters.get('content'), project_root)
+                    else:
+                        self.log_message(f"User denied AI write to {parameters.get('filepath')}")
+                        tool_result = "User denied permission to write to file."
+                else: # For other tools like read_file
+                    tool_result = tool_function(parameters.get('filepath'), project_root)
+
+                self.ollama_response_text.append(f"\nTool Result:\n{tool_result}\n\n---")
+                QApplication.processEvents()
+                
+                # Prepare the next prompt for the AI, including the tool result
+                prompt = (
+                    f"{prompt}\n\n{response_text}\n\n"
+                    f"I have executed the '{tool_name}' tool for you. Here is the result:\n"
+                    f"<tool_result>\n{tool_result}\n</tool_result>\n\n"
+                    "Based on this new information, either call another tool or provide your final analysis."
+                )
+            else:
+                # If no tool is called, the AI has given its final answer
+                self.ollama_response_text.append("\nAI has finished its analysis.")
+                break # Exit the loop
         
         self.ollama_checkbox.setText("Enhanced analysis complete.")
 
@@ -114,26 +128,30 @@ class SuggestionDialog(QDialog):
 
     def construct_initial_prompt(self):
         return (
-            "You are an expert Python programming assistant with access to tools.\n"
-            "A static analysis tool flagged the following piece of code as statistically unusual.\n"
-            "Your task is to analyze the code. If you need more context, you can call the `read_file` tool to read another file from the project.\n"
-            "To call a tool, respond ONLY with an XML block like this:\n"
-            "<tool_call><tool_name>read_file</tool_name><parameters><filepath>path/to/file.py</filepath></parameters></tool_call>\n"
-            "If you have enough information, provide your final analysis and suggested code improvement directly.\n\n"
+            "You are an expert Python programming assistant with access to tools. Your goal is to analyze and refactor the 'Original Code' provided.\n\n"
+            "You have access to the following tools:\n"
+            "1. `read_file(filepath)`: Reads the content of a file to get more context.\n"
+            "2. `write_file(filepath, content)`: Writes new content to a file, overwriting it.\n\n"
+            "To call a tool, you must respond ONLY with an XML block in the following format:\n"
+            "<tool_call><tool_name>tool_name_here</tool_name><parameters><param_name>value</param_name></parameters></tool_call>\n\n"
+            "**Plan:**\n"
+            "1. First, analyze the 'Original Code'.\n"
+            "2. If you need more context (e.g., to see how a function is used elsewhere), call the `read_file` tool.\n"
+            "3. Once you have enough information, generate the improved code.\n"
+            "4. Finally, call the `write_file` tool to save your improved code to the correct file path.\n\n"
+            "If you believe no changes are needed, simply state that in your final response.\n\n"
             "--- Original Code ---\n"
             f"{self.original_code}\n"
             "--- End of Code ---"
         )
 
     def highlight_diff(self):
-        # ... (unchanged) ...
         cursor=self.diff_text.textCursor();fmt_add,fmt_rem=QTextCharFormat(),QTextCharFormat();fmt_add.setBackground(Qt.darkGreen);fmt_rem.setBackground(Qt.darkRed);cursor.movePosition(QTextCursor.Start)
         while not cursor.atEnd():
             cursor.movePosition(QTextCursor.StartOfLine);cursor.movePosition(QTextCursor.EndOfLine,QTextCursor.KeepAnchor);line=cursor.selectedText()
             if line.startswith('+') and not line.startswith('+++'): cursor.setCharFormat(fmt_add)
             elif line.startswith('-') and not line.startswith('---'): cursor.setCharFormat(fmt_rem)
             cursor.movePosition(QTextCursor.NextBlock)
-
     def on_apply(self): self.done(QDialog.Accepted)
     def on_ignore(self): self.done(QDialog.Rejected)
 
@@ -225,6 +243,7 @@ class AIFoundryApp(QMainWindow):
                 temp_lines=original_lines[:];temp_lines[line_num]=proposal["proposed_code"]
                 try:ast.parse("".join(temp_lines))
                 except (SyntaxError,IndentationError) as e:self.log_message(f"Skipping proposal for {os.path.basename(filepath)} due to syntax error: {e}");continue
+                # Pass the filepath to the suggestion dialog
                 dialog=SuggestionDialog(f"Suggestion for {os.path.basename(filepath)}",proposal['original_code'],proposal['proposed_code'],self)
                 if dialog.exec_()==QDialog.Accepted:
                     try:
