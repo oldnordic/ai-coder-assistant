@@ -35,3 +35,8 @@ python_stdlib_docs/
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+# PyInstaller files
+/build/
+/dist/
+*.spec

@@ -2,10 +2,6 @@ import traceback
 from PyQt5.QtCore import QObject, pyqtSignal
 
 class Worker(QObject):
-    """
-    A worker object that runs a given function in a separate thread.
-    Emits signals for progress, logging, errors, and results.
-    """
     finished = pyqtSignal()
     error_signal = pyqtSignal(str, str)
     progress = pyqtSignal(int, int, str)
@@ -19,21 +15,14 @@ class Worker(QObject):
         self.args = args
 
     def run(self):
-        """
-        Executes the function and handles signals.
-        """
         try:
-            # Pass the callback functions to the target function
             result = self.func(
                 *self.args,
                 log_message_callback=self.log_message.emit,
                 progress_callback=self.progress.emit
             )
-            
-            # If the task was scanning, emit the results
             if self.task_type == 'scan_code':
                 self.scan_results_signal.emit(result)
-
         except Exception as e:
             tb_str = traceback.format_exc()
             error_message = f"An error occurred in the worker thread for task '{self.task_type}':\n{tb_str}"
