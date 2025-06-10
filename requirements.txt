@@ -6,3 +6,4 @@ tqdm
 torch
 python-dotenv
 numpy
+flake8
