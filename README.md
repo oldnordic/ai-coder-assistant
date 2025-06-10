@@ -1,59 +1,88 @@
 # AI Coder Assistant
 
-## The Philosophy: An Assistant, Not an Oracle
-
-In 2025, AI-generated content is more persuasive than ever, yet it is prone to "hallucinations"—confidently stating things that simply aren't true. A generative AI might fabricate a scientific citation that looks perfect in format but links to a non-existent paper. It masters the *appearance* of correctness without understanding the underlying substance.
-
-This project operates on a similar principle, applied to coding.
-
-Just as an AI can hallucinate a citation, a code-assisting AI can "hallucinate" an error. The model you train in this application learns the statistical patterns of vast amounts of code from sources like the Python Standard Library and GitHub. When it scans your code, it doesn't *understand* the logic or intent. Instead, it identifies lines of code that are **statistically improbable** based on the patterns it has learned.
-
-An unconventional but perfectly valid line of code might be flagged as an "error" simply because it's rare. This tool is therefore not an auto-fixer; it is an **assistant**. Its purpose is to bring these statistical anomalies to your attention, presenting them with a justification in an interactive dialog. **You, the developer, are the final authority.** You are the one who verifies the suggestion and decides whether it's a genuine mistake or simply a unique solution.
-
-## How It Works
-
-1.  **Data Acquisition:** The assistant builds its knowledge base by acquiring source code and documentation from the web and GitHub. You can provide a search query to download real-world Python code, or add your own local folders of text files to the training corpus.
-
-2.  **Model Training:** It trains a Transformer-based language model on this corpus. The model's sole objective is to get very good at predicting the next "word" (or token) in a sequence, learning the common grammar and style of Python code.
-
-3.  **Code Analysis:** When scanning your project, the model calculates a "probability score" (or "loss") for each line of code. Lines that are highly improbable—meaning they deviate significantly from the patterns the model has learned—are flagged as potential issues.
-
-4.  **Justified Suggestions:** The assistant presents these flagged lines to you in a `diff` view, explaining *why* the line was flagged (i.e., its improbability score). It is then your decision to **Apply** or **Ignore** the suggestion, ensuring a human is always in the loop.
+The AI Coder Assistant is a desktop application built with PyQt5 that provides a suite of tools to assist software developers. Its primary functions include acquiring and processing technical documentation and code, training a custom language model, and then using both the local model and powerful open-source LLMs to analyze Python code for potential improvements and generate justified code suggestions.
 
 ## Features
 
-* **Web & GitHub Data Acquisition**: Crawls specified online documentation and uses the GitHub API to download real-world Python code, building a rich local corpus for training.
-* **Custom Corpus Integration**: Allows you to add your own local folders of `.txt` or `.py` files to the training data.
-* **AI Language Model Training**: Trains a transformer-based language model on the preprocessed documentation and code.
-* **Interactive Code Suggestions**: Presents potential statistical anomalies with detailed justifications and proposed changes through an interactive dialog, empowering the developer to **Apply** or **Ignore** the suggestion.
-* **Learning Data Collection**: Records your decisions (accepted/ignored proposals) to a log file (`learning_data.jsonl`). This data can be used in the future to manually train even smarter models.
+* **Web Documentation Acquisition**: Crawls specified online documentation sources (e.g., Python Standard Library, Requests library) to build a local corpus.
+* **GitHub Code Acquisition**: Expands the training corpus by downloading real-world Python code from GitHub via its API based on a user-defined search query.
+* **Custom Local Corpus**: Allows users to add their own local folders of text and Python files to the training data.
+* **Documentation Preprocessing**: Cleans, chunks, and tokenizes all acquired documentation and code, and builds a vocabulary for language model training.
+* **AI Language Model Training**: Trains a transformer-based language model on the preprocessed data.
+* **Hybrid AI Analysis**:
+    * **Local AI Scanner**: Scans a specified directory of Python files to identify potential code issues or statistically unusual lines based on the locally-trained model.
+    * **Ollama Integration**: Offers optional, on-demand enhanced analysis for any code suggestion. It uses a locally running Ollama model (e.g., Llama 3, Code Llama) to provide in-depth explanations and refactoring ideas.
+* **Interactive Code Suggestions**: Presents detected code issues with detailed justifications and proposed code changes through an interactive dialog, allowing users to apply or ignore suggestions.
+* **Configuration & Persistence**: Securely saves the GitHub API token between sessions and allows for performance tuning by limiting the number of CPU cores used during scanning.
 
-## Project Structure
+## Installation
 
-The project is organized into several key areas:
+1.  **Clone the repository:**
+    ```bash
+    git clone <your-repository-url>
+    cd ai-coder-assistant
+    ```
 
-* **Core Application:** `main.py`, `main_window.py`, `config.py`, `worker_threads.py`
-* **Data Pipeline:** `acquire_docs.py`, `acquire_github.py`, `preprocess_docs.py`, `train_language_model.py`
-* **UI Modules:** `data_tab_widgets.py`, `ai_tab_widgets.py`
-* **AI Scanning Logic:** `ai_coder_scanner.py`
-* **Supporting Files:** `README.md`, `application.log`, `.gitignore`
+2.  **Create a virtual environment (recommended):**
+    ```bash
+    python -m venv .venv
+    # On Windows: .venv\Scripts\activate
+    # On macOS/Linux:
+    source .venv/bin/activate
+    ```
+
+3.  **Install dependencies:**
+    Install all required dependencies using the provided `requirements.txt` file.
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 ## Usage
 
 1.  **Run the application:**
+    Ensure your virtual environment is activated, then run the `main.py` script from the project root:
     ```bash
     python main.py
     ```
 
-2.  **Data & Training Tab:**
-    * Use the "Acquire" buttons to download documentation and GitHub code. You will need a GitHub Personal Access Token for this step.
-    * Optionally, add a local folder of your own text/code files.
-    * Run "Pre-process All Docs for AI" to prepare the data.
-    * Run "Train AI Language Model" to train your model on the prepared data.
+2.  **Application Tabs:**
 
-3.  **Code Analysis Tab:**
-    * Select a directory containing Python files you want to analyze.
-    * Click "Scan Python Files". The AI model will scan the files and present proposals for any statistically unusual lines of code for your review.
+    * **Data & Training Tab:**
+        * **Acquire Documentation/Code**: Use the buttons to download documentation from the web or code from GitHub. A GitHub Personal Access Token is required for the GitHub feature.
+        * **Add Local Folder**: Optionally, add a folder of your own `.txt` or `.py` files to the training corpus.
+        * **Pre-process Docs for AI**: Processes all acquired raw text and code, preparing it for model training.
+        * **Train AI Language Model**: Starts the training process for the local AI language model using the preprocessed data.
+
+    * **Code Analysis Tab:**
+        * **Configure Ollama (Optional)**: If you have Ollama running locally, click "Refresh Models" to select which powerful model (e.g., `llama3`, `codellama`) you want to use for enhanced analysis.
+        * **Scan Code**: Select a directory containing Python files. The local AI model will scan these files for statistically unusual code.
+        * **Review Suggestions**: When a suggestion dialog appears, you can optionally check the "Get enhanced analysis from Ollama" box to receive a detailed explanation and refactoring ideas from your selected Ollama model.
+
+## Project Structure
+
+* `main.py`: The entry point of the PyQt5 application.
+* `main_window.py`: Manages the main application window, tab setup, logging, and worker thread orchestration.
+* `config.py`: Centralized configuration settings for directories, model parameters, and performance tuning.
+* `worker_threads.py`: Provides a generic worker class for running tasks in separate QThreads.
+* `ollama_client.py`: Handles API communication with a locally running Ollama service.
+* **Data Pipeline:**
+    * `acquire_docs.py`: Logic for web crawling documentation.
+    * `acquire_github.py`: Logic for downloading code from GitHub.
+    * `preprocess_docs.py`: Handles text cleaning, chunking, and vocabulary creation.
+    * `train_language_model.py`: Defines the language model architecture and the training pipeline.
+* **UI Modules & AI Logic:**
+    * `data_tab_widgets.py` & `ai_tab_widgets.py`: Defines the UI components for the main tabs.
+    * `ai_coder_scanner.py`: Implements the core logic for scanning Python code.
+* **Supporting Files:** `README.md`, `application.log`, `.gitignore`, `requirements.txt`.
+
+## Known Issues / Troubleshooting
+
+* **Ollama Integration Fails**: The enhanced analysis feature requires the [Ollama desktop application](https://ollama.com/) to be installed and running in the background. If you get a connection error, please ensure the Ollama service is active.
+* For any other runtime errors or unexpected behavior, always check the `application.log` file in the project's root directory for detailed traceback information.
+
+## Contributing
+
+Contributions are welcome! Please feel free to open issues or submit pull requests.
 
 ## License
 
