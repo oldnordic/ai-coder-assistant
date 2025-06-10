@@ -19,7 +19,7 @@ The AI Coder Assistant is a desktop application built with PyQt5 that provides a
 
 1.  **Clone the repository:**
     ```bash
-    git clone (https://github.com/oldnordic/ai-coder-assistant.git)
+    git clone https://github.com/oldnordic/ai-coder-assistant.git
     cd ai-coder-assistant
     ```
 
