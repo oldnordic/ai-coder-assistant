@@ -1,7 +1,9 @@
 import sys, os, logging, traceback, difflib, ast, json, datetime
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QTextEdit, QProgressBar, QTabWidget, QGroupBox, QStatusBar, QMessageBox, QDialog, QDialogButtonBox, QFileDialog)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QTextEdit, QProgressBar, QTabWidget, QGroupBox, QStatusBar, QMessageBox, QDialog, QDialogButtonBox, QFileDialog, QCheckBox)
 from PyQt5.QtCore import (QObject, QThread, pyqtSignal, Qt, QCoreApplication, QTimer, QSettings)
 from PyQt5.QtGui import QTextCursor, QFont, QTextCharFormat
+
+# Import all our local modules
 import worker_threads as wt
 import data_tab_widgets
 import ai_tab_widgets
@@ -11,11 +13,80 @@ import acquire_github
 import preprocess_docs
 import train_language_model
 import ai_coder_scanner
+import ollama_client
 
 class SuggestionDialog(QDialog):
-    # ... (This class is unchanged) ...
     def __init__(self, description, original_code, proposed_code, parent=None):
-        super().__init__(parent);self.setWindowTitle("AI Code Suggestion");self.setMinimumSize(700, 400);layout=QVBoxLayout(self);self.description_label=QLabel(description);self.description_label.setStyleSheet("font-weight: bold;");layout.addWidget(self.description_label);self.diff_text=QTextEdit();self.diff_text.setReadOnly(True);self.diff_text.setFont(QFont("monospace"));layout.addWidget(self.diff_text);diff=difflib.unified_diff(original_code.splitlines(keepends=True), proposed_code.splitlines(keepends=True), fromfile='Original', tofile='Proposed');self.diff_text.setText("".join(diff));self.highlight_diff();buttons=QDialogButtonBox(QDialogButtonBox.Apply | QDialogButtonBox.Ignore);buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply);buttons.button(QDialogButtonBox.Ignore).clicked.connect(self.on_ignore);layout.addWidget(buttons)
+        super().__init__(parent)
+        self.main_app_instance = parent # Store a reference to the main window
+        self.setWindowTitle("AI Code Suggestion")
+        self.setMinimumSize(700, 600)
+        self.original_code = original_code
+        self.proposed_code = proposed_code
+        
+        layout = QVBoxLayout(self)
+        self.description_label = QLabel(description)
+        self.description_label.setStyleSheet("font-weight: bold;")
+        layout.addWidget(self.description_label)
+        
+        self.diff_text = QTextEdit()
+        self.diff_text.setReadOnly(True)
+        self.diff_text.setFont(QFont("monospace"))
+        self.diff_text.setMaximumHeight(200)
+        layout.addWidget(self.diff_text)
+        diff = difflib.unified_diff(original_code.splitlines(keepends=True), proposed_code.splitlines(keepends=True), fromfile='Original', tofile='Proposed')
+        self.diff_text.setText("".join(diff))
+        self.highlight_diff()
+
+        # NEW: Ollama integration section
+        ollama_group = QGroupBox("Enhanced Analysis")
+        ollama_layout = QVBoxLayout(ollama_group)
+        self.ollama_checkbox = QCheckBox("Get enhanced analysis from Ollama (requires Ollama to be running)")
+        self.ollama_checkbox.stateChanged.connect(self.on_ollama_toggled)
+        
+        self.ollama_response_text = QTextEdit()
+        self.ollama_response_text.setReadOnly(True)
+        self.ollama_response_text.setPlaceholderText("Check the box above to get a detailed analysis from your selected Ollama model...")
+        self.ollama_response_text.setVisible(False)
+        
+        ollama_layout.addWidget(self.ollama_checkbox)
+        ollama_layout.addWidget(self.ollama_response_text)
+        layout.addWidget(ollama_group)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Apply | QDialogButtonBox.Ignore)
+        buttons.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply)
+        buttons.button(QDialogButtonBox.Ignore).clicked.connect(self.on_ignore)
+        layout.addWidget(buttons)
+
+    def on_ollama_toggled(self, state):
+        if state == Qt.Checked:
+            self.ollama_response_text.setVisible(True)
+            self.ollama_checkbox.setEnabled(False)
+            self.ollama_checkbox.setText("Getting Analysis from Ollama...")
+            self.ollama_response_text.setText("Sending request to local Ollama service...")
+            QApplication.processEvents()
+
+            selected_model = self.main_app_instance.ollama_model_selector.currentText()
+            if not selected_model or "Error" in selected_model:
+                self.ollama_response_text.setText("Error: No valid Ollama model selected in the main window.")
+                self.ollama_checkbox.setText("Enhanced analysis from Ollama:")
+                return
+
+            prompt = (
+                f"You are an expert Python programming assistant. A static analysis tool flagged the following piece of code as statistically unusual. "
+                f"Please provide a brief explanation of the potential issue in the 'Original Code' and suggest a better, corrected version.\n\n"
+                f"--- Original Code ---\n{self.original_code}\n"
+                f"--- Proposed Simple Fix by Tool ---\n{self.proposed_code}\n"
+                f"--- End of Context ---\n\nYour expert analysis and suggested code:"
+            )
+            
+            response = ollama_client.get_ollama_analysis(prompt, model_name=selected_model)
+            
+            self.ollama_response_text.setText(response)
+            self.ollama_checkbox.setText("Enhanced analysis from Ollama:")
+        else:
+            self.ollama_response_text.setVisible(False)
+
     def highlight_diff(self):
         cursor = self.diff_text.textCursor();fmt_add, fmt_rem = QTextCharFormat(), QTextCharFormat();fmt_add.setBackground(Qt.darkGreen);fmt_rem.setBackground(Qt.darkRed);cursor.movePosition(QTextCursor.Start);
         while not cursor.atEnd():
@@ -28,29 +99,26 @@ class SuggestionDialog(QDialog):
 
 class AIFoundryApp(QMainWindow):
     def __init__(self):
-        super().__init__(); self.setWindowTitle("AI Coder Assistant"); self.setGeometry(100, 100, 1200, 800)
+        super().__init__()
+        self.setWindowTitle("AI Coder Assistant")
+        self.setGeometry(100, 100, 1200, 800)
         self.thread, self.worker, self.current_task = None, None, None
         self.local_corpus_dir = None
-        self.setup_logging(); self.init_ui()
+        self.setup_logging()
+        self.init_ui()
         self.load_settings()
         QTimer.singleShot(100, self.check_initial_dirs)
+        QTimer.singleShot(200, self.populate_ollama_models) # Populate models shortly after startup
 
     def setup_logging(self):
-        log_file = "application.log"
-        logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
+        log_file = "application.log";logger = logging.getLogger();logger.setLevel(logging.INFO)
         if logger.hasHandlers(): logger.handlers.clear()
-        file_handler = logging.FileHandler(log_file, mode='w')
-        formatter = logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s")
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+        file_handler = logging.FileHandler(log_file, mode='w');formatter = logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s");file_handler.setFormatter(formatter);logger.addHandler(file_handler)
         
     def load_settings(self):
         settings = QSettings()
         token = settings.value("github_token", "")
-        if token:
-            self.github_token_entry.setText(token)
-            self.log_message("Loaded saved GitHub token.")
+        if token: self.github_token_entry.setText(token); self.log_message("Loaded saved GitHub token.")
 
     def save_settings(self):
         settings = QSettings()
@@ -71,90 +139,66 @@ class AIFoundryApp(QMainWindow):
         self.log_text_edit = QTextEdit(); self.log_text_edit.setReadOnly(True); log_layout.addWidget(self.log_text_edit); self.main_layout.addWidget(self.log_group)
         self.status_bar = self.statusBar()
 
+    def populate_ollama_models(self):
+        """NEW: Fetches model list from Ollama and populates the dropdown."""
+        self.log_message("Refreshing Ollama models...")
+        self.ollama_model_selector.clear()
+        self.ollama_model_selector.addItem("Loading...")
+        # This is a synchronous call, might freeze UI briefly if Ollama is slow
+        models = ollama_client.list_ollama_models()
+        self.ollama_model_selector.clear()
+        if models:
+            self.ollama_model_selector.addItems(models)
+            self.log_message(f"Found Ollama models: {', '.join(models)}")
+        else:
+            self.ollama_model_selector.addItem("Could not fetch models")
+            self.log_message("Could not fetch any models from Ollama service.")
+
     def select_local_corpus_dir(self):
         directory = QFileDialog.getExistingDirectory(self, "Select Folder with Local Text/Python Files")
-        if directory:
-            self.local_corpus_dir = directory
-            self.local_files_label.setText(f"Added: {os.path.basename(directory)}")
-            self.log_message(f"Local corpus directory set to: {directory}")
+        if directory: self.local_corpus_dir = directory; self.local_files_label.setText(f"Added: {os.path.basename(directory)}"); self.log_message(f"Local corpus directory set to: {directory}")
 
     def log_message(self, message):
-        """NEW: This function is now safer and does not cause a recursive loop."""
-        self.log_text_edit.append(str(message))
-        logging.info(str(message))
-        # The line below was the cause of the crash and has been removed.
-        # QApplication.processEvents() 
-        
+        self.log_text_edit.append(str(message)); logging.info(str(message))
+
     def show_error_messagebox(self, title, message):
-        self.log_message(f"ERROR: {title} - {message}")
-        QMessageBox.critical(self, title, message)
+        self.log_message(f"ERROR: {title} - {message}"); QMessageBox.critical(self, title, message)
 
     def _get_ui_widgets_for_task(self, task_name):
-        task_map = {
-            'acquire_doc': (self.acquire_doc_progressbar, self.acquire_doc_status_label),
-            'acquire_github': (self.github_progressbar, self.github_status_label),
-            'preprocess_docs': (self.preprocess_docs_progressbar, self.preprocess_docs_status_label),
-            'train_lm': (self.train_lm_progressbar, self.train_lm_status_label),
-            'scan_code': (self.scan_progress_bar, self.scan_status_label)
-        }
+        task_map = {'acquire_doc':(self.acquire_doc_progressbar, self.acquire_doc_status_label),'acquire_github':(self.github_progressbar, self.github_status_label),'preprocess_docs':(self.preprocess_docs_progressbar, self.preprocess_docs_status_label),'train_lm':(self.train_lm_progressbar, self.train_lm_status_label),'scan_code':(self.scan_progress_bar, self.scan_status_label)}
         return task_map.get(task_name, (None, None))
 
     def handle_worker_error(self, title, message):
         self.show_error_messagebox(title, message)
         _ , status_label = self._get_ui_widgets_for_task(self.current_task)
-        if status_label:
-            status_label.setText("Error!")
-            status_label.setStyleSheet("color: red;")
+        if status_label: status_label.setText("Error!"); status_label.setStyleSheet("color: red;")
 
     def start_worker(self, task_type):
-        if self.thread and self.thread.isRunning():
-            self.show_error_messagebox("Task in Progress", "A task is already running. Please wait for it to complete.")
-            return
-
+        if self.thread and self.thread.isRunning(): self.show_error_messagebox("Task in Progress", "A task is already running."); return
         self.current_task = task_type
         progress_bar, status_label = self._get_ui_widgets_for_task(task_type)
         if status_label: status_label.setStyleSheet(""); status_label.setText("Starting...")
         if progress_bar: progress_bar.setValue(0)
-            
         self.set_ui_busy_state(True, task_type)
         func_to_run, args = None, []
         try:
             if task_type == 'acquire_doc': func_to_run = acquire_docs.acquire_all_documentation
             elif task_type == 'acquire_github':
-                func_to_run = acquire_github.search_and_download_github_code
-                token = self.github_token_entry.text()
+                func_to_run = acquire_github.search_and_download_github_code; token = self.github_token_entry.text()
                 if not token: self.show_error_messagebox("Missing Token", "Please provide a GitHub Personal Access Token."); self.set_ui_busy_state(False); return
-                query = self.github_query_entry.text()
-                save_dir = os.path.join(config.BASE_DOCS_SAVE_DIR, "github_code")
-                args = [query, token, save_dir]
+                query = self.github_query_entry.text(); save_dir = os.path.join(config.BASE_DOCS_SAVE_DIR, "github_code"); args = [query, token, save_dir]
             elif task_type == 'preprocess_docs':
-                func_to_run = preprocess_docs.preprocess_documentation_for_ai
-                args = [config.BASE_DOCS_SAVE_DIR, config.PROCESSED_DOCS_DIR, config.CHUNK_SIZE, config.OVERLAP_SIZE, config.VOCAB_SIZE, self.local_corpus_dir]
+                func_to_run = preprocess_docs.preprocess_documentation_for_ai; args = [config.BASE_DOCS_SAVE_DIR, config.PROCESSED_DOCS_DIR, config.CHUNK_SIZE, config.OVERLAP_SIZE, config.VOCAB_SIZE, self.local_corpus_dir]
             elif task_type == 'train_lm': func_to_run = train_language_model.train_language_model
             elif task_type == 'scan_code':
                 scan_dir = self.scan_dir_entry.text()
                 if not os.path.isdir(scan_dir): self.show_error_messagebox("Invalid Directory", f"The directory '{scan_dir}' does not exist."); self.set_ui_busy_state(False); return
-                func_to_run = ai_coder_scanner.scan_directory_for_errors
-                args = [scan_dir]
+                func_to_run = ai_coder_scanner.scan_directory_for_errors; args = [scan_dir]
         except Exception as e:
-            logging.error(f"Error preparing task '{task_type}': {e}\n{traceback.format_exc()}")
-            self.show_error_messagebox("Task Error", f"Could not prepare task '{task_type}'.")
-            self.set_ui_busy_state(False)
-            return
+            logging.error(f"Error preparing task '{task_type}': {e}\n{traceback.format_exc()}"); self.show_error_messagebox("Task Error", f"Could not prepare task '{task_type}'."); self.set_ui_busy_state(False); return
 
-        self.thread = QThread()
-        self.worker = wt.Worker(task_type, func_to_run, args)
-        self.worker.moveToThread(self.thread)
-        
-        self.thread.started.connect(self.worker.run)
-        self.worker.log_message.connect(self.log_message)
-        self.worker.error_signal.connect(self.handle_worker_error)
-        self.worker.progress.connect(self.update_progress)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        self.thread.finished.connect(self._on_worker_finished)
-
+        self.thread = QThread(); self.worker = wt.Worker(task_type, func_to_run, args); self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run); self.worker.log_message.connect(self.log_message); self.worker.error_signal.connect(self.handle_worker_error); self.worker.progress.connect(self.update_progress); self.worker.finished.connect(self.thread.quit); self.worker.finished.connect(self.worker.deleteLater); self.thread.finished.connect(self.thread.deleteLater); self.thread.finished.connect(self._on_worker_finished)
         if task_type == 'scan_code': self.worker.scan_results_signal.connect(self._display_scan_results)
         self.thread.start()
 
@@ -165,13 +209,10 @@ class AIFoundryApp(QMainWindow):
             if total_steps > 0: progress_bar.setRange(0, total_steps); progress_bar.setValue(current_step)
             else: progress_bar.setRange(0, 0)
             status_label.setText(message)
-        # This call is still useful here to keep the UI smooth during intensive updates
-        QApplication.processEvents() 
+        QApplication.processEvents()
 
     def _on_worker_finished(self):
-        self.set_ui_busy_state(False)
-        self.log_message(f"--- Task '{self.current_task}' finished. ---")
-        self.thread, self.worker, self.current_task = None, None, None
+        self.set_ui_busy_state(False); self.log_message(f"--- Task '{self.current_task}' finished. ---"); self.thread, self.worker, self.current_task = None, None, None
 
     def check_initial_dirs(self):
         for path in [config.BASE_DOCS_SAVE_DIR, config.PROCESSED_DOCS_DIR]:

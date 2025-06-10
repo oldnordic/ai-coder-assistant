@@ -1,7 +1,6 @@
 import os
 
 # --- Project Root ---
-# Define the absolute path to the project root directory.
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # --- Directory and File Configuration ---
@@ -27,3 +26,10 @@ EMBED_DIM = 128
 NUM_HEADS = 2
 NUM_LAYERS = 2
 DROPOUT = 0.1
+
+# --- NEW: Scanner Configuration ---
+# Determines the number of CPU cores to use for the code scanner.
+# A good rule is to leave 1 or 2 cores free for the OS and other apps.
+# os.cpu_count() might return None, so we handle that case.
+CPU_CORES = os.cpu_count() or 4  # Default to 4 if cpu_count fails
+SCANNER_MAX_WORKERS = max(1, CPU_CORES - 2) # Always use at least 1 core

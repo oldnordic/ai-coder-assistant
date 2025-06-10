@@ -9,6 +9,7 @@ import config
 from train_language_model import CoderAILanguageModel
 
 def scan_single_file_worker(filepath, vocab, model_state_dict, cached_file_data):
+    # ... (This function is unchanged) ...
     try:
         current_mtime = os.path.getmtime(filepath)
         if cached_file_data and cached_file_data.get('mtime') == current_mtime:
@@ -103,7 +104,11 @@ def scan_directory_for_errors(directory_path, progress_callback=None, log_messag
     scan_results = {}
     total_files = len(python_files)
 
-    with ProcessPoolExecutor() as executor:
+    # --- MODIFIED PART ---
+    # Use the new setting from config.py to limit the number of workers (cores).
+    max_workers = config.SCANNER_MAX_WORKERS
+    _log(f"Scanning with up to {max_workers} CPU cores...")
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(scan_single_file_worker, fp, vocabulary, model_state_dict, scan_cache.get(fp)): fp for fp in python_files}
         for i, future in enumerate(as_completed(futures)):
             filepath = futures[future]
