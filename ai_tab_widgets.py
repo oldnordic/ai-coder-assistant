@@ -1,52 +1,73 @@
-import os
-from PyQt5.QtWidgets import (QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QGroupBox, QFormLayout, QTextEdit, QFileDialog, QProgressBar, QComboBox)
+# ai_tab_widgets.py
+from PyQt6.QtWidgets import (
+    QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGroupBox,
+    QProgressBar, QFormLayout, QLineEdit, QFileDialog, QTextEdit, QComboBox
+)
+import config
 
 def setup_ai_tab(parent_widget, main_app_instance):
+    """
+    Sets up the UI components for the AI code analysis tab.
+    """
     layout = QVBoxLayout(parent_widget)
-
-    # NEW: Ollama Model Selection Group
-    ollama_group = QGroupBox("2. Enhanced Analysis Configuration")
+    
+    # --- Enhanced Analysis Configuration ---
+    ollama_group = QGroupBox("1. Enhanced Analysis Configuration")
     ollama_layout = QFormLayout(ollama_group)
+    
     main_app_instance.ollama_model_selector = QComboBox()
-    main_app_instance.refresh_ollama_models_button = QPushButton("Refresh Models")
-    main_app_instance.refresh_ollama_models_button.clicked.connect(main_app_instance.populate_ollama_models)
+    refresh_button = QPushButton("Refresh Models")
+    refresh_button.clicked.connect(main_app_instance.populate_ollama_models)
     ollama_layout.addRow("Select Ollama Model:", main_app_instance.ollama_model_selector)
-    ollama_layout.addRow(main_app_instance.refresh_ollama_models_button)
+    ollama_layout.addRow(refresh_button)
+
+    # NEW: Model Source Selector
+    main_app_instance.model_source_selector = QComboBox()
+    main_app_instance.model_source_selector.addItem("Use Ollama Model")
+    main_app_instance.model_source_selector.addItem("Use Own Trained Model")
+    # Connect a signal to handle selection changes
+    main_app_instance.model_source_selector.currentIndexChanged.connect(main_app_instance.on_model_source_changed)
+    ollama_layout.addRow("Select AI Source:", main_app_instance.model_source_selector)
+
     layout.addWidget(ollama_group)
 
-    # Code Scanning Group
-    scan_group = QGroupBox("1. Scan Code with Local AI")
+    # --- Code Scanning ---
+    scan_group = QGroupBox("2. Scan Project")
     scan_layout = QVBoxLayout(scan_group)
-    layout.addWidget(scan_group)
-
-    dir_select_layout = QHBoxLayout()
-    scan_layout.addLayout(dir_select_layout)
-    main_app_instance.scan_dir_entry = QLineEdit(os.path.expanduser("~"))
-    dir_select_layout.addWidget(main_app_instance.scan_dir_entry)
-    main_app_instance.browse_dir_button = QPushButton("Browse")
-    main_app_instance.browse_dir_button.clicked.connect(lambda: _select_directory(main_app_instance.scan_dir_entry))
-    dir_select_layout.addWidget(main_app_instance.browse_dir_button)
-
-    main_app_instance.scan_code_button = QPushButton("Scan Python Files")
-    main_app_instance.scan_code_button.clicked.connect(lambda: main_app_instance.start_worker('scan_code'))
-    scan_layout.addWidget(main_app_instance.scan_code_button) 
-
+    
+    dir_layout = QHBoxLayout()
+    main_app_instance.scan_dir_entry = QLineEdit()
+    main_app_instance.scan_dir_entry.setPlaceholderText("Select a project directory to scan...")
+    browse_button = QPushButton("Browse")
+    browse_button.clicked.connect(main_app_instance.select_scan_directory)
+    dir_layout.addWidget(main_app_instance.scan_dir_entry)
+    dir_layout.addWidget(browse_button)
+    scan_layout.addLayout(dir_layout)
+    
+    main_app_instance.scan_button = QPushButton("Scan Project Files")
+    main_app_instance.scan_button.clicked.connect(lambda: main_app_instance.start_worker('scan_code'))
+    scan_layout.addWidget(main_app_instance.scan_button)
+    
     progress_layout = QFormLayout()
     main_app_instance.scan_status_label = QLabel("Ready")
     main_app_instance.scan_progress_bar = QProgressBar()
     progress_layout.addRow("Status:", main_app_instance.scan_status_label)
     progress_layout.addRow("Progress:", main_app_instance.scan_progress_bar)
     scan_layout.addLayout(progress_layout)
+    layout.addWidget(scan_group)
 
-    main_app_instance.scan_results_label = QLabel("<b>Scan Results:</b>")
-    scan_layout.addWidget(main_app_instance.scan_results_label)
+    # --- Scan Report and Suggestions ---
+    results_group = QGroupBox("3. Scan Report & Suggestions")
+    results_layout = QVBoxLayout(results_group)
     main_app_instance.scan_results_text = QTextEdit()
     main_app_instance.scan_results_text.setReadOnly(True)
-    scan_layout.addWidget(main_app_instance.scan_results_text)
-
+    main_app_instance.scan_results_text.setPlaceholderText("Scan report will be displayed here.")
+    results_layout.addWidget(main_app_instance.scan_results_text)
+    
+    main_app_instance.review_suggestions_button = QPushButton("Review Suggestions")
+    main_app_instance.review_suggestions_button.setEnabled(False) # Disabled by default
+    main_app_instance.review_suggestions_button.clicked.connect(main_app_instance.review_next_suggestion)
+    results_layout.addWidget(main_app_instance.review_suggestions_button)
+    
+    layout.addWidget(results_group)
     layout.addStretch(1)
-
-def _select_directory(entry_widget):
-    directory = QFileDialog.getExistingDirectory(None, "Select Directory with Python Files")
-    if directory:
-        entry_widget.setText(directory)

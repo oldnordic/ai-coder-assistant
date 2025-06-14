@@ -1,130 +1,179 @@
+# ai_coder_scanner.py
 import os
-import torch
-import json
-import torch.nn as nn
-import traceback
-import hashlib
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import subprocess
+import pathspec
 import config
-from train_language_model import CoderAILanguageModel
+import ollama_client
+import torch # Import torch for own model inference
+import train_language_model # To use your CoderAILanguageModel class
+import json # To load vocab if needed by own model
 
-def scan_single_file_worker(filepath, vocab, model_state_dict, cached_file_data):
-    # ... (This function is unchanged) ...
-    try:
-        current_mtime = os.path.getmtime(filepath)
-        if cached_file_data and cached_file_data.get('mtime') == current_mtime:
-            return True, cached_file_data.get('result', {"proposals": []})
-    except FileNotFoundError:
-        return False, {"error": f"File not found during scan: {filepath}"}, None
-
-    try:
-        device = torch.device('cpu')
-        vocab_size = len(vocab)
-        model = CoderAILanguageModel(
-            vocab_size=vocab_size,
-            embed_dim=config.EMBED_DIM,
-            num_heads=config.NUM_HEADS,
-            num_layers=config.NUM_LAYERS,
-            dropout=config.DROPOUT,
-            max_seq_len=config.CHUNK_SIZE
-        )
-        model.load_state_dict(model_state_dict)
-        model.to(device)
-        model.eval()
-
-        criterion = nn.CrossEntropyLoss()
-        ERROR_THRESHOLD = 3.5
-        file_result = {"proposals": []}
-
-        with open(filepath, 'r', encoding='utf-8') as f:
-            code_lines = f.readlines()
-
-        for i, line_with_newline in enumerate(code_lines):
-            line = line_with_newline.strip()
-            if not line or line.startswith('#'):
-                continue
-
-            tokens = line.lower().split()
-            if len(tokens) < 2:
-                continue
-
-            numerical_tokens = [vocab.get(token, vocab["<unk>"]) for token in tokens]
-            padded_tokens = numerical_tokens[:config.CHUNK_SIZE] + [vocab["<pad>"]] * (config.CHUNK_SIZE - len(numerical_tokens))
-            
-            input_tensor = torch.tensor([padded_tokens[:-1]], dtype=torch.long, device=device)
-            target_tensor = torch.tensor([padded_tokens[1:]], dtype=torch.long, device=device)
-
-            with torch.no_grad():
-                outputs = model(input_tensor)
-                loss = criterion(outputs.view(-1, vocab_size), target_tensor.view(-1))
-            
-            if loss.item() > ERROR_THRESHOLD:
-                proposal = {
-                    "description": f"AI model found this line to be statistically unusual (loss: {loss.item():.2f}). It may contain a subtle error or be unconventional.",
-                    "line_number": i,
-                    "original_code": code_lines[i],
-                    "proposed_code": f"# AI-REVIEW: This line was flagged as unusual.\n{code_lines[i]}"
-                }
-                file_result["proposals"].append(proposal)
-
-        return False, file_result, current_mtime
-    except Exception as e:
-        return False, {"error": f"Failed to scan file {os.path.basename(filepath)}: {str(e)}\n{traceback.format_exc()}"}, None
-
-def scan_directory_for_errors(directory_path, progress_callback=None, log_message_callback=None):
-    _log = log_message_callback if callable(log_message_callback) else print
-    if not os.path.isdir(directory_path):
-        return {"Error": f"Directory not found: {directory_path}"}
-
-    dir_hash = hashlib.md5(directory_path.encode('utf-8')).hexdigest()
-    cache_filename = f"scan_cache_{dir_hash}.json"
-    cache_filepath = os.path.join(config.PROCESSED_DOCS_DIR, cache_filename)
-    _log(f"Using cache file: {cache_filename}")
-    scan_cache = {}
-    if os.path.exists(cache_filepath):
-        try:
-            with open(cache_filepath, 'r') as f:
-                scan_cache = json.load(f)
-        except json.JSONDecodeError:
-            pass
-
-    try:
-        with open(config.VOCAB_FILE, 'r') as f:
-            vocabulary = json.load(f)
-        model_state_dict = torch.load(config.MODEL_SAVE_PATH, map_location=torch.device('cpu'))
-    except Exception as e:
-        return {"Error": f"Failed to load model/vocab for scanning: {e}"}
-
-    exclude_dirs = {'.git', '.venv', 'venv', 'env', '__pycache__', os.path.basename(config.BASE_DOCS_SAVE_DIR), os.path.basename(config.PROCESSED_DOCS_DIR)}
-    python_files = [os.path.join(r, f) for r, ds, fs in os.walk(directory_path) for f in fs if f.endswith('.py') and not any(d in r for d in exclude_dirs) and not f.startswith('.')]
+def get_ignore_spec(scan_dir):
+    """
+    Loads ignore patterns from the default and project-specific .ai_coder_ignore files.
+    Returns a PathSpec object for matching files.
+    """
+    patterns = []
     
+    # Load default ignore file from the application's root directory
+    app_root_dir = os.path.dirname(os.path.abspath(__file__))
+    default_ignore_file = os.path.join(app_root_dir, '.ai_coder_ignore')
+    if os.path.exists(default_ignore_file):
+        with open(default_ignore_file, 'r', encoding='utf-8') as f:
+            patterns.extend(f.readlines())
+
+    # Load project-specific ignore file from the directory being scanned
+    project_ignore_file = os.path.join(scan_dir, '.ai_coder_ignore')
+    if os.path.exists(project_ignore_file):
+        with open(project_ignore_file, 'r', encoding='utf-8') as f:
+            patterns.extend(f.readlines())
+    
+    # Also, always ignore the AI Coder Assistant's own source code if it's nested
+    patterns.append(app_root_dir + '/')
+    
+    # Create the spec object from the collected patterns
+    return pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+
+
+# MODIFIED FUNCTION SIGNATURE to accept model_mode and model_ref
+def scan_directory_for_errors(scan_dir, model_mode, model_ref, log_message_callback=None, progress_callback=None):
+    _log = log_message_callback if callable(log_message_callback) else print
+
+    try:
+        # Get the compiled ignore specification
+        ignore_spec = get_ignore_spec(scan_dir)
+
+        all_filepaths = []
+        for root, _, files in os.walk(scan_dir):
+            for name in files:
+                all_filepaths.append(os.path.join(root, name))
+        
+        # Filter the files using the ignore spec
+        scannable_files = [
+            path for path in all_filepaths
+            if not ignore_spec.match_file(os.path.relpath(path, scan_dir))
+        ]
+        
+        python_files = [f for f in scannable_files if f.endswith('.py')]
+
+    except Exception as e:
+        _log(f"Error while collecting files to scan: {e}")
+        return {"Error": f"Could not collect files: {e}", "report": "# Scan Report\nError during file collection."}
+
     if not python_files:
-        return {"Info": "No Python files found to scan in the selected directory."}
+        return {"Info": "No Python files found to scan.", "report": "# Scan Report\nNo scannable Python files found."}
 
-    scan_results = {}
     total_files = len(python_files)
+    scan_results = {}
+    _log(f"Found {total_files} Python files to scan.")
 
-    # --- MODIFIED PART ---
-    # Use the new setting from config.py to limit the number of workers (cores).
-    max_workers = config.SCANNER_MAX_WORKERS
-    _log(f"Scanning with up to {max_workers} CPU cores...")
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(scan_single_file_worker, fp, vocabulary, model_state_dict, scan_cache.get(fp)): fp for fp in python_files}
-        for i, future in enumerate(as_completed(futures)):
-            filepath = futures[future]
-            try:
-                was_cached, file_result, *rest = future.result()
-                scan_results[filepath] = file_result
-                if not was_cached and rest:
-                    scan_cache[filepath] = {'mtime': rest[0], 'result': file_result}
-            except Exception as e:
-                scan_results[filepath] = {"error": str(e)}
-            
-            if progress_callback:
-                filename = os.path.basename(filepath)
-                progress_callback(i + 1, total_files, f"Checking {i+1}/{total_files}: {filename}")
+    for i, filepath in enumerate(python_files):
+        if progress_callback:
+            progress_callback(i, total_files, f"Scanning {os.path.basename(filepath)}")
+        
+        issues = run_flake8(filepath)
+        if not issues: continue
 
-    with open(cache_filepath, 'w') as f:
-        json.dump(scan_cache, f, indent=4)
-    _log("Scan completed.")
+        proposals = []
+        for issue in issues:
+            # Pass model_mode and model_ref to enhance_with_ollama
+            suggestion = enhance_with_ollama(filepath, issue, model_mode, model_ref)
+            if suggestion:
+                proposals.append(suggestion)
+        
+        if proposals:
+            scan_results[filepath] = {"proposals": proposals}
+
+    report_content = generate_scan_report(scan_results)
+    scan_results["report"] = report_content
+
+    if progress_callback:
+        progress_callback(total_files, total_files, "Scan complete. Report generated.")
+    
     return scan_results
+
+def run_flake8(filepath):
+    try:
+        result = subprocess.run(['flake8', filepath], capture_output=True, text=True, check=False)
+        return [line for line in result.stdout.strip().split('\n') if line]
+    except FileNotFoundError:
+        return ["Flake8 not found. Please ensure it's installed (`pip install flake8`)."]
+    except Exception as e:
+        return [f"An error occurred while running flake8: {e}"]
+
+# MODIFIED FUNCTION SIGNATURE to accept model_mode and model_ref
+def enhance_with_ollama(filepath, issue_line, model_mode, model_ref):
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f: lines = f.readlines()
+        parts = issue_line.split(':');
+        if len(parts) < 2 or not parts[1].isdigit(): return None
+        line_index = int(parts[1]) - 1
+        if not (0 <= line_index < len(lines)): return None
+        original_code = lines[line_index].strip()
+        
+        # --- Conditional logic for model inference ---
+        if model_mode == "ollama":
+            # model_ref is the model_name string (e.g., "llama3:latest")
+            prompt = (
+                f"You are an expert Python linter and code corrector. "
+                f"Analyze this Python code snippet from '{os.path.basename(filepath)}' which has a flake8 issue: '{issue_line}'.\n"
+                f"Original code: ```python\n{original_code}\n```\n"
+                f"Provide ONLY the single corrected line of code. Do NOT include any conversational text, explanations, or code block delimiters (` ``` `)."
+            )
+            suggestion = ollama_client.get_ollama_response(prompt, model_ref)
+            if suggestion.startswith("API_ERROR:"): return None
+            clean_suggestion = suggestion.strip()
+        
+        elif model_mode == "own_model":
+            # model_ref is the loaded PyTorch model instance
+            model = model_ref
+            
+            # --- IMPORTANT: THIS IS A SIMPLIFIED PLACEHOLDER ---
+            # You need to implement proper tokenization and inference for your custom model here.
+            # This is a significant piece of work.
+            
+            # Example placeholder:
+            # You would typically load the vocab from config.VOCAB_FILE
+            # vocab = json.load(open(config.VOCAB_FILE, 'r'))
+            # And then use a tokenizer built during your training process to encode the prompt.
+            # For a language model, the prompt might be "correct this code: ORIGINAL_CODE"
+            # input_tokens = [vocab.get(token, vocab['<unk>']) for token in "some_tokenized_prompt_here".split()] # Simplified
+            # input_tensor = torch.tensor([input_tokens], dtype=torch.long).to(train_language_model.get_best_device(print))
+            
+            # model.eval()
+            # with torch.no_grad():
+            #     outputs = model(input_tensor)
+            #     # You would then decode outputs to get the generated text.
+            #     # This decoding logic depends heavily on your model's output and your tokenizer.
+            #     predicted_tokens = torch.argmax(outputs, dim=-1).squeeze().tolist()
+            #     suggestion = YOUR_DECODER(predicted_tokens) # Implement your decoder
+            
+            clean_suggestion = f"Own model suggestion for: '{original_code}' (Issue: '{issue_line}'). (Inference logic not fully implemented yet)"
+            # --- END PLACEHOLDER ---
+
+        else:
+            return None # Should not happen if modes are handled correctly
+
+        # Ensure it's not empty and actually different
+        if clean_suggestion and clean_suggestion != original_code:
+            return {"line_number": line_index, "original_code": original_code, "proposed_code": clean_suggestion, "description": issue_line}
+    except Exception as e:
+        print(f"Enhancement failed ({model_mode}): {e}")
+    return None
+
+def generate_scan_report(scan_results_dict):
+    report_lines = ["# AI Code Scan Report\n"]
+    valid_results = {fp: res for fp, res in scan_results_dict.items() if res and res.get("proposals")}
+    if not valid_results:
+        report_lines.append("No actionable suggestions were found in the scanned files.")
+        return "".join(report_lines)
+    for filepath, results in valid_results.items():
+        filename = os.path.basename(filepath)
+        report_lines.append(f"## File: `{filename}`\n")
+        for proposal in results["proposals"]:
+            line_num = proposal['line_number'] + 1
+            description = proposal['description']
+            original_code = proposal['original_code']
+            proposed_code = proposal['proposed_code']
+            report_lines.append(f"### Issue at line {line_num}: `{description}`\n```diff\n- {original_code}\n+ {proposed_code}\n```\n")
+    return "\n".join(report_lines)

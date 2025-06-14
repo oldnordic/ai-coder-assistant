@@ -1,0 +1,6 @@
+{
+  "typeCheckingMode": "basic",
+  "reportMissingTypeStubs": false,
+  "reportUnusedImport": false,
+  "reportUnknownMemberType": false
+}

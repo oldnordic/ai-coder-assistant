@@ -1,4 +1,6 @@
-PyQt5
+# requirements.txt
+PyQt6
+PyQt6-WebEngine
 requests
 beautifulsoup4
 lxml
@@ -7,3 +9,10 @@ torch
 python-dotenv
 numpy
 flake8
+yt-dlp
+pathspec
+faiss-cpu
+sentence-transformers
+langchain
+# openai-whisper  <- You can comment out or remove this line
+git+https://github.com/openai/whisper.git

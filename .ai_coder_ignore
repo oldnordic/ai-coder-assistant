@@ -1,0 +1,45 @@
+# .ai_coder_ignore
+
+# Default ignore patterns for AI Coder Assistant.
+# This uses the same syntax as .gitignore.
+
+# Virtual Environments
+.venv/
+venv/
+.venv_coder_ai/
+env/
+
+# Python Caches & Compiled Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build, distribution, and testing artifacts
+build/
+dist/
+*.egg-info/
+.tox/
+.eggs/
+pip-wheel-metadata/
+
+# Documentation and Data
+docs/
+documentation_corpus/
+processed_docs_chunks/
+
+# Version Control
+.git/
+.github/
+
+# IDE and Editor Folders
+.vscode/
+.idea/
+
+# Node.js
+node_modules/
+
+# App-specific files
+application.log
+ai_coder_model.pth
+*.spec
