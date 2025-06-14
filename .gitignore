@@ -19,7 +19,8 @@ __pycache__/
 documentation_corpus/
 processed_docs_chunks/
 python_stdlib_docs/
-
+learning_data/
+processed_docs_chunks/
 # AI Model Files
 # The trained model is a binary artifact that shouldn't be in version control.
 *.pth
@@ -40,3 +41,7 @@ Thumbs.db
 /build/
 /dist/
 *.spec
+*.pth
+*.json
+*.jsonl
+*.faiss
