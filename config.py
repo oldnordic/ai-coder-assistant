@@ -1,14 +1,36 @@
 # config.py
 import os
+import torch
+
+# --- HELPER FUNCTION (Moved from check_gpu.py) ---
+def get_best_device():
+    """
+    Checks for available hardware and returns the best device for PyTorch.
+    This function is now self-contained within config.py to avoid import errors.
+    """
+    if torch.cuda.is_available():
+        print("CUDA is available. Using GPU.")
+        return "cuda"
+    try:
+        # Check for Apple MPS without causing an error on other systems
+        if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+            print("Apple MPS is available. Using GPU.")
+            return "mps"
+    except Exception:
+        pass # MPS check can fail on non-macOS systems, ignore it.
+    
+    print("CUDA/MPS not available. Using CPU.")
+    return "cpu"
 
 # --- Project Root ---
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# --- NEW: Vector Database (FAISS) Configuration ---
-# We now store the index and the document chunks separately.
+# --- Device Configuration ---
+DEVICE = get_best_device()
+
+# --- Vector Database (FAISS) Configuration ---
 FAISS_INDEX_PATH = os.path.join(PROJECT_ROOT, "vector_store.faiss")
 FAISS_METADATA_PATH = os.path.join(PROJECT_ROOT, "vector_store.json")
-# This is a popular, high-quality model for creating text embeddings.
 EMBEDDING_MODEL_NAME = 'all-MiniLM-L6-v2'
 
 
@@ -18,12 +40,16 @@ PROCESSED_DOCS_DIR = os.path.join(PROJECT_ROOT, "processed_docs_chunks")
 LEARNING_DATA_FILE_DIR = os.path.join(PROJECT_ROOT, "learning_data")
 LEARNING_DATA_FILE = os.path.join(LEARNING_DATA_FILE_DIR, "learning_data.jsonl")
 
-# NEW: Folder for storing transcribed/local documents
-TRANSCRIPTION_SAVE_DIR = os.path.join(PROJECT_ROOT, "docs") 
+# Folder for storing transcribed/local documents
+TRANSCRIPTION_SAVE_DIR = os.path.join(PROJECT_ROOT, "docs")
+DOCS_DIR = TRANSCRIPTION_SAVE_DIR 
 
 # --- Custom Language Model Training Files ---
+VOCAB_DIR = PROCESSED_DOCS_DIR 
 VOCAB_FILE = os.path.join(PROCESSED_DOCS_DIR, "vocab.json")
 TOKENIZED_CHUNKS_FILE = os.path.join(PROCESSED_DOCS_DIR, "tokenized_chunks.jsonl")
+# --- FIXED: Added the missing CONCAT_FILE_PATH for model training ---
+CONCAT_FILE_PATH = os.path.join(PROCESSED_DOCS_DIR, "concatenated_corpus.txt")
 
 # --- Custom Language Model Hyperparameters & Special Tokens ---
 PAD_TOKEN = '<pad>'

@@ -4,92 +4,63 @@ import subprocess
 import pathspec
 import config
 import ollama_client
-import torch # Import torch for own model inference
-import train_language_model # To use your CoderAILanguageModel class
-import json # To load vocab if needed by own model
+import torch
+from tokenizers import Tokenizer
+import train_language_model
 
 def get_ignore_spec(scan_dir):
-    """
-    Loads ignore patterns from the default and project-specific .ai_coder_ignore files.
-    Returns a PathSpec object for matching files.
-    """
+    """Loads ignore patterns and returns a PathSpec object."""
     patterns = []
-    
-    # Load default ignore file from the application's root directory
     app_root_dir = os.path.dirname(os.path.abspath(__file__))
     default_ignore_file = os.path.join(app_root_dir, '.ai_coder_ignore')
     if os.path.exists(default_ignore_file):
         with open(default_ignore_file, 'r', encoding='utf-8') as f:
             patterns.extend(f.readlines())
-
-    # Load project-specific ignore file from the directory being scanned
     project_ignore_file = os.path.join(scan_dir, '.ai_coder_ignore')
     if os.path.exists(project_ignore_file):
         with open(project_ignore_file, 'r', encoding='utf-8') as f:
             patterns.extend(f.readlines())
-    
-    # Also, always ignore the AI Coder Assistant's own source code if it's nested
-    patterns.append(app_root_dir + '/')
-    
-    # Create the spec object from the collected patterns
+    patterns.append(os.path.join(app_root_dir, ''))
     return pathspec.PathSpec.from_lines('gitwildmatch', patterns)
 
-
-# MODIFIED FUNCTION SIGNATURE to accept model_mode and model_ref
 def scan_directory_for_errors(scan_dir, model_mode, model_ref, log_message_callback=None, progress_callback=None):
     _log = log_message_callback if callable(log_message_callback) else print
+    _progress = progress_callback if callable(progress_callback) else lambda c, t, m: None
 
     try:
-        # Get the compiled ignore specification
         ignore_spec = get_ignore_spec(scan_dir)
-
-        all_filepaths = []
-        for root, _, files in os.walk(scan_dir):
-            for name in files:
-                all_filepaths.append(os.path.join(root, name))
-        
-        # Filter the files using the ignore spec
-        scannable_files = [
-            path for path in all_filepaths
-            if not ignore_spec.match_file(os.path.relpath(path, scan_dir))
-        ]
-        
+        all_filepaths = [os.path.join(root, name) for root, _, files in os.walk(scan_dir) for name in files]
+        scannable_files = [path for path in all_filepaths if not ignore_spec.match_file(os.path.relpath(path, scan_dir))]
         python_files = [f for f in scannable_files if f.endswith('.py')]
-
     except Exception as e:
-        _log(f"Error while collecting files to scan: {e}")
         return {"Error": f"Could not collect files: {e}", "report": "# Scan Report\nError during file collection."}
 
     if not python_files:
-        return {"Info": "No Python files found to scan.", "report": "# Scan Report\nNo scannable Python files found."}
+        return {"Info": "No Python files found.", "report": "# Scan Report\nNo scannable Python files found."}
 
     total_files = len(python_files)
     scan_results = {}
     _log(f"Found {total_files} Python files to scan.")
 
+    tokenizer = None
+    tokenizer_path = os.path.join(config.VOCAB_DIR, "tokenizer.json")
+    if model_mode == "own_model" and os.path.exists(tokenizer_path):
+        _log("Loading custom tokenizer for inference.")
+        tokenizer = Tokenizer.from_file(tokenizer_path)
+
     for i, filepath in enumerate(python_files):
-        if progress_callback:
-            progress_callback(i, total_files, f"Scanning {os.path.basename(filepath)}")
-        
+        _progress(i, total_files, f"Scanning {os.path.basename(filepath)}")
         issues = run_flake8(filepath)
         if not issues: continue
-
-        proposals = []
-        for issue in issues:
-            # Pass model_mode and model_ref to enhance_with_ollama
-            suggestion = enhance_with_ollama(filepath, issue, model_mode, model_ref)
-            if suggestion:
-                proposals.append(suggestion)
+        
+        proposals = [enhance_suggestion(filepath, issue, model_mode, model_ref, tokenizer, _log) for issue in issues]
+        proposals = [p for p in proposals if p]
         
         if proposals:
             scan_results[filepath] = {"proposals": proposals}
 
-    report_content = generate_scan_report(scan_results)
-    scan_results["report"] = report_content
-
-    if progress_callback:
-        progress_callback(total_files, total_files, "Scan complete. Report generated.")
-    
+    scan_results["report"] = generate_scan_report(scan_results)
+    _progress(total_files, total_files, "Scan complete. Report generated.")
     return scan_results
 
 def run_flake8(filepath):
@@ -101,8 +72,8 @@ def run_flake8(filepath):
     except Exception as e:
         return [f"An error occurred while running flake8: {e}"]
 
-# MODIFIED FUNCTION SIGNATURE to accept model_mode and model_ref
-def enhance_with_ollama(filepath, issue_line, model_mode, model_ref):
+def enhance_suggestion(filepath, issue_line, model_mode, model_ref, tokenizer, _log):
+    """Generates a code suggestion using the selected model."""
     try:
         with open(filepath, 'r', encoding='utf-8') as f: lines = f.readlines()
         parts = issue_line.split(':');
@@ -111,54 +82,38 @@ def enhance_with_ollama(filepath, issue_line, model_mode, model_ref):
         if not (0 <= line_index < len(lines)): return None
         original_code = lines[line_index].strip()
         
-        # --- Conditional logic for model inference ---
+        clean_suggestion = None
         if model_mode == "ollama":
-            # model_ref is the model_name string (e.g., "llama3:latest")
-            prompt = (
-                f"You are an expert Python linter and code corrector. "
-                f"Analyze this Python code snippet from '{os.path.basename(filepath)}' which has a flake8 issue: '{issue_line}'.\n"
-                f"Original code: ```python\n{original_code}\n```\n"
-                f"Provide ONLY the single corrected line of code. Do NOT include any conversational text, explanations, or code block delimiters (` ``` `)."
-            )
-            suggestion = ollama_client.get_ollama_response(prompt, model_ref)
-            if suggestion.startswith("API_ERROR:"): return None
-            clean_suggestion = suggestion.strip()
-        
+            prompt = (f"You are an expert Python code corrector. Analyze the following Python code from '{os.path.basename(filepath)}' "
+                      f"which has this flake8 issue: '{issue_line}'.\n\n"
+                      f"Original code: ```python\n{original_code}\n```\n\n"
+                      f"Provide ONLY the single corrected line of Python code. Do not include explanations, conversation, or markdown.")
+            suggestion_text = ollama_client.get_ollama_response(prompt, model_ref)
+            if not suggestion_text.startswith("API_ERROR:"):
+                clean_suggestion = suggestion_text.strip().replace("`", "").replace("python", "").strip()
+
         elif model_mode == "own_model":
-            # model_ref is the loaded PyTorch model instance
-            model = model_ref
+            if model_ref is None or tokenizer is None:
+                return {"line_number": line_index, "original_code": original_code, "proposed_code": "# Own model or tokenizer not loaded.", "description": issue_line}
             
-            # --- IMPORTANT: THIS IS A SIMPLIFIED PLACEHOLDER ---
-            # You need to implement proper tokenization and inference for your custom model here.
-            # This is a significant piece of work.
+            prompt = f"### Bad Code: {original_code}\n### Good Code:"
+            _log(f"Generating suggestion with own model for: '{original_code}'")
             
-            # Example placeholder:
-            # You would typically load the vocab from config.VOCAB_FILE
-            # vocab = json.load(open(config.VOCAB_FILE, 'r'))
-            # And then use a tokenizer built during your training process to encode the prompt.
-            # For a language model, the prompt might be "correct this code: ORIGINAL_CODE"
-            # input_tokens = [vocab.get(token, vocab['<unk>']) for token in "some_tokenized_prompt_here".split()] # Simplified
-            # input_tensor = torch.tensor([input_tokens], dtype=torch.long).to(train_language_model.get_best_device(print))
+            input_ids = tokenizer.encode(prompt).ids
+            input_tensor = torch.tensor([input_ids], dtype=torch.long).to(config.DEVICE)
             
-            # model.eval()
-            # with torch.no_grad():
-            #     outputs = model(input_tensor)
-            #     # You would then decode outputs to get the generated text.
-            #     # This decoding logic depends heavily on your model's output and your tokenizer.
-            #     predicted_tokens = torch.argmax(outputs, dim=-1).squeeze().tolist()
-            #     suggestion = YOUR_DECODER(predicted_tokens) # Implement your decoder
+            output_tokens = model_ref.generate(input_tensor, max_new_tokens=40)
             
-            clean_suggestion = f"Own model suggestion for: '{original_code}' (Issue: '{issue_line}'). (Inference logic not fully implemented yet)"
-            # --- END PLACEHOLDER ---
+            generated_ids = output_tokens[0][len(input_ids):]
+            suggestion_text = tokenizer.decode(generated_ids)
+            
+            clean_suggestion = suggestion_text.split('\n')[0].strip()
 
-        else:
-            return None # Should not happen if modes are handled correctly
-
-        # Ensure it's not empty and actually different
         if clean_suggestion and clean_suggestion != original_code:
             return {"line_number": line_index, "original_code": original_code, "proposed_code": clean_suggestion, "description": issue_line}
+            
     except Exception as e:
-        print(f"Enhancement failed ({model_mode}): {e}")
+        _log(f"Enhancement failed ({model_mode}): {e}")
     return None
 
 def generate_scan_report(scan_results_dict):
@@ -169,7 +124,7 @@ def generate_scan_report(scan_results_dict):
         return "".join(report_lines)
     for filepath, results in valid_results.items():
         filename = os.path.basename(filepath)
-        report_lines.append(f"## File: `{filename}`\n")
+        report_lines.append(f"\n## File: `{filename}`\n")
         for proposal in results["proposals"]:
             line_num = proposal['line_number'] + 1
             description = proposal['description']

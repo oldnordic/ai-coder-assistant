@@ -1,501 +1,354 @@
 # main_window.py
-import sys, os, logging, difflib, json, datetime
+import sys
+import os
+import yt_dlp
+import requests 
+import json     
+import torch
+from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
+                             QPushButton, QMessageBox, QFileDialog, QProgressDialog)
+from PyQt6.QtCore import QUrl, pyqtSlot
+from PyQt6.QtGui import QIcon
 
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QTextEdit, QProgressBar, QTabWidget, QGroupBox, QStatusBar, QMessageBox, QDialog, QDialogButtonBox, QFileDialog, QCheckBox)
-from PyQt6.QtCore import (QThread, pyqtSignal, QCoreApplication, QTimer, QSettings, QUrl, QStandardPaths)
-from PyQt6.QtGui import (QSyntaxHighlighter, QTextCharFormat, QColor, QFont)
-from PyQt6.QtWebEngineCore import QWebEngineProfile, QWebEnginePage
-from PyQt6.QtWebEngineWidgets import QWebEngineView
-
-import worker_threads as wt
-import data_tab_widgets
-import ai_tab_widgets
-import browser_tab
+from browser_tab import setup_browser_tab
+from data_tab_widgets import setup_data_tab
+from ai_tab_widgets import setup_ai_tab
+from worker_threads import Worker
+from suggestion_dialog import SuggestionDialog
+from tokenizers import Tokenizer
+import ai_tools
 import config
-import acquire_docs
-import acquire_github
 import preprocess_docs
 import train_language_model
 import ai_coder_scanner
-import ollama_client
-import ai_tools
-
-import torch 
-
-class DiffHighlighter(QSyntaxHighlighter):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.fmt_add = QTextCharFormat(); self.fmt_add.setBackground(QColor("#225522")); self.fmt_add.setForeground(QColor("#ffffff"))
-        self.fmt_rem = QTextCharFormat(); self.fmt_rem.setBackground(QColor("#882222")); self.fmt_rem.setForeground(QColor("#ffffff"))
-    def highlightBlock(self, text):
-        if text.startswith('+') and not text.startswith('+++'): self.setFormat(0, len(text), self.fmt_add)
-        elif text.startswith('-') and not text.startswith('---'): self.setFormat(0, len(text), self.fmt_rem)
-
-class SuggestionDialog(QDialog):
-    def __init__(self, description, original_code, proposed_code, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("AI Code Suggestion")
-        self.setMinimumSize(700, 600)
-        
-        layout = QVBoxLayout(self)
-        self.description_label = QLabel(description); self.description_label.setStyleSheet("font-weight: bold;"); layout.addWidget(self.description_label)
-        self.diff_text = QTextEdit(); self.diff_text.setReadOnly(True); self.diff_text.setFont(QFont("monospace"))
-        diff = difflib.unified_diff(original_code.splitlines(keepends=True), proposed_code.splitlines(keepends=True), fromfile='Original', tofile='Proposed')
-        self.diff_text.setText("".join(diff)); self._diff_highlighter = DiffHighlighter(self.diff_text.document()); layout.addWidget(self.diff_text)
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Apply | QDialogButtonBox.StandardButton.Ignore)
-        buttons.accepted.connect(self.accept); buttons.rejected.connect(self.reject); layout.addWidget(buttons)
 
 class AICoderAssistant(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("AI Coder Assistant")
+        self.setWindowIcon(QIcon(os.path.join(config.PROJECT_ROOT, 'icon.png')))
         self.setGeometry(100, 100, 1200, 800)
-        self.thread, self.worker, self.current_task = None, None, None
-        self.local_corpus_dir = None
-        self.scan_proposals_queue = []
-        self.setup_logging()
-        self.setup_browser_profile()
-        self.init_ui() 
-        self.load_settings()
-        QTimer.singleShot(100, self.check_initial_dirs)
-        QTimer.singleShot(200, self.populate_ollama_models)
-        self.ai_model_mode = "ollama" # Default mode for scan
-        self.own_trained_model = None # To hold your loaded model
-
-    def setup_browser_profile(self):
-        profile_path = os.path.join(QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppLocalDataLocation), "browser_profile")
-        os.makedirs(profile_path, exist_ok=True)
-        self.browser_profile = QWebEngineProfile("persistent_profile", self)
-        self.browser_profile.setPersistentStoragePath(profile_path)
-        self.browser_profile.setPersistentCookiesPolicy(QWebEngineProfile.PersistentCookiesPolicy.AllowPersistentCookies)
-        self.log_message(f"Browser profile will be stored at: {profile_path}")
-
-    def init_ui(self):
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        self.main_layout = QVBoxLayout(self.central_widget)
+        self.worker = None
+        self.progress_dialog = None
+        self.scan_report = None
+        self.suggestion_list = []
+        self.current_suggestion_index = 0
+        self.own_trained_model = None
+        
         self.tabs = QTabWidget()
-        self.main_layout.addWidget(self.tabs)
-        self.data_tab = QWidget()
-        self.tabs.addTab(self.data_tab, "Data & Training")
-        data_tab_widgets.setup_data_tab(self.data_tab, self) 
+        self.setCentralWidget(self.tabs)
         
         self.ai_tab = QWidget()
-        self.tabs.addTab(self.ai_tab, "Code Analysis")
-        ai_tab_widgets.setup_ai_tab(self.ai_tab, self) 
+        self.data_tab = QWidget()
+        self.browser_tab = QWidget()
 
-        # NEW: Connect signals after widgets are guaranteed to exist
-        if hasattr(self, 'model_source_selector'): 
-            self.model_source_selector.currentIndexChanged.connect(self.on_model_source_changed)
-            if self.model_source_selector.currentText() == "Use Own Trained Model":
-                self.ollama_model_selector.setEnabled(False)
+        setup_ai_tab(self.ai_tab, self)
+        setup_data_tab(self.data_tab, self)
+        setup_browser_tab(self.browser_tab, self)
+
+        self.tabs.addTab(self.ai_tab, "AI Agent")
+        self.tabs.addTab(self.data_tab, "Data & Training")
+        self.tabs.addTab(self.browser_tab, "Browser & Transcription")
+        
+        self._connect_signals()
+        self.populate_ollama_models()
+
+    def _connect_signals(self):
+        self.transcribe_button.clicked.connect(self.start_youtube_transcription)
+        self.acquire_doc_button.clicked.connect(self.start_doc_acquisition)
+        self.acquire_github_button.clicked.connect(self.start_github_acquisition)
+        self.add_local_files_button.clicked.connect(self.select_local_corpus_dir)
+        self.preprocess_docs_button.clicked.connect(self.start_preprocessing)
+        self.train_lm_button.clicked.connect(self.start_training)
+        self.finetune_lm_button.clicked.connect(self.start_finetuning)
+        
+        refresh_button = self.ai_tab.findChild(QPushButton, "Refresh Models")
+        if refresh_button: refresh_button.clicked.connect(self.populate_ollama_models)
+        
+        browse_button = self.ai_tab.findChild(QPushButton, "Browse")
+        if browse_button: browse_button.clicked.connect(self.select_scan_directory)
+
+        self.model_source_selector.currentIndexChanged.connect(self.on_model_source_changed)
+        self.scan_button.clicked.connect(self.start_code_scan)
+        self.review_suggestions_button.clicked.connect(self.review_next_suggestion)
+        self.create_report_button.clicked.connect(self.start_report_generation)
+
+    def load_own_trained_model(self):
+        """Loads the custom trained PyTorch model and tokenizer from disk."""
+        model_path = config.MODEL_SAVE_PATH
+        vocab_path = os.path.join(config.VOCAB_DIR, "tokenizer.json")
+        
+        if not os.path.exists(model_path) or not os.path.exists(vocab_path):
+            QMessageBox.warning(self, "Model Not Found", f"Could not find trained model ('{os.path.basename(model_path)}') or tokenizer ('{os.path.basename(vocab_path)}').\nPlease train the model first.")
+            return False
+        try:
+            self.log_message("Loading own trained model...")
+            tokenizer = Tokenizer.from_file(vocab_path)
+            ntokens = tokenizer.get_vocab_size()
+            
+            self.own_trained_model = train_language_model.TransformerModel(
+                ntokens, config.EMBED_DIM, config.NUM_HEADS, config.EMBED_DIM, 
+                config.NUM_LAYERS, config.DROPOUT
+            )
+            self.own_trained_model.load_state_dict(torch.load(model_path, map_location=config.DEVICE))
+            self.own_trained_model.to(config.DEVICE)
+            self.own_trained_model.eval()
+            self.log_message("Own trained model loaded successfully.")
+            return True
+        except Exception as e:
+            QMessageBox.critical(self, "Model Load Error", f"Failed to load the trained model: {e}")
+            self.own_trained_model = None
+            return False
+
+    def on_model_source_changed(self):
+        source = self.model_source_selector.currentText()
+        is_ollama = "Ollama" in source
+        self.ollama_model_selector.setEnabled(is_ollama)
+        refresh_button = self.ai_tab.findChild(QPushButton, "Refresh Models")
+        if refresh_button: refresh_button.setEnabled(is_ollama)
+        
+        if "Own Trained Model" in source:
+            if self.own_trained_model is None:
+                if not self.load_own_trained_model():
+                    self.model_source_selector.setCurrentText("Use Ollama Model")
+        
+        self.log_message(f"AI source set to {source}.")
+
+    def start_code_scan(self):
+        project_dir = self.scan_dir_entry.text()
+        if not os.path.isdir(project_dir):
+            QMessageBox.warning(self, "Invalid Directory", "Please select a valid project directory to scan.")
+            return
+        
+        model_source = self.model_source_selector.currentText()
+        model_mode, model_ref = "", None
+
+        if "Ollama" in model_source:
+            model_mode = "ollama"
+            model_ref = self.ollama_model_selector.currentText()
+            if not model_ref:
+                QMessageBox.warning(self, "Ollama Model Not Selected", "Please select an Ollama model from the dropdown.")
+                return
+        elif "Own Trained Model" in model_source:
+            model_mode = "own_model"
+            if self.own_trained_model is None:
+                QMessageBox.warning(self, "Model Not Loaded", "The custom model is not loaded. Please re-select 'Use Own Trained Model' or check for errors.")
+                return
+            model_ref = self.own_trained_model
+        
+        self.scan_button.setEnabled(False); self.review_suggestions_button.setEnabled(False); self.create_report_button.setEnabled(False)
+        self.scan_status_label.setText("Scanning project...")
+        self.start_worker('scan_code', ai_coder_scanner.scan_directory_for_errors, project_dir, model_mode, model_ref)
+
+    @pyqtSlot(object)
+    def on_worker_finished(self, result):
+        finished_worker = self.worker
+        if not finished_worker: return
+        task = finished_worker.task_type
+        self.log_message(f"Worker task '{task}' finished.")
+        
+        if task == 'scan_code':
+            self.scan_button.setEnabled(True)
+            if isinstance(result, dict):
+                self.scan_report = result
+                summary = result.get('report', 'Scan complete.')
+                self.scan_results_text.setPlainText(summary)
+                self.suggestion_list = []
+                self.current_suggestion_index = 0
+                for filepath, res_data in result.items():
+                    if filepath == 'report' or not isinstance(res_data, dict): continue
+                    for proposal in res_data.get('proposals', []):
+                        proposal['filepath'] = filepath
+                        self.suggestion_list.append(proposal)
+                if self.suggestion_list:
+                    self.review_suggestions_button.setEnabled(True)
+                    self.create_report_button.setEnabled(True)
+                    self.log_message(f"Found {len(self.suggestion_list)} suggestions. Click 'Review Suggestions' or 'Create Report'.")
             else:
-                self.ollama_model_selector.setEnabled(True)
+                self.scan_results_text.setPlainText(f"Scan finished, but returned unexpected data: {result}")
+        elif task == 'get_explanation':
+            self.review_suggestions_button.setEnabled(True)
+            if self.current_suggestion_index < len(self.suggestion_list):
+                suggestion = self.suggestion_list[self.current_suggestion_index]
+                explanation = result if isinstance(result, str) else "Could not generate an explanation."
+                dialog = SuggestionDialog(suggestion, explanation, self)
+                dialog.exec()
+                user_feedback = dialog.get_user_justification()
+                if user_feedback: self.save_learning_feedback(suggestion, user_feedback)
+                if dialog.user_choice == 'apply': self.apply_suggestion(suggestion)
+                elif dialog.user_choice == 'cancel_all': self.log_message("Suggestion review stopped.")
+                else:
+                    self.current_suggestion_index += 1
+                    self.review_next_suggestion()
+        elif task == 'generate_report':
+            self.create_report_button.setEnabled(True)
+            if self.suggestion_list: self.review_suggestions_button.setEnabled(True)
+            if isinstance(result, str) and result:
+                self.save_report_to_file(result)
+            else:
+                QMessageBox.warning(self, "Report Error", "Failed to generate report content.")
+        elif task == 'transcribe_youtube':
+            self.transcribe_button.setEnabled(True)
+            if isinstance(result, str) and not result.startswith("Error"):
+                self.transcription_results_text.setPlainText(result)
+                self.save_transcription_to_file(result, self.youtube_url_entry.text())
+                QMessageBox.information(self, "Success", "Transcription complete.")
+            elif result:
+                QMessageBox.critical(self, "Transcription Error", str(result))
+        elif 'train' in task: # Handles both train_lm and train_lm_finetune
+            self.train_lm_button.setEnabled(True)
+            self.finetune_lm_button.setEnabled(True)
+            if self.progress_dialog: self.progress_dialog.close()
+            QMessageBox.information(self, "Success", "Training process complete!")
+        elif task == 'preprocess_docs':
+            self.preprocess_docs_button.setEnabled(True)
+            if self.progress_dialog: self.progress_dialog.close()
+            QMessageBox.information(self, "Success", "Preprocessing complete!")
+        if self.worker is finished_worker: self.worker = None
 
-        if hasattr(self, 'knowledge_mode_selector'): 
-            pass 
-
-        self.browser_ui_tab = QWidget()
-        self.tabs.addTab(self.browser_ui_tab, "Browser")
-        browser_tab.setup_browser_tab(self.browser_ui_tab, self, self.browser_profile)
-        self.log_group = QGroupBox("Application Log")
-        log_layout = QVBoxLayout(self.log_group)
-        self.log_text_edit = QTextEdit()
-        self.log_text_edit.setReadOnly(True)
-        log_layout.addWidget(self.log_text_edit)
-        self.main_layout.addWidget(self.log_group)
-        self.status_bar = self.statusBar()
-
-    def navigate_to_url(self):
-        url = self.url_bar.text()
-        if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
-        self.browser.setUrl(QUrl(url))
-
-    def update_url_bar(self, qurl):
-        self.url_bar.setText(qurl.toString())
-        self.url_bar.setCursorPosition(0)
+    def start_worker(self, task_type, func, *args, **kwargs):
+        self.worker = Worker(task_type, func, *args, **kwargs)
+        self.worker.signals.finished.connect(self.on_worker_finished)
+        self.worker.signals.error.connect(self.on_worker_error)
+        self.worker.signals.progress.connect(self.update_progress)
+        self.worker.signals.log_message.connect(self.log_message)
+        self.worker.start()
 
     def start_youtube_transcription(self):
         youtube_url = self.youtube_url_entry.text()
         if not youtube_url:
-            self.show_error_messagebox("Invalid URL", "Please paste a valid YouTube URL.")
+            QMessageBox.warning(self, "URL Missing", "Please paste a YouTube URL in the entry field.")
             return
-        self.log_message(f"Starting transcription for URL: {youtube_url}")
-        self.transcription_results_text.setText("Transcription in progress...")
-        
-        # Pass the URL, the saving callback, and the progress update method
-        # The progress callback is update_progress, which is a method of self
-        self.start_worker('transcribe_youtube', args=[youtube_url, self._save_transcription_text, self.update_progress]) 
-        
+        self.transcribe_button.setEnabled(False)
+        self.transcription_status_label.setText("Starting transcription...")
+        self.start_worker('transcribe_youtube', ai_tools.transcribe_youtube_tool, youtube_url)
 
-    def _display_transcription_result(self, text):
-        self.log_message("Transcription finished.")
-        self.transcription_results_text.setText(text)
-
-    def _save_transcription_text(self, text, url):
-        # Extract a safe filename from the URL
-        import re 
-        from yt_dlp import YoutubeDL 
-        
-        video_id_match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", url)
-        video_id = video_id_match.group(1) if video_id_match else "unknown_video"
-        
-        # Get video title using yt-dlp
-        title = "Untitled_Video"
+    def save_transcription_to_file(self, text, url):
         try:
-            ydl_opts = {'quiet': True, 'no_warnings': True, 'skip_download': True, 'format': 'bestaudio/best'}
-            with YoutubeDL(ydl_opts) as ydl:
-                info_dict = ydl.extract_info(url, download=False)
-                title = info_dict.get('title', 'Untitled_Video')
-                # Sanitize title for filename
-                title = "".join([c for c in title if c.isalnum() or c in (' ', '-', '_')]).rstrip().replace(' ', '_')
-                title = title[:50] # Limit title length for filename
-        except Exception as e:
-            self.log_message(f"Could not get video title for saving: {e}")
-
-        # Construct filename and full path
-        filename = f"{title}_{video_id}.txt"
-        save_path = os.path.join(config.TRANSCRIPTION_SAVE_DIR, filename)
-        
-        # Ensure the directory exists
-        os.makedirs(config.TRANSCRIPTION_SAVE_DIR, exist_ok=True)
-
-        try:
-            with open(save_path, 'w', encoding='utf-8') as f:
-                f.write(text)
-            self.log_message(f"Transcription saved to: {save_path}")
-        except Exception as e:
-            self.log_message(f"Error saving transcription to file: {e}")
-            self.show_error_messagebox("Save Error", f"Failed to save transcription: {e}")
-
-
-    def setup_logging(self):
-        log_file = "application.log"
-        logging.basicConfig(level=logging.INFO,
-                            format="%(asctime)s [%(levelname)s] - %(message)s",
-                            handlers=[logging.FileHandler(log_file, mode='w'), logging.StreamHandler(sys.stdout)])
-
-    def load_settings(self):
-        settings = QSettings()
-        token = settings.value("github_token", "")
-        if hasattr(self, 'github_token_entry'):
-            self.github_token_entry.setText(token)
-        self.log_message("Settings loaded.")
-
-    def save_settings(self):
-        settings = QSettings()
-        if hasattr(self, 'github_token_entry'):
-            settings.setValue("github_token", self.github_token_entry.text())
-        self.log_message("Settings saved.")
-
-    def closeEvent(self, event):
-        self.save_settings()
-        event.accept()
+            with yt_dlp.YoutubeDL({'quiet': True, 'noplaylist': True}) as ydl: info_dict = ydl.extract_info(url, download=False)
+            video_title = info_dict.get('title', 'youtube_transcription')
+            safe_title = "".join([c for c in video_title if c.isalpha() or c.isdigit() or c in (' ', '-')]).rstrip()
+            filename = os.path.join(config.DOCS_DIR, f"{safe_title}.txt")
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+            with open(filename, 'w', encoding='utf-8') as f: f.write(text)
+            self.log_message(f"Transcription saved to: {filename}")
+        except Exception as e: self.log_message(f"Error saving transcription file: {e}")
 
     def populate_ollama_models(self):
         self.log_message("Refreshing Ollama models...")
-        if hasattr(self, 'ollama_model_selector'):
-            self.ollama_model_selector.clear()
-            self.ollama_model_selector.addItem("Loading...")
-            models = ollama_client.list_ollama_models()
-            self.ollama_model_selector.clear()
-            if isinstance(models, list) and models and "Error" not in models[0]:
-                self.ollama_model_selector.addItems(models)
-                self.log_message(f"Found Ollama models: {', '.join(models)}")
-            else:
-                self.ollama_model_selector.addItem("Could not fetch models")
-                self.log_message("Ollama service might not be running.")
-
-    def on_model_source_changed(self, index): # NEW method
-        selected_text = self.model_source_selector.currentText()
-        if selected_text == "Use Ollama Model":
-            self.ai_model_mode = "ollama"
-            self.ollama_model_selector.setEnabled(True)
-            self.log_message("AI source set to Ollama Model.")
-        elif selected_text == "Use Own Trained Model":
-            self.ai_model_mode = "own_model"
-            self.ollama_model_selector.setEnabled(False)
-            self.log_message("AI source set to Own Trained Model. Attempting to load model...")
-            self.load_own_trained_model()
-        
-    def load_own_trained_model(self): # NEW method
-        if not os.path.exists(config.MODEL_SAVE_PATH):
-            self.log_message(f"Error: Own trained model not found at {config.MODEL_SAVE_PATH}.")
-            self.show_error_messagebox("Model Not Found", "Your own trained model was not found. Please train it first.")
-            self.model_source_selector.setCurrentText("Use Ollama Model") # Revert to Ollama
-            self.ollama_model_selector.setEnabled(True) # Re-enable Ollama selector
-            return
-
+        self.ollama_model_selector.clear()
         try:
-            # Need to re-initialize model class with correct vocab size and parameters
-            if not os.path.exists(config.VOCAB_FILE):
-                self.log_message(f"Error: Vocabulary file not found at {config.VOCAB_FILE}.")
-                self.show_error_messagebox("Vocab Not Found", "Vocabulary file needed for your own model was not found.")
-                self.model_source_selector.setCurrentText("Use Ollama Model") # Revert to Ollama
-                self.ollama_model_selector.setEnabled(True) # Re-enable Ollama selector
-                return
+            response = requests.get(f"{config.OLLAMA_API_BASE_URL}/tags")
+            response.raise_for_status()
+            models_data = response.json()
+            model_names = [model['name'] for model in models_data.get('models', [])]
+            if not model_names: self.log_message("No Ollama models found.")
+            else:
+                self.ollama_model_selector.addItems(model_names)
+                self.log_message(f"Found Ollama models: {', '.join(model_names)}")
+        except Exception as e: QMessageBox.warning(self, "Ollama Error", f"Could not fetch models. Is Ollama running?\nError: {e}")
 
-            with open(config.VOCAB_FILE, 'r') as f:
-                vocab_size = len(json.load(f))
+    def start_doc_acquisition(self): self.log_message("Doc acquisition not implemented yet.")
+    def start_github_acquisition(self): self.log_message("GitHub acquisition not implemented yet.")
+        
+    def select_local_corpus_dir(self):
+        dir_name = QFileDialog.getExistingDirectory(self, "Select Local Corpus Folder", config.PROJECT_ROOT)
+        if dir_name:
+            self.local_files_label.setText(f"Selected: {dir_name}")
+            config.DOCS_DIR = dir_name
+            self.log_message(f"Set local corpus directory to: {dir_name}")
+            
+    def start_preprocessing(self):
+        self.preprocess_docs_button.setEnabled(False)
+        self.progress_dialog = QProgressDialog("Starting preprocessing...", "Cancel", 0, 100, self)
+        self.progress_dialog.setModal(True); self.progress_dialog.canceled.connect(self.cancel_worker); self.progress_dialog.show()
+        reset_db = self.knowledge_mode_selector.currentText().startswith("Reset")
+        self.start_worker('preprocess_docs', preprocess_docs.build_vector_db, config.DOCS_DIR, config.FAISS_INDEX_PATH, config.FAISS_METADATA_PATH, reset_db=reset_db)
 
-            self.own_trained_model = train_language_model.CoderAILanguageModel(
-                vocab_size, config.EMBED_DIM, config.NUM_HEADS, config.NUM_LAYERS, config.DROPOUT
-            )
-            # Ensure map_location is correct for your system if not CUDA/MPS
-            self.own_trained_model.load_state_dict(torch.load(config.MODEL_SAVE_PATH, map_location=torch.device('cpu')))
-            self.own_trained_model.eval() # Set to evaluation mode
-            self.log_message(f"Own trained model loaded from {config.MODEL_SAVE_PATH}.")
-        except Exception as e:
-            self.log_message(f"Error loading own trained model: {e}")
-            self.show_error_messagebox("Model Load Error", f"Failed to load own trained model: {e}")
-            self.own_trained_model = None
-            self.model_source_selector.setCurrentText("Use Ollama Model") # Revert on error
-            self.ollama_model_selector.setEnabled(True) # Re-enable Ollama selector
-
+    def start_training(self):
+        self.train_lm_button.setEnabled(False)
+        self.finetune_lm_button.setEnabled(False)
+        self.progress_dialog = QProgressDialog("Starting base model training...", "Cancel", 0, 100, self)
+        self.progress_dialog.setModal(True); self.progress_dialog.canceled.connect(self.cancel_worker); self.progress_dialog.show()
+        self.start_worker('train_lm', train_language_model.train_model, config.VOCAB_DIR, config.MODEL_SAVE_PATH, finetune=False)
+    
+    def start_finetuning(self):
+        self.train_lm_button.setEnabled(False)
+        self.finetune_lm_button.setEnabled(False)
+        self.progress_dialog = QProgressDialog("Starting model finetuning...", "Cancel", 0, 100, self)
+        self.progress_dialog.setModal(True); self.progress_dialog.canceled.connect(self.cancel_worker); self.progress_dialog.show()
+        self.start_worker('train_lm_finetune', train_language_model.train_model, config.VOCAB_DIR, config.MODEL_SAVE_PATH, finetune=True)
 
     def select_scan_directory(self):
-        directory = QFileDialog.getExistingDirectory(self, "Select Project Directory to Scan")
-        if directory:
-            self.scan_dir_entry.setText(directory)
-
-    def select_local_corpus_dir(self):
-        directory = QFileDialog.getExistingDirectory(self, "Select Folder with Local Text/Python Files")
-        if directory and hasattr(self, 'local_files_label'):
-            self.local_corpus_dir = directory
-            self.local_files_label.setText(f"Added: {os.path.basename(directory)}")
-            self.log_message(f"Local corpus directory set to: {directory}")
-
-    def log_message(self, message):
-        logging.info(str(message))
-        if hasattr(self, 'log_text_edit'):
-            self.log_text_edit.append(str(message))
-
-    def show_error_messagebox(self, title, message):
-        logging.error(f"{title}: {message}")
-        QMessageBox.critical(self, title, message)
-
-    def _get_ui_widgets_for_task(self, task_name):
-        return {
-            'acquire_doc': (self.acquire_doc_progressbar, self.acquire_doc_status_label),
-            'acquire_github': (self.github_progressbar, self.github_status_label),
-            'preprocess_docs': (self.preprocess_docs_progressbar, self.preprocess_docs_status_label),
-            'train_lm': (self.train_lm_progressbar, self.train_lm_status_label),
-            'scan_code': (self.scan_progress_bar, self.scan_status_label),
-            'transcribe_youtube': (self.transcription_progressbar, self.transcription_status_label) # Corrected: Added transcription widgets
-        }.get(task_name, (None, None))
-
-    def handle_worker_error(self, title, message):
-        self.show_error_messagebox(title, message)
-        _, status_label = self._get_ui_widgets_for_task(self.current_task)
-        if status_label:
-            status_label.setText("Error!")
-            status_label.setStyleSheet("color: red;")
-        self.set_ui_busy_state(False)
-
-    def start_worker(self, task_type, args=None):
-        if self.thread and self.thread.isRunning():
-            self.show_error_messagebox("Task in Progress", "A task is already running."); return
-        
-        self.current_task = task_type
-        if task_type == 'scan_code':
-            self.scan_results_text.clear()
-            self.review_suggestions_button.setEnabled(False)
-            self.review_suggestions_button.setText("Review Suggestions")
-
-        progress_bar, status_label = self._get_ui_widgets_for_task(self.current_task)
-        if status_label: status_label.setStyleSheet(""); status_label.setText("Starting...")
-        if progress_bar: progress_bar.setValue(0) # Reset progress bar for new task
-        
-        self.set_ui_busy_state(True)
-        
-        try:
-            if task_type == 'acquire_doc':
-                selected_language = self.doc_language_selector.currentText()
-                func_to_run = acquire_docs.acquire_docs_for_language
-                effective_args = [selected_language]
-            elif task_type == 'acquire_github':
-                token = self.github_token_entry.text()
-                if not token: raise ValueError("GitHub Token is missing.")
-                func_to_run = acquire_github.search_and_download_github_code
-                effective_args = [self.github_query_entry.text(), token, os.path.join(config.BASE_DOCS_SAVE_DIR, "github_code")]
-            elif task_type == 'preprocess_docs':
-                func_to_run = preprocess_docs.preprocess_documentation_for_ai
-                # Get the selected accumulation mode
-                accumulation_mode = self.knowledge_mode_selector.currentText()
-                self.log_message(f"Starting preprocessing in '{accumulation_mode}' mode.")
-                effective_args = [config.BASE_DOCS_SAVE_DIR, self.local_corpus_dir, accumulation_mode] # Pass mode
-            elif task_type == 'train_lm':
-                func_to_run, effective_args = train_language_model.train_language_model, []
-            elif task_type == 'transcribe_youtube':
-                func_to_run = ai_tools.transcribe_youtube_tool
-                # args passed from start_youtube_transcription are [youtube_url, self._save_transcription_text, self.update_progress]
-                if args is None or len(args) < 3: 
-                    raise ValueError("Missing arguments for transcribe_youtube_tool: [youtube_url, save_callback, progress_callback]")
-                effective_args = args # Pass the args list directly, which contains URL, save_callback, and progress_callback
-            elif task_type == 'scan_code':
-                scan_dir = self.scan_dir_entry.text()
-                if not os.path.isdir(scan_dir): raise ValueError(f"Invalid scan directory: {scan_dir}")
-                # Pass both the scan directory AND the selected model source/name
-                if self.ai_model_mode == "ollama":
-                    selected_ollama_model = self.ollama_model_selector.currentText()
-                    func_to_run, effective_args = ai_coder_scanner.scan_directory_for_errors, [scan_dir, self.ai_model_mode, selected_ollama_model]
-                elif self.ai_model_mode == "own_model":
-                    if self.own_trained_model is None:
-                        raise ValueError("Own trained model is not loaded. Please train/load it first.")
-                    # When using own model, pass the model instance directly
-                    func_to_run, effective_args = ai_coder_scanner.scan_directory_for_errors, [scan_dir, self.ai_model_mode, self.own_trained_model]
-                else:
-                    raise ValueError("Invalid AI model mode selected.")
-            else:
-                raise ValueError(f"Unknown task type: {task_type}")
-
-            self.thread = QThread()
-            self.worker = wt.Worker(task_type, func_to_run, effective_args)
-            self.worker.moveToThread(self.thread)
-            
-            self.thread.started.connect(self.worker.run)
-            self.worker.log_message.connect(self.log_message)
-            self.worker.error_signal.connect(self.handle_worker_error)
-            self.worker.progress.connect(self.update_progress) # Corrected: progress signal connected here
-            self.worker.finished.connect(self._on_worker_finished)
-            
-            if task_type == 'scan_code': self.worker.scan_results_signal.connect(self._display_scan_report)
-            if task_type == 'transcribe_youtube': 
-                self.worker.transcription_finished.connect(self._display_transcription_result)
-                
-        except Exception as e:
-            self.show_error_messagebox("Task Error", str(e)); self.set_ui_busy_state(False)
-
-    def update_progress(self, current_step, total_steps, message):
-        progress_bar, status_label = self._get_ui_widgets_for_task(self.current_task)
-        if progress_bar and status_label:
-            # For indeterminate progress, set range to 0,0 and message
-            if total_steps == 0:
-                progress_bar.setRange(0, 0)
-                progress_bar.setValue(0) # Keep at 0 for visual effect
-            else:
-                progress_bar.setRange(0, total_steps)
-                progress_bar.setValue(current_step)
-            status_label.setText(message)
-        QApplication.processEvents() # Process events to ensure UI updates
-
-
-    def _on_worker_finished(self):
-        self.set_ui_busy_state(False)
-        self.log_message(f"--- Task '{self.current_task}' finished. ---")
-        
-        # Reset progress bar and status for the finished task to "Ready" or 0%
-        progress_bar, status_label = self._get_ui_widgets_for_task(self.current_task)
-        if progress_bar and status_label:
-            progress_bar.setRange(0, 100) # Reset to a determinate range
-            progress_bar.setValue(0)     # Set to 0%
-            status_label.setText("Ready") # Set status to Ready
-            status_label.setStyleSheet("") # Clear any error styling
-
-        if self.thread:
-            self.thread.quit()
-            self.thread.wait()
-        self.thread = self.worker = self.current_task = None
-
-    def check_initial_dirs(self):
-        for path in [config.BASE_DOCS_SAVE_DIR, config.PROCESSED_DOCS_DIR, config.LEARNING_DATA_FILE_DIR, config.TRANSCRIPTION_SAVE_DIR]:
-            if not os.path.exists(path):
-                os.makedirs(path); self.log_message(f"Created directory: {path}")
-
-    def _display_scan_report(self, scan_results_dict):
-        report_content = scan_results_dict.pop("report", "### Error: Report not generated. ###")
-        self.scan_results_text.setMarkdown(report_content)
-        
-        self.scan_proposals_queue = []
-        for filepath, result in scan_results_dict.items():
-            if result.get("proposals"):
-                for proposal in result["proposals"]:
-                    proposal['filepath'] = filepath
-                    self.scan_proposals_queue.append(proposal)
-
-        if self.scan_proposals_queue:
-            self.review_suggestions_button.setEnabled(True)
-            self.review_suggestions_button.setText(f"Review Suggestions ({len(self.scan_proposals_queue)} left)")
-            self.log_message(f"Scan complete. {len(self.scan_proposals_queue)} suggestions ready for review.")
-        else:
-            self.review_suggestions_button.setEnabled(False)
-            self.log_message("Scan complete. No suggestions to review.")
+        dir_name = QFileDialog.getExistingDirectory(self, "Select Project Directory to Scan", config.PROJECT_ROOT)
+        if dir_name: self.scan_dir_entry.setText(dir_name)
 
     def review_next_suggestion(self):
-        if not self.scan_proposals_queue:
-            self.show_error_messagebox("Review Complete", "No more suggestions to review.")
+        if not self.suggestion_list or self.current_suggestion_index >= len(self.suggestion_list):
+            QMessageBox.information(self, "Review Complete", "You have reviewed all available suggestions.")
             self.review_suggestions_button.setEnabled(False)
             return
+        suggestion = self.suggestion_list[self.current_suggestion_index]
+        self.review_suggestions_button.setEnabled(False)
+        self.start_worker('get_explanation', ai_tools.get_ai_explanation, suggestion)
 
-        proposal = self.scan_proposals_queue.pop(0)
-        filepath = proposal['filepath']
-        filename = os.path.basename(filepath)
-        
-        dialog = SuggestionDialog(
-            f"Suggestion for {filename} (Line: {proposal['line_number'] + 1})",
-            proposal['original_code'],
-            proposal['proposed_code'],
-            self
-        )
-
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self._apply_and_log_change(proposal)
-        else:
-            self.log_message(f"Rejected suggestion for {filepath}")
-            self._log_learning_experience(filepath, proposal, 'rejected')
-        
-        remaining = len(self.scan_proposals_queue)
-        if remaining > 0:
-            self.review_suggestions_button.setText(f"Review Suggestions ({remaining} left)")
-        else:
-            self.review_suggestions_button.setText("Review Complete")
-            self.review_suggestions_button.setEnabled(False)
-
-    def _apply_and_log_change(self, proposal):
-        filepath = proposal['filepath']
+    def apply_suggestion(self, suggestion):
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-            
-            lines[proposal['line_number']] = proposal['proposed_code'] + '\n'
+            filepath, line_number, new_code = suggestion['filepath'], suggestion['line_number'], suggestion['proposed_code']
+            with open(filepath, 'r', encoding='utf-8') as f: lines = f.readlines()
+            original_line_ending = '\n' if lines[line_number].endswith('\n') else ''
+            leading_whitespace = lines[line_number][:len(lines[line_number]) - len(lines[line_number].lstrip())]
+            lines[line_number] = leading_whitespace + new_code.strip() + original_line_ending
+            with open(filepath, 'w', encoding='utf-8') as f: f.writelines(lines)
+            self.log_message(f"Applied suggestion to {os.path.basename(filepath)} at line {line_number + 1}")
+            self.current_suggestion_index += 1
+            self.review_next_suggestion()
+        except Exception as e: QMessageBox.critical(self, "Apply Error", f"Could not apply the change to the file:\n{e}")
 
-            with open(filepath, 'w', encoding='utf-8') as f:
-                f.writelines(lines)
-            
-            self.log_message(f"APPLIED fix to {os.path.basename(filepath)}.")
-            self._log_learning_experience(filepath, proposal, 'accepted')
-        except Exception as e:
-            self.show_error_messagebox("File Write Error", f"Could not write changes to {filepath}: {e}")
-        
-    def _log_learning_experience(self, filepath, proposal, decision):
-        record = {"timestamp": datetime.datetime.now().isoformat(), "filepath": filepath, "decision": decision, "proposal": proposal}
-        learning_file = os.path.join(config.LEARNING_DATA_FILE_DIR, "learning_data.jsonl")
+    def save_learning_feedback(self, suggestion, user_text):
+        if not user_text: return
+        feedback_entry = {'issue': suggestion['description'], 'original_code': suggestion['original_code'], 'ai_proposed_code': suggestion['proposed_code'], 'user_feedback_or_code': user_text}
         try:
-            with open(learning_file, 'a') as f: f.write(json.dumps(record) + '\n')
-        except IOError as e:
-            self.log_message(f"Could not write to learning log: {e}")
+            os.makedirs(config.LEARNING_DATA_FILE_DIR, exist_ok=True)
+            with open(config.LEARNING_DATA_FILE, 'a', encoding='utf-8') as f: f.write(json.dumps(feedback_entry) + '\n')
+            self.log_message("Saved user feedback for AI learning.")
+        except Exception as e: self.log_message(f"Could not save learning feedback: {e}")
 
-    def set_ui_busy_state(self, is_busy):
-        buttons = [
-            self.acquire_doc_button, self.acquire_github_button, self.add_local_files_button,
-            self.preprocess_docs_button, self.train_lm_button, getattr(self, 'scan_button', None), 
-            getattr(self, 'browse_button', None), getattr(self, 'transcribe_button', None),
-            self.review_suggestions_button
-        ]
-        for button in buttons:
-            if button:
-                if button == self.review_suggestions_button:
-                    if not is_busy and self.scan_proposals_queue:
-                        button.setEnabled(True)
-                    else:
-                        button.setEnabled(False)
-                else:
-                    button.setEnabled(not is_busy)
-        
-        if hasattr(self, 'status_bar'):
-            if is_busy and self.current_task:
-                self.status_bar.showMessage(f"Running: {self.current_task}...")
-            else:
-                self.status_bar.showMessage("Ready", 5000)
-                self.status_bar.showMessage("Ready", 5000)
+    def cancel_worker(self):
+        if self.worker and self.worker.isRunning():
+            self.worker.terminate(); self.worker.wait()
+            self.log_message("Task canceled by user.")
+            self.on_worker_finished(None)
+
+    @pyqtSlot(str)
+    def on_worker_error(self, message):
+        if not self.worker: return
+        task = self.worker.task_type
+        if task == 'transcribe_youtube': self.transcribe_button.setEnabled(True)
+        elif task == 'preprocess_docs': self.preprocess_docs_button.setEnabled(True)
+        elif 'train' in task: self.train_lm_button.setEnabled(True); self.finetune_lm_button.setEnabled(True)
+        elif task == 'scan_code': self.scan_button.setEnabled(True)
+        elif task == 'get_explanation': self.review_suggestions_button.setEnabled(True)
+        elif task == 'generate_report': self.create_report_button.setEnabled(True)
+        if self.progress_dialog: self.progress_dialog.close()
+        QMessageBox.critical(self, "Worker Error", message)
+        self.worker = None
+
+    @pyqtSlot(int, int, str)
+    def update_progress(self, current_step, total_steps, message):
+        if not self.worker: return
+        task = self.worker.task_type
+        if task in ['transcribe_youtube', 'scan_code', 'generate_report']:
+            bar = self.transcription_progressbar if task == 'transcribe_youtube' else self.scan_progress_bar
+            label = self.transcription_status_label if task == 'transcribe_youtube' else self.scan_status_label
+            bar.setValue(current_step); bar.setMaximum(total_steps); label.setText(f"Status: {message}")
+        elif self.progress_dialog:
+            self.progress_dialog.setValue(current_step); self.progress_dialog.setMaximum(total_steps); self.progress_dialog.setLabelText(message)
+
+    @pyqtSlot(str)
+    def log_message(self, message):
+        print(message)
+        self.statusBar().showMessage(str(message), 5000)
+
+    def navigate_to_url(self): self.browser.setUrl(QUrl(self.url_bar.text()))
+    def update_url_bar(self, qurl): self.url_bar.setText(qurl.toString())

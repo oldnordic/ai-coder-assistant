@@ -1,6 +1,6 @@
 # ai_tab_widgets.py
 from PyQt6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGroupBox,
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGroupBox,
     QProgressBar, QFormLayout, QLineEdit, QFileDialog, QTextEdit, QComboBox
 )
 import config
@@ -17,18 +17,15 @@ def setup_ai_tab(parent_widget, main_app_instance):
     
     main_app_instance.ollama_model_selector = QComboBox()
     refresh_button = QPushButton("Refresh Models")
-    refresh_button.clicked.connect(main_app_instance.populate_ollama_models)
+    refresh_button.setObjectName("Refresh Models")
     ollama_layout.addRow("Select Ollama Model:", main_app_instance.ollama_model_selector)
     ollama_layout.addRow(refresh_button)
 
-    # NEW: Model Source Selector
     main_app_instance.model_source_selector = QComboBox()
     main_app_instance.model_source_selector.addItem("Use Ollama Model")
     main_app_instance.model_source_selector.addItem("Use Own Trained Model")
-    # Connect a signal to handle selection changes
     main_app_instance.model_source_selector.currentIndexChanged.connect(main_app_instance.on_model_source_changed)
     ollama_layout.addRow("Select AI Source:", main_app_instance.model_source_selector)
-
     layout.addWidget(ollama_group)
 
     # --- Code Scanning ---
@@ -39,13 +36,13 @@ def setup_ai_tab(parent_widget, main_app_instance):
     main_app_instance.scan_dir_entry = QLineEdit()
     main_app_instance.scan_dir_entry.setPlaceholderText("Select a project directory to scan...")
     browse_button = QPushButton("Browse")
-    browse_button.clicked.connect(main_app_instance.select_scan_directory)
+    browse_button.setObjectName("Browse")
+    
     dir_layout.addWidget(main_app_instance.scan_dir_entry)
     dir_layout.addWidget(browse_button)
     scan_layout.addLayout(dir_layout)
     
     main_app_instance.scan_button = QPushButton("Scan Project Files")
-    main_app_instance.scan_button.clicked.connect(lambda: main_app_instance.start_worker('scan_code'))
     scan_layout.addWidget(main_app_instance.scan_button)
     
     progress_layout = QFormLayout()
@@ -64,10 +61,16 @@ def setup_ai_tab(parent_widget, main_app_instance):
     main_app_instance.scan_results_text.setPlaceholderText("Scan report will be displayed here.")
     results_layout.addWidget(main_app_instance.scan_results_text)
     
+    action_buttons_layout = QHBoxLayout()
     main_app_instance.review_suggestions_button = QPushButton("Review Suggestions")
-    main_app_instance.review_suggestions_button.setEnabled(False) # Disabled by default
-    main_app_instance.review_suggestions_button.clicked.connect(main_app_instance.review_next_suggestion)
-    results_layout.addWidget(main_app_instance.review_suggestions_button)
+    main_app_instance.review_suggestions_button.setEnabled(False) 
+    
+    main_app_instance.create_report_button = QPushButton("Create Report")
+    main_app_instance.create_report_button.setEnabled(False)
+
+    action_buttons_layout.addWidget(main_app_instance.review_suggestions_button)
+    action_buttons_layout.addWidget(main_app_instance.create_report_button)
+    results_layout.addLayout(action_buttons_layout)
     
     layout.addWidget(results_group)
     layout.addStretch(1)

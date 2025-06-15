@@ -9,10 +9,13 @@ torch
 python-dotenv
 numpy
 flake8
-yt-dlp
 pathspec
 faiss-cpu
 sentence-transformers
 langchain
+# Added missing libraries and corrected whisper installation
+yt-dlp
+youtube-transcript-api
+
 # openai-whisper  <- You can comment out or remove this line
 git+https://github.com/openai/whisper.git
