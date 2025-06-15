@@ -1,9 +1,10 @@
 # train_language_model.py
 import os
-from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers
+from tokenizers import Tokenizer, models, pre_tokenizers, trainers
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torch.nn import TransformerEncoder, TransformerEncoderLayer, Linear, Embedding, CrossEntropyLoss
+import torch.optim as optim
 import math
 import config
 
@@ -49,10 +50,7 @@ class TransformerModel(torch.nn.Module):
         return output
     
     def generate(self, context_tensor, max_new_tokens):
-        """
-        Generates new tokens based on a starting context tensor.
-        """
-        self.eval() 
+        self.eval()
         with torch.no_grad():
             for _ in range(max_new_tokens):
                 context_cond = context_tensor[:, -config.MAX_SEQUENCE_LENGTH:]
@@ -60,8 +58,7 @@ class TransformerModel(torch.nn.Module):
                 logits = logits[:, -1, :]
                 probs = torch.nn.functional.softmax(logits, dim=-1)
                 idx_next = torch.multinomial(probs, num_samples=1)
-                if idx_next.item() == config.PAD_TOKEN_ID:
-                    break
+                if idx_next.item() == config.PAD_TOKEN_ID: break
                 context_tensor = torch.cat((context_tensor, idx_next), dim=1)
         return context_tensor
 
@@ -98,16 +95,22 @@ def train_model(vocab_dir, model_save_path, finetune=False, **kwargs):
     try:
         device = config.DEVICE
         log_message_callback(f"Using device: {device}")
-        
-        training_data_path = config.FINETUNING_FILE_PATH if finetune and os.path.exists(config.FINETUNING_FILE_PATH) else config.CONCAT_FILE_PATH
-        log_message_callback(f"Using training data: {os.path.basename(training_data_path)}")
-
-        if not os.path.exists(training_data_path) or os.path.getsize(training_data_path) == 0:
-            return "Error: Training data file not found or is empty. Please run pre-processing."
+        progress_callback(0, 100, "Starting training...")
 
         tokenizer_path = os.path.join(vocab_dir, "tokenizer.json")
+        
+        if finetune:
+            training_data_path = config.FINETUNING_FILE_PATH
+            log_message_callback("Mode: Finetuning. Using feedback dataset.")
+        else:
+            training_data_path = config.CONCAT_FILE_PATH
+            log_message_callback("Mode: Base Training. Using general corpus.")
+        
+        if not os.path.exists(training_data_path) or os.path.getsize(training_data_path) == 0:
+            return f"Error: Training data file not found or is empty: {os.path.basename(training_data_path)}. Please run preprocessing first."
+
         if not os.path.exists(tokenizer_path):
-            log_message_callback("Tokenizer not found. Training new one on general corpus.")
+            log_message_callback("Tokenizer not found. Training a new one...")
             tokenizer = Tokenizer(models.WordLevel(unk_token=config.UNK_TOKEN))
             tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
             trainer = trainers.WordLevelTrainer(vocab_size=config.VOCAB_SIZE, special_tokens=[config.UNK_TOKEN, config.PAD_TOKEN])
@@ -115,25 +118,29 @@ def train_model(vocab_dir, model_save_path, finetune=False, **kwargs):
             tokenizer.save(tokenizer_path)
             log_message_callback(f"Tokenizer trained and saved to {tokenizer_path}")
         else:
+            log_message_callback(f"Loading existing tokenizer from {tokenizer_path}")
             tokenizer = Tokenizer.from_file(tokenizer_path)
 
+        progress_callback(20, 100, "Preparing dataset...")
         dataset = TextDataset(training_data_path, tokenizer, config.MAX_SEQUENCE_LENGTH)
         dataloader = DataLoader(dataset, batch_size=config.BATCH_SIZE, shuffle=True)
         log_message_callback(f"Dataset prepared with {len(dataset)} samples.")
 
         ntokens = tokenizer.get_vocab_size()
         model = TransformerModel(ntokens, config.EMBED_DIM, config.NUM_HEADS, config.EMBED_DIM, config.NUM_LAYERS, config.DROPOUT).to(device)
-
+        
         if finetune and os.path.exists(model_save_path):
-            log_message_callback("Loading existing model weights for finetuning.")
-            model.load_state_dict(torch.load(model_save_path, map_location=device))
-        else:
-            log_message_callback("Initializing new model for base training.")
+            try:
+                model.load_state_dict(torch.load(model_save_path, map_location=device))
+                log_message_callback("Loaded existing model weights for finetuning.")
+            except Exception as e:
+                log_message_callback(f"Could not load existing model for finetuning: {e}. Training from scratch.")
 
         criterion = CrossEntropyLoss(ignore_index=config.PAD_TOKEN_ID)
-        optimizer = optim.Adam(model.parameters(), lr=0.0005 if finetune else 0.001)
+        optimizer = optim.Adam(model.parameters(), lr=0.0001 if finetune else 0.001)
+        log_message_callback("Transformer model initialized.")
 
-        log_message_callback(f"Starting model {'finetuning' if finetune else 'base training'} for {config.NUM_EPOCHS} epochs...")
+        log_message_callback(f"Starting training for {config.NUM_EPOCHS} epochs...")
         total_batches = len(dataloader)
         for epoch in range(config.NUM_EPOCHS):
             model.train()
@@ -147,14 +154,14 @@ def train_model(vocab_dir, model_save_path, finetune=False, **kwargs):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
                 optimizer.step()
                 total_loss += loss.item()
-                current_progress = int(100 * (epoch / config.NUM_EPOCHS + (i + 1) / (total_batches * config.NUM_EPOCHS)))
+                current_progress = int(20 + 80 * (epoch / config.NUM_EPOCHS + (i + 1) / (total_batches * config.NUM_EPOCHS)))
                 progress_callback(current_progress, 100, f"Epoch {epoch+1}/{config.NUM_EPOCHS}, Batch {i+1}/{total_batches}, Loss: {loss.item():.4f}")
             avg_loss = total_loss / len(dataloader)
             log_message_callback(f"Epoch {epoch+1}/{config.NUM_EPOCHS} | Average Loss: {avg_loss:.4f}")
 
         progress_callback(100, 100, "Saving model...")
         torch.save(model.state_dict(), model_save_path)
-        log_message_callback(f"Model saved to {model_save_path}")
+        log_message_callback(f"Model trained and saved to {model_save_path}")
         return "Success"
     except Exception as e:
         log_message_callback(f"An error occurred during training: {e}")

@@ -1,21 +1,15 @@
-# requirements.txt
 PyQt6
 PyQt6-WebEngine
 requests
 beautifulsoup4
-lxml
-tqdm
 torch
-python-dotenv
-numpy
-flake8
-pathspec
-faiss-cpu
+transformers
 sentence-transformers
-langchain
-# Added missing libraries and corrected whisper installation
+faiss-cpu
+flake8
+ollama
+qdarkstyle
 yt-dlp
 youtube-transcript-api
-
-# openai-whisper  <- You can comment out or remove this line
+pathspec
 git+https://github.com/openai/whisper.git

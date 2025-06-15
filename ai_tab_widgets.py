@@ -1,76 +1,84 @@
 # ai_tab_widgets.py
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGroupBox,
-    QProgressBar, QFormLayout, QLineEdit, QFileDialog, QTextEdit, QComboBox
-)
-import config
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGroupBox,
+                             QProgressBar, QFormLayout, QLineEdit, QComboBox, QTextEdit)
+from PyQt6.QtCore import Qt
 
 def setup_ai_tab(parent_widget, main_app_instance):
     """
     Sets up the UI components for the AI code analysis tab.
     """
     layout = QVBoxLayout(parent_widget)
-    
-    # --- Enhanced Analysis Configuration ---
-    ollama_group = QGroupBox("1. Enhanced Analysis Configuration")
-    ollama_layout = QFormLayout(ollama_group)
-    
-    main_app_instance.ollama_model_selector = QComboBox()
-    refresh_button = QPushButton("Refresh Models")
-    refresh_button.setObjectName("Refresh Models")
-    ollama_layout.addRow("Select Ollama Model:", main_app_instance.ollama_model_selector)
-    ollama_layout.addRow(refresh_button)
+
+    # --- Model Selection Group ---
+    model_group = QGroupBox("1. AI Model Configuration")
+    model_layout = QFormLayout(model_group)
 
     main_app_instance.model_source_selector = QComboBox()
-    main_app_instance.model_source_selector.addItem("Use Ollama Model")
-    main_app_instance.model_source_selector.addItem("Use Own Trained Model")
-    main_app_instance.model_source_selector.currentIndexChanged.connect(main_app_instance.on_model_source_changed)
-    ollama_layout.addRow("Select AI Source:", main_app_instance.model_source_selector)
-    layout.addWidget(ollama_group)
+    main_app_instance.model_source_selector.addItem("Ollama")
+    main_app_instance.model_source_selector.addItem("Own Trained Model")
+    
+    # --- Ollama Widgets ---
+    main_app_instance.ollama_model_label = QLabel("Ollama Model:")
+    main_app_instance.ollama_model_selector = QComboBox()
+    main_app_instance.refresh_button = QPushButton("Refresh Models")
+    ollama_layout = QHBoxLayout()
+    ollama_layout.addWidget(main_app_instance.ollama_model_selector)
+    ollama_layout.addWidget(main_app_instance.refresh_button)
 
-    # --- Code Scanning ---
-    scan_group = QGroupBox("2. Scan Project")
-    scan_layout = QVBoxLayout(scan_group)
+    # --- Own Model Widgets (FIXED) ---
+    main_app_instance.model_status_label = QLabel("Status: Not Loaded")
+    main_app_instance.load_model_button = QPushButton("Load Trained Model")
+
+    # Add widgets to layout
+    model_layout.addRow(QLabel("Model Source:"), main_app_instance.model_source_selector)
+    model_layout.addRow(main_app_instance.ollama_model_label, ollama_layout)
+    model_layout.addRow(QLabel("Own Model Status:"), main_app_instance.model_status_label)
+    model_layout.addRow(main_app_instance.load_model_button)
     
-    dir_layout = QHBoxLayout()
+    layout.addWidget(model_group)
+
+    # --- Scan Configuration Group ---
+    scan_group = QGroupBox("2. Code Scanning")
+    scan_layout = QFormLayout(scan_group)
+    
     main_app_instance.scan_dir_entry = QLineEdit()
-    main_app_instance.scan_dir_entry.setPlaceholderText("Select a project directory to scan...")
-    browse_button = QPushButton("Browse")
-    browse_button.setObjectName("Browse")
+    main_app_instance.scan_dir_entry.setPlaceholderText("Select a project folder to scan...")
+    main_app_instance.browse_button = QPushButton("Browse...")
     
-    dir_layout.addWidget(main_app_instance.scan_dir_entry)
-    dir_layout.addWidget(browse_button)
-    scan_layout.addLayout(dir_layout)
+    scan_dir_layout = QHBoxLayout()
+    scan_dir_layout.addWidget(main_app_instance.scan_dir_entry)
+    scan_dir_layout.addWidget(main_app_instance.browse_button)
     
-    main_app_instance.scan_button = QPushButton("Scan Project Files")
-    scan_layout.addWidget(main_app_instance.scan_button)
+    main_app_instance.scan_button = QPushButton("Start Scan")
+    main_app_instance.scan_button.setFixedHeight(35)
     
-    progress_layout = QFormLayout()
-    main_app_instance.scan_status_label = QLabel("Ready")
     main_app_instance.scan_progress_bar = QProgressBar()
-    progress_layout.addRow("Status:", main_app_instance.scan_status_label)
-    progress_layout.addRow("Progress:", main_app_instance.scan_progress_bar)
-    scan_layout.addLayout(progress_layout)
+    main_app_instance.scan_status_label = QLabel("Status: Idle")
+    main_app_instance.scan_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+    scan_layout.addRow(QLabel("Project Directory:"), scan_dir_layout)
+    scan_layout.addRow(main_app_instance.scan_button)
+    scan_layout.addRow(main_app_instance.scan_progress_bar)
+    scan_layout.addRow(main_app_instance.scan_status_label)
     layout.addWidget(scan_group)
 
-    # --- Scan Report and Suggestions ---
-    results_group = QGroupBox("3. Scan Report & Suggestions")
+    # --- Results and Review Group ---
+    results_group = QGroupBox("3. Results & Suggestions")
     results_layout = QVBoxLayout(results_group)
+
     main_app_instance.scan_results_text = QTextEdit()
     main_app_instance.scan_results_text.setReadOnly(True)
-    main_app_instance.scan_results_text.setPlaceholderText("Scan report will be displayed here.")
-    results_layout.addWidget(main_app_instance.scan_results_text)
+    main_app_instance.scan_results_text.setPlaceholderText("Scan report summary will appear here...")
     
-    action_buttons_layout = QHBoxLayout()
-    main_app_instance.review_suggestions_button = QPushButton("Review Suggestions")
-    main_app_instance.review_suggestions_button.setEnabled(False) 
+    main_app_instance.review_suggestions_button = QPushButton("Review Suggestions Interactively")
+    main_app_instance.review_suggestions_button.setEnabled(False)
     
-    main_app_instance.create_report_button = QPushButton("Create Report")
+    main_app_instance.create_report_button = QPushButton("Generate Full HTML Report")
     main_app_instance.create_report_button.setEnabled(False)
 
-    action_buttons_layout.addWidget(main_app_instance.review_suggestions_button)
-    action_buttons_layout.addWidget(main_app_instance.create_report_button)
-    results_layout.addLayout(action_buttons_layout)
-    
+    results_layout.addWidget(main_app_instance.scan_results_text)
+    results_layout.addWidget(main_app_instance.review_suggestions_button)
+    results_layout.addWidget(main_app_instance.create_report_button)
     layout.addWidget(results_group)
+
     layout.addStretch(1)

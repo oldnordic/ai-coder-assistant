@@ -3,8 +3,6 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import yt_dlp
-from yt_dlp import YoutubeDL
-import whisper
 import faiss
 import numpy as np
 import json
@@ -14,8 +12,44 @@ import re
 from youtube_transcript_api import YouTubeTranscriptApi
 import ollama_client
 import html
+import torch
+from tokenizers import Tokenizer
+import train_language_model
+from typing import Optional
 
-def generate_html_report(suggestion_list, **kwargs):
+
+def generate_with_own_model(
+    model: train_language_model.TransformerModel, 
+    tokenizer: Tokenizer, 
+    prompt: str,
+    max_new_tokens: int = 150
+) -> str:
+    """
+    Generates text using the custom-trained Transformer model.
+    """
+    if model is None or tokenizer is None:
+        return "Own model or tokenizer not loaded. Please train or load a model first."
+
+    device = next(model.parameters()).device
+    input_ids = tokenizer.encode(prompt).ids
+    input_tensor = torch.tensor([input_ids]).to(device)
+    
+    model.eval()
+    with torch.no_grad():
+        output_tensor = model.generate(
+            context_tensor=input_tensor, 
+            max_new_tokens=max_new_tokens
+        )
+
+    full_text = tokenizer.decode(output_tensor[0].tolist())
+    
+    parts = re.split(r"Suggested Fix:|AI Justification:", full_text, flags=re.IGNORECASE)
+    if len(parts) > 1:
+        return parts[-1].strip().split('---')[0].strip()
+    return "Failed to generate a valid suggestion."
+
+
+def generate_html_report(suggestion_list, model_mode, model_ref, tokenizer_ref, **kwargs):
     """
     Iterates through all suggestions, gets an AI explanation for each,
     and compiles them into a single HTML report string.
@@ -50,9 +84,11 @@ def generate_html_report(suggestion_list, **kwargs):
     
     total_suggestions = len(suggestion_list)
     for i, suggestion in enumerate(suggestion_list):
-        progress_callback(i, total_suggestions, f"Generating explanation {i+1}/{total_suggestions}...")
+        progress_callback(i + 1, total_suggestions, f"Generating explanation {i+1}/{total_suggestions}...")
         
-        explanation = get_ai_explanation(suggestion, **kwargs)
+        explanation = get_ai_explanation(
+            suggestion, model_mode, model_ref, tokenizer_ref, **kwargs
+        )
         
         filepath = suggestion.get('filepath', 'N/A')
         line_num = suggestion.get('line_number', -1) + 1
@@ -78,7 +114,7 @@ def generate_html_report(suggestion_list, **kwargs):
     progress_callback(total_suggestions, total_suggestions, "Report generated.")
     return "".join(html_parts)
 
-def get_ai_explanation(suggestion, **kwargs):
+def get_ai_explanation(suggestion, model_mode, model_ref, tokenizer_ref, **kwargs):
     log_message_callback = kwargs.get('log_message_callback', print)
     try:
         issue_description = suggestion['description']
@@ -94,11 +130,22 @@ Your task is to provide a clear, concise explanation of *why* the proposed fix i
 - Issue: {suggestion['description']}
 - Original Code: `{suggestion['original_code']}`
 - Proposed Fix: `{suggestion['proposed_code']}`
-**Your Task:**
-Explain why the proposed fix is the correct approach. Justify it based on the documentation context provided and general programming principles like readability, efficiency, or safety. Keep the explanation focused and helpful.
+**AI Justification:**
 """
-        explanation = ollama_client.get_ollama_response(prompt, config.OLLAMA_MODEL)
-        if explanation.startswith("API_ERROR:"): return f"Could not generate explanation: {explanation}"
+        
+        if model_mode == "ollama":
+            log_message_callback(f"Generating explanation with Ollama model: {model_ref}")
+            explanation = ollama_client.get_ollama_response(prompt, model_ref)
+        else: # own_model
+            log_message_callback("Generating explanation with your own trained model.")
+            explanation = generate_with_own_model(
+                model=model_ref,
+                tokenizer=tokenizer_ref,
+                prompt=prompt
+            )
+
+        if isinstance(explanation, str) and explanation.startswith("API_ERROR:"): 
+            return f"Could not generate explanation: {explanation}"
         return explanation
     except Exception as e:
         return f"An unexpected error occurred while generating the explanation: {e}"
@@ -163,30 +210,41 @@ def transcribe_youtube_tool(youtube_url: str, **kwargs) -> str:
                 return transcript_text
         except Exception as api_e:
             _log(f"API transcription failed ({api_e}). Falling back to Whisper.")
+        
         temp_audio_path = os.path.join(config.PROJECT_ROOT, f"temp_audio_{video_id}.mp3")
         def yt_dlp_progress_hook(d):
             if d['status'] == 'downloading':
                 total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate')
                 if total_bytes:
                     percentage = (d['downloaded_bytes'] / total_bytes) * 100
-                    _progress(int(percentage * 0.33), 100, f"Stage 2/3: Downloading audio... {d['_percent_str']}")
-            elif d['status'] == 'finished': _progress(33, 100, "Stage 2/3: Download complete.")
-        ydl_opts = {'format': 'bestaudio/best', 'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}], 'outtmpl': os.path.splitext(temp_audio_path)[0], 'noplaylist': True, 'progress_hooks': [yt_dlp_progress_hook]}
-        try:
-            with YoutubeDL(ydl_opts) as ydl: ydl.download([youtube_url])
-            _progress(40, 100, "Stage 3/3: Loading model...")
-            model = whisper.load_model("tiny")
-            _progress(50, 100, "Stage 3/3: Transcribing...")
-            result = model.transcribe(temp_audio_path, fp16=False)
-            transcript_text = result['text']
-            _log("Whisper transcription finished.")
-            _progress(100, 100, "Transcription complete!")
-            return transcript_text
-        finally:
-            if os.path.exists(temp_audio_path): os.remove(temp_audio_path)
+                    _progress(int(percentage * 0.33), 100, f"Downloading audio... {d['_percent_str']}")
+            elif d['status'] == 'finished': _progress(33, 100, "Download complete.")
+        
+        ydl_opts = {
+            'format': 'bestaudio/best', 
+            'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}], 
+            'outtmpl': os.path.splitext(temp_audio_path)[0], 
+            'noplaylist': True, 
+            'progress_hooks': [yt_dlp_progress_hook]
+        }
+        
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
+            ydl.download([youtube_url])
+        
+        _log("Loading Whisper model for fallback transcription...")
+        model = whisper.load_model("tiny.en")
+        _progress(50, 100, "Transcribing...")
+        result = model.transcribe(temp_audio_path, fp16=False)
+        transcript_text = result['text']
+        _log("Whisper transcription finished.")
+        _progress(100, 100, "Transcription complete!")
+        return transcript_text
     except Exception as e:
         _log(f"An unexpected error occurred during transcription: {e}")
         return f"An unexpected error occurred during transcription: {e}"
+    finally:
+        if 'temp_audio_path' in locals() and os.path.exists(temp_audio_path): 
+            os.remove(temp_audio_path)
 
 def query_knowledge_base(query_text: str, log_message_callback=None) -> str:
     _log = log_message_callback if callable(log_message_callback) else print
@@ -203,13 +261,3 @@ def query_knowledge_base(query_text: str, log_message_callback=None) -> str:
     except Exception as e:
         _log(f"Error querying knowledge base: {e}")
         return f"Error querying knowledge base: {e}"
-
-AVAILABLE_TOOLS = {
-    "query_knowledge_base": query_knowledge_base,
-    "read_file": read_file_tool,
-    "write_file": write_file_tool,
-    "browse_web": browse_web_tool,
-    "transcribe_youtube": transcribe_youtube_tool,
-    "get_ai_explanation": get_ai_explanation,
-    "generate_html_report": generate_html_report,
-}

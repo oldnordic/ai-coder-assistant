@@ -27,6 +27,9 @@ pip-wheel-metadata/
 docs/
 documentation_corpus/
 processed_docs_chunks/
+python_stdlib_docs/
+learning_data/
+model_data/
 
 # Version Control
 .git/
@@ -43,3 +46,15 @@ node_modules/
 application.log
 ai_coder_model.pth
 *.spec
+temp_speech.wav
+tts_models/
+chroma_db/
+
+# Environment variables
+.env
+# memory
+.index.faiss
+.index.pkl
+memory/index.pkl
+memory/index.faiss
+plan.txt

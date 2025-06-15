@@ -1,77 +1,67 @@
 # data_tab_widgets.py
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QLabel, QGroupBox, QProgressBar, QFormLayout, QLineEdit, QComboBox)
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QLabel, QGroupBox,
+                             QFormLayout, QLineEdit, QComboBox, QTextEdit)
 import config
 
 def setup_data_tab(parent_widget, main_app_instance):
     """
-    Sets up the UI components for the data acquisition and preprocessing tab.
+    Sets up the UI components for the data acquisition and model training tab.
     """
     layout = QVBoxLayout(parent_widget)
     
-    acq_group = QGroupBox("1. Acquire Documentation from Web")
+    # --- Data Acquisition Group ---
+    acq_group = QGroupBox("1. Data Acquisition")
     acq_layout = QFormLayout(acq_group)
+
+    main_app_instance.doc_urls_input = QTextEdit()
+    main_app_instance.doc_urls_input.setPlaceholderText("https://docs.python.org/3/\nhttps://requests.readthedocs.io/en/latest/")
+    main_app_instance.doc_urls_input.setMinimumHeight(80)
+    main_app_instance.acquire_doc_button = QPushButton("Acquire from URLs")
     
-    main_app_instance.doc_language_selector = QComboBox()
-    languages = list(config.DOCUMENTATION_SOURCES.keys())
-    main_app_instance.doc_language_selector.addItems(languages)
-    acq_layout.addRow("Select Language:", main_app_instance.doc_language_selector)
-    
-    main_app_instance.acquire_doc_button = QPushButton("Start Acquisition")
+    main_app_instance.github_query_input = QLineEdit("python web scraping")
+    main_app_instance.github_token_input = QLineEdit()
+    main_app_instance.github_token_input.setEchoMode(QLineEdit.EchoMode.Password)
+    main_app_instance.github_token_input.setPlaceholderText("Optional but recommended")
+    main_app_instance.acquire_github_button = QPushButton("Acquire from GitHub")
+
+    acq_layout.addRow(QLabel("Documentation URLs (one per line):"), main_app_instance.doc_urls_input)
     acq_layout.addRow(main_app_instance.acquire_doc_button)
+    acq_layout.addRow(QLabel("GitHub Search Query:"), main_app_instance.github_query_input)
+    acq_layout.addRow(QLabel("GitHub Token:"), main_app_instance.github_token_input)
+    acq_layout.addRow(main_app_instance.acquire_github_button)
     
-    main_app_instance.acquire_doc_status_label = QLabel("Ready")
-    main_app_instance.acquire_doc_progressbar = QProgressBar()
-    acq_layout.addRow("Status:", main_app_instance.acquire_doc_status_label)
-    acq_layout.addRow("Progress:", main_app_instance.acquire_doc_progressbar)
+    acq_group.setLayout(acq_layout)
     layout.addWidget(acq_group)
 
-    github_group = QGroupBox("2. Acquire Code from GitHub")
-    github_layout = QFormLayout(github_group)
-    main_app_instance.github_token_entry = QLineEdit()
-    main_app_instance.github_token_entry.setEchoMode(QLineEdit.EchoMode.Password)
-    main_app_instance.github_query_entry = QLineEdit("python language:python")
-    github_layout.addRow("GitHub Token:", main_app_instance.github_token_entry)
-    github_layout.addRow("Search Query:", main_app_instance.github_query_entry)
-    main_app_instance.acquire_github_button = QPushButton("Acquire from GitHub")
-    github_layout.addRow(main_app_instance.acquire_github_button)
-    main_app_instance.github_status_label = QLabel("Ready")
-    main_app_instance.github_progressbar = QProgressBar()
-    github_layout.addRow("Status:", main_app_instance.github_status_label)
-    github_layout.addRow("Progress:", main_app_instance.github_progressbar)
-    layout.addWidget(github_group)
-
-    pre_proc_group = QGroupBox("3. Pre-process All Docs for AI")
+    # --- Local Data and Pre-processing Group ---
+    pre_proc_group = QGroupBox("2. Pre-process All Data")
     pre_proc_layout = QVBoxLayout(pre_proc_group)
 
+    main_app_instance.add_local_files_button = QPushButton("Add Local Docs/Transcripts to Corpus")
+    main_app_instance.local_files_label = QLabel("No local folder added yet.")
+    
     main_app_instance.knowledge_mode_selector = QComboBox()
-    main_app_instance.knowledge_mode_selector.addItem("Reset Knowledge (Overwrite)")
+    main_app_instance.knowledge_mode_selector.addItem("Reset Knowledge (Overwrite All)")
     main_app_instance.knowledge_mode_selector.addItem("Accumulate Knowledge (Add New)")
-    main_app_instance.knowledge_mode_selector.setCurrentText("Accumulate Knowledge (Add New)")
+    
+    main_app_instance.preprocess_docs_button = QPushButton("Pre-process All Docs & Feedback")
+
+    pre_proc_layout.addWidget(main_app_instance.add_local_files_button)
+    pre_proc_layout.addWidget(main_app_instance.local_files_label)
     pre_proc_layout.addWidget(QLabel("Knowledge Mode:"))
     pre_proc_layout.addWidget(main_app_instance.knowledge_mode_selector)
-
-    main_app_instance.add_local_files_button = QPushButton("Add Local Folder to Corpus")
-    pre_proc_layout.addWidget(main_app_instance.add_local_files_button)
-    main_app_instance.local_files_label = QLabel("No local folder added yet.")
-    pre_proc_layout.addWidget(main_app_instance.local_files_label)
-    main_app_instance.preprocess_docs_button = QPushButton("Start Pre-processing")
     pre_proc_layout.addWidget(main_app_instance.preprocess_docs_button)
-    main_app_instance.preprocess_docs_status_label = QLabel("Ready")
-    main_app_instance.preprocess_docs_progressbar = QProgressBar()
-    form_layout_preprocess = QFormLayout()
-    form_layout_preprocess.addRow("Status:", main_app_instance.preprocess_docs_status_label)
-    form_layout_preprocess.addRow("Progress:", main_app_instance.preprocess_docs_progressbar)
-    pre_proc_layout.addLayout(form_layout_preprocess)
     layout.addWidget(pre_proc_group)
 
-    train_lm_group = QGroupBox("4. Train AI Language Model")
-    train_lm_layout = QFormLayout(train_lm_group)
-    main_app_instance.train_lm_button = QPushButton("Start Training")
-    train_lm_layout.addRow(main_app_instance.train_lm_button)
-    main_app_instance.train_lm_status_label = QLabel("Ready")
-    main_app_instance.train_lm_progressbar = QProgressBar()
-    train_lm_layout.addRow("Status:", main_app_instance.train_lm_status_label)
-    train_lm_layout.addRow("Progress:", main_app_instance.train_lm_progressbar)
-    layout.addWidget(train_lm_group)
+    # --- Training Group ---
+    train_lm_group = QGroupBox("3. Model Training")
+    train_lm_layout = QVBoxLayout(train_lm_group)
+
+    main_app_instance.train_lm_button = QPushButton("Train Base Model from Corpus")
+    main_app_instance.finetune_lm_button = QPushButton("Finetune Model with Feedback")
     
+    train_lm_layout.addWidget(main_app_instance.train_lm_button)
+    train_lm_layout.addWidget(main_app_instance.finetune_lm_button)
+    layout.addWidget(train_lm_group)
+
     layout.addStretch(1)

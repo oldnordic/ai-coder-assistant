@@ -1,57 +1,66 @@
 # ollama_client.py
 import requests
-import xml.etree.ElementTree as ET
-from config import OLLAMA_API_BASE_URL
+import json
+import config
 
-def list_ollama_models():
-    """Fetches a list of available models from the Ollama service."""
+def get_ollama_models_list(**kwargs):
+    """
+    Fetches the list of available models from the Ollama API.
+    Designed to be run in a worker thread.
+    """
+    log_message_callback = kwargs.get('log_message_callback', print)
     try:
-        response = requests.get(f"{OLLAMA_API_BASE_URL}/tags", timeout=10)
+        log_message_callback("Requesting model list from Ollama...")
+        response = requests.get(f"{config.OLLAMA_API_BASE_URL}/tags", timeout=5)
         response.raise_for_status()
-        models_data = response.json().get("models", [])
-        return [model['name'] for model in models_data]
+        models_data = response.json()
+        model_names = [model['name'] for model in models_data.get('models', [])]
+        log_message_callback(f"Found Ollama models: {', '.join(model_names)}")
+        return model_names
     except requests.exceptions.RequestException as e:
-        print(f"Ollama connection error: {e}")
-        return [{"Error": "Could not connect to Ollama. Please ensure it is running."}]
+        log_message_callback(f"Ollama API Error: {e}")
+        return f"API_ERROR: {e}"
 
-def get_ollama_response(prompt, model_name="llama3"):
-    """Sends a prompt to the Ollama service and gets a response using the chat endpoint."""
+def get_ollama_response(prompt, model_name, **kwargs):
+    log_message_callback = kwargs.get('log_message_callback', print)
     try:
-        # Use the /api/chat endpoint for better interaction with models like Llama3
-        # Format the prompt as a message list, as expected by /api/chat
-        payload = {
-            "model": model_name,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "stream": False # Set to True if you want streaming responses
-        }
-        
-        # Change endpoint from /generate to /chat
-        response = requests.post(f"{OLLAMA_API_BASE_URL}/chat", json=payload, timeout=90)
+        log_message_callback(f"Sending prompt to Ollama model: {model_name}")
+        response = requests.post(
+            f"{config.OLLAMA_API_BASE_URL}/generate",
+            json={"model": model_name, "prompt": prompt, "stream": False},
+            timeout=60
+        )
         response.raise_for_status()
-        
-        # For /api/chat, the response content is usually in response['message']['content']
-        return response.json().get('message', {}).get('content', '').strip()
+        return response.json().get('response', '')
     except requests.exceptions.RequestException as e:
-        error_message = f"API_ERROR: {e}"
-        print(f"Ollama API Error: {e}")
-        return error_message
+        log_message_callback(f"Ollama API Error: {e}")
+        return f"API_ERROR: {e}"
 
-def parse_tool_call(response_text):
-    """Parses an XML tool call from the AI's response text."""
-    try:
-        start_tag = "<tool_call>"
-        end_tag = "</tool_call>" # Corrected from </tool_tag>
-        start_index = response_text.find(start_tag)
-        end_index = response_text.find(end_tag)
-
-        if start_index != -1 and end_index != -1:
-            xml_content = response_text[start_index : end_index + len(end_tag)]
-            root = ET.fromstring(xml_content)
-            tool_name = root.find("tool_name").text.strip()
-            parameters = {param.tag: param.text.strip() for param in root.find("parameters")}
-            return tool_name, parameters
-    except Exception:
-        pass
-    return None, None
+def enhance_with_ollama(filepath, issue_line, model_name, **kwargs):
+    """
+    Generates a code suggestion using an Ollama model.
+    """
+    log_message_callback = kwargs.get('log_message_callback', print)
+    with open(filepath, 'r', encoding='utf-8') as f:
+        code_content = f.read()
+    
+    # --- THIS IS THE FIX ---
+    # The multi-line f-string that was causing a SyntaxError has been
+    # replaced by joining a list of strings. This is more robust.
+    prompt_lines = [
+        f"You are an expert Python programmer. Analyze the following code from the file '{filepath}'.",
+        f"A static analysis tool reported this issue: '{issue_line}'.",
+        "Focus on the line of code relevant to the issue. Provide a direct code replacement for the incorrect line.",
+        "Do not explain your reasoning, just provide the corrected line of code.",
+        "",
+        "Full code for context:",
+        "```python",
+        code_content,
+        "```",
+        "",
+        f"Correct the line related to the issue: '{issue_line}'"
+    ]
+    prompt = "\n".join(prompt_lines)
+    
+    suggestion = get_ollama_response(prompt, model_name, log_message_callback=log_message_callback)
+    return suggestion
