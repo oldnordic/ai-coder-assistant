@@ -1,18 +1,17 @@
-# requirements.txt
 PyQt6
 PyQt6-WebEngine
 requests
 beautifulsoup4
-lxml
-tqdm
 torch
-python-dotenv
-numpy
-flake8
-yt-dlp
-pathspec
-faiss-cpu
+transformers
 sentence-transformers
-langchain
-# openai-whisper  <- You can comment out or remove this line
+faiss-cpu
+flake8
+ollama
+qdarkstyle
+yt-dlp
+youtube-transcript-api
+pathspec
+datasets
+PyPDF2
 git+https://github.com/openai/whisper.git
