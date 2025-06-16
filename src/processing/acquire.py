@@ -4,6 +4,8 @@ import re
 from urllib.parse import urlparse
 from ..config import settings
 
+"""Utilities for scraping documentation from the web."""
+
 # --- FIXED: Use relative imports for modules within the same package ---
 from ..core.ai_tools import browse_web_tool
 

@@ -6,6 +6,8 @@ import logging
 # --- FIXED: Use the new settings module for configuration ---
 from ..config import settings
 
+"""Client helpers for interacting with the local Ollama REST API."""
+
 def get_ollama_models_list(**kwargs):
     """
     Fetches the list of available models from the Ollama API.

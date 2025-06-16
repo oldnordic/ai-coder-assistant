@@ -16,6 +16,8 @@ from typing import Dict
 # --- FIXED: Import the new settings module from the config package ---
 from ..config import settings
 
+"""Training utilities for creating and fine-tuning the local language model."""
+
 def get_best_device(log_callback):
     """
     Checks for available hardware accelerators and returns the best device.
@@ -33,6 +35,8 @@ def get_best_device(log_callback):
     return device
 
 def train_model(vocab_dir, model_save_path, finetune=False, **kwargs):
+    """Train or finetune the GPT-2 based model on prepared text data."""
+
     log_message_callback = kwargs.get('log_message_callback', print)
     progress_callback = kwargs.get('progress_callback', lambda c, t, m: None)
     _log = log_message_callback
