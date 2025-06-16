@@ -59,12 +59,30 @@ The application is built using a modular architecture with a PyQt6 frontend that
     cd ai-coder-assistant
     ```
 
-2.  **Install dependencies**:
+2.  **Set up Python 3.11 with `pyenv`** (recommended if you have multiple
+    Python versions on your machine):
+    ```bash
+    pyenv install 3.11.9        # install once
+    pyenv local 3.11.9          # use Python 3.11 inside this project
+    ```
+
+3.  **Create and activate a virtual environment**:
+    ```bash
+    python -m venv .venv        # create the venv with Python 3.11
+    source .venv/bin/activate   # activate it
+    ```
+
+4.  **Install dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
 
-3.  **Run the application**:
+5.  **Run the application**:
     ```bash
     python main.py
     ```
+
+> **Note**
+> To make use of the machine learning capabilities, install a PyTorch build that
+> matches your GPU (CUDA for NVIDIA or ROCm for AMD). Otherwise the application
+> will fall back to CPU execution, which can be noticeably slower.
