@@ -2,42 +2,54 @@
 
 ## Overview
 
-The AI Coder Assistant is a desktop application built with **PyQt6** designed to be a powerful and flexible tool for software developers. It leverages both local and remote AI models to provide intelligent code analysis, suggestions, and corrections. The application is designed to learn from a curated corpus of technical documentation and source code, allowing it to provide context-aware assistance tailored to the user's needs.
+The AI Coder Assistant is a desktop application built with **PyQt6** designed to be a powerful and flexible tool for software developers. It leverages both local and remote AI models to provide intelligent code analysis, suggestions, and corrections. The assistant learns from a curated corpus of documentation and source code, allowing it to provide context‑aware help tailored to your projects.
 
 ## Features
 
 - **Data Acquisition**:
-  - **Web Crawler**: Crawls and ingests technical documentation from specified URLs.
-  - **GitHub Scraper**: Downloads Python code from GitHub based on search queries.
+  - **Local Files**: Import documentation from your own folders.
+  - **Web Crawler**: Crawl and ingest technical documentation from specified URLs.
+  - **GitHub Scraper**: Download Python code from GitHub based on search queries.
 
 - **Custom Corpus and Training**:
-  - **Preprocessing**: Acquired documents are chunked, and a searchable FAISS vector database is created for Relevance-Augmented Generation (RAG).
-  - **Local Language Model**: Train a custom Transformer-based language model on the acquired data to create a specialized, locally-runnable model.
+  - **Preprocessing**: Documents are cleaned, embedded with SentenceTransformers and stored in a FAISS vector database for RAG-style retrieval.
+  - **Local Language Model**: Train and finetune a GPT‑based model on the acquired data and user feedback.
 
 - **Hybrid AI Analysis**:
-  - **Code Scanning**: Uses `flake8` for initial static analysis to find syntax errors, style issues, and potential bugs.
-  - **Intelligent Suggestions**: For each identified issue, the application generates a suggested fix using one of two modes:
-    1. **Ollama Integration**: Connects to a locally-running Ollama instance to leverage powerful open-source models like Llama 3, CodeLlama, etc.
-    2. **Own Trained Model**: Uses the custom-trained language model for generating suggestions.
-  - **Interactive Review**: Presents suggestions in a user-friendly "diff" format, allowing developers to review, accept, or reject changes.
+  - **Code Scanning**: Uses `flake8` for static analysis to find syntax errors, style issues and potential bugs.
+  - **Intelligent Suggestions**: Generates fixes using either a locally running Ollama model or your own trained model.
+  - **Interactive Review**: Shows a side‑by‑side diff so you can accept or reject each change.
+  - **Report Generation**: Creates a Markdown report and JSONL file from the review, useful for further model training.
 
 - **Integrated Tools**:
   - **Web Browser**: An embedded browser for quick access to online resources.
-  - **YouTube Transcriber**: A tool to transcribe YouTube videos, useful for learning from tutorials.
+  - **YouTube Transcriber**: Uses `yt-dlp` and Whisper to transcribe videos for learning from tutorials.
 
 ## Architecture
 
 The application is built using a modular architecture with a PyQt6 frontend that runs long-running tasks (data acquisition, model training, code analysis) in separate worker threads to keep the UI responsive.
 
-- **`main_window.py`**: The main application window and orchestration logic.
-- **`worker_threads.py`**: Handles background processing.
-- **`data_tab_widgets.py` / `ai_tab_widgets.py`**: UI components for the respective tabs.
-- **`acquire_docs.py` / `acquire_github.py`**: Logic for data acquisition.
-- **`preprocess_docs.py`**: Handles text processing and FAISS database creation.
-- **`train_language_model.py`**: Contains the PyTorch code for the custom language model and training loop.
-- **`ai_coder_scanner.py`**: Implements the code scanning and suggestion generation logic.
-- **`ollama_client.py`**: Manages communication with the Ollama API.
-- **`ai_tools.py`**: Contains helper tools like the YouTube transcriber.
+- **`src/ui/main_window.py`**: The main application window and orchestration logic.
+- **`src/ui/worker_threads.py`**: Handles background processing.
+- **`src/ui/data_tab_widgets.py`** / **`src/ui/ai_tab_widgets.py`**: UI components for the respective tabs.
+- **`src/processing/acquire.py`** and **`scripts/acquire_github.py`**: Document and code acquisition helpers.
+- **`src/processing/preprocess.py`**: Text processing and FAISS database creation.
+- **`src/training/trainer.py`**: PyTorch training code for the custom language model.
+- **`src/core/scanner.py`**: Performs code scanning and suggestion generation.
+- **`src/core/ollama_client.py`**: Manages communication with the Ollama API.
+- **`src/core/ai_tools.py`**: Tools such as the YouTube transcriber and report generator.
+- **`src/config/settings.py`**: Centralized configuration for paths and hyperparameters.
+
+## Key Libraries
+
+- **PyQt6** and **PyQt6-WebEngine** for the desktop interface
+- **PyTorch** and **transformers** for model training
+- **Sentence-Transformers** and **FAISS** for embedding and retrieval
+- **requests** and **beautifulsoup4** for web scraping
+- **flake8** and **pathspec** for static code analysis
+- **yt-dlp**, **youtube-transcript-api** and **openai/whisper** for transcription
+- **datasets** and **PyPDF2** for data handling
+- **qdarkstyle** for optional dark theme styling
 
 ## Setup and Installation
 
