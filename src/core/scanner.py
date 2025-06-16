@@ -9,7 +9,11 @@ import pathspec
 from ..config import settings
 from . import ai_tools, ollama_client
 
+"""Utilities for scanning Python projects and generating AI-powered fixes."""
+
 def _get_all_python_files(directory: str, log_message_callback: Optional[callable] = None) -> List[str]:
+    """Return all Python files under *directory*, honoring ignore patterns."""
+
     _log = log_message_callback if callable(log_message_callback) else print
     ignore_file_path = os.path.join(settings.PROJECT_ROOT, '.ai_coder_ignore')
     patterns = []
@@ -37,6 +41,8 @@ def _get_all_python_files(directory: str, log_message_callback: Optional[callabl
     return python_files
 
 def run_flake8(filepath: str) -> List[str]:
+    """Run flake8 on *filepath* and return each output line."""
+
     try:
         result = subprocess.run(['flake8', filepath], capture_output=True, text=True, check=False)
         return result.stdout.strip().split('\n') if result.stdout else []
@@ -46,12 +52,16 @@ def run_flake8(filepath: str) -> List[str]:
         return [f"An error occurred while running flake8: {e}"]
 
 def parse_flake8_output(line: str) -> Optional[Tuple[int, str]]:
+    """Extract the line number and message from a flake8 output line."""
+
     match = re.match(r'.*:(\d+):\d+: (.*)', line)
     if match:
         return int(match.group(1)), match.group(2).strip()
     return None
 
 def get_code_context(filepath: str, line_number: int, context_lines: int = 3) -> str:
+    """Return text around *line_number* from *filepath* for context."""
+
     try:
         with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
@@ -64,13 +74,14 @@ def get_code_context(filepath: str, line_number: int, context_lines: int = 3) ->
         return ""
 
 def enhance_code(
-    filepath: str, 
+    filepath: str,
     issue_line: str,
     model_mode: str,
     model_ref: any,
     tokenizer_ref: any = None,
     log_message_callback: Optional[callable] = None
 ) -> str:
+    """Return a single-line fix for a flake8 issue using the selected model."""
     try:
         parsed_issue = parse_flake8_output(issue_line)
         if not parsed_issue: return f"Could not parse issue: {issue_line}"
@@ -110,13 +121,15 @@ def enhance_code(
         return f"Error: {e}"
 
 def scan_code(
-    directory: str, 
-    model_mode: str, 
+    directory: str,
+    model_mode: str,
     model_ref: any,
     tokenizer_ref: any,
     progress_callback: Optional[callable] = None,
     log_message_callback: Optional[callable] = None
 ) -> List[dict]:
+    """Run flake8 over *directory* and return AI suggestions for each issue."""
+
     _log = log_message_callback if callable(log_message_callback) else print
     
     _log(f"Starting code scan in '{directory}' using '{model_mode}' model.")

@@ -1,7 +1,9 @@
 # suggestion_dialog.py
-from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, 
+from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit,
                              QPushButton, QDialogButtonBox, QWidget)
 from PyQt6.QtGui import QFont
+
+"""Dialog for reviewing AI code suggestions and providing feedback."""
 
 class SuggestionDialog(QDialog):
     def __init__(self, suggestion_data, explanation, parent=None):

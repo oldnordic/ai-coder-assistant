@@ -20,6 +20,8 @@ from ..training import trainer
 from ..processing import acquire, preprocess
 from ..config import settings # <-- FIXED
 
+"""Main PyQt window that orchestrates the AI coder assistant UI."""
+
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
 
@@ -27,6 +29,7 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 logger = logging.getLogger(__name__)
 
 class AICoderAssistant(QMainWindow):
+    """Main application window housing all tabs and actions."""
     def __init__(self):
         super().__init__()
         logger.info("Initializing Main Window...")

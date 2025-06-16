@@ -3,6 +3,8 @@ import logging
 import os
 from ..config import settings
 
+"""Centralized logging setup used by the UI and worker threads."""
+
 def setup_logging():
     """
     Sets up a centralized logging configuration for the application.

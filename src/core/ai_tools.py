@@ -19,6 +19,8 @@ from ..config import settings
 from . import ollama_client
 from ..training import trainer as train_language_model
 
+"""Collection of helper routines used by the AI code assistant."""
+
 # Global cache for the embedding model to prevent re-downloading
 _embedding_model_cache = None
 
@@ -34,11 +36,12 @@ def get_embedding_model(log_callback):
     return _embedding_model_cache
 
 def generate_with_own_model(
-    model: GPT2LMHeadModel, 
-    tokenizer: GPT2Tokenizer, 
+    model: GPT2LMHeadModel,
+    tokenizer: GPT2Tokenizer,
     prompt: str,
     max_new_tokens: int = 50
 ) -> str:
+    """Generate a code suggestion using the locally trained model."""
     if model is None or tokenizer is None:
         return "Own model or tokenizer not loaded."
 
@@ -71,6 +74,7 @@ def generate_with_own_model(
     return first_line if first_line else "Failed to generate valid suggestion."
 
 def generate_report_and_training_data(suggestion_list, model_mode, model_ref, tokenizer_ref, **kwargs):
+    """Build a Markdown review report and JSONL training file from suggestions."""
     log_message_callback = kwargs.get('log_message_callback', print)
     progress_callback = kwargs.get('progress_callback', lambda c, t, m: None)
 
@@ -118,6 +122,8 @@ def generate_report_and_training_data(suggestion_list, model_mode, model_ref, to
     return markdown_report, jsonl_training_data
 
 def get_ai_explanation(suggestion, model_mode, model_ref, tokenizer_ref, **kwargs):
+    """Ask the model to explain why the proposed code change fixes the issue."""
+
     log_message_callback = kwargs.get('log_message_callback', print)
     
     if model_mode == "own_model":
@@ -147,6 +153,8 @@ Your task is to provide a clear, concise explanation of *why* the proposed fix i
         return f"An unexpected error occurred while generating the explanation: {e}"
 
 def query_knowledge_base(query_text: str, log_message_callback=None) -> str:
+    """Retrieve documentation snippets relevant to *query_text* from FAISS."""
+
     _log = log_message_callback if callable(log_message_callback) else print
     try:
         if not os.path.exists(settings.FAISS_INDEX_PATH): return "Knowledge base not found."
@@ -165,6 +173,8 @@ def query_knowledge_base(query_text: str, log_message_callback=None) -> str:
         return f"Error querying knowledge base: {e}"
 
 def browse_web_tool(url: str, **kwargs) -> str:
+    """Fetch and return cleaned text content from a web page."""
+
     log_message_callback = kwargs.get('log_message_callback', print)
     _log = log_message_callback
     try:
@@ -182,6 +192,8 @@ def browse_web_tool(url: str, **kwargs) -> str:
         return f"Error during web browse: {e}"
 
 def transcribe_youtube_tool(youtube_url: str, **kwargs) -> str:
+    """Download and transcribe audio from a YouTube video."""
+
     log_message_callback = kwargs.get('log_message_callback', print)
     progress_callback = kwargs.get('progress_callback', lambda c, t, m: None)
     _log = log_message_callback

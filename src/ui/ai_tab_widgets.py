@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLa
 from PyQt6.QtCore import Qt
 from ..config import settings
 
+"""Widgets for configuring and running the AI code analysis."""
+
 def setup_ai_tab(parent_widget, main_app_instance):
     """
     Sets up the UI components for the AI code analysis tab.

@@ -1,6 +1,8 @@
 # worker_threads.py
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
+"""Helper classes for running background tasks without freezing the UI."""
+
 class WorkerSignals(QObject):
     """Defines the signals available from a running worker thread."""
     finished = pyqtSignal(object)

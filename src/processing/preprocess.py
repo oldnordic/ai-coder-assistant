@@ -12,6 +12,8 @@ import logging
 from ..config import settings
 from ..core import scanner as ai_coder_scanner
 
+"""Preprocess documentation into embeddings and datasets for training."""
+
 logger = logging.getLogger(__name__)
 
 def extract_text_from_pdf(filepath: str) -> str:
@@ -50,6 +52,8 @@ def parse_md_report(md_path, log_message_callback):
 
 
 def build_vector_db(docs_dir, index_path, metadata_path, reset_db=True, **kwargs):
+    """Create a FAISS vector store from raw documents and feedback."""
+
     log_message_callback = kwargs.get('log_message_callback', print)
     progress_callback = kwargs.get('progress_callback', lambda c, t, m: None)
     _log = log_message_callback

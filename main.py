@@ -5,6 +5,8 @@ import faulthandler
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QCoreApplication
 
+"""Entry point for launching the PyQt-based AI coder assistant."""
+
 # --- Add the project root to the Python path ---
 # This is the crucial step that allows Python to find the 'src' package.
 project_root = os.path.dirname(os.path.abspath(__file__))

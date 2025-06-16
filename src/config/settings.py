@@ -2,6 +2,8 @@
 import os
 import torch
 
+"""Central configuration for file paths and training parameters."""
+
 # The project root is now two levels up from this file's directory (config/ -> project_root/)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

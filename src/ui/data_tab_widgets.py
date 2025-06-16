@@ -3,6 +3,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QLabel, QGroupBo
                              QTextEdit, QComboBox)
 from ..config import settings
 
+"""Widgets for managing documentation and training tasks."""
+
 def setup_data_tab(parent_widget, main_app_instance):
     """
     Sets up the UI components for the data acquisition and model training tab.

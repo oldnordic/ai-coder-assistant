@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QUrl
 
+"""UI widgets for the embedded browser and YouTube transcription panel."""
+
 def setup_browser_tab(parent_widget, main_app_instance):
     """
     Sets up the UI components for the browser and YouTube transcription tab.
