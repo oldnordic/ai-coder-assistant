@@ -55,7 +55,7 @@ The application is built using a modular architecture with a PyQt6 frontend that
 
 1.  **Clone the repository**:
     ```bash
-    git clone [https://github.com/your-repo/ai-coder-assistant.git](https://github.com/your-repo/ai-coder-assistant.git)
+    git clone [https://github.com/oldnordic/ai-coder-assistant.git](https://github.com/oldnordic/ai-coder-assistant.git)
     cd ai-coder-assistant
     ```
 
