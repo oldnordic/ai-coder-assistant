@@ -86,3 +86,6 @@ The application is built using a modular architecture with a PyQt6 frontend that
 > To make use of the machine learning capabilities, install a PyTorch build that
 > matches your GPU (CUDA for NVIDIA or ROCm for AMD). Otherwise the application
 > will fall back to CPU execution, which can be noticeably slower.
+
+> **Ollama**
+> To use the built-in Ollama integration you must have Ollama installed and the service running before launching the app.
