@@ -1,7 +1,8 @@
-# ai_tab_widgets.py
+# src/ui/ai_tab_widgets.py
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGroupBox,
                              QProgressBar, QFormLayout, QLineEdit, QComboBox, QTextEdit)
 from PyQt6.QtCore import Qt
+from ..config import settings
 
 def setup_ai_tab(parent_widget, main_app_instance):
     """
@@ -17,7 +18,6 @@ def setup_ai_tab(parent_widget, main_app_instance):
     main_app_instance.model_source_selector.addItem("Ollama")
     main_app_instance.model_source_selector.addItem("Own Trained Model")
     
-    # --- Ollama Widgets ---
     main_app_instance.ollama_model_label = QLabel("Ollama Model:")
     main_app_instance.ollama_model_selector = QComboBox()
     main_app_instance.refresh_button = QPushButton("Refresh Models")
@@ -25,11 +25,9 @@ def setup_ai_tab(parent_widget, main_app_instance):
     ollama_layout.addWidget(main_app_instance.ollama_model_selector)
     ollama_layout.addWidget(main_app_instance.refresh_button)
 
-    # --- Own Model Widgets (FIXED) ---
     main_app_instance.model_status_label = QLabel("Status: Not Loaded")
     main_app_instance.load_model_button = QPushButton("Load Trained Model")
 
-    # Add widgets to layout
     model_layout.addRow(QLabel("Model Source:"), main_app_instance.model_source_selector)
     model_layout.addRow(main_app_instance.ollama_model_label, ollama_layout)
     model_layout.addRow(QLabel("Own Model Status:"), main_app_instance.model_status_label)
@@ -73,7 +71,7 @@ def setup_ai_tab(parent_widget, main_app_instance):
     main_app_instance.review_suggestions_button = QPushButton("Review Suggestions Interactively")
     main_app_instance.review_suggestions_button.setEnabled(False)
     
-    main_app_instance.create_report_button = QPushButton("Generate Full HTML Report")
+    main_app_instance.create_report_button = QPushButton("Generate Full Markdown Report")
     main_app_instance.create_report_button.setEnabled(False)
 
     results_layout.addWidget(main_app_instance.scan_results_text)
