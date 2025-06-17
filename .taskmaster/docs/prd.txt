@@ -1,0 +1,136 @@
+# Product Requirements Document (PRD): AI Coder Assistant
+
+## 1. Overview
+
+**AI Coder Assistant** is a desktop application for software developers, built with PyQt6. It leverages both local and remote AI models to provide intelligent code analysis, suggestions, and corrections. The assistant learns from a curated corpus of documentation and source code, enabling context-aware help tailored to user projects.
+
+---
+
+## 2. Goals & Objectives
+
+- **Empower developers** with AI-driven code review, suggestions, and corrections.
+- **Support hybrid AI workflows**: Use both local (user-trained) and remote (Ollama) models.
+- **Enable custom training**: Allow users to build and finetune their own language models on custom corpora.
+- **Streamline code quality**: Integrate static analysis (flake8) and AI-powered fixes.
+- **Facilitate learning**: Ingest documentation from local files, the web, and GitHub; transcribe YouTube tutorials.
+- **Keep the UI responsive**: Use background worker threads for heavy tasks.
+- **Incorporate user training data into Ollama models**: Enable users to create custom Ollama models by converting their trained models to GGUF using `llama.cpp` and integrating them directly via the Ollama API.
+
+---
+
+## 3. Features
+
+### 3.1 Data Acquisition
+- Import documentation from local folders.
+- Crawl and ingest technical documentation from URLs.
+- Download Python code from GitHub via search queries.
+
+### 3.2 Custom Corpus & Training
+- Preprocess documents: clean and aggregate into a single text corpus for direct LLM training.
+- Train and finetune a GPT-based model on acquired data and user feedback.
+- **Ollama Model Customization**: Incorporate user training data into a custom Ollama model. This involves:
+  - Converting your locally trained HuggingFace model to GGUF format using the `llama.cpp/convert.py` script (handled automatically by the application).
+  - Directly integrating the GGUF model into Ollama via its API, allowing for the use of your custom knowledge with existing Ollama model names.
+
+### 3.3 Hybrid AI Analysis
+- Static code analysis with flake8 for syntax, style, and bug detection.
+- Generate AI-powered code fixes (Ollama or user-trained model).
+- Interactive review: show side-by-side diffs, allow user to accept/reject changes.
+- Generate Markdown and JSONL reports for further model training.
+
+### 3.4 Integrated Tools
+- Embedded web browser for quick research.
+- YouTube transcriber (yt-dlp + Whisper) for learning from video tutorials.
+
+### 3.5 .ai_coder_ignore Editor (NEW)
+- Button in the main window to open and edit the .ai_coder_ignore file in a dialog.
+- Allows users to easily update ignore patterns for code scanning.
+
+### 3.6 Export Local Model to Ollama (NEW)
+- Add a tab or button to export/convert the locally trained model and feed it back to the running Ollama instance.
+- This enables seamless integration of user feedback and custom training into the Ollama model for private, on-device inference.
+
+---
+
+## 4. New Workflow: Direct LLM Training and Ollama Integration
+
+To fully leverage the AI Coder Assistant's training and Ollama integration capabilities, follow these steps:
+
+### 4.1 Prerequisites: `llama.cpp`
+
+The conversion of your locally trained HuggingFace model to the GGUF format, which is necessary for Ollama integration, requires the `convert.py` script from the `llama.cpp` repository.
+
+**Action Required: Clone `llama.cpp`**
+
+You *must* clone the `llama.cpp` repository directly into your `ai_coder_assistant` project folder. This ensures the application can automatically locate the necessary conversion tools.
+
+```bash
+# Navigate to your ai_coder_assistant project directory
+cd /path/to/your/ai_coder_assistant
+
+# Clone llama.cpp into the project folder
+git clone https://github.com/ggerganov/llama.cpp.git
+```
+After this step, you should have a `llama.cpp` directory at the same level as your `main.py` file, e.g., `/home/feanor/ai_coder_assistant/llama.cpp`.
+
+### 4.2 Workflow Steps
+
+1. **Aggregate and Clean Data**
+   - Use the preprocessing pipeline to collect and clean all documentation and code into a single `.txt` file for training.
+2. **Train the Model**
+   - Train or finetune a GPT-based model using the cleaned corpus.
+3. **Export to GGUF for Ollama**
+   - Convert the trained HuggingFace model to GGUF format using the application's "Ollama Export" feature.
+4. **Integrate with Ollama**
+   - The application will automatically import the GGUF model into your running Ollama instance and trigger a reload.
+
+**For detailed, step-by-step instructions on the UI actions and command-line usage for each of these steps, please refer to the dedicated documentation:** [Training Workflow](docs/training_workflow.md)
+
+---
+
+## 5. Architecture
+
+- **Frontend**: PyQt6, modular tabbed interface (AI Agent, Data & Training, Browser & Transcription, **Ollama Export**).
+- **Backend**: Modular Python code for data acquisition, preprocessing, training, code scanning, and AI integration.
+- **Worker Threads**: All heavy tasks run in background threads to keep the UI responsive.
+- **Configuration**: Centralized in `src/config/settings.py` and `.taskmaster/config.json`.
+- **.ai_coder_ignore Editor**: Accessible from the main window for direct editing of ignore patterns.
+- **Ollama Export/Integration**: Button or tab to export the local model and integrate it with the running Ollama instance, closing the feedback loop.
+
+---
+
+## 6. Key Libraries & Dependencies
+
+- PyQt6, PyQt6-WebEngine
+- torch, transformers
+- requests, beautifulsoup4
+- flake8, pathspec
+- yt-dlp, youtube-transcript-api, openai/whisper
+- datasets, PyPDF2
+- qdarkstyle
+
+---
+
+## 7. Non-Functional Requirements
+
+- **Cross-platform**: Should run on Linux, Windows, and macOS.
+- **Performance**: UI must remain responsive during all operations.
+- **Extensibility**: Modular codebase for easy addition of new features.
+- **Security**: No sensitive data is sent to remote models unless explicitly configured.
+
+---
+
+## 8. Out of Scope
+
+- Web-based interface (desktop only).
+- Support for languages other than Python (initially).
+- Real-time collaborative editing.
+
+---
+
+## 9. Future Considerations
+
+- Support for additional programming languages.
+- Integration with more AI model providers.
+- Cloud-based model training and inference.
+- **Automated Modelfile generation and GGUF conversion tools for easier Ollama customization.** 
