@@ -36,6 +36,9 @@ ai_code_review_report.html
 /docs/scraped/
 /docs/external/
 
+# Ignore llama.cpp directory - users must download it themselves
+/llama.cpp/
+
 # --- Standard Python Ignores (from your original file) ---
 
 # Byte-compiled / optimized / DLL files
