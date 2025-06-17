@@ -39,8 +39,169 @@ model_data/
 .vscode/
 .idea/
 
-# Node.js
+# Node.js and JavaScript/TypeScript
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+package-lock.json
+yarn.lock
+
+# Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+.mvn/
+mvnw
+mvnw.cmd
+
+# C/C++
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# C# (.NET)
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.pdb
+*.dll
+*.exe
+*.publishproj
+*.pubxml
+*.publishsettings
+
+# Go
+vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Rust
+target/
+Cargo.lock
+*.rlib
+*.rmeta
+
+# PHP
+vendor/
+composer.lock
+*.log
+
+# Ruby
+vendor/
+.bundle/
+*.gem
+*.rbc
+/.config
+/coverage/
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+/tmp/
+
+# Swift
+.build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Kotlin
+build/
+.gradle/
+*.iml
+local.properties
+.idea/
+*.hprof
+.captures/
+
+# Scala
+target/
+.idea_modules/
+*.class
+*.log
+
+# Dart/Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.lock
+
+# R
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj.user/
+
+# MATLAB
+*.asv
+*.mat
+*.mex*
+slprj/
+*.slxc
+
+# Shell
+*.swp
+*.swo
+*~
+
+# SQL
+*.sqlite
+*.db
+*.sqlite3
+
+# HTML/CSS
+*.min.css
+*.min.js
+.sass-cache/
+*.css.map
+*.js.map
 
 # App-specific files
 application.log
@@ -52,9 +213,29 @@ chroma_db/
 
 # Environment variables
 .env
-# memory
+
+# Memory and indexing
 .index.faiss
 .index.pkl
 memory/index.pkl
 memory/index.faiss
 plan.txt
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

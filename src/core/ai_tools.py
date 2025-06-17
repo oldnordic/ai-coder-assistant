@@ -4,10 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import yt_dlp
 from yt_dlp import YoutubeDL
-import faiss
-import numpy as np
 import json
-from sentence_transformers import SentenceTransformer
 import re
 from youtube_transcript_api import YouTubeTranscriptApi
 import html
@@ -25,12 +22,18 @@ _embedding_model_cache = None
 def get_embedding_model(log_callback):
     """
     Lazily loads and caches the SentenceTransformer model.
+    Only loads when actually needed for vector database operations.
     """
     global _embedding_model_cache
     if _embedding_model_cache is None:
-        log_callback(f"Loading embedding model '{settings.EMBEDDING_MODEL_NAME}' for the first time...")
-        _embedding_model_cache = SentenceTransformer(settings.EMBEDDING_MODEL_NAME, device=settings.DEVICE)
-        log_callback("Embedding model loaded.")
+        try:
+            from sentence_transformers import SentenceTransformer
+            log_callback(f"Loading embedding model '{settings.EMBEDDING_MODEL_NAME}' for the first time...")
+            _embedding_model_cache = SentenceTransformer(settings.EMBEDDING_MODEL_NAME, device=settings.DEVICE)
+            log_callback("Embedding model loaded.")
+        except ImportError as e:
+            log_callback(f"Embedding model dependencies not available: {e}")
+            return None
     return _embedding_model_cache
 
 def generate_with_own_model(
@@ -87,11 +90,11 @@ def generate_report_and_training_data(suggestion_list, model_mode, model_ref, to
             suggestion, model_mode, model_ref, tokenizer_ref, **kwargs
         )
         
-        filepath = suggestion.get('filepath', 'N/A')
+        filepath = suggestion.get('file_path', 'N/A')
         line_num = suggestion.get('line_number', -1) + 1
         issue = suggestion.get('description', 'N/A')
-        original_code = suggestion.get('original_code', '')
-        proposed_code = suggestion.get('proposed_code', '')
+        original_code = suggestion.get('code_snippet', '')
+        proposed_code = suggestion.get('suggested_improvement', '')
         
         md_parts.append(f"## File: `{filepath}` (Line: {line_num})\n\n")
         md_parts.append(f"### Issue: {issue}\n\n")
@@ -134,8 +137,8 @@ Your task is to provide a clear, concise explanation of *why* the proposed fix i
 ---
 **Code Issue Details:**
 - Issue: {suggestion['description']}
-- Original Code: `{suggestion['original_code']}`
-- Proposed Fix: `{suggestion['proposed_code']}`
+- Original Code: `{suggestion['code_snippet']}`
+- Proposed Fix: `{suggestion['suggested_improvement']}`
 **AI Justification:**
 """
         
@@ -149,11 +152,26 @@ Your task is to provide a clear, concise explanation of *why* the proposed fix i
 def query_knowledge_base(query_text: str, log_message_callback=None) -> str:
     _log = log_message_callback if callable(log_message_callback) else print
     try:
-        if not os.path.exists(settings.FAISS_INDEX_PATH): return "Knowledge base not found."
-        index = faiss.read_index(settings.FAISS_INDEX_PATH)
-        with open(settings.FAISS_METADATA_PATH, 'r', encoding='utf-8', errors='ignore') as f: documents = json.load(f)
+        # Check if FAISS dependencies are available
+        try:
+            import faiss
+        except ImportError:
+            return "Vector database not available. Knowledge base queries disabled."
+        
+        # Define FAISS paths dynamically to avoid startup issues
+        faiss_index_path = os.path.join(settings.PROCESSED_DATA_DIR, "vector_store.faiss")
+        faiss_metadata_path = os.path.join(settings.PROCESSED_DATA_DIR, "vector_store.json")
+        
+        if not os.path.exists(faiss_index_path): 
+            return "Knowledge base not found. Please run preprocessing first."
+        
+        index = faiss.read_index(faiss_index_path)
+        with open(faiss_metadata_path, 'r', encoding='utf-8', errors='ignore') as f: 
+            documents = json.load(f)
         
         model = get_embedding_model(_log)
+        if model is None:
+            return "Embedding model not available. Knowledge base queries disabled."
         
         query_embedding = model.encode([query_text]).astype('float32')
         k = 3
@@ -165,21 +183,195 @@ def query_knowledge_base(query_text: str, log_message_callback=None) -> str:
         return f"Error querying knowledge base: {e}"
 
 def browse_web_tool(url: str, **kwargs) -> str:
+    """
+    Enhanced web scraping tool that can handle documentation with multiple hyperlinks,
+    navigation elements, and pagination.
+    """
     log_message_callback = kwargs.get('log_message_callback', print)
+    max_pages = kwargs.get('max_pages', 10)  # Limit to prevent infinite crawling
+    max_depth = kwargs.get('max_depth', 3)   # How deep to follow links
+    same_domain_only = kwargs.get('same_domain_only', True)
+    
     _log = log_message_callback
+    
     try:
-        _log(f"Attempting to browse URL: {url}")
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-        for script_or_style in soup(['script', 'style', 'nav', 'footer', 'header', 'aside']):
-            script_or_style.decompose()
-        text = soup.get_text(separator='\n', strip=True)
-        return text[:4000] + "..." if len(text) > 4000 else text
+        _log(f"Starting enhanced web scraping of: {url}")
+        
+        # Track visited URLs to avoid duplicates
+        visited_urls = set()
+        scraped_content = []
+        
+        # Get the base domain for same-domain filtering
+        from urllib.parse import urlparse
+        base_domain = urlparse(url).netloc
+        
+        def should_follow_link(link_url: str, current_depth: int) -> bool:
+            """Determine if we should follow a link based on various criteria."""
+            if current_depth >= max_depth:
+                return False
+                
+            if link_url in visited_urls:
+                return False
+                
+            if same_domain_only:
+                link_domain = urlparse(link_url).netloc
+                if link_domain != base_domain:
+                    return False
+            
+            # Skip common non-content URLs
+            skip_patterns = [
+                '/login', '/logout', '/admin', '/api/', '/search',
+                '.pdf', '.zip', '.tar', '.gz', '.exe', '.dmg',
+                'mailto:', 'tel:', 'javascript:', '#'
+            ]
+            
+            for pattern in skip_patterns:
+                if pattern in link_url.lower():
+                    return False
+            
+            return True
+        
+        def extract_navigation_links(soup, current_url: str) -> list:
+            """Extract navigation links that might lead to more content."""
+            navigation_links = []
+            
+            # Common navigation selectors
+            nav_selectors = [
+                'nav a', '.navigation a', '.nav a', '.menu a',
+                '.pagination a', '.pager a', '.next', '.prev',
+                '.breadcrumb a', '.sidebar a', '.toc a',
+                'a[rel="next"]', 'a[rel="prev"]',
+                'a[aria-label*="next"]', 'a[aria-label*="previous"]',
+                'a[title*="next"]', 'a[title*="previous"]'
+            ]
+            
+            for selector in nav_selectors:
+                links = soup.select(selector)
+                for link in links:
+                    href = link.get('href')
+                    if href:
+                        # Convert relative URLs to absolute
+                        from urllib.parse import urljoin
+                        absolute_url = urljoin(current_url, href)
+                        if should_follow_link(absolute_url, 0):  # 0 for initial depth
+                            navigation_links.append(absolute_url)
+            
+            # Also look for common "next page" indicators
+            next_indicators = [
+                'next', 'next page', 'continue', 'more', 'read more',
+                'next chapter', 'next section', 'next article'
+            ]
+            
+            for link in soup.find_all('a', href=True):
+                link_text = link.get_text().lower().strip()
+                if any(indicator in link_text for indicator in next_indicators):
+                    href = link.get('href')
+                    absolute_url = urljoin(current_url, href)
+                    if should_follow_link(absolute_url, 0):
+                        navigation_links.append(absolute_url)
+            
+            return list(set(navigation_links))  # Remove duplicates
+        
+        def scrape_single_page(page_url: str, depth: int = 0) -> tuple:
+            """Scrape a single page and return content and navigation links."""
+            if page_url in visited_urls or depth >= max_depth:
+                return "", []
+            
+            visited_urls.add(page_url)
+            _log(f"Scraping page {depth + 1}: {page_url}")
+            
+            try:
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
+                response = requests.get(page_url, headers=headers, timeout=15)
+                response.raise_for_status()
+                
+                soup = BeautifulSoup(response.text, 'html.parser')
+                
+                # Remove unwanted elements
+                for element in soup(['script', 'style', 'nav', 'footer', 'header', 'aside', 'iframe']):
+                    element.decompose()
+                
+                # Extract main content (prioritize main content areas)
+                content_selectors = [
+                    'main', 'article', '.content', '.main-content', 
+                    '.post-content', '.entry-content', '.documentation',
+                    '.docs-content', '.api-docs', '.guide-content'
+                ]
+                
+                main_content = None
+                for selector in content_selectors:
+                    main_content = soup.select_one(selector)
+                    if main_content:
+                        break
+                
+                if not main_content:
+                    main_content = soup.find('body') or soup
+                
+                # Extract text content
+                text_content = main_content.get_text(separator='\n', strip=True)
+                
+                # Clean up the text
+                lines = text_content.split('\n')
+                cleaned_lines = []
+                for line in lines:
+                    line = line.strip()
+                    if line and len(line) > 10:  # Skip very short lines
+                        cleaned_lines.append(line)
+                
+                cleaned_content = '\n\n'.join(cleaned_lines)
+                
+                # Extract navigation links for further crawling
+                nav_links = extract_navigation_links(soup, page_url)
+                
+                return cleaned_content, nav_links
+                
+            except Exception as e:
+                _log(f"Error scraping {page_url}: {e}")
+                return "", []
+        
+        # Start with the initial URL
+        initial_content, initial_links = scrape_single_page(url, 0)
+        if initial_content:
+            scraped_content.append(f"=== MAIN PAGE ===\n{initial_content}\n")
+        
+        # Queue for breadth-first crawling
+        from collections import deque
+        link_queue = deque(initial_links)
+        pages_scraped = 1
+        
+        # Crawl additional pages
+        while link_queue and pages_scraped < max_pages:
+            next_url = link_queue.popleft()
+            
+            if next_url in visited_urls:
+                continue
+            
+            page_content, new_links = scrape_single_page(next_url, 1)
+            
+            if page_content:
+                scraped_content.append(f"=== RELATED PAGE ===\n{page_content}\n")
+                pages_scraped += 1
+            
+            # Add new links to queue
+            for new_link in new_links:
+                if new_link not in visited_urls and new_link not in link_queue:
+                    link_queue.append(new_link)
+        
+        # Combine all content
+        final_content = '\n\n'.join(scraped_content)
+        
+        # Truncate if too long (keep it reasonable for processing)
+        if len(final_content) > 50000:  # 50KB limit
+            final_content = final_content[:50000] + "\n\n[Content truncated due to length]"
+        
+        _log(f"Scraping complete. Scraped {pages_scraped} pages, {len(visited_urls)} total URLs visited.")
+        return final_content
+        
     except Exception as e:
-        _log(f"Error during web browse: {e}")
-        return f"Error during web browse: {e}"
+        _log(f"Error during enhanced web scraping: {e}")
+        return f"Error during enhanced web scraping: {e}"
 
 def transcribe_youtube_tool(youtube_url: str, **kwargs) -> str:
     log_message_callback = kwargs.get('log_message_callback', print)

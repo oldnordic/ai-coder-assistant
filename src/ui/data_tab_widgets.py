@@ -1,6 +1,6 @@
 # src/ui/data_tab_widgets.py
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QLabel, QGroupBox,
-                             QTextEdit, QComboBox)
+                             QTextEdit, QComboBox, QHBoxLayout, QSpinBox, QCheckBox)
 from ..config import settings
 
 def setup_data_tab(parent_widget, main_app_instance):
@@ -24,6 +24,52 @@ def setup_data_tab(parent_widget, main_app_instance):
     main_app_instance.doc_urls_input.setPlaceholderText("https://example.com/article1\nhttps://anothersite.org/page")
     main_app_instance.doc_urls_input.setFixedHeight(100)
     acq_layout.addWidget(main_app_instance.doc_urls_input)
+    
+    # Enhanced scraping options
+    scraping_options_layout = QHBoxLayout()
+    
+    # Scraping mode selector
+    scraping_mode_layout = QVBoxLayout()
+    scraping_mode_layout.addWidget(QLabel("Scraping Mode:"))
+    main_app_instance.scraping_mode_selector = QComboBox()
+    main_app_instance.scraping_mode_selector.addItem("Enhanced (Follow Links)")
+    main_app_instance.scraping_mode_selector.addItem("Simple (Single Page)")
+    main_app_instance.scraping_mode_selector.setCurrentIndex(0)
+    scraping_mode_layout.addWidget(main_app_instance.scraping_mode_selector)
+    scraping_options_layout.addLayout(scraping_mode_layout)
+    
+    # Enhanced scraping parameters
+    enhanced_params_layout = QVBoxLayout()
+    enhanced_params_layout.addWidget(QLabel("Enhanced Parameters:"))
+    
+    # Max pages
+    max_pages_layout = QHBoxLayout()
+    max_pages_layout.addWidget(QLabel("Max Pages:"))
+    main_app_instance.max_pages_spinbox = QSpinBox()
+    main_app_instance.max_pages_spinbox.setRange(1, 50)
+    main_app_instance.max_pages_spinbox.setValue(15)
+    main_app_instance.max_pages_spinbox.setToolTip("Maximum number of pages to scrape per URL")
+    max_pages_layout.addWidget(main_app_instance.max_pages_spinbox)
+    enhanced_params_layout.addLayout(max_pages_layout)
+    
+    # Max depth
+    max_depth_layout = QHBoxLayout()
+    max_depth_layout.addWidget(QLabel("Max Depth:"))
+    main_app_instance.max_depth_spinbox = QSpinBox()
+    main_app_instance.max_depth_spinbox.setRange(1, 10)
+    main_app_instance.max_depth_spinbox.setValue(4)
+    main_app_instance.max_depth_spinbox.setToolTip("Maximum depth to follow links")
+    max_depth_layout.addWidget(main_app_instance.max_depth_spinbox)
+    enhanced_params_layout.addLayout(max_depth_layout)
+    
+    # Same domain only
+    main_app_instance.same_domain_checkbox = QCheckBox("Same Domain Only")
+    main_app_instance.same_domain_checkbox.setChecked(True)
+    main_app_instance.same_domain_checkbox.setToolTip("Only follow links within the same domain")
+    enhanced_params_layout.addWidget(main_app_instance.same_domain_checkbox)
+    
+    scraping_options_layout.addLayout(enhanced_params_layout)
+    acq_layout.addLayout(scraping_options_layout)
     
     main_app_instance.acquire_doc_button = QPushButton("Scrape URLs and Add to Corpus")
     acq_layout.addWidget(main_app_instance.acquire_doc_button)

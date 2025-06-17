@@ -4,10 +4,8 @@ import json
 import re
 from bs4 import BeautifulSoup
 import PyPDF2
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
 import logging
+import datetime
 
 from ..config import settings
 from ..core import scanner as ai_coder_scanner
@@ -41,8 +39,47 @@ def extract_text_from_html(filepath: str) -> str:
         return ""
 
 def save_learning_feedback(suggestion_data, user_provided_code=None, **kwargs):
-    # ... (This function remains unchanged) ...
-    pass
+    """
+    Saves user feedback and corrections to the learning data file for future model training.
+    This creates a feedback loop where the model learns from user corrections.
+    """
+    log_message_callback = kwargs.get('log_message_callback', print)
+    _log = log_message_callback
+    
+    try:
+        # Ensure the learning data directory exists
+        os.makedirs(settings.LEARNING_DATA_DIR, exist_ok=True)
+        
+        # Extract the original code from the suggestion
+        original_code = suggestion_data.get('code_snippet', '').strip()
+        
+        # Use user-provided code if available, otherwise use the suggested improvement
+        good_code = user_provided_code if user_provided_code else suggestion_data.get('suggested_improvement', '').strip()
+        
+        if not original_code or not good_code:
+            _log("Warning: Missing original code or good code for feedback learning.")
+            return
+        
+        # Create the learning example
+        learning_example = {
+            'original_code': original_code,
+            'user_feedback_or_code': good_code,
+            'file_path': suggestion_data.get('file_path', ''),
+            'line_number': suggestion_data.get('line_number', ''),
+            'description': suggestion_data.get('description', ''),
+            'timestamp': str(datetime.datetime.now())
+        }
+        
+        # Append to the learning data file
+        with open(settings.LEARNING_DATA_FILE, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(learning_example, ensure_ascii=False) + '\n')
+        
+        _log(f"Saved learning feedback: {suggestion_data.get('description', 'Unknown suggestion')}")
+        
+    except Exception as e:
+        _log(f"Error saving learning feedback: {e}")
+        import traceback
+        _log(f"Traceback: {traceback.format_exc()}")
 
 def parse_md_report(md_path, log_message_callback):
     # ... (This function remains unchanged) ...
@@ -50,11 +87,24 @@ def parse_md_report(md_path, log_message_callback):
 
 
 def build_vector_db(docs_dir, index_path, metadata_path, reset_db=True, **kwargs):
+    """
+    Builds a vector database from documents. FAISS and SentenceTransformer are loaded only when needed.
+    """
     log_message_callback = kwargs.get('log_message_callback', print)
     progress_callback = kwargs.get('progress_callback', lambda c, t, m: None)
     _log = log_message_callback
 
     try:
+        # Only import FAISS and SentenceTransformer when actually building the vector DB
+        try:
+            import faiss
+            import numpy as np
+            from sentence_transformers import SentenceTransformer
+        except ImportError as e:
+            _log(f"Vector database dependencies not available: {e}")
+            _log("Skipping vector database creation. Continuing with text processing only.")
+            return "Success - Vector DB skipped due to missing dependencies."
+
         _log("Starting document preprocessing...")
         if reset_db:
             for path in [index_path, metadata_path, settings.CONCAT_FILE_PATH, settings.FINETUNING_FILE_PATH]:

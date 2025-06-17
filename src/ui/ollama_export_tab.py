@@ -77,8 +77,12 @@ This tool will export your locally trained model (HuggingFace format) to GGUF an
     model_label = QLabel("Select Ollama Model to Feed Knowledge:")
     layout.addWidget(model_label)
     model_selector = QComboBox()
-    model_selector.addItem("(Loading...)")
+    model_selector.addItem("(Click 'Refresh Models' to load)")
     layout.addWidget(model_selector)
+
+    # Add a refresh button
+    refresh_button = QPushButton("Refresh Models")
+    layout.addWidget(refresh_button)
 
     status_box = QTextEdit()
     status_box.setReadOnly(True)
@@ -103,7 +107,8 @@ This tool will export your locally trained model (HuggingFace format) to GGUF an
                 model_selector.addItem(m)
             log(f"Found {len(models)} model(s) on Ollama.")
 
-    refresh_models()
+    # Connect the refresh button instead of auto-refreshing
+    refresh_button.clicked.connect(refresh_models)
 
     def export_and_send():
         # Pre-check: Is Ollama running?

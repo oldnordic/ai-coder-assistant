@@ -36,10 +36,9 @@ DOCS_DIR = os.path.join(DATA_DIR, "docs")
 LEARNING_DATA_DIR = os.path.join(DATA_DIR, "learning_data")
 PROCESSED_DATA_DIR = os.path.join(DATA_DIR, "processed_data")
 
-# --- Vector Database (FAISS) Configuration ---
-FAISS_INDEX_PATH = os.path.join(PROCESSED_DATA_DIR, "vector_store.faiss")
-FAISS_METADATA_PATH = os.path.join(PROCESSED_DATA_DIR, "vector_store.json")
-EMBEDDING_MODEL_NAME = 'all-MiniLM-L6-v2'
+# --- Optional Vector Database Configuration (only used when needed) ---
+# These are only used when explicitly building vector databases
+EMBEDDING_MODEL_NAME = 'all-MiniLM-L6-v2'  # Only loaded when needed
 
 # --- Custom Language Model Training Files ---
 LEARNING_DATA_FILE = os.path.join(LEARNING_DATA_DIR, "learning_data.jsonl")

@@ -12,6 +12,7 @@ from PyQt6.QtGui import QIcon
 from .browser_tab import setup_browser_tab
 from .data_tab_widgets import setup_data_tab
 from .ai_tab_widgets import setup_ai_tab
+from .ollama_export_tab import setup_ollama_export_tab
 from .worker_threads import Worker
 from .suggestion_dialog import SuggestionDialog
 
@@ -49,14 +50,17 @@ class AICoderAssistant(QMainWindow):
         self.ai_tab = QWidget()
         self.data_tab = QWidget()
         self.browser_tab = QWidget()
+        self.ollama_export_tab = QWidget()
         
         setup_ai_tab(self.ai_tab, self)
         setup_data_tab(self.data_tab, self)
         setup_browser_tab(self.browser_tab, self)
+        setup_ollama_export_tab(self.ollama_export_tab, self)
         
         self.tabs.addTab(self.ai_tab, "AI Agent")
         self.tabs.addTab(self.data_tab, "Data & Training")
         self.tabs.addTab(self.browser_tab, "Browser & Transcription")
+        self.tabs.addTab(self.ollama_export_tab, "Export to Ollama")
         
         self.log_console = QTextEdit()
         self.log_console.setReadOnly(True)
@@ -135,10 +139,25 @@ class AICoderAssistant(QMainWindow):
         if not urls:
             QMessageBox.warning(self, "Input Missing", "Please provide at least one URL.")
             return
-        self.log_message(f"Starting acquisition from {len(urls)} URLs...")
+        
+        # Get scraping mode and parameters
+        scraping_mode = self.scraping_mode_selector.currentText()
+        max_pages = self.max_pages_spinbox.value()
+        max_depth = self.max_depth_spinbox.value()
+        same_domain_only = self.same_domain_checkbox.isChecked()
+        
+        self.log_message(f"Starting {scraping_mode.lower()} acquisition from {len(urls)} URLs...")
+        self.log_message(f"Parameters: max_pages={max_pages}, max_depth={max_depth}, same_domain_only={same_domain_only}")
+        
         self.progress_dialog = QProgressDialog("Acquiring Docs...", "Cancel", 0, 100, self)
         self.progress_dialog.show()
-        self.start_worker('acquire_docs', acquire.crawl_docs, urls, settings.DOCS_DIR)
+        
+        # Choose the appropriate crawling function based on mode
+        if "Enhanced" in scraping_mode:
+            self.start_worker('acquire_docs', acquire.crawl_docs, urls, settings.DOCS_DIR,
+                            max_pages=max_pages, max_depth=max_depth, same_domain_only=same_domain_only)
+        else:
+            self.start_worker('acquire_docs', acquire.crawl_docs_simple, urls, settings.DOCS_DIR)
 
     def start_code_scan(self):
         scan_dir = self.scan_dir_entry.text()
@@ -227,7 +246,10 @@ class AICoderAssistant(QMainWindow):
         self.progress_dialog = QProgressDialog("Preprocessing...", "Cancel", 0, 100, self)
         self.progress_dialog.show()
         reset_db = self.knowledge_mode_selector.currentText().startswith("Reset")
-        self.start_worker('preprocess_docs', preprocess.build_vector_db, settings.DOCS_DIR, settings.FAISS_INDEX_PATH, settings.FAISS_METADATA_PATH, reset_db=reset_db)
+        # Define paths dynamically to avoid FAISS dependencies
+        faiss_index_path = os.path.join(settings.PROCESSED_DATA_DIR, "vector_store.faiss")
+        faiss_metadata_path = os.path.join(settings.PROCESSED_DATA_DIR, "vector_store.json")
+        self.start_worker('preprocess_docs', preprocess.build_vector_db, settings.DOCS_DIR, faiss_index_path, faiss_metadata_path, reset_db=reset_db)
 
     def select_scan_directory(self):
         dir_name = QFileDialog.getExistingDirectory(self, "Select Project Directory", settings.PROJECT_ROOT)
