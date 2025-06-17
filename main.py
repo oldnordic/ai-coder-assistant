@@ -30,7 +30,13 @@ def create_project_directories():
         os.path.join(root_dir, "data", "learning_data"),
         os.path.join(root_dir, "data", "processed_data"),
         os.path.join(root_dir, "scripts"),
-        os.path.join(root_dir, "tmp")
+        os.path.join(root_dir, "tmp"),
+        # Also create src subdirectories if they don't exist
+        os.path.join(root_dir, "src", "logs"),
+        os.path.join(root_dir, "src", "data"),
+        os.path.join(root_dir, "src", "data", "docs"),
+        os.path.join(root_dir, "src", "data", "learning_data"),
+        os.path.join(root_dir, "src", "data", "processed_data")
     ]
     
     for dir_path in required_dirs:

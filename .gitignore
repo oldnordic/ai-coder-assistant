@@ -20,9 +20,21 @@ project_structure.txt
 audit_structure.py
 ai__init__.py
 
+# Ignore taskmaster directory and files
+.taskmaster/
+*.taskmaster
+
+# Ignore specific report files
+ai_code_review_report.md
+ai_code_review_report.html
+
 # Ignore PyInstaller build artifacts
 *.spec
 
+# Ignore any downloaded or scraped documentation
+/docs/downloaded/
+/docs/scraped/
+/docs/external/
 
 # --- Standard Python Ignores (from your original file) ---
 
