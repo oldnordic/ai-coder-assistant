@@ -50,6 +50,8 @@ from ...utils.constants import (
     DEFAULT_MAX_PAGES, DEFAULT_MAX_DEPTH, DEFAULT_LINKS_PER_PAGE,
     PERCENTAGE_MULTIPLIER
 )
+from .docker_utils import build_docker_image, run_docker_container
+from ..utils.settings import is_docker_available
 
 # Global cache for the embedding model to prevent re-downloading
 _embedding_model_cache = None
@@ -756,3 +758,52 @@ def _generate_own_model_explanation(suggestion, model_ref, tokenizer_ref, log_me
     except Exception as e:
         log_message_callback(f"Own model explanation error: {e}")
         return _generate_fallback_explanation(suggestion)
+
+# --- Docker build/test integration for frontend ---
+def run_build_and_test_in_docker(
+    context_dir: str,
+    dockerfile_path: str = None,
+    build_args: str = "",
+    run_opts: str = "",
+    test_command: str = "python run_tests.py"
+) -> dict:
+    """
+    Build and test the application in a Docker container using the given settings.
+    Returns a dict with build and test results.
+    """
+    if not is_docker_available():
+        return {"success": False, "error": "Docker is not available on this system."}
+
+    # Parse build args and run options
+    build_args_dict = {}
+    if build_args:
+        for arg in build_args.split():
+            if "=" in arg:
+                k, v = arg.split("=", 1)
+                build_args_dict[k] = v
+    run_args_list = run_opts.split() if run_opts else []
+
+    # Build image
+    tag = "ai-coder-app:latest"
+    build_ok, build_out = build_docker_image(
+        context_dir=context_dir,
+        dockerfile_path=dockerfile_path if dockerfile_path else None,
+        build_args=build_args_dict if build_args_dict else None,
+        tag=tag
+    )
+    if not build_ok:
+        return {"success": False, "stage": "build", "output": build_out}
+
+    # Run tests in container
+    test_cmd = ["/bin/sh", "-c", test_command]
+    run_ok, run_out = run_docker_container(
+        image=tag,
+        run_args=run_args_list,
+        command=test_cmd,
+        detach=False
+    )
+    return {
+        "success": run_ok,
+        "stage": "test",
+        "output": run_out
+    }
