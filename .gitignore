@@ -316,3 +316,4 @@ src/backend/reports/*.md
 !ARCHITECTURE.md
 !BUILD_README.md
 !FEATURE_SUMMARY.md
+APP_PLAN_AND_COMPARISON.md

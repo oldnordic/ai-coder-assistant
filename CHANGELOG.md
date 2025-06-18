@@ -5,6 +5,131 @@ All notable changes to the AI Code Analysis Assistant project will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2024-12-18
+
+### Added
+- **🔧 Advanced Refactoring Engine**
+  - Multi-language refactoring support (Python, JavaScript, TypeScript, Java, C++)
+  - AST-based Python code analysis and transformation
+  - Pattern-based JavaScript/TypeScript refactoring
+  - Comprehensive refactoring suggestion system
+  - Real-time preview with diff generation
+  - Safety checks and backup mechanisms
+
+- **🖥️ Advanced Refactoring UI**
+  - New "Advanced Refactoring" tab in main application
+  - Interactive suggestion management with filtering and sorting
+  - Preview dialog with detailed change visualization
+  - Progress tracking for refactoring operations
+  - Backup and safety confirmation dialogs
+
+- **📊 Refactoring Analysis Capabilities**
+  - Long function detection and method extraction suggestions
+  - Large class identification and class extraction recommendations
+  - Magic number detection and constant extraction
+  - Unused import detection and cleanup
+  - Cyclomatic complexity analysis
+  - Code smell identification and improvement suggestions
+
+- **🛡️ Safety and Quality Features**
+  - Automatic backup creation before refactoring
+  - Pre-application validation of changes
+  - Rollback capabilities for failed operations
+  - Comprehensive error handling and recovery
+  - Thread-safe background processing
+
+### Changed
+- **Enhanced Code Analysis**
+  - Improved pattern detection algorithms
+  - Better integration with existing intelligent analyzer
+  - Enhanced multi-language support
+  - More accurate suggestion prioritization
+
+- **UI Improvements**
+  - Added refactoring tab to main window
+  - Enhanced progress tracking across all operations
+  - Better error reporting and user feedback
+  - Improved thread safety for concurrent operations
+
+### Fixed
+- **Code Quality**
+  - All linter errors resolved in new refactoring modules
+  - Improved code organization and maintainability
+  - Enhanced type safety with comprehensive type hints
+  - Better separation of concerns between modules
+
+### Technical Improvements
+- **Performance**
+  - Optimized pattern caching for better performance
+  - Efficient AST parsing and analysis
+  - Background processing for non-blocking UI
+  - Memory-efficient large project handling
+
+- **Testing**
+  - Comprehensive test suite for all refactoring functionality
+  - Unit tests for Python and JavaScript parsers
+  - Integration tests for end-to-end workflows
+  - Performance and safety testing
+
+---
+
+## [2.1.0] - 2024-12-19
+
+### Added
+- **Cloud Model Integration**: Comprehensive multi-provider LLM integration system
+  - Support for OpenAI, Anthropic, and Google AI providers
+  - Automatic failover between providers
+  - Cost tracking and usage monitoring
+  - Provider health checking
+  - Unified interface for chat completion, text completion, and embeddings
+  - Configurable provider priorities and cost multipliers
+  - Request history tracking and metrics collection
+  - Environment-based API key configuration
+  - PyQt6 UI tab for cloud model management with:
+    - Provider configuration interface
+    - Model selection and testing
+    - Usage monitoring and cost tracking
+    - Health check dashboard
+    - Real-time statistics and metrics
+- **Advanced Refactoring Engine**: Multi-language code refactoring system
+  - Support for Python, JavaScript, TypeScript, Java, and C++
+  - Pattern detection for common code smells
+  - Safety checks and preview system
+  - Batch refactoring operations
+  - Integration with PyQt6 UI
+- **CLI Module**: Command-line interface for IDE integrations
+  - `analyze` command for code analysis
+  - `scan` command for security scanning
+  - `security-scan` command for vulnerability detection
+  - `create-pr` command for automated PR creation
+- **Enhanced Documentation**: Comprehensive guides and manuals
+  - Advanced refactoring guide with examples
+  - Multi-language support documentation
+  - Installation and setup guides
+  - User manual with feature descriptions
+
+### Fixed
+- Import issues in backend service files
+- Relative import corrections across modules
+- Missing constants and settings functions
+- Linter errors in main window and UI components
+- GitHub Actions workflow for security scanning
+- Test coverage for new features
+
+### Changed
+- Updated README.md with concise feature list and installation instructions
+- Enhanced .gitignore to exclude unnecessary files
+- Improved error handling in cloud model providers
+- Streamlined UI integration for new features
+
+### Technical
+- Added comprehensive unit tests for cloud models (24 passing tests)
+- Implemented async/await patterns for cloud provider operations
+- Created modular provider architecture with failover support
+- Added cost calculation and usage tracking systems
+- Integrated PyQt6 worker threads for async operations
+- Enhanced settings management for multi-provider configuration
+
 ## [2.0.0] - 2024-12-18
 
 ### Added
@@ -70,7 +195,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] - 2024-12-16
+## [1.0.0] - 2024-12-17
 
 ### Added
 - **Core AI Code Analysis System**

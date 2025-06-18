@@ -121,6 +121,12 @@ DEFAULT_TIMEOUT_MS = 2000  # 2 seconds
 MAX_FILE_SIZE_BYTES = 1024 * 1024  # 1MB
 DEFAULT_BATCH_SIZE = 64
 
+# Cloud Models Constants
+DEFAULT_TIMEOUT = 30  # seconds
+MAX_RETRIES = 3
+RETRY_DELAY = 1  # seconds
+SUPPORTED_PROVIDERS = ["openai", "anthropic", "google", "azure", "aws_bedrock", "cohere"]
+
 # Temporary directory for processing
 TMP_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "tmp")
 

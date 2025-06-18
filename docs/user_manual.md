@@ -6,18 +6,20 @@
 2. [Getting Started](#getting-started)
 3. [Data Acquisition Tab](#data-acquisition-tab)
 4. [AI Agent Tab](#ai-agent-tab)
-5. [Browser & Transcription Tab](#browser--transcription-tab)
-6. [Export to Ollama Tab](#export-to-ollama-tab)
-7. [Multi-Language Support](#multi-language-support)
-8. [Advanced Features](#advanced-features)
-9. [Building Optimized Binaries](#building-optimized-binaries)
-10. [Troubleshooting](#troubleshooting)
-11. [Best Practices](#best-practices)
-12. [Application Structure](#application-structure)
-13. [How the UI Connects to Backend Logic](#how-the-ui-connects-to-backend-logic)
-14. [Testing Frontend-Backend Integration](#testing-frontend-backend-integration)
-15. [Progress Bars and Responsiveness](#progress-bars-and-responsiveness)
-16. [Further Reading](#further-reading)
+5. [Advanced Refactoring Tab](#advanced-refactoring-tab)
+6. [Cloud Models Tab](#cloud-models-tab)
+7. [Browser & Transcription Tab](#browser--transcription-tab)
+8. [Export to Ollama Tab](#export-to-ollama-tab)
+9. [Multi-Language Support](#multi-language-support)
+10. [Advanced Features](#advanced-features)
+11. [Building Optimized Binaries](#building-optimized-binaries)
+12. [Troubleshooting](#troubleshooting)
+13. [Best Practices](#best-practices)
+14. [Application Structure](#application-structure)
+15. [How the UI Connects to Backend Logic](#how-the-ui-connects-to-backend-logic)
+16. [Testing Frontend-Backend Integration](#testing-frontend-backend-integration)
+17. [Progress Bars and Responsiveness](#progress-bars-and-responsiveness)
+18. [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -298,6 +300,679 @@ Issues by Severity:
 - **AI Explanations**: Justifications for each suggestion
 - **Recommendations**: Prioritized action items
 - **Statistics**: Summary metrics and improvement trends
+
+## Advanced Refactoring Tab
+
+The Advanced Refactoring tab provides **comprehensive automated refactoring capabilities** with multi-language support, safety features, and intelligent suggestion management.
+
+### Overview
+
+**Purpose**: Automatically identify and apply code refactoring opportunities to improve code quality, maintainability, and readability.
+
+**Key Features**:
+- **Multi-language Support**: Python, JavaScript, TypeScript, Java, C++
+- **AST-based Analysis**: Accurate Python code parsing and transformation
+- **Pattern-based Refactoring**: Efficient JavaScript/TypeScript analysis
+- **Safety-first Approach**: Backup creation, validation, and rollback mechanisms
+- **Preview System**: View changes before applying them
+- **Progress Tracking**: Real-time progress updates for long operations
+
+### Getting Started
+
+**Initial Setup**:
+1. **Select Project**: Choose the project directory to analyze
+2. **Configure Languages**: Select languages to analyze (default: all supported)
+3. **Start Analysis**: Click "Analyze Project" to begin refactoring opportunity detection
+4. **Review Suggestions**: Examine the list of refactoring opportunities
+5. **Apply Refactoring**: Preview and apply selected refactoring operations
+
+### Project Analysis
+
+**Analysis Process**:
+1. **File Discovery**: Automatically finds all source files in the project
+2. **Language Detection**: Identifies programming language for each file
+3. **Pattern Analysis**: Applies language-specific refactoring patterns
+4. **Opportunity Detection**: Identifies refactoring opportunities
+5. **Suggestion Grouping**: Groups related refactoring operations
+6. **Priority Ranking**: Sorts suggestions by impact and priority
+
+**Supported File Types**:
+- **Python**: `.py`, `.pyw`, `.pyx`, `.pyi`
+- **JavaScript**: `.js`, `.jsx`, `.mjs`
+- **TypeScript**: `.ts`, `.tsx`
+- **Java**: `.java`
+- **C/C++**: `.c`, `.cpp`, `.cc`, `.cxx`, `.h`, `.hpp`
+
+### Refactoring Suggestions
+
+**Suggestion Types**:
+
+#### **Extract Method**
+- **Purpose**: Break down long functions into smaller, focused methods
+- **Detection**: Functions with 30+ lines or high cyclomatic complexity
+- **Benefits**: Improved readability, testability, and maintainability
+- **Example**: Split a 50-line function into 3 smaller, focused methods
+
+#### **Extract Class**
+- **Purpose**: Split large classes into smaller, more focused classes
+- **Detection**: Classes with 100+ lines or 15+ methods
+- **Benefits**: Better separation of concerns, reduced coupling
+- **Example**: Extract utility methods into a separate helper class
+
+#### **Extract Constant**
+- **Purpose**: Replace magic numbers with named constants
+- **Detection**: Numbers >= 1000 or frequently used values
+- **Benefits**: Improved readability and maintainability
+- **Example**: Replace `86400` with `SECONDS_PER_DAY`
+
+#### **Remove Unused Imports**
+- **Purpose**: Clean up unused import statements
+- **Detection**: Imported modules not used in the file
+- **Benefits**: Cleaner code, faster imports, reduced dependencies
+- **Example**: Remove unused `os` import from a file
+
+#### **Inline Variable**
+- **Purpose**: Simplify single-use variables
+- **Detection**: Variables used only once in return statements
+- **Benefits**: Reduced code complexity and line count
+- **Example**: Inline `result = calculate()` in `return result`
+
+### Suggestion Management
+
+**Filtering Options**:
+- **Priority**: High, Medium, Low
+- **Category**: Performance, Maintainability, Readability, Architecture
+- **Language**: Filter by specific programming languages
+- **Impact Score**: Filter by estimated impact (0.0 to 1.0)
+
+**Suggestion Information**:
+- **Title**: Clear description of the refactoring opportunity
+- **Description**: Detailed explanation of the issue and solution
+- **Priority**: Importance level (High, Medium, Low)
+- **Category**: Type of improvement (Performance, Maintainability, etc.)
+- **Impact Score**: Estimated improvement impact (0.0 to 1.0)
+- **Estimated Time**: Time required to apply the refactoring
+- **Operations**: List of individual refactoring operations
+
+**Example Suggestion**:
+```
+Title: Extract method from 'process_data' function
+Description: Function 'process_data' is 45 lines long and can be broken down into smaller methods
+Priority: Medium
+Category: Maintainability
+Impact Score: 0.7
+Estimated Time: 10-15 minutes
+Operations: 1 refactoring operation
+```
+
+### Preview System
+
+**Purpose**: View detailed changes before applying refactoring operations.
+
+**Preview Features**:
+- **File Changes**: List of files that will be modified
+- **Operations**: Individual refactoring operations within each file
+- **Diff View**: Side-by-side comparison of original and refactored code
+- **Summary**: Overview of changes (lines added, removed, files modified)
+
+**How to Preview**:
+1. **Select Suggestion**: Choose a refactoring suggestion from the list
+2. **Click Preview**: Click "Preview Changes" button
+3. **Review Changes**: Examine the diff view and file changes
+4. **Understand Impact**: Review the summary of modifications
+5. **Make Decision**: Decide whether to apply or skip the refactoring
+
+**Preview Dialog Features**:
+- **Summary Panel**: High-level overview of changes
+- **File Tree**: Hierarchical view of modified files
+- **Diff Viewer**: Detailed code comparison with syntax highlighting
+- **Operation Details**: Information about each refactoring operation
+
+### Applying Refactoring
+
+**Safety Features**:
+- **Automatic Backup**: Creates backup files before applying changes
+- **Validation**: Pre-application validation of all changes
+- **Confirmation**: User confirmation for destructive operations
+- **Rollback**: Ability to revert changes if needed
+
+**Application Process**:
+1. **Select Suggestion**: Choose the refactoring suggestion to apply
+2. **Preview Changes**: Review the proposed modifications
+3. **Confirm Application**: Click "Apply Refactoring" with backup option
+4. **Monitor Progress**: Watch real-time progress updates
+5. **Review Results**: Check the application results and any warnings
+
+**Backup Options**:
+- **Create Backup**: Automatically create `.backup` files
+- **Backup Location**: Same directory as original files
+- **Backup Naming**: `filename.py.backup`
+- **Backup Verification**: Confirm backup files were created successfully
+
+**Application Results**:
+- **Success Count**: Number of operations applied successfully
+- **Modified Files**: List of files that were changed
+- **Backup Files**: List of backup files created
+- **Warnings**: Any issues or warnings during application
+- **Errors**: Any errors that prevented application
+
+### Supported Languages
+
+#### **Python**
+- **AST-based Analysis**: Uses Python's Abstract Syntax Tree for accurate parsing
+- **Function Analysis**: Detects long functions and high complexity
+- **Class Analysis**: Identifies large classes and method counts
+- **Import Analysis**: Finds unused imports and circular dependencies
+- **Magic Numbers**: Detects hardcoded numbers that should be constants
+
+**Python-specific Features**:
+- **Cyclomatic Complexity**: Calculates function complexity scores
+- **AST Parsing**: Accurate code structure analysis
+- **Import Tracking**: Monitors import usage across files
+- **Type Hints**: Respects type annotations and hints
+
+#### **JavaScript/TypeScript**
+- **Pattern-based Analysis**: Uses regex patterns for code detection
+- **Function Detection**: Identifies long functions and complex logic
+- **Class Analysis**: Finds large classes and method counts
+- **Variable Analysis**: Detects unused variables and magic numbers
+
+**JavaScript/TypeScript Features**:
+- **ES6+ Support**: Modern JavaScript features and syntax
+- **TypeScript Integration**: TypeScript-specific analysis
+- **Module Analysis**: ES6 module import/export tracking
+- **Async/Await**: Async function complexity analysis
+
+#### **Java & C++**
+- **Framework Ready**: Extensible architecture for additional languages
+- **Pattern Matching**: Language-specific pattern detection
+- **File Analysis**: Basic file structure and size analysis
+- **Future Enhancement**: Planned for full language support
+
+### Best Practices
+
+#### **Before Refactoring**
+1. **Version Control**: Ensure your code is committed to version control
+2. **Backup Creation**: Always enable backup creation for safety
+3. **Test Coverage**: Have good test coverage before refactoring
+4. **Review Changes**: Always preview changes before applying
+5. **Start Small**: Begin with low-risk refactoring operations
+
+#### **During Refactoring**
+1. **Monitor Progress**: Watch progress indicators during application
+2. **Check Results**: Review application results and any warnings
+3. **Verify Changes**: Test your code after refactoring
+4. **Run Tests**: Execute your test suite to ensure functionality
+5. **Review Code**: Manually review the refactored code
+
+#### **After Refactoring**
+1. **Test Thoroughly**: Run comprehensive tests on refactored code
+2. **Review Performance**: Check if refactoring improved performance
+3. **Update Documentation**: Update any affected documentation
+4. **Commit Changes**: Commit refactored code to version control
+5. **Monitor Issues**: Watch for any issues introduced by refactoring
+
+### Troubleshooting
+
+#### **Common Issues**
+
+**Analysis Fails**:
+- **Check File Permissions**: Ensure read access to project files
+- **Verify Language Support**: Confirm language is supported
+- **Check File Size**: Large files may exceed processing limits
+- **Review Logs**: Check log console for error messages
+
+**Preview Not Working**:
+- **File Access**: Ensure write access for temporary files
+- **Memory Issues**: Large projects may require more memory
+- **Syntax Errors**: Files with syntax errors may not preview correctly
+- **Encoding Issues**: Check file encoding (UTF-8 recommended)
+
+**Application Fails**:
+- **Backup Issues**: Ensure backup creation is enabled
+- **File Locks**: Close files in other applications
+- **Permission Errors**: Check write permissions for project directory
+- **Disk Space**: Ensure sufficient disk space for backups
+
+#### **Performance Optimization**
+
+**Large Projects**:
+- **Filter Languages**: Analyze only relevant languages
+- **Use Filters**: Apply priority and category filters
+- **Batch Operations**: Apply refactoring in smaller batches
+- **Memory Management**: Close other applications during analysis
+
+**Slow Analysis**:
+- **Exclude Directories**: Use `.ai_coder_ignore` to exclude files
+- **Limit File Types**: Focus on specific file extensions
+- **Background Processing**: Let analysis run in background
+- **Progress Monitoring**: Use progress indicators to track status
+
+### Advanced Features
+
+#### **Custom Refactoring Rules**
+- **Pattern Configuration**: Customize detection patterns
+- **Threshold Adjustment**: Modify detection thresholds
+- **Language-specific Rules**: Add language-specific refactoring rules
+- **Custom Operations**: Define custom refactoring operations
+
+#### **Batch Operations**
+- **Multiple Suggestions**: Apply multiple refactoring suggestions at once
+- **Dependency Handling**: Automatic handling of dependent changes
+- **Conflict Resolution**: Intelligent conflict detection and resolution
+- **Rollback Support**: Batch rollback for failed operations
+
+#### **Integration Features**
+- **IDE Integration**: Future integration with popular IDEs
+- **CI/CD Pipeline**: Integration with continuous integration systems
+- **Team Collaboration**: Shared refactoring suggestions
+- **Version Control**: Direct integration with Git workflows
+
+### Examples
+
+#### **Python Refactoring Example**
+
+**Original Code**:
+```python
+def process_user_data(user_data):
+    """Process user data and return results."""
+    result = 0
+    for i in range(1000):  # Magic number
+        if i % 2 == 0:
+            result += i
+        else:
+            result -= i
+    
+    # More complex logic
+    for j in range(500):  # Another magic number
+        if j % 3 == 0:
+            result *= 2
+        elif j % 5 == 0:
+            result /= 2
+        else:
+            result += 1
+    
+    return result
+```
+
+**Refactored Code**:
+```python
+# Extracted constants
+MAX_ITERATIONS = 1000
+SECOND_ITERATIONS = 500
+
+def process_user_data(user_data):
+    """Process user data and return results."""
+    result = calculate_initial_result()
+    result = apply_complex_logic(result)
+    return result
+
+def calculate_initial_result():
+    """Calculate initial result based on even/odd numbers."""
+    result = 0
+    for i in range(MAX_ITERATIONS):
+        if i % 2 == 0:
+            result += i
+        else:
+            result -= i
+    return result
+
+def apply_complex_logic(result):
+    """Apply complex mathematical logic to result."""
+    for j in range(SECOND_ITERATIONS):
+        if j % 3 == 0:
+            result *= 2
+        elif j % 5 == 0:
+            result /= 2
+        else:
+            result += 1
+    return result
+```
+
+#### **JavaScript Refactoring Example**
+
+**Original Code**:
+```javascript
+function processData(data) {
+    let result = 0;
+    
+    // First loop
+    for (let i = 0; i < 1000; i++) {  // Magic number
+        if (i % 2 === 0) {
+            result += i;
+        } else {
+            result -= i;
+        }
+    }
+    
+    // Second loop
+    for (let j = 0; j < 500; j++) {  // Another magic number
+        if (j % 3 === 0) {
+            result *= 2;
+        } else if (j % 5 === 0) {
+            result /= 2;
+        } else {
+            result += 1;
+        }
+    }
+    
+    return result;
+}
+```
+
+**Refactored Code**:
+```javascript
+// Extracted constants
+const MAX_ITERATIONS = 1000;
+const SECOND_ITERATIONS = 500;
+
+function processData(data) {
+    let result = calculateInitialResult();
+    result = applyComplexLogic(result);
+    return result;
+}
+
+function calculateInitialResult() {
+    let result = 0;
+    for (let i = 0; i < MAX_ITERATIONS; i++) {
+        if (i % 2 === 0) {
+            result += i;
+        } else {
+            result -= i;
+        }
+    }
+    return result;
+}
+
+function applyComplexLogic(result) {
+    for (let j = 0; j < SECOND_ITERATIONS; j++) {
+        if (j % 3 === 0) {
+            result *= 2;
+        } else if (j % 5 === 0) {
+            result /= 2;
+        } else {
+            result += 1;
+        }
+    }
+    return result;
+}
+```
+
+## Cloud Models Tab
+
+The Cloud Models tab provides **comprehensive multi-provider LLM management** with automatic failover, cost tracking, and health monitoring capabilities.
+
+### Overview
+
+**Purpose**: Manage multiple AI providers (OpenAI, Anthropic, Google AI) with unified interface, automatic failover, and cost optimization.
+
+**Key Features**:
+- **Multi-Provider Support**: OpenAI, Anthropic, Google AI, and more
+- **Automatic Failover**: Seamless switching between providers
+- **Cost Tracking**: Real-time usage monitoring and cost analysis
+- **Health Monitoring**: Automated provider health checks
+- **Unified Interface**: Single API for all LLM operations
+- **Provider Management**: Add, configure, and test providers
+- **Usage Analytics**: Detailed usage statistics and cost breakdown
+
+### Provider Configuration
+
+**Purpose**: Configure and manage AI providers for your application.
+
+#### **Adding Providers**
+
+**OpenAI Configuration**:
+1. **API Key**: Enter your OpenAI API key
+2. **Base URL**: Optional custom endpoint (default: https://api.openai.com)
+3. **Organization**: Optional organization ID
+4. **Priority**: Set provider priority (1 = highest, used first)
+5. **Timeout**: Request timeout in seconds
+
+**Anthropic Configuration**:
+1. **API Key**: Enter your Anthropic API key
+2. **Priority**: Set provider priority
+3. **Timeout**: Request timeout in seconds
+
+**Google AI Configuration**:
+1. **API Key**: Enter your Google AI API key
+2. **Priority**: Set provider priority
+3. **Timeout**: Request timeout in seconds
+
+**Ollama Configuration**:
+1. **Endpoint**: Ollama server URL (default: http://localhost:11434)
+2. **Priority**: Set provider priority
+3. **Timeout**: Request timeout in seconds
+
+#### **Provider Management**
+
+**Provider List**:
+- **Status**: Active/Inactive provider status
+- **Priority**: Provider priority order
+- **Last Used**: Timestamp of last successful request
+- **Success Rate**: Percentage of successful requests
+- **Average Cost**: Average cost per request
+
+**Provider Actions**:
+- **Test Connection**: Verify provider connectivity
+- **Edit Configuration**: Modify provider settings
+- **Remove Provider**: Delete provider configuration
+- **Enable/Disable**: Toggle provider availability
+
+### Model Selection
+
+**Purpose**: Configure and manage AI models across different providers.
+
+#### **Available Models**
+
+**OpenAI Models**:
+- **GPT-4**: Most capable model (8192 tokens, $0.03/1K tokens)
+- **GPT-4 Turbo**: Fast and efficient (4096 tokens, $0.01/1K tokens)
+- **GPT-3.5 Turbo**: Cost-effective (4096 tokens, $0.002/1K tokens)
+
+**Anthropic Models**:
+- **Claude-3 Opus**: Most capable (4096 tokens, $0.015/1K tokens)
+- **Claude-3 Sonnet**: Balanced (4096 tokens, $0.003/1K tokens)
+- **Claude-3 Haiku**: Fast and cheap (4096 tokens, $0.00025/1K tokens)
+
+**Google AI Models**:
+- **Gemini Pro**: General purpose (8192 tokens, $0.0005/1K tokens)
+- **Gemini Pro Vision**: Vision capable (8192 tokens, $0.0005/1K tokens)
+
+**Ollama Models**:
+- **Local Models**: Any model available in your Ollama instance
+- **Custom Models**: Your trained models exported to Ollama
+
+#### **Model Configuration**
+
+**Model Settings**:
+- **Default Model**: Set default model for each provider
+- **Fallback Models**: Configure backup models for each provider
+- **Model Parameters**: Set default temperature, max tokens, etc.
+- **Cost Limits**: Set maximum cost per request
+
+**Model Testing**:
+- **Test Completion**: Test model with sample prompts
+- **Response Quality**: Evaluate model response quality
+- **Performance Metrics**: Measure response time and reliability
+
+### Usage Monitoring
+
+**Purpose**: Track and analyze LLM usage patterns and costs.
+
+#### **Real-time Metrics**
+
+**Current Session**:
+- **Total Requests**: Number of requests in current session
+- **Total Cost**: Total cost for current session
+- **Total Tokens**: Total tokens used in current session
+- **Active Providers**: Currently active providers
+
+**Provider Breakdown**:
+- **Requests per Provider**: Number of requests per provider
+- **Cost per Provider**: Cost breakdown by provider
+- **Success Rate**: Success rate per provider
+- **Average Response Time**: Response time per provider
+
+#### **Historical Analytics**
+
+**Usage Trends**:
+- **Daily Usage**: Requests and costs per day
+- **Weekly Trends**: Weekly usage patterns
+- **Monthly Reports**: Monthly usage summaries
+- **Cost Analysis**: Cost trends and optimization opportunities
+
+**Model Usage**:
+- **Popular Models**: Most frequently used models
+- **Model Performance**: Performance metrics per model
+- **Cost per Model**: Cost analysis per model
+- **Model Comparison**: Compare models across providers
+
+#### **Cost Optimization**
+
+**Cost Alerts**:
+- **Daily Limits**: Set daily cost limits
+- **Threshold Alerts**: Alerts when approaching limits
+- **Provider Switching**: Automatic switching to cheaper providers
+- **Usage Recommendations**: Suggestions for cost optimization
+
+**Optimization Strategies**:
+- **Provider Priority**: Put cheaper providers first
+- **Model Selection**: Use cost-effective models for simple tasks
+- **Token Management**: Optimize prompt length and token usage
+- **Batch Processing**: Group requests to reduce overhead
+
+### Health Check
+
+**Purpose**: Monitor provider health and availability.
+
+#### **Provider Health Status**
+
+**Health Indicators**:
+- **Connection Status**: Provider connectivity status
+- **Response Time**: Average response time
+- **Error Rate**: Percentage of failed requests
+- **Last Check**: Timestamp of last health check
+
+**Health Check Process**:
+1. **Connection Test**: Verify network connectivity
+2. **API Test**: Test provider API endpoints
+3. **Model Test**: Test model availability
+4. **Performance Test**: Measure response times
+
+#### **Automatic Failover**
+
+**Failover Logic**:
+1. **Primary Provider**: Try highest priority provider first
+2. **Health Check**: Verify provider is healthy
+3. **Fallback**: If primary fails, try next provider
+4. **Error Handling**: Graceful degradation with detailed reporting
+
+**Failover Configuration**:
+- **Failover Threshold**: Number of failures before switching
+- **Retry Logic**: Number of retries per provider
+- **Backoff Strategy**: Exponential backoff for retries
+- **Recovery**: Automatic recovery when provider becomes healthy
+
+### Test Completion
+
+**Purpose**: Test LLM providers and models with sample prompts.
+
+#### **Test Interface**
+
+**Test Options**:
+- **Provider Selection**: Choose provider to test
+- **Model Selection**: Select model for testing
+- **Prompt Input**: Enter test prompt
+- **Parameters**: Set temperature, max tokens, etc.
+
+**Test Results**:
+- **Response Content**: Model response text
+- **Response Time**: Time taken for response
+- **Token Usage**: Number of tokens used
+- **Cost**: Cost of the test request
+- **Provider Used**: Which provider handled the request
+
+#### **Test Scenarios**
+
+**Basic Testing**:
+- **Simple Prompts**: Test basic text completion
+- **Code Generation**: Test code generation capabilities
+- **Analysis Tasks**: Test code analysis capabilities
+- **Multi-turn Conversations**: Test chat completion
+
+**Advanced Testing**:
+- **Error Handling**: Test error scenarios
+- **Rate Limiting**: Test rate limit handling
+- **Timeout Scenarios**: Test timeout handling
+- **Large Prompts**: Test with large input prompts
+
+### Best Practices
+
+#### **Provider Configuration**
+1. **API Key Security**: Store API keys securely using environment variables
+2. **Provider Priority**: Set priorities based on cost and performance
+3. **Timeout Settings**: Configure appropriate timeouts for each provider
+4. **Rate Limits**: Be aware of provider rate limits
+
+#### **Cost Management**
+1. **Monitor Usage**: Regularly check usage and cost metrics
+2. **Set Limits**: Configure daily and per-request cost limits
+3. **Optimize Prompts**: Keep prompts concise to reduce token usage
+4. **Use Appropriate Models**: Choose cost-effective models for simple tasks
+
+#### **Health Monitoring**
+1. **Regular Checks**: Schedule regular health checks
+2. **Alert Configuration**: Set up alerts for provider issues
+3. **Failover Testing**: Test failover scenarios regularly
+4. **Performance Monitoring**: Track response times and success rates
+
+#### **Security Considerations**
+1. **API Key Rotation**: Regularly rotate API keys
+2. **Access Control**: Implement proper access controls
+3. **Data Privacy**: Be aware of data sent to providers
+4. **Audit Logging**: Log all provider interactions for security
+
+### Troubleshooting
+
+#### **Common Issues**
+
+**Provider Not Available**:
+- Check API key validity
+- Verify network connectivity
+- Check provider service status
+- Review rate limits and quotas
+
+**High Costs**:
+- Review model selection
+- Optimize prompt length
+- Check for unnecessary requests
+- Consider using cheaper providers
+
+**Slow Response Times**:
+- Check network connectivity
+- Verify provider performance
+- Consider using different models
+- Implement caching where appropriate
+
+**Failover Issues**:
+- Verify provider configurations
+- Check health check settings
+- Review failover thresholds
+- Test failover scenarios manually
+
+#### **Debug Information**
+
+**Logs and Metrics**:
+- **Request Logs**: Detailed request/response logs
+- **Error Logs**: Error messages and stack traces
+- **Performance Metrics**: Response times and success rates
+- **Cost Tracking**: Detailed cost breakdown
+
+**Diagnostic Tools**:
+- **Provider Test**: Test individual providers
+- **Model Test**: Test specific models
+- **Network Test**: Test network connectivity
+- **Configuration Validation**: Validate provider configurations
 
 ## Browser & Transcription Tab
 

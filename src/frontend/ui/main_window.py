@@ -34,6 +34,8 @@ from .data_tab_widgets import setup_data_tab
 from .ai_tab_widgets import setup_ai_tab
 from .ollama_export_tab import setup_ollama_export_tab
 from .continuous_learning_tab import ContinuousLearningTab
+from .refactoring_tab import RefactoringTab
+from .cloud_models_tab import CloudModelsTab
 from .worker_threads import Worker
 from .suggestion_dialog import SuggestionDialog
 from .markdown_viewer import MarkdownViewerDialog
@@ -110,6 +112,14 @@ class AICoderAssistant(QMainWindow):
         # Add Continuous Learning tab
         self.continuous_learning_tab = ContinuousLearningTab()
         self.tabs.addTab(self.continuous_learning_tab, "Continuous Learning")
+        
+        # Add Advanced Refactoring tab
+        self.refactoring_tab = RefactoringTab()
+        self.tabs.addTab(self.refactoring_tab, "Advanced Refactoring")
+        
+        # Add Cloud Models tab
+        self.cloud_models_tab = CloudModelsTab()
+        self.tabs.addTab(self.cloud_models_tab, "Cloud Models")
         
         self.log_console = QTextEdit()
         self.log_console.setReadOnly(True)

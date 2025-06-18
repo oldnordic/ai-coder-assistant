@@ -21,6 +21,7 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 import os
 import torch
 from .constants import OLLAMA_API_BASE_URL
+from typing import Dict, Any
 
 # The project root is now two levels up from this file's directory (config/ -> project_root/)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -124,3 +125,20 @@ EMBED_DIM = 128
 NUM_HEADS = 4
 NUM_LAYERS = 2
 DROPOUT = 0.1
+
+# --- Cloud Models Settings ---
+def get_settings() -> Dict[str, Any]:
+    """Get settings for cloud models and other services."""
+    return {
+        "openai_api_key": os.environ.get("OPENAI_API_KEY", ""),
+        "openai_base_url": os.environ.get("OPENAI_BASE_URL", ""),
+        "openai_organization": os.environ.get("OPENAI_ORGANIZATION", ""),
+        "anthropic_api_key": os.environ.get("ANTHROPIC_API_KEY", ""),
+        "google_api_key": os.environ.get("GOOGLE_API_KEY", ""),
+        "azure_api_key": os.environ.get("AZURE_API_KEY", ""),
+        "azure_endpoint": os.environ.get("AZURE_ENDPOINT", ""),
+        "aws_access_key": os.environ.get("AWS_ACCESS_KEY", ""),
+        "aws_secret_key": os.environ.get("AWS_SECRET_KEY", ""),
+        "aws_region": os.environ.get("AWS_REGION", ""),
+        "cohere_api_key": os.environ.get("COHERE_API_KEY", ""),
+    }
