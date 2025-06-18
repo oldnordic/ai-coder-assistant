@@ -10,20 +10,28 @@
 6. [Export to Ollama Tab](#export-to-ollama-tab)
 7. [Multi-Language Support](#multi-language-support)
 8. [Advanced Features](#advanced-features)
-9. [Troubleshooting](#troubleshooting)
-10. [Best Practices](#best-practices)
+9. [Building Optimized Binaries](#building-optimized-binaries)
+10. [Troubleshooting](#troubleshooting)
+11. [Best Practices](#best-practices)
+12. [Application Structure](#application-structure)
+13. [How the UI Connects to Backend Logic](#how-the-ui-connects-to-backend-logic)
+14. [Testing Frontend-Backend Integration](#testing-frontend-backend-integration)
+15. [Progress Bars and Responsiveness](#progress-bars-and-responsiveness)
+16. [Further Reading](#further-reading)
 
 ## Introduction
 
-The AI Coder Assistant is a comprehensive desktop application that provides intelligent code analysis, suggestions, and corrections across 20 programming languages. It combines static analysis tools with AI-powered suggestions to help you write better, more maintainable code.
+The AI Coder Assistant is a comprehensive desktop application that provides **intelligent code analysis**, AI-powered suggestions, and automated code improvement across 20 programming languages. It goes far beyond simple linter errors to analyze code logic, patterns, security vulnerabilities, and maintainability issues.
 
 ### Key Concepts
 
-- **Static Analysis**: Uses language-specific linters to find code issues
+- **Intelligent Analysis**: Analyzes code logic, patterns, and context beyond syntax errors
+- **Security Scanning**: Detects hardcoded credentials, SQL injection risks, and vulnerabilities
+- **Performance Analysis**: Identifies inefficient patterns and performance bottlenecks
+- **Code Smell Detection**: Finds anti-patterns, magic numbers, and maintainability issues
 - **AI Suggestions**: Generates intelligent fixes using Ollama or custom models
 - **Feedback Loop**: Learns from your corrections to improve future suggestions
-- **Knowledge Base**: Builds context from documentation and your feedback
-- **Multi-Language**: Supports 20 programming languages with appropriate tools
+- **Multi-Language**: Supports 20 programming languages with intelligent analysis
 
 ## Getting Started
 
@@ -39,7 +47,7 @@ The AI Coder Assistant is a comprehensive desktop application that provides inte
 1. **Add Documentation**: Use the Data Acquisition tab to add relevant documentation
 2. **Preprocess Data**: Build your knowledge base with "Pre-process All Docs & Feedback"
 3. **Configure Ignore Patterns**: Edit `.ai_coder_ignore` to exclude unwanted files
-4. **Install Linters**: Install language-specific linters for full support
+4. **Install Linters**: Install language-specific linters for enhanced analysis (optional)
 
 ## Data Acquisition Tab
 
@@ -94,6 +102,21 @@ https://developer.mozilla.org/en-US/docs/Web/JavaScript
 - **Duplicate Prevention**: Avoids scraping the same content twice
 - **Error Recovery**: Continues processing even if some pages fail
 
+### Debug Logging for Web Scraping
+
+When using Enhanced Web Scraping, the application now provides detailed debug logs to help you understand and troubleshoot the crawling process:
+
+- **Extracted Links**: Logs all links found on each page.
+- **Followed Links**: Logs which links are being followed for further scraping.
+- **Skipped Links**: Logs reasons for skipping links (already visited, different domain, max depth reached, etc.).
+
+**How to use:**
+- Check the log console or output for lines like:
+  - `Extracted X links from ...`
+  - `FOLLOW: ...`
+  - `SKIP: ...`
+- Use these logs to verify that the scraper is finding and following the expected links, or to diagnose why certain links are not being followed.
+
 ### Preprocessing
 
 **Purpose**: Prepare your data for AI training and knowledge base queries.
@@ -106,12 +129,11 @@ https://developer.mozilla.org/en-US/docs/Web/JavaScript
 1. **Text Extraction**: Converts documents to plain text
 2. **Cleaning**: Removes formatting artifacts and noise
 3. **Chunking**: Splits large documents into manageable pieces
-4. **Vectorization**: Creates searchable embeddings (if FAISS available)
-5. **Metadata Creation**: Tracks document sources and relationships
+4. **Metadata Creation**: Tracks document sources and relationships
 
 ## AI Agent Tab
 
-The AI Agent tab is the core of the application, providing code analysis and AI-powered suggestions.
+The AI Agent tab is the core of the application, providing **intelligent code analysis** and AI-powered suggestions.
 
 ### Model Selection
 
@@ -125,69 +147,157 @@ The AI Agent tab is the core of the application, providing code analysis and AI-
 - **Model Status**: Shows if a model is loaded and ready
 - **Training Required**: Train models before using them
 
-### Code Scanning
+### Intelligent Code Analysis
 
-**Purpose**: Analyze your code for issues and generate AI suggestions.
+**Purpose**: Perform comprehensive analysis of your code beyond simple linter errors.
+
+**What the intelligent analysis detects**:
+
+#### 🔒 Security Vulnerabilities
+- **Hardcoded Credentials**: Passwords, API keys, tokens in code
+- **SQL Injection Risks**: Unsafe database queries with user input
+- **Security Anti-patterns**: Dangerous practices and vulnerabilities
+
+#### ⚡ Performance Issues
+- **Inefficient Algorithms**: Nested loops, O(n²) complexity
+- **Memory Leaks**: Resource management problems
+- **Performance Anti-patterns**: Slow code patterns and bottlenecks
+
+#### 🧹 Code Smells
+- **Magic Numbers**: Unnamed constants in code
+- **Bare Except Clauses**: Generic exception handling
+- **Anti-patterns**: Poor coding practices and smells
+
+#### 🏗️ Maintainability Issues
+- **Complex Functions**: High cyclomatic complexity
+- **Long Functions**: Functions with too many lines
+- **Poor Documentation**: Missing or inadequate comments
+- **TODO/FIXME Comments**: Unresolved action items
+
+#### 📚 Best Practice Violations
+- **Language-specific Issues**: Violations of language best practices
+- **Style Violations**: Inconsistent coding style
+- **Architecture Problems**: Poor code organization
+
+#### 🔧 Linter Errors
+- **Syntax Errors**: Language-specific syntax issues
+- **Style Issues**: Code formatting and style violations
+- **Potential Bugs**: Issues detected by language linters
 
 **How to scan**:
 1. **Select Directory**: Choose your project folder
 2. **Configure Model**: Select Ollama or own model
-3. **Start Scan**: Click "Scan Code for Issues"
-4. **Monitor Progress**: Watch real-time progress updates
-5. **Review Results**: Examine found issues and suggestions
+3. **Start Intelligent Scan**: Click "Start Scan"
+4. **Monitor Progress**: Watch real-time analysis progress
+5. **Review Results**: Examine comprehensive issue analysis
 
-**Supported Languages**:
-- **Python**: Uses flake8 for analysis
-- **JavaScript/TypeScript**: Uses ESLint
-- **C/C++**: Uses cppcheck
-- **Java**: Uses Checkstyle
-- **Go**: Uses golangci-lint
-- **Rust**: Uses cargo clippy
-- **And 14 more languages...**
+**Analysis Process**:
+1. **File Discovery**: Identifies all supported code files
+2. **Language Detection**: Determines language for each file
+3. **Linter Integration**: Runs language-specific linters (if available)
+4. **Intelligent Analysis**: Performs deep code analysis
+5. **Issue Classification**: Categorizes issues by type and severity
+6. **AI Enhancement**: Generates intelligent suggestions for each issue
 
-**Scan Results**:
-- **Issue Count**: Total number of issues found
-- **File Breakdown**: Issues per file
-- **Severity Levels**: Different types of issues
-- **AI Suggestions**: Generated fixes for each issue
+### Issue Classification
+
+**Issue Types**:
+- **Logic Errors**: Problems with code logic and flow
+- **Performance Issues**: Inefficient code patterns
+- **Security Vulnerabilities**: Security-related problems
+- **Code Smells**: Anti-patterns and poor practices
+- **Maintainability Issues**: Code organization problems
+- **Documentation Issues**: Missing or poor documentation
+- **Best Practice Violations**: Language-specific violations
+- **Linter Errors**: Traditional linter-detected issues
+
+**Severity Levels**:
+- **Critical**: Must-fix issues (security vulnerabilities, critical bugs)
+- **High**: Important issues (performance problems, major code smells)
+- **Medium**: Moderate issues (maintainability, style violations)
+- **Low**: Minor issues (documentation, minor style issues)
+
+### Scan Results and Summary
+
+**Comprehensive Summary**:
+- **Total Issues**: Complete count of all detected issues
+- **Languages Analyzed**: Number of programming languages scanned
+- **Issues by Type**: Breakdown of issues by category
+- **Issues by Severity**: Prioritized list by importance
+- **Critical Issues**: Highlighted critical problems requiring immediate attention
+
+**Example Summary**:
+```
+=== INTELLIGENT CODE ANALYSIS COMPLETE ===
+
+Total Issues Found: 23
+Languages Analyzed: 3
+
+Issues by Type:
+  • Code Smell: 8
+  • Security Vulnerability: 3
+  • Performance Issue: 2
+  • Maintainability Issue: 7
+  • Linter Error: 3
+
+Issues by Severity:
+  • Critical: 2
+  • High: 5
+  • Medium: 12
+  • Low: 4
+
+🚨 CRITICAL ISSUES (2):
+  1. src/auth.py:15 - Hardcoded API key detected
+  2. src/database.py:42 - SQL injection vulnerability
+
+📋 RECOMMENDATIONS:
+  • Address security vulnerabilities immediately
+  • Optimize performance-critical code sections
+  • Improve code maintainability and documentation
+```
 
 ### Interactive Review
 
-**Purpose**: Review and apply AI suggestions with full control.
+**Purpose**: Review and apply AI suggestions with full control and context.
+
+**Enhanced Review Interface**:
+- **Issue Information**: Type, severity, file location, and language
+- **Context Display**: Additional context and background information
+- **Code Snippet**: Original problematic code
+- **AI Suggestion**: Intelligent improvement proposal
+- **AI Explanation**: Detailed analysis and justification
+- **User Feedback**: Field to modify or provide alternative solutions
 
 **Review Process**:
-1. **Issue Display**: Shows the problematic code
-2. **AI Suggestion**: Presents the proposed fix
-3. **User Input**: You can modify the suggestion
-4. **Decision**: Accept, reject, or modify the suggestion
-5. **Learning**: Your feedback improves future suggestions
-
-**Review Interface**:
-- **Original Code**: Shows the current problematic code
-- **Suggested Fix**: AI-generated correction
-- **Explanation**: AI justification for the change
-- **User Input**: Field to modify the suggestion
-- **Action Buttons**: Accept, Reject, or Cancel
+1. **Issue Overview**: Review issue type, severity, and context
+2. **Code Analysis**: Examine the problematic code snippet
+3. **AI Suggestion**: Review the proposed improvement
+4. **AI Explanation**: Understand the reasoning behind the suggestion
+5. **User Input**: Modify the suggestion if needed
+6. **Decision**: Accept, reject, or modify the suggestion
+7. **Learning**: Your feedback improves future suggestions
 
 **Learning Integration**:
 - **Feedback Storage**: Saves your corrections to learning data
 - **Model Improvement**: Uses feedback to improve future suggestions
-- **Pattern Recognition**: Learns your coding preferences
+- **Pattern Recognition**: Learns your coding preferences and style
 
 ### Report Generation
 
-**Purpose**: Create comprehensive reports of code analysis results.
+**Purpose**: Create comprehensive reports of intelligent analysis results.
 
 **Report Types**:
-- **Markdown Report**: Human-readable format with explanations
+- **Markdown Report**: Human-readable format with detailed explanations
 - **JSONL Training Data**: Machine-readable format for model training
-- **Statistics**: Summary of issues and fixes
+- **Statistics**: Summary of issues, fixes, and trends
 
 **Report Contents**:
-- **File-by-file breakdown**: Issues organized by file
-- **Code snippets**: Original and corrected code
-- **AI explanations**: Justifications for each suggestion
-- **Statistics**: Summary metrics and trends
+- **Executive Summary**: High-level overview of findings
+- **Issue Breakdown**: Detailed analysis by file and type
+- **Code Snippets**: Original and corrected code examples
+- **AI Explanations**: Justifications for each suggestion
+- **Recommendations**: Prioritized action items
+- **Statistics**: Summary metrics and improvement trends
 
 ## Browser & Transcription Tab
 
@@ -390,6 +500,582 @@ Thumbs.db
 - **Result Caching**: Cache analysis results for repeated scans
 - **Documentation Caching**: Cache processed documentation
 
+## 🧠 Advanced AI-Powered Code Analysis
+
+The AI Coder Assistant features **sophisticated intelligent analysis** that goes far beyond traditional linters and provides deep insights into your code.
+
+### **Semantic Code Analysis**
+
+The AI understands the **meaning and context** of your code:
+
+#### **Function Call Analysis**
+- **Dangerous Functions**: Detects `eval()`, `exec()`, `input()` usage
+- **Performance Issues**: Identifies blocking calls like `sleep()`
+- **Security Risks**: Flags potentially unsafe function calls
+- **Best Practices**: Suggests safer alternatives
+
+#### **Comparison Logic**
+- **Python**: Detects `== None` vs `is None` usage
+- **JavaScript**: Identifies loose equality (`==` vs `===`)
+- **Type Safety**: Ensures proper comparison operators
+- **Semantic Correctness**: Validates logical expressions
+
+#### **Boolean Logic**
+- **Redundant Expressions**: Finds unnecessary `True` in AND conditions
+- **Logic Simplification**: Suggests cleaner boolean expressions
+- **Conditional Analysis**: Analyzes complex conditional logic
+- **Optimization Opportunities**: Identifies logical improvements
+
+### **Data Flow Analysis**
+
+Tracks how data moves through your code:
+
+#### **Variable Tracking**
+- **Unused Variables**: Detects variables that are defined but never used
+- **Undefined Variables**: Identifies variables used without definition
+- **Scope Issues**: Analyzes variable scope and accessibility
+- **Cross-File Dependencies**: Tracks variables across multiple files
+
+#### **Data Dependencies**
+- **Import Analysis**: Tracks module dependencies
+- **Function Dependencies**: Analyzes function call relationships
+- **Data Relationships**: Maps data flow between components
+- **Dependency Cycles**: Detects circular dependencies
+
+### **Pattern Detection**
+
+Recognizes design patterns and anti-patterns:
+
+#### **Design Patterns**
+- **Singleton Pattern**: Detects singleton implementations
+- **Factory Pattern**: Identifies factory method usage
+- **Observer Pattern**: Recognizes observer implementations
+- **Strategy Pattern**: Detects strategy pattern usage
+
+#### **Anti-Patterns**
+- **God Object**: Identifies classes with too many responsibilities
+- **Spaghetti Code**: Detects complex nested control flow
+- **Callback Hell**: Finds deeply nested callbacks (JavaScript)
+- **Global Variables**: Identifies excessive global variable usage
+
+#### **Code Smells**
+- **Complex Methods**: Detects overly complex functions
+- **Long Parameter Lists**: Identifies methods with too many parameters
+- **Data Clumps**: Finds groups of related data that should be objects
+- **Primitive Obsession**: Detects overuse of primitive types
+
+### **Dependency Analysis**
+
+Analyzes project architecture and dependencies:
+
+#### **Circular Dependencies**
+- **Import Cycles**: Detects circular import dependencies
+- **Module Dependencies**: Maps module dependency relationships
+- **Architecture Issues**: Identifies architectural problems
+- **Refactoring Suggestions**: Provides solutions for dependency issues
+
+#### **Dependency Complexity**
+- **High Coupling**: Detects tightly coupled modules
+- **Low Cohesion**: Identifies modules with mixed responsibilities
+- **Dependency Metrics**: Calculates dependency complexity scores
+- **Architectural Assessment**: Evaluates overall project structure
+
+### **Enhanced Security Detection**
+
+Comprehensive security vulnerability scanning:
+
+#### **Hardcoded Credentials**
+- **Passwords**: Detects hardcoded passwords in code
+- **API Keys**: Identifies exposed API keys and tokens
+- **Secrets**: Finds hardcoded secrets and private keys
+- **Configuration**: Detects sensitive configuration data
+
+#### **SQL Injection**
+- **String Concatenation**: Identifies unsafe SQL query construction
+- **Parameterized Queries**: Suggests safer query methods
+- **Input Validation**: Detects missing input validation
+- **Database Security**: Analyzes database access patterns
+
+#### **Code Injection**
+- **Eval Usage**: Detects dangerous `eval()` function calls
+- **Exec Usage**: Identifies `exec()` function usage
+- **Dynamic Code**: Finds dynamic code execution patterns
+- **Input Sanitization**: Detects missing input sanitization
+
+#### **XSS Vulnerabilities**
+- **innerHTML**: Detects unsafe innerHTML assignments
+- **document.write**: Identifies dangerous document.write usage
+- **User Input**: Analyzes user input handling
+- **Output Encoding**: Detects missing output encoding
+
+### **Memory and Performance Analysis**
+
+Identifies performance and memory issues:
+
+#### **Memory Leaks**
+- **Infinite Loops**: Detects potential infinite loops
+- **Large Data Structures**: Identifies memory-intensive operations
+- **Resource Cleanup**: Detects missing resource cleanup
+- **Memory Allocation**: Analyzes memory allocation patterns
+
+#### **Performance Issues**
+- **Nested Loops**: Detects inefficient nested loop structures
+- **String Concatenation**: Identifies inefficient string operations
+- **List Operations**: Analyzes list manipulation efficiency
+- **Algorithm Complexity**: Detects high-complexity algorithms
+
+#### **Resource Usage**
+- **CPU Intensive**: Identifies CPU-intensive operations
+- **I/O Operations**: Analyzes I/O operation patterns
+- **Network Calls**: Detects inefficient network usage
+- **Database Queries**: Analyzes database query efficiency
+
+### **Multi-Language Intelligence**
+
+Advanced analysis across multiple programming languages:
+
+#### **Python Analysis**
+- **AST Parsing**: Uses Abstract Syntax Tree for deep analysis
+- **Complexity Calculation**: Calculates cyclomatic complexity
+- **Type Hints**: Analyzes type annotation usage
+- **Import Analysis**: Tracks import dependencies
+
+#### **JavaScript/TypeScript Analysis**
+- **Loose Equality**: Detects `==` vs `===` usage
+- **Callback Patterns**: Analyzes callback and promise usage
+- **Global Variables**: Identifies global variable usage
+- **Type Safety**: Analyzes TypeScript type usage
+
+#### **Java Analysis**
+- **Raw Types**: Detects generic type usage
+- **Exception Handling**: Analyzes exception handling patterns
+- **Logging**: Identifies logging framework usage
+- **Memory Management**: Analyzes object lifecycle
+
+#### **C/C++ Analysis**
+- **Memory Management**: Detects memory allocation/deallocation
+- **Pointer Safety**: Analyzes pointer usage patterns
+- **Type Casting**: Identifies unsafe type casting
+- **Resource Management**: Detects resource cleanup issues
+
+### **Using Advanced Analysis**
+
+#### **Running Analysis**
+1. **Select Files**: Choose files or directories to analyze
+2. **Choose Language**: Select the programming language
+3. **Run Analysis**: Click "Scan Code" to start analysis
+4. **Review Results**: Examine detailed analysis results
+
+#### **Understanding Results**
+- **Issue Types**: Each issue is categorized by type and severity
+- **Code Snippets**: See the exact code causing issues
+- **Suggestions**: Get specific recommendations for fixes
+- **Context**: Understand the broader context of issues
+
+#### **Taking Action**
+- **Review Critical Issues**: Address security and logic errors first
+- **Fix Performance Issues**: Optimize code for better performance
+- **Refactor Code**: Improve code structure and maintainability
+- **Update Documentation**: Address documentation issues
+
+### **Analysis Configuration**
+
+#### **Customizing Analysis**
+- **Severity Levels**: Configure which severity levels to report
+- **Issue Types**: Enable/disable specific issue types
+- **File Patterns**: Include/exclude specific file patterns
+- **Language Settings**: Configure language-specific analysis
+
+#### **Performance Settings**
+- **Thread Count**: Adjust the number of analysis threads
+- **Memory Limits**: Set memory usage limits for analysis
+- **Timeout Settings**: Configure analysis timeout values
+- **Caching**: Enable/disable analysis result caching
+
+### **Integration with Development Workflow**
+
+#### **IDE Integration**
+- **Real-time Analysis**: Get analysis results as you code
+- **Quick Fixes**: Apply suggested fixes directly
+- **Error Highlighting**: See issues highlighted in your editor
+- **Auto-fix**: Automatically fix simple issues
+
+#### **CI/CD Integration**
+- **Automated Scanning**: Run analysis in CI/CD pipelines
+- **Quality Gates**: Set quality thresholds for deployments
+- **Report Generation**: Generate analysis reports for stakeholders
+- **Trend Analysis**: Track code quality over time
+
+#### **Team Collaboration**
+- **Shared Reports**: Share analysis results with team members
+- **Code Reviews**: Use analysis results in code reviews
+- **Best Practices**: Establish team coding standards
+- **Training**: Use analysis results for team training
+
+## Building Optimized Binaries
+
+The AI Coder Assistant supports building **optimized, modular binaries** that provide significant performance and size benefits over traditional single-binary approaches.
+
+### **🎯 Why Build Binaries?**
+
+#### **Performance Benefits**
+- **85-90% Size Reduction**: 20-30MB vs 150-200MB for traditional builds
+- **75-80% Memory Reduction**: 100-200MB vs 500-800MB memory usage
+- **70-80% Faster Startup**: 2-5 seconds vs 10-15 seconds startup time
+- **Modular Architecture**: Load only the components you need
+
+#### **Distribution Benefits**
+- **No Python Installation Required**: End users don't need Python
+- **Cross-Platform Compatibility**: Works on Windows, Linux, and macOS
+- **Easy Deployment**: Simple file distribution
+- **Professional Packaging**: Ready for commercial distribution
+
+### **🚀 Quick Build Options**
+
+#### **Windows Users**
+```batch
+# Simply run the Windows build script
+build_windows.bat
+```
+
+#### **Linux Users**
+```bash
+# Make script executable and run
+chmod +x build_linux.sh
+./build_linux.sh
+```
+
+#### **macOS Users**
+```bash
+# Make script executable and run
+chmod +x build_macos.sh
+./build_macos.sh
+```
+
+#### **Docker Users**
+```bash
+# Build using Docker (works on any platform)
+docker-compose --profile build up
+```
+
+### **📋 Manual Build Process**
+
+#### **Step 1: Set Up Build Environment**
+```bash
+# Create virtual environment
+python -m venv build-env
+
+# Activate environment
+# Windows:
+build-env\Scripts\activate
+# Linux/macOS:
+source build-env/bin/activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+pip install pyinstaller
+```
+
+#### **Step 2: Install UPX (Optional but Recommended)**
+```bash
+# Windows (PowerShell):
+Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-win64.zip" -OutFile "upx.zip"
+Expand-Archive -Path "upx.zip" -DestinationPath "." -Force
+copy "upx-4.0.2-win64\upx.exe" "build-env\Scripts\"
+
+# Linux:
+sudo apt-get install upx
+
+# macOS:
+brew install upx
+```
+
+#### **Step 3: Build Components**
+```bash
+# Build all components
+python build_all.py
+
+# Or build specific component
+python build_all.py --component core
+python build_all.py --component analyzer
+python build_all.py --component scanner
+python build_all.py --component web
+python build_all.py --component trainer
+```
+
+### **📦 Build Output Structure**
+
+After successful build, you'll find the following structure in the `dist/` directory:
+
+```
+dist/
+├── ai-coder-core.exe          # Main GUI application (5-8MB)
+├── ai-coder-analyzer.exe      # AI analysis engine (3-5MB)
+├── ai-coder-scanner.exe       # Code scanner (2-3MB)
+├── ai-coder-web.exe           # Web scraper (2-3MB)
+├── ai-coder-trainer.exe       # Model trainer (4-6MB)
+├── ai-coder-launcher.exe      # Component launcher (1-2MB)
+├── run.py                     # Python launcher script
+├── shared/
+│   ├── models/                # AI models (optional)
+│   ├── config/                # Configuration files
+│   └── data/                  # Data directory
+├── docs/                      # Documentation
+├── README.md                  # Instructions
+└── requirements.txt           # Dependencies
+```
+
+### **🚀 Running from Binary Distribution**
+
+#### **Main Application**
+```bash
+# Run the main GUI application
+./dist/ai-coder-core
+
+# Or use the launcher
+./dist/ai-coder-launcher core
+```
+
+#### **Individual Components**
+```bash
+# Run AI analyzer on specific file
+./dist/ai-coder-launcher analyzer --file main.py --language python
+
+# Run code scanner on directory
+./dist/ai-coder-launcher scanner --path /path/to/code
+
+# Run web scraper
+./dist/ai-coder-launcher web --url https://example.com
+
+# Run model trainer
+./dist/ai-coder-launcher trainer --data training_data.txt
+```
+
+#### **Component-Specific Usage**
+
+**AI Analyzer**:
+```bash
+# Analyze single file
+./dist/ai-coder-analyzer --file main.py --language python
+
+# Analyze with output file
+./dist/ai-coder-analyzer --file main.py --language python --output results.json
+```
+
+**Code Scanner**:
+```bash
+# Scan directory
+./dist/ai-coder-scanner --path /path/to/project
+
+# Scan with output file
+./dist/ai-coder-scanner --path /path/to/project --output scan_results.json
+```
+
+**Web Scraper**:
+```bash
+# Scrape single URL
+./dist/ai-coder-web --url https://docs.python.org/3/
+
+# Scrape with output directory
+./dist/ai-coder-web --url https://docs.python.org/3/ --output ./scraped_docs
+```
+
+**Model Trainer**:
+```bash
+# Train model
+./dist/ai-coder-trainer --data training_data.txt
+
+# Train with output path
+./dist/ai-coder-trainer --data training_data.txt --output ./trained_model
+```
+
+### **🔧 Advanced Build Options**
+
+#### **Custom Build Configuration**
+```python
+# build_config.py
+BUILD_CONFIG = {
+    'optimization_level': 'high',  # low, medium, high
+    'compression': 'upx',          # upx, lzma, none
+    'strip_symbols': True,
+    'exclude_modules': [
+        'matplotlib', 'numpy', 'pandas', 'scipy'
+    ],
+    'include_modules': [
+        'PyQt6.QtCore', 'PyQt6.QtWidgets'
+    ],
+    'target_platform': 'auto',     # auto, windows, linux, macos
+    'architecture': 'auto',        # auto, x86_64, arm64
+}
+```
+
+#### **Cross-Platform Building**
+```bash
+# Build for specific platform
+docker-compose --profile build-windows up
+docker-compose --profile build-linux up
+docker-compose --profile build-macos up
+```
+
+#### **Performance Optimization**
+```bash
+# Build with maximum optimization
+python build_all.py --optimization-level high
+
+# Build without UPX compression
+python build_all.py --compression none
+
+# Build with debug symbols
+python build_all.py --debug
+```
+
+### **📊 Component Breakdown**
+
+| Component | Size | Dependencies | Function |
+|-----------|------|--------------|----------|
+| **Core** | 5-8MB | PyQt6, basic config | Main GUI |
+| **Analyzer** | 3-5MB | transformers, torch | AI analysis |
+| **Scanner** | 2-3MB | pathspec, networkx | Code scanning |
+| **Web** | 2-3MB | requests, beautifulsoup4 | Web scraping |
+| **Trainer** | 4-6MB | torch, datasets | Model training |
+| **Launcher** | 1-2MB | minimal Python | Orchestration |
+
+### **🔄 Continuous Integration**
+
+#### **GitHub Actions Example**
+```yaml
+name: Build Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Build binaries
+      run: python build_all.py
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ai-coder-assistant-${{ matrix.os }}
+        path: dist/
+```
+
+### **🐛 Build Troubleshooting**
+
+#### **Common Build Issues**
+
+**Python Not Found**:
+```bash
+# Windows
+python --version
+# If not found, install Python from python.org
+
+# Linux/macOS
+python3 --version
+# If not found: sudo apt-get install python3 (Linux) or brew install python (macOS)
+```
+
+**PyInstaller Installation Failed**:
+```bash
+# Upgrade pip first
+pip install --upgrade pip
+
+# Install with specific version
+pip install pyinstaller==5.13.0
+
+# Or install from source
+pip install git+https://github.com/pyinstaller/pyinstaller.git
+```
+
+**UPX Not Found**:
+```bash
+# Manual installation
+# Windows: Download from https://upx.github.io/
+# Linux: sudo apt-get install upx
+# macOS: brew install upx
+```
+
+**Build Fails with Import Errors**:
+```bash
+# Clean and rebuild
+python build_all.py --clean
+python build_all.py
+
+# Check dependencies
+pip list | grep -E "(torch|transformers|PyQt6)"
+```
+
+**Binary Too Large**:
+```bash
+# Enable UPX compression
+python build_all.py --compression upx
+
+# Exclude unnecessary modules
+python build_all.py --exclude-modules matplotlib,numpy,pandas
+
+# Use higher optimization
+python build_all.py --optimization-level high
+```
+
+**Binary Won't Run**:
+```bash
+# Check permissions (Linux/macOS)
+chmod +x dist/*
+
+# Check dependencies
+ldd dist/ai-coder-core  # Linux
+otool -L dist/ai-coder-core  # macOS
+
+# Run with debug output
+./dist/ai-coder-core --debug
+```
+
+#### **Platform-Specific Issues**
+
+**Windows**:
+- **Antivirus blocking**: Add build directory to exclusions
+- **PowerShell execution policy**: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+- **Visual Studio Build Tools**: Install for better optimization
+
+**Linux**:
+- **Missing libraries**: `sudo apt-get install libgl1-mesa-glx libglib2.0-0`
+- **Permission denied**: `chmod +x dist/*`
+- **UPX not found**: `sudo apt-get install upx`
+
+**macOS**:
+- **Security warning**: Allow in System Preferences > Security & Privacy
+- **Missing Xcode tools**: `xcode-select --install`
+- **Homebrew not found**: Install from https://brew.sh/
+
+### **📚 Additional Resources**
+
+For comprehensive build instructions, troubleshooting, and advanced options, see:
+- **[BUILD_README.md](../BUILD_README.md)** - Complete build guide
+- **[BUILD_PLAN.md](../BUILD_PLAN.md)** - Technical architecture and optimization details
+
 ## Troubleshooting
 
 ### Common Issues
@@ -501,6 +1187,40 @@ Thumbs.db
 - **Local Storage**: Store all data locally
 - **Encryption**: Encrypt sensitive training data
 - **Access Logging**: Log access to sensitive data
+
+## Application Structure
+
+The AI Coder Assistant is now organized with a clear separation between frontend (UI) and backend (logic):
+- **Frontend**: All user interface code is in `src/frontend/` (PyQt6 windows, dialogs, tabs, etc.)
+- **Backend**: All business logic, AI, and data processing is in `src/backend/`
+
+All frontend-backend imports use explicit relative paths (e.g. `from ...backend.services import ai_tools`).
+
+## How the UI Connects to Backend Logic
+- The main window and all tabs/widgets call backend services for scanning, training, preprocessing, and PR creation.
+- All progress dialogs and worker threads are managed in the frontend, but the actual work is performed by backend functions.
+- Settings and constants are always imported from `src/backend/utils/`.
+
+## Testing Frontend-Backend Integration
+- Unit tests for every frontend-backend call are in `tests/frontend_backend/`.
+- These tests use `unittest` and `unittest.mock` to verify that the UI calls backend services and uses backend constants/settings correctly.
+- **What is covered:**
+  - All main window calls to backend services (scan, report, train, etc.)
+  - Worker thread execution of backend functions
+  - All UI tab widgets' use of backend settings/constants
+  - Markdown viewer dialog's use of backend constants
+- To run all tests:
+
+```bash
+python -m unittest discover tests
+```
+
+## Progress Bars and Responsiveness
+- All long-running operations (scan, preprocess, train, export, etc.) use worker threads and progress dialogs.
+- The UI remains responsive and progress bars update correctly for all tasks.
+
+## Further Reading
+- See `ARCHITECTURE.md` for a full developer-oriented overview of the new structure and integration patterns.
 
 ---
 

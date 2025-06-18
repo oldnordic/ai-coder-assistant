@@ -1,0 +1,5901 @@
+=== MAIN PAGE ===
+PyQt6 — Create Python GUIs with Python & Qt6
+(1)
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+PyQt6
+PyQt6 is a Python binding of the cross-platform GUI toolkit Qt. Applications built with PyQt6
+will run on any platform supported by Qt & Python including Windows, OS X, Linux, iOS and Android.
+Created by Riverbank Computing, PyQt is free software (GPL licensed) and has been in development since 1999. The latest version PyQt6
+was released in 2021 and the library continues to be updated.
+For a complete guide to desktop application development with Python & PyQt6, see the
+PyQt6 tutorial
+and PyQt6 book
+Create Simple GUI Applications with Python & Qt
+.
+Explore PyQt6
+6th Edition - Create GUI Applications with Python & Qt, Released
+PyQt6 & PySide6 Books updated for 2025 with model view controller architecture, new Python/Qt features and more examples
+PyQt6 & PySide6 Books updated for 2024
+Extended and updated with new examples, demos including Model View Controller architecture
+PyQt6
+PyQt6 Tutorial
+Introduction to the QGraphics Framework in PyQt6
+Creating vector interfaces using the QGraphics View framework
+PyQt6
+Drag & Drop Widgets with PyQt6
+Sort widgets visually with drag and drop in a container
+QLineEdit
+A Simple Text Input Widget
+PyQt6
+How to Create a Custom Title Bar for a PyQt6 Window
+Customize Your Python App's Title Bars
+PyQt6
+How to Restore the Window's Geometry in a PyQt6 App
+Make Your Windows Remember Their Last Geometry
+PyQt6
+PyQt6 Book now available in Korean: 파이썬과 Qt6로 GUI 애플리케이션 만들기
+The hands-on guide to creating GUI applications with Python gets a new translation
+PyQt vs. Tkinter — Which Should You Choose for Your Next GUI Project?
+What Are the Major Differences Between these Popular Python GUI Libraries
+PySide6
+Q&A: How Do I Display Images in PySide6?
+Using QLabel to easily add images to your applications
+Handle command-line arguments with PyQt6/PySide6
+Allow users to customize your application at launch
+Working With Classes in Python and PyQt
+Understanding the Intricacies of Python Classes
+PyQt6
+Q&A: How Do I Display Images in PyQt6?
+Using QLabel to easily add images to your applications
+QCheckBox
+Toggleable checkable widget
+QPushButton
+Add clickable buttons to your Python UI
+PyQt6
+PyQt6 Tutorial
+Plotting With PyQtGraph and PyQt6
+Create Custom Plots in PyQt6 With PyQtGraph
+PyQt6
+PyQt6 Tutorial
+Plotting With Matplotlib and PyQt6
+Create PyQt6 plots with the popular Python plotting library
+Which Python GUI library should you use?
+Comparing the Python GUI libraries available in 2025
+Q&A: Why do I need to pass sys.argv or [] when creating an instance of QApplication?
+Using command-line arguments to configure Qt
+Install Qt Designer Standalone
+Qt Designer Download for Windows, Mac and Linux
+PyQt6, PySide6, PyQt5 and PySide2 Books -- updated for 2022!
+New editions extended and updated, now 780+ pages
+PyQt5 vs PyQt6
+What are the differences, and is it time to upgrade?
+Using Postgres with Qt & Python on Windows, fixing QPSQL driver not loaded
+Setting PATH to use the Postgres library
+PyQt6
+PyQt6 Tutorial
+Packaging PyQt6 applications for Windows with PyInstaller & InstallForge
+Turn your PyQt6 application into a distributable installer for Windows
+PyQt6
+PyQt6 Tutorial
+Animating Custom Widgets With QPropertyAnimation in PyQt6
+Add dynamic visual effects to your custom widgets
+1
+2
+3
+
+=== RELATED PAGE ===
+Python GUIs – Create GUI applications with Python and Qt
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PyQt6
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+Python GUI Tutorials
+Want to create GUI applications with Python?
+Here is
+everything
+you need to go from your
+first window to complete apps.
+Stop wasting your time on half-baked examples and bad practises.
+Learn how to build Python applications
+the right way
+.
+Where do I
+begin
+with PyQt6?
+Take your first steps creating Python GUI applications with these
+simple step-by-step guides to Python & Qt.
+PyQt6 not installed? See our installation guides for
+Windows
+,
+macOS
+and
+Linux
+Once you're set up you can
+get started
+by
+Creating your first GUI application with Python
+.
+Learn the
+fundamentals
+of PyQt6
+Now you have made your first GUI app, let's go a step further
+adding widgets and layouts to
+build some simple Python UIs
+.
+Connect button presses to actions in your apps with
+Signals, Slots & Events
+Take a look at
+Widgets available in PyQt6
+Arrange widgets together using
+Layouts
+to build real applications.
+Add
+toolbars & menus
+with keyboard shortcuts using QAction.
+Popup
+dialogs
+to get confirmation, or select files.
+Build
+multi-window applications
+.
+Continue with PyQt6
+Python GUI Libraries
+Other libraries are available
+If you're new to creating GUIs with Python I now recommend
+starting with PyQt6
+. But we support other libraries too! Not sure which GUI
+library to use for your project?
+See the guide
+.
+Continue with PySide6
+Continue with PyQt5
+Continue with Tkinter
+Continue with PySide2
+Books
+Hands-on
+guides to Python GUI programming
+Books taking you from first principles to fully-functional apps, not toy examples.
+See all Python GUIs books
+Latest Updates
+6th Edition - Create GUI Applications with Python & Qt, Released
+PyQt6 & PySide6 Books updated for 2025 with model view controller architecture, new Python/Qt features and more examples
+Tkinter
+Tkinter Tutorial
+Tkinter Widgets
+A walkthrough of Tkinter's basic widgets
+What does @Slot() do?
+Is the Slot decorator even necessary?
+Streamlit
+Build an Image Noise Reduction Tool with Streamlit and OpenCV
+Clean up noisy images using OpenCV
+Kivy
+Kivy's Complex Widgets
+Learn How to Use Kivy's Complex UX Widgets in Your Apps
+Tkinter
+Building a Currency Converter Application using Tkinter
+Convert between currencies with ease
+We're adding
+more tutorials
+every month!
+
+=== RELATED PAGE ===
+Python GUIs – Create GUI applications with Python and Qt
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PyQt6
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+Latest articles
+Latest updates from across the Python GUIs site. New tutorials, tips & updates added each month.
+Showing articles for
+All (25)
+PyQt6 (10)
+PySide6 (12)
+PyQt5 (6)
+Streamlit (8)
+Tkinter (10)
+PySide2 (6)
+Kivy (9)
+6th Edition - Create GUI Applications with Python & Qt, Released
+PyQt6 & PySide6 Books updated for 2025 with model view controller architecture, new Python/Qt features and more examples
+Tkinter
+Tkinter Tutorial
+Tkinter Widgets
+A walkthrough of Tkinter's basic widgets
+What does @Slot() do?
+Is the Slot decorator even necessary?
+Streamlit
+Build an Image Noise Reduction Tool with Streamlit and OpenCV
+Clean up noisy images using OpenCV
+Kivy
+Kivy's Complex Widgets
+Learn How to Use Kivy's Complex UX Widgets in Your Apps
+Tkinter
+Building a Currency Converter Application using Tkinter
+Convert between currencies with ease
+PyQt6
+PyQt6 Tutorial
+Multithreading PyQt6 applications with QThreadPool
+Run background tasks concurrently without impacting your UI
+PySide6
+PySide6 Tutorial
+PySide6 Toolbars & Menus — QAction
+Defining toolbars, menus, and keyboard shortcuts with QAction
+PySide6
+Build a Desktop Sticky Notes Application with PySide6 & SQLAlchemy
+Create moveable desktop reminders with Python
+Streamlit
+Getting Started with Streamlit
+Build your first Streamlit app and explore some basic features
+PyQt6
+PyQt6 Tutorial
+PyQt6 Toolbars & Menus — QAction
+Defining toolbars, menus, and keyboard shortcuts with QAction
+PySide6
+PySide6 Tutorial
+Multithreading PySide6 applications with QThreadPool
+Run background tasks concurrently without impacting your UI
+Kivy
+Build a To-do App With Python and Kivy
+Manage Your Todo Items With Ease
+Which Python GUI library should you use?
+Comparing the Python GUI libraries available in 2025
+Kivy
+Basic Kivy Widgets
+Learn the Basics of UX Widgets in Kivy
+Getting Started With PyCharm for Python GUI Development
+The Python-Specific Integrated Development Environment
+Tkinter
+Building a Translation Application Using Tkinter
+Translate Your Text With Python and Tkinter
+PySide6
+PySide6 Tutorial
+Introduction to the QGraphics Framework in PySide6
+Creating vector interfaces using the QGraphics View framework
+Tkinter
+Build a Translation Application Using Tkinter and OpenAI
+Use ChatGPT to Translate Your Text from Python
+PyQt6 & PySide6 Books updated for 2024
+Extended and updated with new examples, demos including Model View Controller architecture
+PyQt6
+PyQt6 Tutorial
+Introduction to the QGraphics Framework in PyQt6
+Creating vector interfaces using the QGraphics View framework
+PySide6
+Q&A: How Do I Display Images in PySide6?
+Using QLabel to easily add images to your applications
+PySide6
+Drag & Drop Widgets with PySide6
+Sort widgets visually with drag and drop in a container
+Working With Python Virtual Environments
+Setting Your Python Working Environment, the Right Way
+PyQt6
+PyQt6 Tutorial
+Plotting With PyQtGraph and PyQt6
+Create Custom Plots in PyQt6 With PyQtGraph
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+
+=== RELATED PAGE ===
+FAQ — Common Python GUI Questions, Answered
+(1)
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PyQt6
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+FAQ
+Common Python GUI Questions, Answered
+Answers to our users most frequently answered questions, from licensing, packaging and libraries, to PyQt tips and tricks.
+Showing articles for
+All (297)
+PyQt6 (109)
+PySide6 (107)
+PyQt5 (275)
+Streamlit (103)
+Tkinter (104)
+PySide2 (114)
+Kivy (103)
+PySide6
+Drag & Drop Widgets with PySide6
+Sort widgets visually with drag and drop in a container
+PyQt6
+Drag & Drop Widgets with PyQt6
+Sort widgets visually with drag and drop in a container
+How Trademarks Affect Open Source Software
+How do trademarks relate to copyrights and what are the implications for open source software
+PyQt vs. Tkinter — Which Should You Choose for Your Next GUI Project?
+What Are the Major Differences Between these Popular Python GUI Libraries
+PySide6
+Q&A: How Do I Display Images in PySide6?
+Using QLabel to easily add images to your applications
+Handle command-line arguments with PyQt6/PySide6
+Allow users to customize your application at launch
+PyQt6
+Q&A: How Do I Display Images in PyQt6?
+Using QLabel to easily add images to your applications
+Can You Charge for Open-Source Software?
+Making Money from Open-Source Projects
+Which Python GUI library should you use?
+Comparing the Python GUI libraries available in 2025
+Q&A: Why do I need to pass sys.argv or [] when creating an instance of QApplication?
+Using command-line arguments to configure Qt
+Understanding the GPL and "Copyleft"
+When Are Two Open Source Software Licenses Incompatible?
+The Basics of Software Copyrights
+Why Do You Need to Bother With Licensing at All?
+PyQt5 vs PyQt6
+What are the differences, and is it time to upgrade?
+PySide2 vs PySide6
+What are the differences, and is it time to upgrade?
+Using Postgres with Qt & Python on Windows, fixing QPSQL driver not loaded
+Setting PATH to use the Postgres library
+PySide2
+Drag & Drop Widgets with PySide2
+Sort widgets visually with drag and drop in a container
+PyQt5
+Drag & Drop Widgets with PyQt5
+Sort widgets visually with drag and drop in a container
+Simple threading in PyQt/PySide apps with .start() of QThreadPool
+How to move Python functions/methods & PyQt/PySide slots onto separate threads
+Search a QTablewidget and select matching items
+Finding and selecting matching items in a QTableWidget
+Q&A: How to show a custom cursor on a PyQtGraph plot?
+Changing the OS cursor and implementing a custom crosshair
+Q&A: How to fix widgets appearing as separate windows?
+Understanding Qt parents and layouts and the effect on widget position
+PyQt5
+Running Python script with QProcess after freeze
+Published 12.08.2021
+PyQt5
+QDateEdit widget does not respond to setSelectedSection
+Published 24.07.2021
+Q&A: How can I enable editing on a QTableView?
+Modifying your model to allow editing of your data source
+PyQt5
+Tableview delete rows works only one time
+Published 19.07.2021
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+
+=== RELATED PAGE ===
+Python GUIs Forum - The Python GUIs Community
+Topic
+Replies
+Views
+Activity
+Welcome to the Python GUIs forum!
+1
+2159
+September 13, 2023
+Alpha Numeric Input Mask
+0
+9
+May 30, 2025
+Word/markdown like text/blocktext editor
+q&a
+pyqt6
+0
+22
+May 22, 2025
+Unbound method QDialog.exec() needs an argument
+q&a
+1
+22
+May 20, 2025
+Python tkinter menu generator
+0
+35
+May 14, 2025
+QDateTimeEdit increasing date
+0
+9
+May 8, 2025
+Legends and Plot starts
+q&a
+0
+12
+May 7, 2025
+Top priority of two windows
+q&a
+pyqt5
+1
+14
+May 6, 2025
+Updating a Plot with pyqtgraph
+support
+3
+57
+May 5, 2025
+It is posible to update a QTablewidget row by row
+q&a
+2
+47
+May 3, 2025
+Translating menu entries created by PyQt6
+q&a
+pyqt6
+1
+22
+May 2, 2025
+Have a column in a QTreeWidget occupy as much space as possible
+q&a
+pyside6
+1
+22
+April 28, 2025
+Imported module returns to main module unexpectedly
+q&a
+0
+11
+April 28, 2025
+Menu driven database management system
+q&a
+0
+12
+April 25, 2025
+QLineEdit Text Use
+code review
+2
+45
+April 23, 2025
+Unwanted Window Popping Up
+q&a
+2
+28
+April 23, 2025
+Working with tempfiles
+code review
+3
+43
+April 15, 2025
+Perform cleanup tasks for from a child widget before it's destroyed/closed
+q&a
+pyqt6
+,
+pyqt5
+4
+67
+April 15, 2025
+Installing qt designer auf raspberry Pi 5
+support
+1
+47
+April 12, 2025
+Center buttons using QGridlayout
+support
+1
+21
+April 11, 2025
+Moving Data from SQLite to .ui form created in Designer
+code review
+3
+32
+April 11, 2025
+Comparing PyQT to Webtechnologies for desktop apps
+q&a
+1
+44
+April 3, 2025
+When a database should be used instead of a ymal,json,toml,etc. file
+q&a
+2
+31
+April 1, 2025
+Add header to QTreeView
+support
+0
+23
+March 31, 2025
+Freezing issue for Internal Tools in Pyqt
+code review
+pyqt5
+1
+25
+March 28, 2025
+QPainter - after resizing window the coordinates for drawing still change despite making class Canvas()
+support
+pyside
+11
+54
+March 26, 2025
+Auto dvd ripping
+code review
+0
+14
+March 26, 2025
+Struggling with PySide – I want Help with UI Freezing Issue
+pyside
+2
+87
+March 25, 2025
+QTableView header
+support
+1
+46
+March 18, 2025
+Display dataframe in QTableView
+support
+pyqt6
+1
+37
+March 18, 2025
+next page →
+
+=== RELATED PAGE ===
+Create Python GUIs with PyQt6 — Simple GUIs to full apps
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+Create GUI Applications with PyQt6
+Want to create Python GUIs?
+Here is
+everything
+you need to go from
+simple UIs to complete apps with PyQt6.
+Building GUI applications with Python doesn't have to be difficult.
+In this tutorial I'll walk you step by step from simple Python GUIs to
+real useful apps.
+By the end of the tutorial you'll be able to make your own applications,
+design professional UIs and even create installers and packages to share your apps with other people.
+PyQt6 is a Python GUI framework for creating GUI applications using the Qt toolkit.
+Created by Riverbank Computing, PyQt is free software (GPL licensed) and has been in development since 1999. The latest version PyQt6
+was released in 2021.
+This tutorial requires some basic Python knowledge, but no experience with GUI programming.
+Where do I
+begin
+with PyQt6?
+Take your first steps creating Python GUI applications with these
+simple step-by-step guides to Python & Qt.
+PyQt6 not installed? See our installation guides for
+Windows
+,
+macOS
+and
+Linux
+Once you're set up you can
+get started
+by
+Creating your first GUI application with Python
+.
+Learn the
+fundamentals
+of PyQt6
+Now you have made your first GUI app, let's go a step further
+adding widgets and layouts to
+build some simple Python UIs
+.
+Connect button presses to actions in your apps with
+Signals, Slots & Events
+Take a look at
+Widgets available in PyQt6
+Arrange widgets together using
+Layouts
+to build real applications.
+Add
+toolbars & menus
+with keyboard shortcuts using QAction.
+Popup
+dialogs
+to get confirmation, or select files.
+Build
+multi-window applications
+.
+Using Qt Designer with PyQt6
+So far we have been creating apps using Python code. This works well in many cases,
+but it can get a bit cumbersome to define all widgets programmatically. The good news is that
+Qt comes
+with a graphical editor
+—
+Qt Designer
+—  which contains a drag-and-drop UI editor. Using
+Qt Designer
+you can define your UIs visually and then simply hook up the application logic later.
+Take your
+first steps with Qt Designer
+& find out
+how to create UIs and use them in Python
+Work through
+how to lay out your UIs in Designer
+to get the hang of how Qt Designer works
+Learn how to
+create custom Dialogs with Designer
+and use them in your apps
+If you're upgrading from PyQt5, note that the QResource framework was removed in PyQt6.
+Explore Using Qt Designer with PyQt6
+Latest Using Qt Designer with PyQt6 tutorials
+Install Qt Designer Standalone
+Qt Designer Download for Windows, Mac and Linux
+PyQt6
+PyQt6 Tutorial
+Embedding Custom Widgets from Qt Designer in PyQt6
+Learn how to use custom widgets in your PyQt6 applications when designing with Qt Designer
+PyQt6
+PyQt6 Tutorial
+Creating Dialogs With Qt Designer and PyQt6
+Using the drag and drop editor to build PyQt6 dialogs
+PyQt6 for Data Science
+Most Python apps need to interact with data sources — whether that's a CSV file,
+database or remote APIs. One of the main benefits of using Python to build applications
+is being able to make use of Python's
+data science tools
+to process and analyse data.
+With PyQt6 you can make use of Qt's model view architecture to display
+performant views of
+any
+Python data in your applications. Or
+embed matplotlib and PyQtGraph plots for dynamic visualizations.
+Use the
+model view architecture
+to display dynamic data from any source
+Display
+numpy
+and
+Pandas
+data frames as
+spreadsheet tables in your PyQt6 applications
+Use Matplotlib
+to add interactive plots to your apps
+Or take a look at PyQtGraph for
+high performance graphs and other visualizations
+If you're using Qt Designer to create your applications, take a look at
+how to use PyQtGraph & Matplotlib widgets inside Qt Designer
+.
+Explore PyQt6 for Data Science
+Latest PyQt6 for Data Science tutorials
+PyQt6
+PyQt6 Tutorial
+Plotting With PyQtGraph and PyQt6
+Create Custom Plots in PyQt6 With PyQtGraph
+PyQt6
+PyQt6 Tutorial
+Plotting With Matplotlib and PyQt6
+Create PyQt6 plots with the popular Python plotting library
+PyQt6
+PyQt6 Tutorial
+Embedding Custom Widgets from Qt Designer in PyQt6
+Learn how to use custom widgets in your PyQt6 applications when designing with Qt Designer
+Performance
+& Concurrency
+Building real applications, you'll find yourself wanting to perform long-running tasks.
+For example, your application might need to interact with remote APIs or perform complex calculations.
+But you'll notice a problem: while the long-running task completes, your app will become unresponsive.
+Your code
+blocks Qt from running
+until it returns.
+In these tutorials we'll discover how to use
+threads & processes
+to long-running tasks while keeping your app responsive.
+Learn how to
+execute long-running tasks using a thread pool
+and send and receive data
+Execute
+external programs in another process
+and communicate with them with streams
+Explore PyQt6 Concurrency
+Designing your
+own Widgets
+Qt comes with a large library of widgets built-in. But sometimes your applications
+need something different. In PyQt6 you can you design your own widgets, drawing
+them directly in your application.
+In these tutorials we'll go through the basics of drawing graphics in Qt
+to building your own entirely custom widget.
+Learn about drawing
+graphics bitmap primitives
+Assemble existing widgets to
+create compound widgets
+Add
+animations and transitions to your widgets
+to make them feel more tactile
+Explore PyQt6 Custom Widgets
+Latest PyQt6 Custom Widgets tutorials
+PyQt6
+PyQt6 Tutorial
+Animating Custom Widgets With QPropertyAnimation in PyQt6
+Add dynamic visual effects to your custom widgets
+PyQt6
+PyQt6 Tutorial
+Creating custom GUI widgets in PyQt6
+Build a completely functional custom widget from scratch using QPainter
+PyQt6
+PyQt6 Tutorial
+QPainter and Bitmap Graphics in PyQt6
+Introduction to the core features of QPainter
+Packaging & Distributing PyQt6 Applications
+There comes a point in any app's development where it needs to leave home — half
+the fun in writing software is being able to
+share it with other people
+. Packaging
+Python GUI apps can be a little tricky, but these guides will walk you through
+the process step by step.
+Packaging your applications on Windows with PyInstaller
+Packaging your apps on macOS
+including building .app bundles and Disk Images
+Explore Packaging & Distributing PyQt6 Applications
+Latest Packaging & Distributing PyQt6 Applications tutorials
+PyQt6
+PyQt6 Tutorial
+Packaging PyQt6 applications for Windows with PyInstaller & InstallForge
+Turn your PyQt6 application into a distributable installer for Windows
+PyInstaller 4.2 & PySide6
+Published 21.04.2021
+PyQt6
+PyQt6 Tutorial
+Packaging PyQt6 applications into a macOS app with PyInstaller
+Turn your PyQt6 application into a distributable app
+QML/QtQuick applications with PyQt6
+PyQt6 has
+two
+APIs for building GUIs. We've already introduced the Qt Widgets API
+which is well-suited for building desktop applications. Qt also provides a
+declarative
+API in the form of Qt Quick/QML. Qt Quick is well suited for building modern touchscreen interfaces for microcontrollers or device interfaces.
+Get started building
+your first QML/Qt Quick application
+Learn about QML animations and transformations, by
+building an analog desktop clock
+Explore QML/QtQuick applications with PyQt6
+Books
+Hands-on
+guides to Python GUI programming
+Books taking you from first principles to fully-functional apps, not toy examples.
+See all Python GUIs books
+Latest Updates
+PyQt6
+PyQt6 Tutorial
+Multithreading PyQt6 applications with QThreadPool
+Run background tasks concurrently without impacting your UI
+PyQt6
+PyQt6 Tutorial
+PyQt6 Toolbars & Menus — QAction
+Defining toolbars, menus, and keyboard shortcuts with QAction
+PyQt6
+PyQt6 Tutorial
+Introduction to the QGraphics Framework in PyQt6
+Creating vector interfaces using the QGraphics View framework
+PyQt6
+PyQt6 Tutorial
+Plotting With PyQtGraph and PyQt6
+Create Custom Plots in PyQt6 With PyQtGraph
+PyQt6
+Q&A: How Do I Display Images in PyQt6?
+Using QLabel to easily add images to your applications
+PyQt6
+Drag & Drop Widgets with PyQt6
+Sort widgets visually with drag and drop in a container
+More articles
+
+=== RELATED PAGE ===
+PyQt6 Tutorial 2025, Create Python GUIs with Qt
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+PyQt6 Tutorial
+The
+complete
+PyQt6 tutorial — Create GUI applications with Python
+The easy way to create desktop applications
+Last updated
+19 May 2025
+PyQt is a Python library for creating GUI applications using the Qt toolkit.
+Created by Riverbank Computing, PyQt is free software (GPL licensed) and has been in development since 1999. The latest version PyQt6 -- based on Qt 6 --
+was released in 2021 and the library continues to be updated.
+This complete PyQt6 tutorial takes you from first concepts to building fully-functional GUI applications in Python.
+It requires some basic Python knowledge, but no previous familiarity with GUI concepts. Everything will be introduced step by by step, using hands-on examples.
+PyQt6 is the Qt6-based edition of the Python GUI library PyQt from Riverbank Computing. It was first released in January 2021.
+There are two major versions currently in use:
+PyQt5 based on Qt5
+and
+PyQt6 based on Qt6
+. Both versions are almost completely compatible aside from imports. PyQt6 also makes some changes to how namespaces and flags work, but these are easily manageable.
+Looking for something else? I also have a
+PyQt5 tutorial
+,
+PySide2 tutorial
+and
+PySide6 tutorial
+.
+This track consists of
+27 tutorials
+.
+Keep checking back as I'm adding new tutorials regularly      — last updated
+19 May 2025
+.
+Getting started with PyQt6
+Take your first steps building apps with Python & Qt6
+Like writing any code, building PyQt6 applications is all about approaching it in the right way. In the first part of the course we cover the fundamentals necessary to get you building Python GUIs as quickly as possible. By the end of the first part you'll have a running
+QApplication
+which we can then customize.
+1
+video
+6
+tutorials
+1:12:18
+Creating your first app with PyQt6
+video
+A simple Hello World! application with Python and Qt6
+PyQt6 Signals, Slots & Events
+Triggering actions in response to user behaviors and GUI events
+PyQt6 Widgets
+Using QPushButton, QCheckBox, QComboBox, QLabel and QSlider widgets
+PyQt6 Layouts
+Use layouts to effortlessly position widgets within the window
+PyQt6 Toolbars & Menus — QAction
+Defining toolbars, menus, and keyboard shortcuts with QAction
+PyQt6 Dialogs and Alerts
+Notify your users and ask for their input
+Creating Additional Windows in PyQt6
+Opening new windows for your application
+Creating applications with Qt Designer and PyQt6
+Using the drag-drop designer to develop your PyQt6 apps
+As your applications get larger or interfaces become more complicated, it can get a bit cumbersome to
+define all elements programmatically. The good news is that Qt comes with a graphical editor Qt Designer (or Qt Creator)
+which contains a drag-and-drop UI editor — Qt Designer. In this PyQt6 tutorial we'll cover the basics
+of creating Python GUIs with Qt Designer.
+4
+tutorials
+42:40
+First Steps With Qt Designer and PyQt6
+Use Qt Designer's drag and drop interface to design your PyQt6 GUI
+Laying Out Your PyQt6 GUIs With Qt Designer
+Use Qt Designer to effortlessly build your application UI
+Creating Dialogs With Qt Designer and PyQt6
+Using the drag and drop editor to build PyQt6 dialogs
+Embedding Custom Widgets from Qt Designer in PyQt6
+Learn how to use custom widgets in your PyQt6 applications when designing with Qt Designer
+Build a Web Browser with PyQt6
+Build your own tabbed web browser with PyQt6
+Now we've learnt the basics, we'll put it into practice building a real-life app.
+In this course we'll create a functional web browser using PyQt6 widgets.
+Starting with the basics and then gradually extending it to add features like opening and saving pages, help,
+printing and tabbed browsing. Follow the tutorial step by step to create
+your own app, but feel free to experiment as you go.
+This course is not yet ready to take, but I'm working on it.
+Check back shortly.
+Extended UI features with PyQt6
+Extending your apps with complex GUI behaviour
+In this PyQt6 tutorial we'll cover some advanced features of Qt that you can use to improve
+your Python GUIs.
+2
+tutorials
+09:55
+Transmitting Extra Data With Qt Signals in PyQt6
+Modifying widget signals to pass contextual information to slots
+System Tray & Mac Menu Bar Applications in PyQt6
+Add quick access functions to your apps
+Threads & Processes in PyQt6
+Run concurrent tasks without impacting your PyQt6 UI
+As your applications become more complex you may finding yourself wanting to perform long-running tasks, such as interacting with remote APIs or performing complex calculations. By default any code you write exists in the same thread and process, meaning your long-running code can actually block Qt execution and cause your Python GUI app to "hang". In this PyQt6 tutorial we'll cover how to avoid this happening and keep your applications running smoothly, no matter the workload.
+2
+tutorials
+23:23
+Multithreading PyQt6 applications with QThreadPool
+Run background tasks concurrently without impacting your UI
+Using QProcess to Run External Programs in PyQt6
+Run background programs without impacting your UI
+PyQt6 ModelViews and Databases
+Connecting your PyQt6 application to data sources
+All but the simplest of apps will usually need to interact with some kind of external data store —
+whether that's a database, a remote API or simple configuration data. The Qt ModelView architecture
+simplifies the linking and updating your UI with data in custom formats or from external sources. In
+this PyQt6 tutorial we'll discover how you can use Qt ModelViews to build high performance Python GUIs.
+2
+tutorials
+30:20
+The ModelView Architecture in PyQt6
+Qt's MVC-like interface for displaying data in views
+Displaying Tabular Data in PyQt6 ModelViews
+Create customized table views with conditional formatting, numpy and pandas data sources.
+Graphics and Plotting in PyQt6
+Vector graphics and plotting using PyQtGraph in PyQt6
+Python is one of the most popular languages in the data science and machine learning fields. Effective visualization of data is a key part of building usable interfaces for data science. Matplotlib is the most popular plotting library in Python, and comes with support for PyQt6 built in. In addition, there are PyQt6-specific plotting options available such as PyQtGraph which provide a better interactive experience. In this tutorial we'll look at these alternatives and build some simple plot interfaces.
+2
+tutorials
+26:52
+Plotting With PyQtGraph and PyQt6
+Create Custom Plots in PyQt6 With PyQtGraph
+Plotting With Matplotlib and PyQt6
+Create PyQt6 plots with the popular Python plotting library
+QGraphics Framework in PyQt6
+Vector graphic interfaces in PyQt6
+The PyQt6 Graphics View framework is a scene-based vector graphics API. Using this you can create dynamic interactive interfaces for anything from vector graphics tools, data analysis workflow designers to simple 2D games.
+The Graphics View Framework allows you to develop fast & efficient scenes, containing millions of items, each with their own distinct graphic features and behaviors.
+1
+tutorial
+12:59
+Introduction to the QGraphics Framework in PyQt6
+Creating vector interfaces using the QGraphics View framework
+PyQt6 Custom Widgets
+Designing your own custom widgets in PyQt6
+Widgets in Qt are built on bitmap graphics — drawing pixels on a rectangular canvas to
+construct the "widget". To be able to create your own custom widgets you first need to understand
+how the
+QPainter
+system works and what you can do with it. In this PyQt6 tutorial we'll go
+from basic bitmap graphics to our own entirely custom widget.
+3
+tutorials
+50:32
+QPainter and Bitmap Graphics in PyQt6
+Introduction to the core features of QPainter
+Creating custom GUI widgets in PyQt6
+Build a completely functional custom widget from scratch using QPainter
+Animating Custom Widgets With QPropertyAnimation in PyQt6
+Add dynamic visual effects to your custom widgets
+Packaging and Distributing PyQt6 Applications
+Sharing your awesome PyQt6 applications with other people
+There comes a point in any app's development where it needs to leave home — half the fun in writing software is being able to share it with other people. Packaging Python GUI apps can be a little tricky, but in this PyQt6 tutorial we'll cover how to package up your apps to share, whether commercially or just for fun.
+2
+tutorials
+47:33
+Packaging PyQt6 applications for Windows with PyInstaller & InstallForge
+Turn your PyQt6 application into a distributable installer for Windows
+Packaging PyQt6 applications into a macOS app with PyInstaller
+Turn your PyQt6 application into a distributable app
+QtQuick & QML in PyQt6
+Building modern PyQt6 GUIs with QtQuick & QML
+Qt Quick is Qt's declarative UI design system, using the Qt Modeling Language (QML) to define custom user interfaces. Originally developed for use in mobile applications, it offers dynamic graphical elements and fluid transitions and effects allowing you to replicate the kinds of UIs you find on mobile devices. Qt Quick is supported on all desktop platforms too and is a great choice for building desktop widgets or other interactive tools. Qt Quick is also a great choice for developing UIs for hardware and microcontrollers with PyQt6.
+2
+tutorials
+28:23
+Create Applications with QtQuick in PyQt6
+Build modern applications with declarative QML
+Animations and Transformations With QtQuick in PyQt6
+Building an animated analog clock in QML
+Martin Fitzpatrick
+PhD
+Senior Software Engineer & Python Tutor
+Frequently Asked Questions
+Which Python GUI library should you use?
+Comparing the Python GUI libraries available in 2025
+PySide6
+Q&A: How Do I Display Images in PySide6?
+Using QLabel to easily add images to your applications
+PyQt6
+Q&A: How Do I Display Images in PyQt6?
+Using QLabel to easily add images to your applications
+PyQt6
+Drag & Drop Widgets with PyQt6
+Sort widgets visually with drag and drop in a container
+PyQt vs. Tkinter — Which Should You Choose for Your Next GUI Project?
+What Are the Major Differences Between these Popular Python GUI Libraries
+Handle command-line arguments with PyQt6/PySide6
+Allow users to customize your application at launch
+Q&A: Why do I need to pass sys.argv or [] when creating an instance of QApplication?
+Using command-line arguments to configure Qt
+PyQt5 vs PyQt6
+What are the differences, and is it time to upgrade?
+Using Postgres with Qt & Python on Windows, fixing QPSQL driver not loaded
+Setting PATH to use the Postgres library
+
+=== RELATED PAGE ===
+Create your first Python GUI with PyQt6 — A simple Hello world app
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+Creating your first app with PyQt6
+A simple Hello World! application with Python and Qt6
+by
+Martin Fitzpatrick
+Last updated
+Nov 26
+This article has been updated for PyQt6.
+PyQt6
+Getting started with PyQt6
+PyQt6 Tutorial
+—
+Getting started with PyQt6
+Creating your first app with PyQt6
+PyQt6 Signals, Slots & Events
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Toolbars & Menus — QAction
+PyQt6 Dialogs and Alerts
+Creating Additional Windows in PyQt6
+This tutorial is also available for
+PySide6
+,
+PySide2
+and
+PyQt5
+Heads up! You've already completed this tutorial.
+In this tutorial we'll learn how to use PyQt6 to create desktop applications with Python.
+First we'll create a series of simple windows on your desktop to ensure that PyQt is working and introduce some of the basic concepts. Then we'll take a brief look at the event loop and how it relates to GUI programming in Python. Finally we'll look at Qt's
+QMainWindow
+which offers some useful common interface elements such as toolbars and menus. These will be explored in more detail in the subsequent tutorials.
+Table of Contents
+Creating an application
+Stepping through the code
+What's the event loop?
+QMainWindow
+Sizing windows and widgets
+Creating an application
+Let's create our first application! To start create a new Python file — you can call it whatever you like (e.g.
+app.py
+) and save it somewhere accessible. We'll write our simple app in this file.
+We'll be editing within this file as we go along, and you may want to come back to earlier versions of your code, so remember to keep regular backups.
+The source code for the application is shown below. Type it in verbatim, and be careful not to make mistakes. If you do mess up, Python will let you know what's wrong.
+python
+from PyQt6.QtWidgets import QApplication, QWidget
+# Only needed for access to command line arguments
+import sys
+# You need one (and only one) QApplication instance per application.
+# Pass in sys.argv to allow command line arguments for your app.
+# If you know you won't use command line arguments QApplication([]) works too.
+app = QApplication(sys.argv)
+# Create a Qt widget, which will be our window.
+window = QWidget()
+window.show()  # IMPORTANT!!!!! Windows are hidden by default.
+# Start the event loop.
+app.exec()
+# Your application won't reach here until you exit and the event
+# loop has stopped.
+First, launch your application. You can run it from the command line like any other Python script, for example --
+bash
+python3 app.py
+Run it!
+You will now see your window. Qt automatically creates a window with the normal window decorations and you can drag it around and resize it like any window.
+What you'll see will depend on what platform you're running this example on. The image below shows the window as displayed on Windows, macOS and Linux (Ubuntu).
+Over
+15,000 developers
+have bought Create GUI Applications with Python & Qt!
+Take a look
+Downloadable ebook (PDF, ePub) & Complete Source code
+Also available from
+Leanpub
+and
+Amazon Paperback
+[[ discount.discount_pc ]]% OFF
+for
+the next [[ discount.duration ]]
+[[discount.description ]]
+with the code
+[[ discount.coupon_code ]]
+Purchasing Power Parity
+Developers in [[ country ]] get
+[[ discount.discount_pc ]]% OFF
+on all books & courses
+with code
+[[ discount.coupon_code ]]
+Our window, as seen on Windows, macOS and Linux.
+Stepping through the code
+Let's step through the code line by line, so we understand exactly what is happening.
+First, we import the PyQt classes that we need for the application. Here we're importing
+QApplication
+, the application handler and
+QWidget
+, a basic
+empty
+GUI widget, both from the
+QtWidgets
+module.
+python
+from PyQt6.QtWidgets import QApplication, QWidget
+The main modules for Qt are
+QtWidgets
+,
+QtGui
+and
+QtCore
+.
+You could do
+from <module> import *
+but this kind of global import is generally frowned upon in Python, so we'll avoid it here.
+Next we create an instance of
+QApplication
+, passing in
+sys.argv
+, which is Python
+list
+containing the command line arguments passed to the application.
+python
+app = QApplication(sys.argv)
+If you know you won't be using command line arguments to control Qt you can pass in an empty list instead, e.g.
+python
+app = QApplication([])
+Next we create an instance of a
+QWidget
+using the variable name
+window
+.
+python
+window = QWidget()
+window.show()
+In Qt
+all
+top level widgets are windows -- that is, they don't have a
+parent
+and are not nested within another widget or layout. This means you can technically create a window using any widget you like.
+Widgets
+without a parent
+are invisible by default. So, after creating the
+window
+object, we must
+always
+call
+.show()
+to make it visible. You can remove the
+.show()
+and run the app, but you'll have no way to quit it!
+What is a window?
+- Holds the user-interface of your application
+- Every application needs at least one (...but can have more)
+- Application will (by default) exit when last window is closed
+Finally, we call
+app.exec()
+to start up the event loop.
+What's the event loop?
+Before getting the window on the screen, there are a few key concepts to introduce about how applications are organized in the Qt world. If you're already familiar with event loops you can safely skip to the next section.
+The core of every Qt Applications is the
+QApplication
+class. Every application needs one — and only one —
+QApplication
+object to function. This object holds the
+event loop
+of your application — the core loop which governs all user interaction with the GUI.
+Each interaction with your application — whether a press of a key, click of a mouse, or mouse movement — generates an
+event
+which is placed on the
+event queue
+. In the event loop, the queue is checked on each iteration and if a waiting event is found, the event and control is passed to the specific
+event handler
+for the event. The event handler deals with the event, then passes control back to the event loop to wait for more events. There is only
+one
+running event loop per application.
+The
+QApplication
+class
+-
+QApplication
+holds the Qt event loop
+- One
+QApplication
+instance required
+- Your application sits waiting in the event loop until an action is taken
+- There is only
+one
+event loop running at any time
+QMainWindow
+As we discovered in the last part, in Qt
+any
+widgets can be windows. For example, if you replace
+QWidget
+with
+QPushButton
+. In the example below, you would get a window with a single push-able button in it.
+PyQt/PySide 1:1 Coaching with Martin Fitzpatrick
+— Save yourself time and frustration. Get one on one help with your Python GUI projects. Working together with you I'll identify issues and suggest fixes, from bugs and usability to architecture and maintainability.
+Book Now
+60 mins ($195)
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QPushButton
+app = QApplication(sys.argv)
+window = QPushButton("Push Me")
+window.show()
+app.exec()
+This is neat, but not really very
+useful
+-- it's rare that you need a UI that consists of only a single control! But, as we'll discover later, the ability to nest widgets within other widgets using
+layouts
+means you can construct complex UIs inside an empty
+QWidget
+.
+But, Qt already has a solution for you -- the
+QMainWindow
+. This is a pre-made widget which provides a lot of standard window features you'll make use of in your apps, including toolbars, menus, a statusbar, dockable widgets and more. We'll look at these advanced features later, but for now, we'll add a simple empty
+QMainWindow
+to our application.
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow
+app = QApplication(sys.argv)
+window = QMainWindow()
+window.show()
+# Start the event loop.
+app.exec()
+Run it!
+You will now see your main window. It looks exactly the same as before!
+So our
+QMainWindow
+isn't very interesting at the moment. We can fix that by adding some content. If you want to create a custom window, the best approach is to subclass
+QMainWindow
+and then include the setup for the window in the
+__init__
+block. This allows the window behavior to be self contained. We can add our own subclass of
+QMainWindow
+— call it
+MainWindow
+to keep things simple.
+python
+import sys
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
+# Subclass QMainWindow to customize your application's main window
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+button = QPushButton("Press Me!")
+# Set the central widget of the Window.
+self.setCentralWidget(button)
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+For this demo we're using a
+QPushButton
+. The core Qt widgets are always imported from the
+QtWidgets
+namespace, as are the
+QMainWindow
+and
+QApplication
+classes.
+When using
+QMainWindow
+we use
+.setCentralWidget
+to place a widget (here a
+QPushButton
+) in the
+QMainWindow
+-- by default it takes the whole of the window. We'll look at how to add multiple widgets to windows in the layouts tutorial.
+When you subclass a Qt class you must
+always
+call the super
+__init__
+function to allow Qt to set up the object.
+In our
+__init__
+block we first use
+.setWindowTitle()
+to change the title of our main window. Then we add our first widget — a
+QPushButton
+— to the middle of the window. This is one of the basic widgets available in Qt. When creating the button you can pass in the text that you want the button to display.
+Finally, we call
+.setCentralWidget()
+on the window. This is a
+QMainWindow
+specific function that allows you to set the widget that goes in the middle of the window.
+Run it!
+You will now see your window again, but this time with the
+QPushButton
+widget in the middle. Pressing the button will do nothing, we'll sort that next.
+Our
+QMainWindow
+with a single
+QPushButton
+on Windows, macOS and Linux.
+We'll cover more widgets in detail shortly but if you're impatient and would like to jump ahead you can take a look at the
+QWidget documentation
+. Try adding the different widgets to your window!
+Sizing windows and widgets
+The window is currently freely resizable -- if you grab any corner with your mouse you can drag and resize it to any size you want. While it's good to let your users resize your applications, sometimes you may want to place restrictions on minimum or maximum sizes, or lock a window to a fixed size.
+In Qt sizes are defined using a
+QSize
+object. This accepts
+width
+and
+height
+parameters in that order. For example, the following will create a
+fixed size
+window of 400x300 pixels.
+python
+import sys
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
+# Subclass QMainWindow to customize your application's main window
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+button = QPushButton("Press Me!")
+self.setFixedSize(QSize(400, 300))
+# Set the central widget of the Window.
+self.setCentralWidget(button)
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+Run it!
+You will see a fixed size window -- try and resize it, it won't work.
+Our fixed-size window, notice that the maximize control is disabled on Windows & Linux. On macOS you can maximize the app to fill the screen, but the central widget will not resize.
+As well as
+.setFixedSize()
+you can also call
+.setMinimumSize()
+and
+.setMaximumSize()
+to set the minimum and maximum sizes respectively. Experiment with this yourself!
+You can use these size methods on
+any
+widget.
+In this section we've covered the
+QApplication
+class, the
+QMainWindow
+class, the event loop and experimented with adding a simple widget to a window. In the next section we'll take a look at the mechanisms Qt provides for widgets and windows to communicate with one another and your own code.
+Packaging Python Applications with PyInstaller
+by Martin Fitzpatrick
+— This step-by-step guide walks you through packaging your own Python applications from simple examples to complete installers and signed executables.
+More info
+Get the book
+Well done, you've finished this tutorial!
+Mark As Complete
+[[ user.completed.length ]] completed
+[[ user.streak+1 ]] day streak
+Continue with
+PyQt6 Tutorial
+Return to
+Create Desktop GUI Applications with PyQt6
+Creating your first app with PyQt6
+was written by
+Martin Fitzpatrick
+.
+Martin Fitzpatrick has been developing Python/Qt apps for 8 years. Building desktop applications to make data-analysis tools more user-friendly, Python was
+the obvious choice. Starting with Tk, later moving to wxWidgets and finally adopting PyQt. Martin founded PythonGUIs to provide easy to follow GUI programming tutorials to the Python community. He has written a number of popular
+Python books
+on the subject.
+Creating your first app with PyQt6
+was published in
+tutorials
+on
+October 20, 2021
+(updated
+November 26, 2024
+)
+. Feedback & Corrections
+can be submitted
+here
+.
+app
+window
+tutorial
+qt
+pyqt
+pyqt6
+getting-started
+python
+qt6
+pyqt6-getting-started
+
+=== RELATED PAGE ===
+PyQt6 Signals, Slots and Events - pyqtSignal, pyqtSlot, Mouse Events & Context menus
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+PyQt6 Signals, Slots & Events
+Triggering actions in response to user behaviors and GUI events
+by
+Martin Fitzpatrick
+Last updated
+Apr 23
+This article has been updated for PyQt6.
+PyQt6
+Getting started with PyQt6
+PyQt6 Tutorial
+—
+Getting started with PyQt6
+Creating your first app with PyQt6
+PyQt6 Signals, Slots & Events
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Toolbars & Menus — QAction
+PyQt6 Dialogs and Alerts
+Creating Additional Windows in PyQt6
+This tutorial is also available for
+PySide6
+,
+PySide2
+and
+PyQt5
+Heads up! You've already completed this tutorial.
+So far we've created a window and added a simple
+push button
+widget to it, but the button doesn't do anything. That's not very useful at all -- when you create GUI applications you typically want them to do something! What we need is a way to connect the action of
+pressing the button
+to making something happen. In Qt, this is provided by
+signals
+and
+slots
+or
+events
+.
+Table of Contents
+Signals & Slots
+QPushButton Signals
+Receiving data
+Storing data
+Changing the interface
+Connecting widgets together directly
+Events
+Mouse events
+Context menus
+Event hierarchy
+Signals & Slots
+Signals
+are notifications emitted by widgets when
+something
+happens. That something can be any number of things, from pressing a button, to the text of an input box changing, to the text of the window changing. Many signals are initiated by user action, but this is not a rule.
+In addition to notifying about something happening, signals can also send data to provide additional context about what happened.
+You can also create your own custom signals, which we'll explore later.
+Slots
+is the name Qt uses for the receivers of signals. In Python any function (or method) in your application can be used as a slot -- simply by connecting the signal to it. If the signal sends data, then the receiving function will receive that data too. Many Qt widgets also have their own built-in slots, meaning you can hook Qt widgets together directly.
+Let's take a look at the basics of Qt signals and how you can use them to hook widgets up to make things happen in your apps.
+Save the following app outline to a file named
+app.py
+.
+PyQt/PySide 1:1 Coaching with Martin Fitzpatrick
+— Save yourself time and frustration. Get one on one help with your Python GUI projects. Working together with you I'll identify issues and suggest fixes, from bugs and usability to architecture and maintainability.
+Book Now
+60 mins ($195)
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+QPushButton
+Signals
+Our simple application currently has a
+QMainWindow
+with a
+QPushButton
+set as the central widget. Let's start by hooking up this button to a custom Python method. Here we create a simple custom slot named
+the_button_was_clicked
+which accepts the
+clicked
+signal from the
+QPushButton
+.
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+button = QPushButton("Press Me!")
+button.setCheckable(True)
+button.clicked.connect(self.the_button_was_clicked)
+# Set the central widget of the Window.
+self.setCentralWidget(button)
+def the_button_was_clicked(self):
+print("Clicked!")
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+Run it!
+If you click the button you'll see the text "Clicked!" on the console.
+python
+Clicked!
+Clicked!
+Clicked!
+Clicked!
+Receiving data
+That's a good start! We've heard already that signals can also send
+data
+to provide more information about what has just happened. The
+.clicked
+signal is no exception, also providing a
+checked
+(or toggled) state for the button. For normal buttons this is always
+False
+, so our first slot ignored this data. However, we can make our button
+checkable
+and see the effect.
+In the following example, we add a second slot which outputs the
+checkstate
+.
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+button = QPushButton("Press Me!")
+button.setCheckable(True)
+button.clicked.connect(self.the_button_was_clicked)
+button.clicked.connect(self.the_button_was_toggled)
+self.setCentralWidget(button)
+def the_button_was_clicked(self):
+print("Clicked!")
+def the_button_was_toggled(self, checked):
+print("Checked?", checked)
+Run it!
+If you press the button you'll see it highlighted as
+checked
+. Press it again to release it. Look for the
+check state
+in the console.
+python
+Clicked!
+Checked? True
+Clicked!
+Checked? False
+Clicked!
+Checked? True
+Clicked!
+Checked? False
+Clicked!
+Checked? True
+You can connect as many slots to a signal as you like and can respond to different versions of signals at the same time on your slots.
+Storing data
+Often it is useful to store the current
+state
+of a widget in a Python variable. This allows you to work with the values like any other Python variable and without accessing the original widget. You can either store these values as individual variables or use a dictionary if you prefer. In the next example we store the
+checked
+value of our button in a variable called
+button_is_checked
+on
+self
+.
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.button_is_checked = True
+self.setWindowTitle("My App")
+button = QPushButton("Press Me!")
+button.setCheckable(True)
+button.clicked.connect(self.the_button_was_toggled)
+button.setChecked(self.button_is_checked)
+self.setCentralWidget(button)
+def the_button_was_toggled(self, checked):
+self.button_is_checked = checked
+print(self.button_is_checked)
+First we set the default value for our variable (to
+True
+), then use the default value to set the initial state of the widget.
+When the widget state changes, we receive the signal and update the variable to match.
+You can use this same pattern with any PyQt widgets. If a widget does not provide a signal that sends the current state, you will need to retrieve the value from the widget directly in your handler. For example, here we're checking the checked state in a
+pressed
+handler.
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.button_is_checked = True
+self.setWindowTitle("My App")
+self.button = QPushButton("Press Me!")
+self.button.setCheckable(True)
+self.button.released.connect(self.the_button_was_released)
+self.button.setChecked(self.button_is_checked)
+self.setCentralWidget(self.button)
+def the_button_was_released(self):
+self.button_is_checked = self.button.isChecked()
+print(self.button_is_checked)
+We need to keep a reference to the button on
+self
+so we can access it in our slot.
+The
+released
+signal fires when the button is released, but does not send the check state, so instead we use
+.isChecked()
+to get the check state from the button in our handler.
+Changing the interface
+So far we've seen how to accept signals and print output to the console. But how about making something happen in the interface when we click the button? Let's update our slot method to modify the button, changing the text and disabling the button so it is no longer clickable. We'll also turn off the
+checkable
+state for now.
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+self.button = QPushButton("Press Me!")
+self.button.clicked.connect(self.the_button_was_clicked)
+self.setCentralWidget(self.button)
+def the_button_was_clicked(self):
+self.button.setText("You already clicked me.")
+self.button.setEnabled(False)
+# Also change the window title.
+self.setWindowTitle("My Oneshot App")
+Again, because we need to be able to access the
+button
+in our
+the_button_was_clicked
+method, we keep a reference to it on
+self
+.
+The text of the button is changed by passing a
+str
+to
+.setText()
+. To disable a button call
+.setEnabled()
+with
+False
+.
+Run it!
+If you click the button the text will change and the button will become unclickable.
+You're not restricted to changing the button that triggers the signal, you can do
+anything you want
+in your slot methods. For example, try adding the following line to
+the_button_was_clicked
+method to also change the window title.
+python
+self.setWindowTitle("A new window title")
+Most widgets have their own signals -- and the
+QMainWindow
+we're using for our window is no exception. In the following more complex example, we connect the
+.windowTitleChanged
+signal on the
+QMainWindow
+to a custom slot method.
+In the following example we connect the
+.windowTitleChanged
+signal on the
+QMainWindow
+to a method slot
+the_window_title_changed
+. This slot also receives the new window title.
+python
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
+import sys
+from random import choice
+window_titles = [
+'My App',
+'My App',
+'Still My App',
+'Still My App',
+'What on earth',
+'What on earth',
+'This is surprising',
+'This is surprising',
+'Something went wrong'
+]
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.n_times_clicked = 0
+self.setWindowTitle("My App")
+self.button = QPushButton("Press Me!")
+self.button.clicked.connect(self.the_button_was_clicked)
+self.windowTitleChanged.connect(self.the_window_title_changed)
+# Set the central widget of the Window.
+self.setCentralWidget(self.button)
+def the_button_was_clicked(self):
+print("Clicked.")
+new_window_title = choice(window_titles)
+print("Setting title:  %s" % new_window_title)
+self.setWindowTitle(new_window_title)
+def the_window_title_changed(self, window_title):
+print("Window title changed: %s" % window_title)
+if window_title == 'Something went wrong':
+self.button.setDisabled(True)
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+First we set up a list of window titles -- we'll select one at random from this list using Python's built-in
+random.choice()
+.
+We hook our custom slot method
+the_window_title_changed
+to the window's
+.windowTitleChanged
+signal.
+When we click the button the window title will change at random. If the new window title equals "Something went wrong" the
+button will be disabled.
+Run it!
+Click the button repeatedly until the title changes to "Something went wrong" and the button will become disabled.
+There are a few things to notice in this example.
+Firstly, the
+windowTitleChanged
+signal is not
+always
+emitted when setting the window title. The signal only fires if the new title is
+changed
+from the previous one. If you set the same title multiple times, the signal will only be fired the first time. It is important to double-check the conditions under which signals fire, to avoid being surprised when using them in your app.
+Secondly, notice how we are able to
+chain
+things together using signals. One thing happening -- a button press -- can trigger multiple other things to happen in turn. These subsequent effects do not need to know
+what
+caused them, but simply follow as a consequence of simple rules. This
+decoupling
+of effects from their triggers is one of the key concepts to understand when building GUI applications.
+In this section we've covered signals and slots. We've demonstrated some simple signals and how to use them to pass data and state around your application. Next we'll look at the widgets which Qt provides for use in your applications -- together with the signals they provide.
+Connecting widgets together directly
+So far we've seen examples of connecting widget signals to Python methods. When a signal is fired from the widget, our
+Python method is called and receives the data from the signal. But you don't
+always
+need to use a Python function
+to handle signals -- you can also connect Qt widgets directly to one another.
+In the following example, we add a
+QLineEdit
+widget and a
+QLabel
+to the window. In the
+\\__init__
+for the window
+we connect our line edit
+.textChanged
+signal to the
+.setText
+method on the
+QLabel
+. Now any time the text changes
+in the
+QLineEdit
+the
+QLabel
+will receive that text to it's
+.setText
+method.
+python
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QVBoxLayout, QWidget
+import sys
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+self.label = QLabel()
+self.input = QLineEdit()
+self.input.textChanged.connect(self.label.setText)
+layout = QVBoxLayout()
+layout.addWidget(self.input)
+layout.addWidget(self.label)
+container = QWidget()
+container.setLayout(layout)
+# Set the central widget of the Window.
+self.setCentralWidget(container)
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+Notice that in order to connect the input to the label, the input and label must both be defined.
+This code adds the two widgets to a layout, and sets that on the window. We'll cover layouts in detail later, you can ignore it for now.
+Run it!
+Type some text in the upper box, and you'll see it appear immediately on the label.
+Any text typed in the input immediately appears on the label.
+Most Qt widgets have
+slots
+available, to which you can connect any signal that emits the same
+type
+that it accepts.
+The widget documentation has the slots for each widget listed under "Public Slots". For example, see
+QLabel
+.
+Events
+Every interaction the user has with a Qt application is an
+event
+. There are many types of event, each representing a different type of interaction. Qt represents these events using
+event objects
+which package up information about what happened. These events are passed to specific
+event handlers
+on the widget where the interaction occurred.
+Over
+15,000 developers
+have bought Create GUI Applications with Python & Qt!
+Take a look
+Downloadable ebook (PDF, ePub) & Complete Source code
+Also available from
+Leanpub
+and
+Amazon Paperback
+[[ discount.discount_pc ]]% OFF
+for
+the next [[ discount.duration ]]
+[[discount.description ]]
+with the code
+[[ discount.coupon_code ]]
+Purchasing Power Parity
+Developers in [[ country ]] get
+[[ discount.discount_pc ]]% OFF
+on all books & courses
+with code
+[[ discount.coupon_code ]]
+By defining custom, or extended
+event handlers
+you can alter the way your widgets respond to these events. Event handlers are defined just like any other method, but the name is specific for the type of event they handle.
+One of the main events which widgets receive is the
+QMouseEvent
+. QMouseEvent events are created for each and every mouse movement and button click on a widget. The following event handlers are available for handling mouse events --
+Event handler
+Event type moved
+mouseMoveEvent
+Mouse moved
+mousePressEvent
+Mouse button pressed
+mouseReleaseEvent
+Mouse button released
+mouseDoubleClickEvent
+Double click detected
+For example, clicking on a widget will cause a
+QMouseEvent
+to be sent to the
+.mousePressEvent
+event handler on that widget. This handler can use the event object to find out information about what happened, such as what triggered the event and where specifically it occurred.
+You can intercept events by sub-classing and overriding the handler method on the class. You can choose to filter, modify, or ignore events, passing them up to the normal handler for the event by calling the parent class function with
+super()
+. These could be added to your main window class as follows. In each case
+e
+will receive the incoming event.
+python
+import sys
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QTextEdit
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.label = QLabel("Click in this window")
+self.setCentralWidget(self.label)
+def mouseMoveEvent(self, e):
+self.label.setText("mouseMoveEvent")
+def mousePressEvent(self, e):
+self.label.setText("mousePressEvent")
+def mouseReleaseEvent(self, e):
+self.label.setText("mouseReleaseEvent")
+def mouseDoubleClickEvent(self, e):
+self.label.setText("mouseDoubleClickEvent")
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+Run it!
+Try moving and clicking (and double-clicking) in the window and watch the events appear.
+You'll notice that mouse move events are only registered when you have the button pressed down. You can change this behavior by calling
+setMouseTracking(True)
+on the window and the label. In this case, the
+__init__()
+method could look something like this:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setMouseTracking(True)
+self.label = QLabel("Click in this window")
+self.label.setMouseTracking(True)
+self.setCentralWidget(self.label)
+We need to use
+.setMouseTracking
+on
+both
+the label and window here, because the label completely covers the window and would otherwise block the events.
+You may also notice that the press (click) and double-click events both fire when the button is pressed down. Only the release event fires when the button is released. Typically, to register a click from a user, you should watch for both the mouse down
+and
+the release.
+Inside the event handlers you have access to an event object. This object contains information about the event and can be used to respond differently depending on what exactly has occurred. We'll look at the mouse event objects next.
+Mouse events
+All mouse events in Qt are tracked with the
+QMouseEvent
+object, with information about the event being readable from the following event methods.
+Method
+Returns
+.button()
+Specific button that triggered this event
+.buttons()
+State of all mouse buttons (OR'ed flags)
+.position()
+Widget-relative position as a
+QPoint
+integer
+You can use these methods within an event handler to respond to different events differently, or ignore them completely. The positional methods provide both
+global
+and
+local
+(widget-relative) position information as
+QPoint
+objects, while buttons are reported using the mouse button types from the
+Qt
+namespace.
+For example, the following allows us to respond differently to a left, right or middle click on the window.
+python
+def mousePressEvent(self, e):
+if e.button() == Qt.MouseButton.LeftButton:
+# handle the left-button press in here
+self.label.setText("mousePressEvent LEFT")
+elif e.button() == Qt.MouseButton.MiddleButton:
+# handle the middle-button press in here.
+self.label.setText("mousePressEvent MIDDLE")
+elif e.button() == Qt.MouseButton.RightButton:
+# handle the right-button press in here.
+self.label.setText("mousePressEvent RIGHT")
+def mouseReleaseEvent(self, e):
+if e.button() == Qt.MouseButton.LeftButton:
+self.label.setText("mouseReleaseEvent LEFT")
+elif e.button() == Qt.MouseButton.MiddleButton:
+self.label.setText("mouseReleaseEvent MIDDLE")
+elif e.button() == Qt.MouseButton.RightButton:
+self.label.setText("mouseReleaseEvent RIGHT")
+def mouseDoubleClickEvent(self, e):
+if e.button() == Qt.MouseButton.LeftButton:
+self.label.setText("mouseDoubleClickEvent LEFT")
+elif e.button() == Qt.MouseButton.MiddleButton:
+self.label.setText("mouseDoubleClickEvent MIDDLE")
+elif e.button() == Qt.MouseButton.RightButton:
+self.label.setText("mouseDoubleClickEvent RIGHT")
+The button identifiers are defined in the Qt namespace, as follows --
+Identifier
+Value (binary)
+Represents
+Qt.MouseButton.NoButton
+0 (
+000
+)
+No button pressed, or the event is not related to button press.
+Qt.MouseButton.LeftButton
+1 (
+001
+)
+The left button is pressed
+Qt.MouseButton.RightButton
+2 (
+010
+)
+The right button is pressed.
+Qt.MouseButton.MiddleButton
+4 (
+100
+)
+The middle button is pressed.
+On left-handed mice the left and right button positions are reversed, i.e. pressing the right-most button will return
+Qt.LeftButton
+. This means you don't need to account for the mouse orientation in your code.
+Context menus
+Context menus are small context-sensitive menus which typically appear when right clicking on a window. Qt has support for generating these menus, and widgets have a specific event used to trigger them. In the following example we're going to intercept the
+.contextMenuEvent
+a
+QMainWindow
+. This event is fired whenever a context menu is
+about to be
+shown, and is passed a single value
+event
+of type
+QContextMenuEvent
+.
+To intercept the event, we simply override the object method with our
+new method of the same name. So in this case we can create a method
+on our
+MainWindow
+subclass with the name
+contextMenuEvent
+and it
+will receive all events of this type.
+python
+import sys
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QMenu
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+def contextMenuEvent(self, e):
+context = QMenu(self)
+context.addAction(QAction("test 1", self))
+context.addAction(QAction("test 2", self))
+context.addAction(QAction("test 3", self))
+context.exec(e.globalPos())
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+If you run the above code and right-click within the window, you'll see
+a context menu appear. You can set up
+.triggered
+slots on your menu
+actions as normal (and re-use actions defined for menus and toolbars).
+When passing the initial position to the
+exec
+function, this
+must be relative to the parent passed in while defining. In this case
+we pass
+self
+as the parent, so we can use the global position.
+Just for completeness, there is actually a signal-based approach to
+creating context menus.
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.show()
+self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+self.customContextMenuRequested.connect(self.on_context_menu)
+def on_context_menu(self, pos):
+context = QMenu(self)
+context.addAction(QAction("test 1", self))
+context.addAction(QAction("test 2", self))
+context.addAction(QAction("test 3", self))
+context.exec(self.mapToGlobal(pos))
+It's entirely up to you which you choose.
+Event hierarchy
+In PyQt every widget is part of two distinct hierarchies: the Python object hierarchy, and the Qt layout hierarchy. How you respond or ignore events can affect how your UI behaves.
+Python inheritance forwarding
+Often you may want to intercept an event, do something with it, yet still trigger the default event handling behavior. If your object is inherited from a standard widget, it will likely have sensible behavior implemented by default. You can trigger this by calling up to the parent implementation using
+super()
+.
+This is the Python parent class, not the PyQt
+.parent()
+.
+python
+def mousePressEvent(self, event):
+print("Mouse pressed!")
+super().mousePressEvent(event)
+The event will continue to behave as normal, yet you've added some non-interfering behavior.
+Layout forwarding
+When you add a widget to your application, it also gets another
+parent
+from the layout. The parent of a widget can be found by calling
+.parent()
+. Sometimes you specify these parents manually, such as for
+QMenu
+or
+QDialog
+, often it is automatic. When you add a widget to your main window for example, the main window will become the widget's parent.
+When events are created for user interaction with the UI, these events are passed to the
+uppermost
+widget in the UI. So, if you have a button on a window, and click the button, the button will receive the event first.
+If the first widget cannot handle the event, or chooses not to, the event will
+bubble up
+to the parent widget, which will be given a turn. This
+bubbling
+continues all the way up nested widgets, until the event is handled or it reaches the main window.
+In your own event handlers you can choose to mark an event as
+handled
+calling
+.accept()
+--
+python
+class CustomButton(QPushButton)
+def mousePressEvent(self, e):
+e.accept()
+Alternatively, you can mark it as
+unhandled
+by calling
+.ignore()
+on the event object. In this case the event will continue to bubble up the hierarchy.
+python
+class CustomButton(QPushButton)
+def event(self, e):
+e.ignore()
+If you want your widget to appear transparent to events, you can safely ignore events which you've actually responded to in some way. Similarly, you can choose to accept events you are not responding to in order to silence them.
+Packaging Python Applications with PyInstaller
+by Martin Fitzpatrick
+— This step-by-step guide walks you through packaging your own Python applications from simple examples to complete installers and signed executables.
+More info
+Get the book
+Well done, you've finished this tutorial!
+Mark As Complete
+[[ user.completed.length ]] completed
+[[ user.streak+1 ]] day streak
+Continue with
+PyQt6 Tutorial
+Return to
+Create Desktop GUI Applications with PyQt6
+PyQt6 Signals, Slots & Events
+was written by
+Martin Fitzpatrick
+.
+Martin Fitzpatrick has been developing Python/Qt apps for 8 years. Building desktop applications to make data-analysis tools more user-friendly, Python was
+the obvious choice. Starting with Tk, later moving to wxWidgets and finally adopting PyQt. Martin founded PythonGUIs to provide easy to follow GUI programming tutorials to the Python community. He has written a number of popular
+Python books
+on the subject.
+PyQt6 Signals, Slots & Events
+was published in
+tutorials
+on
+December 15, 2021
+(updated
+April 23, 2025
+)
+. Feedback & Corrections
+can be submitted
+here
+.
+qt
+pyqt
+pyqt6
+foundation
+python
+qt6
+pyqt6-foundation
+
+=== RELATED PAGE ===
+PyQt6 Widgets — QCheckBox, QComboBox, QPushButton, QLabel, QSlider
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+PyQt6 Widgets
+Using QPushButton, QCheckBox, QComboBox, QLabel and QSlider widgets
+by
+Martin Fitzpatrick
+Last updated
+Nov 04
+This article has been updated for PyQt6.
+PyQt6
+Getting started with PyQt6
+PyQt6 Tutorial
+—
+Getting started with PyQt6
+Creating your first app with PyQt6
+PyQt6 Signals, Slots & Events
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Toolbars & Menus — QAction
+PyQt6 Dialogs and Alerts
+Creating Additional Windows in PyQt6
+This tutorial is also available for
+PySide6
+,
+PySide2
+and
+PyQt5
+Heads up! You've already completed this tutorial.
+In Qt (and most User Interfaces),
+widget
+is the name given to a component of the UI that the user can interact with. User interfaces are made up of multiple widgets, arranged within the window.
+Qt comes with a large selection of widgets and even allows you to create your own custom widgets or customize existing ones.
+Table of Contents
+A Quick Demo
+QLabel
+QCheckBox
+QComboBox
+QListWidget
+QLineEdit
+QSpinBox and QDoubleSpinBox
+QSlider
+QDial
+Conclusion
+A Quick Demo
+First, let's have a look at some of the most common PyQt widgets. The following code creates a range of PyQt widgets and adds them to a window layout so you can see them together:
+python
+import sys
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+QApplication,
+QCheckBox,
+QComboBox,
+QDateEdit,
+QDateTimeEdit,
+QDial,
+QDoubleSpinBox,
+QFontComboBox,
+QLabel,
+QLCDNumber,
+QLineEdit,
+QMainWindow,
+QProgressBar,
+QPushButton,
+QRadioButton,
+QSlider,
+QSpinBox,
+QTimeEdit,
+QVBoxLayout,
+QWidget,
+)
+# Subclass QMainWindow to customize your application's main window
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("Widgets App")
+layout = QVBoxLayout()
+widgets = [
+QCheckBox,
+QComboBox,
+QDateEdit,
+QDateTimeEdit,
+QDial,
+QDoubleSpinBox,
+QFontComboBox,
+QLCDNumber,
+QLabel,
+QLineEdit,
+QProgressBar,
+QPushButton,
+QRadioButton,
+QSlider,
+QSpinBox,
+QTimeEdit,
+]
+for w in widgets:
+layout.addWidget(w())
+widget = QWidget()
+widget.setLayout(layout)
+# Set the central widget of the Window. Widget will expand
+# to take up all the space in the window by default.
+self.setCentralWidget(widget)
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+Run it!
+You'll see a window appear containing all the widgets we've created.
+Big ol' list of widgets on Windows, Mac & Ubuntu Linux.
+You can learn how layouts work in Qt in our
+PyQt6 Layouts
+tutorial.
+Let's have a look at all the example widgets, from top to bottom:
+The complete guide to packaging Python GUI applications with PyInstaller.
+Take a look
+[[ discount.discount_pc ]]% OFF
+for
+the next [[ discount.duration ]]
+[[discount.description ]]
+with the code
+[[ discount.coupon_code ]]
+Purchasing Power Parity
+Developers in [[ country ]] get
+[[ discount.discount_pc ]]% OFF
+on all books & courses
+with code
+[[ discount.coupon_code ]]
+Widget
+What it does
+QCheckbox
+A checkbox
+QComboBox
+A dropdown list box
+QDateEdit
+For editing dates and datetimes
+QDateTimeEdit
+For editing dates and datetimes
+QDial
+Rotatable dial
+QDoubleSpinBox
+A number spinner for floats
+QFontComboBox
+A list of fonts
+QLCDNumber
+A quite ugly LCD display
+QLabel
+Just a label, not interactive
+QLineEdit
+Enter a line of text
+QProgressBar
+A progress bar
+QPushButton
+A button
+QRadioButton
+A toggle set, with only one active item
+QSlider
+A slider
+QSpinBox
+An integer spinner
+QTimeEdit
+For editing times
+There are far more widgets than this, but they don’t fit so well! You can see them all by checking the Qt documentation.
+Next, we'll step through some of the most commonly used widgets and look at them in more detail. To experiment with the widgets we'll need a simple application to put them in. Save the following code to a file named
+app.py
+and run it to make sure it's working:
+python
+import sys
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+QApplication,
+QCheckBox,
+QComboBox,
+QDial,
+QDoubleSpinBox,
+QLabel,
+QLineEdit,
+QListWidget,
+QMainWindow,
+QSlider,
+QSpinBox,
+)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+app = QApplication(sys.argv)
+w = MainWindow()
+w.show()
+app.exec()
+In the code above we've imported a number of Qt widgets. Now we'll step through each of those widgets in turn, adding them to our application and seeing how they behave.
+QLabel
+We'll start the tour with
+QLabel
+, arguably one of the simplest widgets available in the Qt toolbox. This is a simple one-line piece of text that you can position in your application. You can set the text by  passing in a
+str
+as you create it:
+python
+widget = QLabel("Hello")
+Or, by using the
+.setText()
+method:
+python
+widget = QLabel("1")  # The label is created with the text 1.
+widget.setText("2")   # The label now shows 2.
+You can also adjust font parameters, such as the size of the font or the alignment of text in the widget:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+widget = QLabel("Hello")
+font = widget.font()
+font.setPointSize(30)
+widget.setFont(font)
+widget.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+self.setCentralWidget(widget)
+QLabel on Windows, Mac & Ubuntu Linux.
+Font tip
+Note that if you want to change the properties of a widget font it is usually better to get the
+current
+font, update it and then apply it back. This ensures the font face remains in keeping with the desktop conventions.
+The alignment is specified by using a flag from the
+Qt.
+namespace. The flags available for horizontal alignment are:
+PyQt6 flag (long name)
+Behavior
+Qt.AlignmentFlag.AlignLeft
+Aligns with the left edge.
+Qt.AlignmentFlag.AlignRight
+Aligns with the right edge.
+Qt.AlignmentFlag.AlignHCenter
+Centers horizontally in the available space.
+Qt.AlignmentFlag.AlignJustify
+Justifies the text in the available space.
+The flags available for vertical alignment are:
+PyQt6 flag (long name)
+Behavior
+Qt.AlignmentFlag.AlignTop
+Aligns with the top.
+Qt.AlignmentFlag.AlignBottom
+Aligns with the bottom.
+Qt.AlignmentFlag.AlignVCenter
+Centers vertically in the available space.
+You can combine flags together using pipes (
+|
+), however note that you can only use vertical or horizontal alignment flag at a time:
+python
+align_top_left = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+Note that you use an
+OR
+pipe (`|`) to combine the two flags (not
+A &amp; B
+). This is because the flags are non-overlapping bitmasks. e.g.
+Qt.AlignmentFlag.AlignLeft
+has the hexadecimal value
+0x0001
+, while
+Qt.AlignmentFlag.AlignBottom
+is
+0x0040
+.  By ORing together we get the value
+0x0041
+representing 'bottom left'. This principle applies to all other combinatorial Qt flags.  If this is gibberish to you, feel free to ignore and move on. Just remember to use |
+Finally, there is also a shorthand flag that centers in both directions simultaneously:
+PyQt6 Flag
+Behavior
+Qt.AlignmentFlag.AlignCenter
+Centers horizontally
+and
+vertically
+Weirdly, you can also use
+QLabel
+to display an image using
+.setPixmap()
+. This method accepts a
+pixmap
+, which you can create by passing an image filename to the
+QPixmap
+class from
+PyQt6.QtGui
+.
+Below is an image which you can download for this example.
+"Otje" the cat.
+Place the file in the same folder as your code, and then display it in your window as follows:
+python
+widget.setPixmap(QPixmap('otje.jpg'))
+"Otje" the cat, displayed in a window.
+What a lovely face. By default the image scales while maintaining its aspect ratio. If you want it to stretch and scale to fit the window completely you can set
+.setScaledContents(True)
+on the
+QLabel
+:
+python
+widget.setScaledContents(True)
+QCheckBox
+The next widget to look at is
+QCheckBox()
+which, as the name suggests, presents a checkable box to the user. However, as with all Qt widgets there are number of configurable options to change the widget behaviors:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+widget = QCheckBox()
+widget.setCheckState(Qt.CheckState.Checked)
+# For tristate: widget.setCheckState(Qt.CheckState.PartiallyChecked)
+# Or: widget.setTristate(True)
+widget.stateChanged.connect(self.show_state)
+self.setCentralWidget(widget)
+def show_state(self, s):
+print(s == Qt.CheckState.Checked.value)
+print(s)
+QCheckBox on Windows, Mac & Ubuntu Linux.
+You can set a checkbox state programmatically using
+.setChecked
+or
+.setCheckState
+. The former accepts either
+True
+or
+False
+representing checked or unchecked, respectively. However, with
+.setCheckState
+you also specify a particular checked state using a
+Qt.CheckState
+flag:
+PyQt6 flag (long name)
+Behavior
+Qt.CheckState.Unchecked
+Item is unchecked
+Qt.CheckState.PartiallyChecked
+Item is partially checked
+Qt.CheckState.Checked
+Item is checked
+A checkbox that supports a partially-checked (
+Qt.CheckState.PartiallyChecked
+) state is commonly referred to as 'tri-state', that is being neither on nor off. A checkbox in this state is commonly shown as a greyed-out checkbox, and is commonly used in hierarchical checkbox arrangements where sub-items are linked to parent checkboxes.
+If you set the value to
+Qt.CheckState.PartiallyChecked
+the checkbox will become tristate. You can also set a checkbox to be tri-state without setting the current state to partially checked by using
+.setTristate(True)
+.
+You may notice that when the script is running, the current state number is displayed as an
+int
+with checked =
+2
+, unchecked =
+0
+, and partially checked =
+1
+. You don't need to remember these values, the
+Qt.CheckState.Checked
+flag
+== 2
+, for example. This is the value of these state's respective flags. This means that you can test state using
+state == Qt.CheckState.Checked
+.
+QComboBox
+The
+QComboBox
+is a drop down list, closed by default with an arrow to open it. You can select a single item from the list, with the currently selected item being shown as a label on the widget. The combo box is suited to selection of a choice from a long list of options.
+You have probably seen the combo box used for selection of font faces, or size, in word processing applications. Although Qt actually provides a specific font-selection combo box as
+QFontComboBox
+.
+You can add items to a
+QComboBox
+by passing a list of strings to
+.addItems()
+.  Items will be added in the order they are provided:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+widget = QComboBox()
+widget.addItems(["One", "Two", "Three"])
+# Sends the current index (position) of the selected item.
+widget.currentIndexChanged.connect( self.index_changed )
+# There is an alternate signal to send the text.
+widget.currentTextChanged.connect( self.text_changed )
+self.setCentralWidget(widget)
+def index_changed(self, i): # i is an int
+print(i)
+def text_changed(self, s): # s is a str
+print(s)
+QComboBox on Windows, Mac & Ubuntu Linux.
+The
+.currentIndexChanged
+signal is triggered when the currently selected item is updated, by default passing the index of the selected item in the list.
+There is also a
+.currentTextChanged
+signal which instead provides the label of the currently selected item, which is often more useful.
+QComboBox
+can also be editable, allowing users to enter values not currently in the list and either have them inserted, or simply used as a value. To make the box editable:
+python
+widget.setEditable(True)
+You can also set a flag to determine how the insert is handled. These flags are stored on the
+QComboBox
+class itself and are listed below:
+PyQt/PySide 1:1 Coaching with Martin Fitzpatrick
+— Save yourself time and frustration. Get one on one help with your Python GUI projects. Working together with you I'll identify issues and suggest fixes, from bugs and usability to architecture and maintainability.
+Book Now
+60 mins ($195)
+PyQt6 flag (long name)
+Behavior
+QComboBox.InsertPolicy.NoInsert
+No insert
+QComboBox.InsertPolicy.InsertAtTop
+Insert as first item
+QComboBox.InsertPolicy.InsertAtCurrent
+Replace currently selected item
+QComboBox.InsertPolicy.InsertAtBottom
+Insert after last item
+QComboBox.InsertPolicy.InsertAfterCurrent
+Insert after current item
+QComboBox.InsertPolicy.InsertBeforeCurrent
+Insert before current item
+QComboBox.InsertPolicy.InsertAlphabetically
+Insert in alphabetical order
+To use these, apply the flag as follows:
+python
+widget.setInsertPolicy(QComboBox.InsertPolicy.InsertAlphabetically)
+You can also limit the number of items allowed in the box by using
+.setMaxCount
+, e.g:
+python
+widget.setMaxCount(10)
+For a more in-depth look at the
+QComboBox
+take a look at our
+QComboBox documentation
+.
+QListWidget
+This widget is similar to
+QComboBox
+, except options are presented as a scrollable list of items. It also supports selection of multiple items at once. A
+QListWidget
+offers an
+currentItemChanged
+signal which sends the
+QListWidgetItem
+(the element of the list widget), and a
+currentTextChanged
+signal which sends the text of the current item:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+widget = QListWidget()
+widget.addItems(["One", "Two", "Three"])
+widget.currentItemChanged.connect(self.index_changed)
+widget.currentTextChanged.connect(self.text_changed)
+self.setCentralWidget(widget)
+def index_changed(self, i): # Not an index, i is a QListWidgetItem
+print(i.text())
+def text_changed(self, s): # s is a str
+print(s)
+QListWidget on Windows, Mac & Ubuntu Linux.
+QLineEdit
+The
+QLineEdit
+widget is a simple single-line text editing box, into which users can type input. These are used for form fields, or settings where there is no restricted list of valid inputs. For example, when entering an email address, or computer name:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+widget = QLineEdit()
+widget.setMaxLength(10)
+widget.setPlaceholderText("Enter your text")
+#widget.setReadOnly(True) # uncomment this to make readonly
+widget.returnPressed.connect(self.return_pressed)
+widget.selectionChanged.connect(self.selection_changed)
+widget.textChanged.connect(self.text_changed)
+widget.textEdited.connect(self.text_edited)
+self.setCentralWidget(widget)
+def return_pressed(self):
+print("Return pressed!")
+self.centralWidget().setText("BOOM!")
+def selection_changed(self):
+print("Selection changed")
+print(self.centralWidget().selectedText())
+def text_changed(self, s):
+print("Text changed...")
+print(s)
+def text_edited(self, s):
+print("Text edited...")
+print(s)
+QLineEdit on Windows, Mac & Ubuntu Linux.
+As demonstrated in the above code, you can set a maximum length for the text in a line edit.
+The
+QLineEdit
+has a number of signals available for different editing events including when return is pressed (by the user), when the user selection is changed. There are also two edit signals, one for when the text in the box has been edited and one for when it has been changed. The distinction here is between user edits and programmatic changes. The
+textEdited
+signal is only sent when the user edits text.
+Additionally, it is possible to perform input validation using an
+input mask
+to define which characters are supported and where. This can be applied to the field as follows:
+python
+widget.setInputMask('000.000.000.000;_')
+The above would allow a series of 3-digit numbers separated with periods, and could therefore be used to validate IPv4 addresses.
+QSpinBox and QDoubleSpinBox
+QSpinBox
+provides a small numerical input box with arrows to increase and decrease the value.
+QSpinBox
+supports integers while the related widget
+QDoubleSpinBox
+supports floats:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+widget = QSpinBox()
+# Or: widget = QDoubleSpinBox()
+widget.setMinimum(-9)
+widget.setMaximum(3)
+# Or: widget.setRange(-9, 3)
+widget.setPrefix("$")
+widget.setSuffix("c")
+widget.setSingleStep(3)  # Or e.g. 3.0 for QDoubleSpinBox
+widget.valueChanged.connect(self.value_changed)
+widget.textChanged.connect(self.value_changed_str)
+self.setCentralWidget(widget)
+def value_changed(self, i):
+print(i)
+def value_changed_str(self, s):
+print(s)
+Run it and you'll see a numeric entry box. The value shows pre and post fix units, and is limited to the range
+3
+to
+-9
+.
+It makes sense to set the step value to a multiple of the interval limits. Otherwise, you'll get weird behaviors. For example, if you change the lower limit from
+-9
+to
+-10
+and keep the step as
+3
+, then once you reach the
+-10
+limit, you won't be able to reach the
+0
+value again.
+QSpinBox on Windows, Mac & Ubuntu Linux.
+The demonstration code above shows the various features that are available for the widget.
+To set the range of acceptable values, you can use
+setMinimum
+and
+setMaximum
+, or alternatively, use
+setRange
+to set both simultaneously. Annotation of value types is supported with both prefixes and suffixes that can be added to the number, e.g. for currency markers or units using
+.setPrefix
+and
+.setSuffix
+, respectively.
+Clicking on the up and down arrows on the widget will increase or decrease the value in the widget by an amount, which can be set using
+.setSingleStep
+. Note that this has no effect on the values that are acceptable to the widget.
+Both
+QSpinBox
+and
+QDoubleSpinBox
+have a
+.valueChanged
+signal that fires whenever their value is altered. The raw
+.valueChanged
+signal sends the numeric value (either an
+int
+or a
+float
+), while
+.textChanged
+sends the value as a string, including both the prefix and suffix characters.
+You can optionally disable text input on the spin box line edit, by setting it to read-only. With this set, the value can
+only
+be changed using the controls. This also has the side effect of disabling the flashing cursor:
+python
+widget.lineEdit().setReadOnly(True)
+QSlider
+QSlider
+provides a slide-bar widget, which functions internally much like a
+QDoubleSpinBox
+. Rather than display the current value numerically, it is represented by the position of the slider handle along the length of the widget. This is often useful when providing adjustment between two extremes, but where absolute accuracy is not required. The most common use of this type of widget is for volume controls.
+There is an additional
+.sliderMoved
+signal that is triggered whenever the slider moves position and a
+.sliderPressed
+signal that emits whenever the slider is clicked:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+widget = QSlider()
+widget.setMinimum(-10)
+widget.setMaximum(3)
+# Or: widget.setRange(-10,3)
+widget.setSingleStep(3)
+widget.valueChanged.connect(self.value_changed)
+widget.sliderMoved.connect(self.slider_position)
+widget.sliderPressed.connect(self.slider_pressed)
+widget.sliderReleased.connect(self.slider_released)
+self.setCentralWidget(widget)
+def value_changed(self, i):
+print(i)
+def slider_position(self, p):
+print("Position", p)
+def slider_pressed(self):
+print("Pressed!")
+def slider_released(self):
+print("Released")
+Run this and you'll see a slider widget. Drag the slider to change the value.
+QSlider on Windows, Mac & Ubuntu Linux.
+You can also construct a slider with a vertical or horizontal orientation by passing the orientation in as you create it. The orientation flags are defined in the
+Qt.
+namespace. For example --
+python
+widget = QSlider(Qt.Orientation.Vertical)
+Or --
+python
+widget = QSlider(Qt.Orientation.Horizontal)
+QDial
+Finally, the
+QDial
+is a rotatable widget that functions just like the slider, but appears as an analogue dial. This looks nice, but from a UI perspective is not particularly user friendly. However, they are often used in audio applications as representation of real-world analogue dials:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+widget = QDial()
+widget.setRange(-10, 100)
+widget.setSingleStep(1)
+widget.valueChanged.connect(self.value_changed)
+widget.sliderMoved.connect(self.slider_position)
+widget.sliderPressed.connect(self.slider_pressed)
+widget.sliderReleased.connect(self.slider_released)
+self.setCentralWidget(widget)
+def value_changed(self, i):
+print(i)
+def slider_position(self, p):
+print("position", p)
+def slider_pressed(self):
+print("Pressed!")
+def slider_released(self):
+print("Released")
+Run this and you'll see a circular dial, rotate it to select a number from the range.
+QDial on Windows, Mac & Ubuntu Linux.
+The signals are the same as for
+QSlider
+and retain the same names (e.g.
+.sliderMoved
+).
+Conclusion
+This concludes our brief tour of the common widgets used in PyQt applications. To see the full list of available widgets, including all their signals and attributes, take a look at the
+Qt documentation
+.
+For a more in-depth look at some of the discussed widgets, see our documentation for the
+QComboBox
+,
+QPushButton
+,
+QCheckBox
+, and
+QLineEdit
+widgets.
+Create GUI Applications with Python & Qt6
+by Martin Fitzpatrick
+— (PyQt6 Edition) The hands-on guide to making apps with Python — Over 15,000 copies sold!
+More info
+Get the book
+Well done, you've finished this tutorial!
+Mark As Complete
+[[ user.completed.length ]] completed
+[[ user.streak+1 ]] day streak
+Continue with
+PyQt6 Tutorial
+Return to
+Create Desktop GUI Applications with PyQt6
+PyQt6 Widgets
+was written by
+Martin Fitzpatrick
+with contributions from
+Leo Well
+.
+Martin Fitzpatrick has been developing Python/Qt apps for 8 years. Building desktop applications to make data-analysis tools more user-friendly, Python was
+the obvious choice. Starting with Tk, later moving to wxWidgets and finally adopting PyQt. Martin founded PythonGUIs to provide easy to follow GUI programming tutorials to the Python community. He has written a number of popular
+Python books
+on the subject.
+PyQt6 Widgets
+was published in
+tutorials
+on
+September 08, 2021
+(updated
+November 04, 2024
+)
+. Feedback & Corrections
+can be submitted
+here
+.
+qt
+pyqt
+pyqt6
+widgets
+qlabel
+qcheckbox
+qcombobox
+qlistbox
+qlistwidget
+qlineedit
+qspinbox
+qdoublespinbox
+qslider
+qwidget
+foundation
+python
+qt6
+pyqt6-foundation
+
+=== RELATED PAGE ===
+PyQt6 Layouts - Using QVBoxLayout, QHBoxLayout, QGridLayout, QStackedLayout to Position Widgets
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+PyQt6 Layouts
+Use layouts to effortlessly position widgets within the window
+by
+Martin Fitzpatrick
+Last updated
+Apr 21
+This article has been updated for PyQt6.
+PyQt6
+Getting started with PyQt6
+PyQt6 Tutorial
+—
+Getting started with PyQt6
+Creating your first app with PyQt6
+PyQt6 Signals, Slots & Events
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Toolbars & Menus — QAction
+PyQt6 Dialogs and Alerts
+Creating Additional Windows in PyQt6
+This tutorial is also available for
+PySide6
+,
+PySide2
+and
+PyQt5
+Heads up! You've already completed this tutorial.
+So far we've successfully created a window and added a widget to it. However, we normally want to add more than one widget to a window and have some control over where it ends up. To do this in Qt, we use
+layouts
+.
+Table of Contents
+QVBoxLayout vertically arranged widgets
+QHBoxLayout horizontally arranged widgets
+Nesting layouts
+QGridLayout widgets arranged in a grid
+QStackedLayout multiple widgets in the same space
+There are four basic layouts available in Qt, which are listed in the following table:
+Layout
+Behavior
+QHBoxLayout
+Linear horizontal layout
+QVBoxLayout
+Linear vertical layout
+QGridLayout
+In indexable grid XxY
+QStackedLayout
+Stacked (z) in front of one another
+You can also design and
+lay out your interface graphically using the Qt designer
+. Here, we're using code so you can understand the underlying system.
+As you can see, there are three positional layouts available in Qt. The
+QVBoxLayout
+,
+QHBoxLayout
+and
+QGridLayout
+. In addition, there is also
+QStackedLayout
+, which allows you to place widgets one on top of the other within the same space, yet showing only one layout at a time.
+Before we start we need a simple application outline. Save the following code in a file named
+app.py
+-- we'll modify this application to experiment with different layouts:
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+To make it easier to visualize the layouts, we'll first create a simple custom widget that displays a solid color of our choosing. This will help to distinguish widgets that we add to the layout. Create a new file called
+layout_colorwidget.py
+with the following code:
+python
+from PyQt6.QtGui import QColor, QPalette
+from PyQt6.QtWidgets import QWidget
+class Color(QWidget):
+def __init__(self, color):
+super().__init__()
+self.setAutoFillBackground(True)
+palette = self.palette()
+palette.setColor(QPalette.ColorRole.Window, QColor(color))
+self.setPalette(palette)
+Save this code as a
+new file
+called
+layout_colorwidget.py
+in the same folder as your main script. Then we can import it below.
+Packaging Python Applications with PyInstaller
+by Martin Fitzpatrick
+— This step-by-step guide walks you through packaging your own Python applications from simple examples to complete installers and signed executables.
+More info
+Get the book
+In this code we subclass
+QWidget
+to create our own custom widget
+Color
+. We accept a single parameter when creating the widget —
+color
+(a
+str
+). We first set
+.setAutoFillBackground
+to
+True
+to tell the widget to automatically fill its background with the window color.
+Next we get the current palette (which is the global desktop palette by default) and change the current
+QPalette.Window
+color to a new
+QColor
+described by the value
+color
+we passed in. Finally we apply this palette back to the widget. The end result is a widget that is filled with a solid color, that we specified when we created it.
+If you find the above confusing, don't worry too much. We'll cover custom widgets in more detail later. For now, it's sufficient that you understand that calling you can create a solid-filled red widget by doing the following:
+python
+Color('red')
+First let's test our new
+Color
+widget by using it to fill the entire window in a single color. Once it's complete, we can add it to the
+QMainWindow
+using
+.setCentralWidget
+and we get a solid red window:
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
+from layout_colorwidget import Color
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+widget = Color("red")
+self.setCentralWidget(widget)
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+Run it!
+A window will appear, filled completely with the color red. Notice how the widget expands to fill all the available space.
+Next, we'll look at each of the available Qt layouts in turn. Note that to add our layouts to the window we will need a dummy
+QWidget
+to hold the layout.
+QVBoxLayout
+vertically arranged widgets
+With
+QVBoxLayout
+you arrange widgets one above the other linearly. Adding a widget appends it to the bottom of the column.
+A QVBoxLayout, filled from top to bottom.
+Let's add our widget to a layout. Note that in order to add a layout to the
+QMainWindow
+we need to apply it to a dummy
+QWidget
+. This allows us to then use
+.setCentralWidget
+to apply the widget (and the layout) to the window. Our colored widgets will arrange themselves in the layout, contained within the
+QWidget
+in the window.
+First, we need to import
+QVBoxLayout
+from
+PyQt6.QtWidgets
+and then add the red widget as before:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+layout = QVBoxLayout()
+layout.addWidget(Color("red"))
+widget = QWidget()
+widget.setLayout(layout)
+self.setCentralWidget(widget)
+Run it!
+Notice the border now visible around the red widget. This is the layout spacing — we'll see how to adjust that later.
+If you add a few more colored widgets to the layout you'll notice that they line themselves up vertically in the order they are added:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+layout = QVBoxLayout()
+layout.addWidget(Color("red"))
+layout.addWidget(Color("green"))
+layout.addWidget(Color("orange"))
+layout.addWidget(Color("blue"))
+widget = QWidget()
+widget.setLayout(layout)
+self.setCentralWidget(widget)
+QHBoxLayout
+horizontally arranged widgets
+QHBoxLayout
+works the same, except for the horizontally arranged widgets. Adding a widget appends it to the right-hand side.
+A QHBoxLayout, filled from left to right.
+To use it we can simply change the
+QVBoxLayout
+to a
+QHBoxLayout
+. The boxes now flow left to right:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+layout = QHBoxLayout()
+layout.addWidget(Color("red"))
+layout.addWidget(Color("green"))
+layout.addWidget(Color("orange"))
+layout.addWidget(Color("blue"))
+widget = QWidget()
+widget.setLayout(layout)
+self.setCentralWidget(widget)
+Nesting layouts
+For more complex layouts, you can nest layouts inside one another using
+.addLayout
+on a layout. Below we add a
+QVBoxLayout
+into the main
+QHBoxLayout
+. If we add some widgets to the
+QVBoxLayout
+, they’ll be arranged vertically in the first slot of the parent layout:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+layout1 = QHBoxLayout()
+layout2 = QVBoxLayout()
+layout3 = QVBoxLayout()
+layout2.addWidget(Color("red"))
+layout2.addWidget(Color("yellow"))
+layout2.addWidget(Color("purple"))
+layout1.addLayout(layout2)
+layout1.addWidget(Color("green"))
+layout3.addWidget(Color("red"))
+layout3.addWidget(Color("purple"))
+layout1.addLayout(layout3)
+widget = QWidget()
+widget.setLayout(layout1)
+self.setCentralWidget(widget)
+Run it!
+The widgets should arrange themselves in three columns horizontally, with the first column also containing three widgets stacked vertically. Experiment!
+You can set the spacing around the layout using
+.setContentMargins
+or set the spacing between elements using
+.setSpacing
+:
+1:1 Coaching & Tutoring for your Python GUIs project
+60 mins ($195)
+Book Now
+1:1 Python GUIs Coaching & Training
+Comprehensive code review
+•
+Bugfixes
+& improvements •
+Maintainability
+advice and
+architecture
+improvements •
+Design and usability
+assessment •
+Suggestions and tips to
+expand your knowledge
+•
+Packaging and distribution
+help for Windows, Mac & Linux •
+Find out more.
+python
+layout1.setContentsMargins(0,0,0,0)
+layout1.setSpacing(20)
+The following code shows the combination of nested widgets and layout margins and spacing. Experiment with the numbers til you get a feel for them:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+layout1 = QHBoxLayout()
+layout2 = QVBoxLayout()
+layout3 = QVBoxLayout()
+layout2.addWidget(Color("red"))
+layout2.addWidget(Color("yellow"))
+layout2.addWidget(Color("purple"))
+layout1.setContentsMargins(0,0,0,0)
+layout1.setSpacing(20)
+layout1.addLayout(layout2)
+layout1.addWidget(Color("green"))
+layout3.addWidget(Color("red"))
+layout3.addWidget(Color("purple"))
+layout1.addLayout(layout3)
+widget = QWidget()
+widget.setLayout(layout1)
+self.setCentralWidget(widget)
+QGridLayout
+widgets arranged in a grid
+As useful as they are, if you try and use
+QVBoxLayout
+and
+QHBoxLayout
+for laying out multiple elements, e.g. for a form, you’ll find it very difficult to ensure differently sized widgets line up. The solution to this is
+QGridLayout
+:
+A QGridLayout showing the grid positions for each location.
+QGridLayout
+allows you to position items specifically in a grid. You specify row and column positions for each widget. You can skip elements, and they will be left empty.
+Usefully, for
+QGridLayout
+you don't need to fill all the positions in the grid:
+A QGridLayout with unfilled slots.
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+layout = QGridLayout()
+layout.addWidget(Color("red"), 0, 3)
+layout.addWidget(Color("green"), 1, 1)
+layout.addWidget(Color("orange"), 2, 2)
+layout.addWidget(Color("blue"), 3, 0)
+widget = QWidget()
+widget.setLayout(layout)
+self.setCentralWidget(widget)
+QStackedLayout
+multiple widgets in the same space
+The final layout we'll cover is the
+QStackedLayout
+. As described, this layout allows you to position elements directly in front of one another. You can then select which widget you want to show. You could use this for drawing layers in a graphics application, or for imitating a tab-like interface. Note there is also
+QStackedWidget
+which is a container widget that works in exactly the same way. This is useful if you want to add a stack directly to a
+QMainWindow
+with
+.setCentralWidget
+.
+QStackedLayout — in use only the uppermost widget is visible, which is by default the first widget added to the layout.
+QStackedLayout, with the 2nd (1) widget selected and brought to the front.
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+layout = QStackedLayout()
+layout.addWidget(Color("red"))
+layout.addWidget(Color("green"))
+layout.addWidget(Color("blue"))
+layout.addWidget(Color("yellow"))
+layout.setCurrentIndex(3)
+widget = QWidget()
+widget.setLayout(layout)
+self.setCentralWidget(widget)
+QStackedWidget
+is exactly how tabbed views in applications work. Only one view ('tab') is visible at any one time. You can control which widget to show at any time by using
+.setCurrentIndex()
+or
+.setCurrentWidget()
+to set the item by either the index (in order the widgets were added) or by the widget itself.
+Below is a short demo using
+QStackedLayout
+in combination with
+QButton
+to provide a tab-like interface to an application:
+python
+import sys
+from PyQt6.QtWidgets import (
+QApplication,
+QHBoxLayout,
+QMainWindow,
+QPushButton,
+QStackedLayout,
+QVBoxLayout,
+QWidget,
+)
+from layout_colorwidget import Color
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+pagelayout = QVBoxLayout()
+button_layout = QHBoxLayout()
+self.stacklayout = QStackedLayout()
+pagelayout.addLayout(button_layout)
+pagelayout.addLayout(self.stacklayout)
+btn = QPushButton("red")
+btn.pressed.connect(self.activate_tab_1)
+button_layout.addWidget(btn)
+self.stacklayout.addWidget(Color("red"))
+btn = QPushButton("green")
+btn.pressed.connect(self.activate_tab_2)
+button_layout.addWidget(btn)
+self.stacklayout.addWidget(Color("green"))
+btn = QPushButton("yellow")
+btn.pressed.connect(self.activate_tab_3)
+button_layout.addWidget(btn)
+self.stacklayout.addWidget(Color("yellow"))
+widget = QWidget()
+widget.setLayout(pagelayout)
+self.setCentralWidget(widget)
+def activate_tab_1(self):
+self.stacklayout.setCurrentIndex(0)
+def activate_tab_2(self):
+self.stacklayout.setCurrentIndex(1)
+def activate_tab_3(self):
+self.stacklayout.setCurrentIndex(2)
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+A custom tab-like interface implemented using QStackedLayout.
+Helpfully. Qt actually provides a built-in tab widget that provides this kind of layout out of the box - albeit in widget form. Below the tab demo is recreated using
+QTabWidget
+:
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget
+from layout_colorwidget import Color
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+tabs = QTabWidget()
+tabs.setTabPosition(QTabWidget.TabPosition.West)
+tabs.setMovable(True)
+for color in ["red", "green", "blue", "yellow"]:
+tabs.addTab(Color(color), color)
+self.setCentralWidget(tabs)
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+A tabbed interface using the QTabWidget.
+As you can see, it's a little more straightforward — and a bit more attractive! You can set the position of the tabs using the cardinal directions, and toggle whether tabs are moveable with
+.setMoveable
+.
+You'll notice that the macOS tab bar looks quite different from the others -- by default on macOS tabs take on a
+pill
+or
+bubble
+style. On macOS, this is typically used for tabbed configuration panels. For documents, you can turn on
+document mode
+to give slimline tabs similar to what you see on other platforms. This option has no effect on other platforms:
+python
+tabs = QTabWidget()
+tabs.setDocumentMode(True)
+QTabWidget in document mode on macOS.
+We'll encounter more of these advanced widgets later.
+Create GUI Applications with Python & Qt6
+by Martin Fitzpatrick
+— (PyQt6 Edition) The hands-on guide to making apps with Python — Over 15,000 copies sold!
+More info
+Get the book
+Well done, you've finished this tutorial!
+Mark As Complete
+[[ user.completed.length ]] completed
+[[ user.streak+1 ]] day streak
+Continue with
+PyQt6 Tutorial
+Return to
+Create Desktop GUI Applications with PyQt6
+PyQt6 Layouts
+was written by
+Martin Fitzpatrick
+.
+Martin Fitzpatrick has been developing Python/Qt apps for 8 years. Building desktop applications to make data-analysis tools more user-friendly, Python was
+the obvious choice. Starting with Tk, later moving to wxWidgets and finally adopting PyQt. Martin founded PythonGUIs to provide easy to follow GUI programming tutorials to the Python community. He has written a number of popular
+Python books
+on the subject.
+PyQt6 Layouts
+was published in
+tutorials
+on
+November 25, 2021
+(updated
+April 21, 2025
+)
+. Feedback & Corrections
+can be submitted
+here
+.
+qt
+pyqt
+pyqt6
+foundation
+python
+qt6
+pyqt6-foundation
+
+=== RELATED PAGE ===
+Using PyQt6 Actions, Toolbars and Menus
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+PyQt6 Toolbars & Menus — QAction
+Defining toolbars, menus, and keyboard shortcuts with QAction
+by
+Martin Fitzpatrick
+Last updated
+Apr 11
+This article has been updated for PyQt6.
+PyQt6
+Getting started with PyQt6
+PyQt6 Tutorial
+—
+Getting started with PyQt6
+Creating your first app with PyQt6
+PyQt6 Signals, Slots & Events
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Toolbars & Menus — QAction
+PyQt6 Dialogs and Alerts
+Creating Additional Windows in PyQt6
+This tutorial is also available for
+PySide6
+,
+PySide2
+and
+PyQt5
+Heads up! You've already completed this tutorial.
+Next, we'll look at some of the common user interface elements you've probably seen in many other applications — toolbars and menus. We'll also explore the neat system Qt provides for minimizing the duplication between different UI areas —
+QAction
+.
+Table of Contents
+Basic App
+Toolbars
+Adding a Toolbar
+Menus
+Adding a Menu
+Basic App
+We'll start this tutorial with a simple skeleton application, which we can customize. Save the following code in a file named
+app.py
+-- this code all the imports you'll need for the later steps:
+python
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtGui import QAction, QIcon, QKeySequence
+from PyQt6.QtWidgets import (
+QApplication,
+QCheckBox,
+QLabel,
+QMainWindow,
+QStatusBar,
+QToolBar,
+)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+app = QApplication([])
+window = MainWindow()
+window.show()
+app.exec()
+This file contains the imports and the basic code that you'll use to complete the examples in this tutorial.
+If you're migrating to PyQt6 from PyQt5, notice that
+QAction
+is now available via the
+QtGui
+module.
+Toolbars
+One of the most commonly seen user interface elements is the toolbar. Toolbars are bars of icons and/or text used to perform common tasks within an application, for which access via a menu would be cumbersome. They are one of the most common UI features seen in many applications. While some complex applications, particularly in the Microsoft Office suite, have migrated to contextual 'ribbon' interfaces, the standard toolbar is usually sufficient for the majority of applications you will create.
+Standard GUI elements
+Adding a Toolbar
+Let's start by adding a toolbar to our application.
+Create GUI Applications with Python & Qt6
+by Martin Fitzpatrick
+— (PyQt6 Edition) The hands-on guide to making apps with Python — Over 15,000 copies sold!
+More info
+Get the book
+In Qt, toolbars are created from the
+QToolBar
+class. To start, you create an instance of the class and then call
+addToolbar
+on the
+QMainWindow
+. Passing a string in as the first argument to
+QToolBar
+sets the toolbar's name, which will be used to identify the toolbar in the UI:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+self.addToolBar(toolbar)
+Run it!
+You'll see a thin grey bar at the top of the window. This is your toolbar. Right-click the name to trigger a context menu and toggle the bar off.
+A window with a toolbar.
+How can I get my toolbar back?
+Unfortunately, once you remove a toolbar, there is now no place to right-click to re-add it. So, as a general rule, you want to either keep one toolbar un-removeable, or provide an alternative interface in the menus to turn toolbars on and off.
+We should make the toolbar a bit more interesting. We could just add a
+QButton
+widget, but there is a better approach in Qt that gets you some additional features — and that is via
+QAction
+.
+QAction
+is a class that provides a way to describe abstract user interfaces. What this means in English is that you can define multiple interface elements within a single object, unified by the effect that interacting with that element has.
+For example, it is common to have functions that are represented in the toolbar but also the menu — think of something like
+Edit->Cut
+, which is present both in the
+Edit
+menu but also on the toolbar as a pair of scissors, and also through the keyboard shortcut
+Ctrl-X
+(
+Cmd-X
+on Mac).
+Without
+QAction
+, you would have to define this in multiple places. But with
+QAction
+you can define a single
+QAction
+, defining the triggered action, and then add this action to both the menu and the toolbar. Each
+QAction
+has names, status messages, icons, and signals that you can connect to (and much more).
+In the code below, you can see this first
+QAction
+added:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+self.addToolBar(toolbar)
+button_action = QAction("Your button", self)
+button_action.setStatusTip("This is your button")
+button_action.triggered.connect(self.toolbar_button_clicked)
+toolbar.addAction(button_action)
+def toolbar_button_clicked(self, s):
+print("click", s)
+To start with, we create the function that will accept the signal from the
+QAction
+so we can see if it is working. Next, we define the
+QAction
+itself. When creating the instance, we can pass a label for the action and/or an icon. You must also pass in any
+QObject
+to act as the parent for the action — here we're passing
+self
+as a reference to our main window. Strangely, for
+QAction
+the parent element is passed in as the final argument.
+Next, we can opt to set a status tip — this text will be displayed on the status bar once we have one. Finally, we connect the
+triggered
+signal to the custom function. This signal will fire whenever the
+QAction
+is
+triggered
+(or activated).
+Run it!
+You should see your button with the label that you have defined. Click on it, and then our custom method will print "click" and the status of the button.
+Toolbar showing our
+QAction
+button.
+Why is the signal always false?
+The signal passed indicates whether the button is
+checked
+, and since our button is not checkable — just clickable — it is always false. We'll show how to make it checkable shortly.
+Next, we can add a status bar.
+We create a status bar object by calling
+QStatusBar
+to get a new status bar object and then passing this into
+setStatusBar
+. Since we don't need to change the status bar settings, we can also just pass it in as we create it, in a single line:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+self.addToolBar(toolbar)
+button_action = QAction("Your button", self)
+button_action.setStatusTip("This is your button")
+button_action.triggered.connect(self.toolbar_button_clicked)
+toolbar.addAction(button_action)
+self.setStatusBar(QStatusBar(self))
+def toolbar_button_clicked(self, s):
+print("click", s)
+Run it!
+Hover your mouse over the toolbar button, and you will see the status text in the status bar.
+Status bar text updated as we hover over the action.
+Next, we're going to turn our
+QAction
+toggleable — so clicking will turn it on, and clicking again will turn it off. To do this, we simply call
+setCheckable(True)
+on the
+QAction
+object:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+self.addToolBar(toolbar)
+button_action = QAction("Your button", self)
+button_action.setStatusTip("This is your button")
+button_action.triggered.connect(self.toolbar_button_clicked)
+button_action.setCheckable(True)
+toolbar.addAction(button_action)
+self.setStatusBar(QStatusBar(self))
+def toolbar_button_clicked(self, s):
+print("click", s)
+Run it!
+Click on the button to see it toggle from checked to unchecked state. Note that the custom slot method we create now alternates outputting
+True
+and
+False
+.
+The toolbar button toggled on.
+There is also a
+toggled
+signal, which only emits a signal when the button is toggled. But the effect is identical, so it is mostly pointless.
+Things look pretty shabby right now — so let's add an icon to our button. For this, I recommend you download the
+fugue icon set
+by designer Yusuke Kamiyamane. It's a great set of beautiful 16x16 icons that can give your apps a nice professional look. It is freely available with only attribution required when you distribute your application — although I am sure the designer would appreciate some cash too if you have some spare.
+Fugue Icon Set — Yusuke Kamiyamane
+Select an image from the set (in the examples here, I've selected the file
+bug.png
+) and copy it into the same folder as your source code.
+We can create a
+QIcon
+object by passing the file name to the class, e.g.
+QIcon("bug.png")
+-- if you place the file in another folder, you will need a full relative or absolute path to it.
+Finally, to add the icon to the
+QAction
+(and therefore the button), we simply pass it in as the first argument when creating the
+QAction
+.
+You also need to let the toolbar know how large your icons are. Otherwise, your icon will be surrounded by a lot of padding. You can do this by calling
+setIconSize()
+with a
+QSize
+object:
+1:1 Coaching & Tutoring for your Python GUIs project
+60 mins ($195)
+Book Now
+1:1 Python GUIs Coaching & Training
+Comprehensive code review
+•
+Bugfixes
+& improvements •
+Maintainability
+advice and
+architecture
+improvements •
+Design and usability
+assessment •
+Suggestions and tips to
+expand your knowledge
+•
+Packaging and distribution
+help for Windows, Mac & Linux •
+Find out more.
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+toolbar.setIconSize(QSize(16, 16))
+self.addToolBar(toolbar)
+button_action = QAction(QIcon("bug.png"), "Your button", self)
+button_action.setStatusTip("This is your button")
+button_action.triggered.connect(self.toolbar_button_clicked)
+button_action.setCheckable(True)
+toolbar.addAction(button_action)
+self.setStatusBar(QStatusBar(self))
+def toolbar_button_clicked(self, s):
+print("click", s)
+Run it!
+The
+QAction
+is now represented by an icon. Everything should work exactly as it did before.
+Our action button with an icon.
+Note that Qt uses your operating system's default settings to determine whether to show an icon, text, or an icon and text in the toolbar. But you can override this by using
+setToolButtonStyle()
+. This slot accepts any of the following flags from the
+Qt
+namespace:
+Flag
+Behavior
+Qt.ToolButtonStyle.ToolButtonIconOnly
+Icon only, no text
+Qt.ToolButtonStyle.ToolButtonTextOnly
+Text only, no icon
+Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+Icon and text, with text beside the icon
+Qt.ToolButtonStyle.ToolButtonTextUnderIcon
+Icon and text, with text under the icon
+Qt.ToolButtonStyle.ToolButtonFollowStyle
+Follow the host desktop style
+The default value is
+Qt.ToolButtonStyle.ToolButtonFollowStyle
+, meaning that your application will default to following the standard/global setting for the desktop on which the application runs. This is generally recommended to make your application feel as
+native
+as possible.
+Finally, we can add a few more bits and bobs to the toolbar. We'll add a second button and a checkbox widget. As mentioned, you can literally put any widget in here, so feel free to go crazy:
+python
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtWidgets import (
+QApplication,
+QCheckBox,
+QLabel,
+QMainWindow,
+QStatusBar,
+QToolBar,
+)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+toolbar.setIconSize(QSize(16, 16))
+self.addToolBar(toolbar)
+button_action = QAction(QIcon("bug.png"), "&Your button", self)
+button_action.setStatusTip("This is your button")
+button_action.triggered.connect(self.toolbar_button_clicked)
+button_action.setCheckable(True)
+toolbar.addAction(button_action)
+toolbar.addSeparator()
+button_action2 = QAction(QIcon("bug.png"), "Your &button2", self)
+button_action2.setStatusTip("This is your button2")
+button_action2.triggered.connect(self.toolbar_button_clicked)
+button_action2.setCheckable(True)
+toolbar.addAction(button_action2)
+toolbar.addWidget(QLabel("Hello"))
+toolbar.addWidget(QCheckBox())
+self.setStatusBar(QStatusBar(self))
+def toolbar_button_clicked(self, s):
+print("click", s)
+app = QApplication([])
+window = MainWindow()
+window.show()
+app.exec()
+Run it!
+Now you see multiple buttons and a checkbox.
+Toolbar with an action and two widgets.
+Menus
+Menus are another standard component of UIs. Typically, they are at the top of the window or the top of a screen on macOS. They allow you to access all standard application functions. A few standard menus exist — for example
+File
+,
+Edit
+,
+Help
+. Menus can be nested to create hierarchical trees of functions, and they often support and display keyboard shortcuts for fast access to their functions.
+Standard GUI elements - Menus
+Adding a Menu
+To create a menu, we create a menubar we call
+menuBar()
+on the
+QMainWindow
+. We add a menu to our menu bar by calling
+addMenu()
+, passing in the name of the menu. I've called it
+'&File'
+.  The ampersand defines a quick key to jump to this menu when pressing Alt.
+This won't be visible on macOS. Note that this is different from a keyboard shortcut — we'll cover that shortly.
+This is where the power of actions comes into play. We can reuse the already existing QAction to add the same function to the menu. To add an action, you call
+addAction()
+passing in one of our defined actions:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+toolbar.setIconSize(QSize(16, 16))
+self.addToolBar(toolbar)
+button_action = QAction(QIcon("bug.png"), "&Your button", self)
+button_action.setStatusTip("This is your button")
+button_action.triggered.connect(self.toolbar_button_clicked)
+button_action.setCheckable(True)
+toolbar.addAction(button_action)
+toolbar.addSeparator()
+button_action2 = QAction(QIcon("bug.png"), "Your &button2", self)
+button_action2.setStatusTip("This is your button2")
+button_action2.triggered.connect(self.toolbar_button_clicked)
+button_action2.setCheckable(True)
+toolbar.addAction(button_action2)
+toolbar.addWidget(QLabel("Hello"))
+toolbar.addWidget(QCheckBox())
+self.setStatusBar(QStatusBar(self))
+menu = self.menuBar()
+file_menu = menu.addMenu("&File")
+file_menu.addAction(button_action)
+def toolbar_button_clicked(self, s):
+print("click", s)
+Run it!
+Click the item in the menu, and you will notice that it is toggleable — it inherits the features of the
+QAction
+.
+Menu shown on the window -- on macOS this will be at the top of the screen.
+Let's add some more things to the menu. Here, we'll add a separator to the menu, which will appear as a horizontal line in the menu, and then add the second
+QAction
+we created:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+toolbar.setIconSize(QSize(16, 16))
+self.addToolBar(toolbar)
+button_action = QAction(QIcon("bug.png"), "&Your button", self)
+button_action.setStatusTip("This is your button")
+button_action.triggered.connect(self.toolbar_button_clicked)
+button_action.setCheckable(True)
+toolbar.addAction(button_action)
+toolbar.addSeparator()
+button_action2 = QAction(QIcon("bug.png"), "Your &button2", self)
+button_action2.setStatusTip("This is your button2")
+button_action2.triggered.connect(self.toolbar_button_clicked)
+button_action2.setCheckable(True)
+toolbar.addAction(button_action2)
+toolbar.addWidget(QLabel("Hello"))
+toolbar.addWidget(QCheckBox())
+self.setStatusBar(QStatusBar(self))
+menu = self.menuBar()
+file_menu = menu.addMenu("&File")
+file_menu.addAction(button_action)
+file_menu.addSeparator()
+file_menu.addAction(button_action2)
+def toolbar_button_clicked(self, s):
+print("click", s)
+Run it!
+You should see two menu items with a line between them.
+Our actions showing in the menu.
+You can also use ampersand to add
+accelerator keys
+to the menu to allow a single key to be used to jump to a menu item when it is open. Again this doesn't work on macOS.
+To add a submenu, you simply create a new menu by calling
+addMenu()
+on the parent menu. You can then add actions to it as usual. For example:
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+toolbar.setIconSize(QSize(16, 16))
+self.addToolBar(toolbar)
+button_action = QAction(QIcon("bug.png"), "&Your button", self)
+button_action.setStatusTip("This is your button")
+button_action.triggered.connect(self.toolbar_button_clicked)
+button_action.setCheckable(True)
+toolbar.addAction(button_action)
+toolbar.addSeparator()
+button_action2 = QAction(QIcon("bug.png"), "Your &button2", self)
+button_action2.setStatusTip("This is your button2")
+button_action2.triggered.connect(self.toolbar_button_clicked)
+button_action2.setCheckable(True)
+toolbar.addAction(button_action2)
+toolbar.addWidget(QLabel("Hello"))
+toolbar.addWidget(QCheckBox())
+self.setStatusBar(QStatusBar(self))
+menu = self.menuBar()
+file_menu = menu.addMenu("&File")
+file_menu.addAction(button_action)
+file_menu.addSeparator()
+file_submenu = file_menu.addMenu("Submenu")
+file_submenu.addAction(button_action2)
+def toolbar_button_clicked(self, s):
+print("click", s)
+Run it!
+You will see a nested menu in the
+File
+menu.
+Submenu nested in the File menu.
+Finally, we'll add a keyboard shortcut to the
+QAction
+. You define a keyboard shortcut by passing
+setKeySequence()
+and passing in the key sequence. Any defined key sequences will appear in the menu.
+Note that the keyboard shortcut is associated with the
+QAction
+and will still work whether or not the
+QAction
+is added to a menu or a toolbar.
+Key sequences can be defined in multiple ways - either by passing as text, using key names from the
+Qt
+namespace, or using the defined key sequences from the
+Qt
+namespace. Use the latter wherever you can to ensure compliance with the operating system standards.
+The completed code, showing the toolbar buttons and menus, is shown below:
+python
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtGui import QAction, QIcon, QKeySequence
+from PyQt6.QtWidgets import (
+QApplication,
+QCheckBox,
+QLabel,
+QMainWindow,
+QStatusBar,
+QToolBar,
+)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+label = QLabel("Hello!")
+# The `Qt` namespace has a lot of attributes to customize
+# widgets. See: http://doc.qt.io/qt-6/qt.html
+label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+# Set the central widget of the Window. Widget will expand
+# to take up all the space in the window by default.
+self.setCentralWidget(label)
+toolbar = QToolBar("My main toolbar")
+toolbar.setIconSize(QSize(16, 16))
+self.addToolBar(toolbar)
+button_action = QAction(QIcon("bug.png"), "&Your button", self)
+button_action.setStatusTip("This is your button")
+button_action.triggered.connect(self.toolbar_button_clicked)
+button_action.setCheckable(True)
+# You can enter keyboard shortcuts using key names (e.g. Ctrl+p)
+# Qt.namespace identifiers (e.g. Qt.CTRL + Qt.Key_P)
+# or system agnostic identifiers (e.g. QKeySequence.Print)
+button_action.setShortcut(QKeySequence("Ctrl+p"))
+toolbar.addAction(button_action)
+toolbar.addSeparator()
+button_action2 = QAction(QIcon("bug.png"), "Your &button2", self)
+button_action2.setStatusTip("This is your button2")
+button_action2.triggered.connect(self.toolbar_button_clicked)
+button_action2.setCheckable(True)
+toolbar.addAction(button_action2)
+toolbar.addWidget(QLabel("Hello"))
+toolbar.addWidget(QCheckBox())
+self.setStatusBar(QStatusBar(self))
+menu = self.menuBar()
+file_menu = menu.addMenu("&File")
+file_menu.addAction(button_action)
+file_menu.addSeparator()
+file_submenu = file_menu.addMenu("Submenu")
+file_submenu.addAction(button_action2)
+def toolbar_button_clicked(self, s):
+print("click", s)
+app = QApplication([])
+window = MainWindow()
+window.show()
+app.exec()
+Experiment with building your own menus using
+QAction
+and
+QMenu
+.
+Packaging Python Applications with PyInstaller
+by Martin Fitzpatrick
+— This step-by-step guide walks you through packaging your own Python applications from simple examples to complete installers and signed executables.
+More info
+Get the book
+Well done, you've finished this tutorial!
+Mark As Complete
+[[ user.completed.length ]] completed
+[[ user.streak+1 ]] day streak
+Continue with
+PyQt6 Tutorial
+Return to
+Create Desktop GUI Applications with PyQt6
+PyQt6 Toolbars & Menus — QAction
+was written by
+Martin Fitzpatrick
+with contributions from
+Leo Well
+.
+Martin Fitzpatrick has been developing Python/Qt apps for 8 years. Building desktop applications to make data-analysis tools more user-friendly, Python was
+the obvious choice. Starting with Tk, later moving to wxWidgets and finally adopting PyQt. Martin founded PythonGUIs to provide easy to follow GUI programming tutorials to the Python community. He has written a number of popular
+Python books
+on the subject.
+PyQt6 Toolbars & Menus — QAction
+was published in
+tutorials
+on
+March 29, 2025
+(updated
+April 11, 2025
+)
+. Feedback & Corrections
+can be submitted
+here
+.
+pyqt6
+menus
+toolbars
+QMenu
+QAction
+QToolbar
+actions
+qt
+pyqt
+foundation
+python
+qt6
+pyqt6-foundation
+
+=== RELATED PAGE ===
+PyQt6 Dialogs and Alerts - QMessageBox, QDialog, Custom Dialogs
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+PyQt6 Dialogs and Alerts
+Notify your users and ask for their input
+by
+Martin Fitzpatrick
+Last updated
+Oct 18
+This article has been updated for PyQt6.
+PyQt6
+Getting started with PyQt6
+PyQt6 Tutorial
+—
+Getting started with PyQt6
+Creating your first app with PyQt6
+PyQt6 Signals, Slots & Events
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Toolbars & Menus — QAction
+PyQt6 Dialogs and Alerts
+Creating Additional Windows in PyQt6
+This tutorial is also available for
+PySide6
+,
+PySide2
+and
+PyQt5
+Heads up! You've already completed this tutorial.
+Dialogs are useful GUI components that allow you to
+communicate
+with the user (hence the name
+dialog
+). They are commonly used for file Open/Save, settings, preferences, or for functions that do not fit into the main UI of the application. They are small
+modal
+(or
+blocking
+) windows that sit in front of the main application until they are dismissed. Qt provides a number of 'special' built-in dialogs for the most common use-cases, allowing you to provide a platform-native user experience.
+Standard GUI features — A search dialog
+Standard GUI features — A file Open dialog
+Table of Contents
+Simple message dialogs with QMessageBox
+Built in QMessageBox dialogs
+In Qt dialog boxes are handled by the
+QDialog
+class. To create a new dialog box simply create a new object of
+QDialog
+type passing in another widget, e.g.
+QMainWindow
+, as its parent.
+Let's create our own
+QDialog
+. We'll start with a simple skeleton app with a button to press hooked up to a slot method.
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+button = QPushButton("Press me for a dialog!")
+button.clicked.connect(self.button_clicked)
+self.setCentralWidget(button)
+def button_clicked(self, s):
+print("click", s)
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+In the slot
+button_clicked
+(which receives the signal from the button press) we create the dialog instance, passing our
+QMainWindow
+instance as a parent. This will make the dialog a
+modal window
+of
+QMainWindow
+. This means the dialog will completely block interaction with the parent window.
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QDialog, QMainWindow, QPushButton
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+button = QPushButton("Press me for a dialog!")
+button.clicked.connect(self.button_clicked)
+self.setCentralWidget(button)
+def button_clicked(self, s):
+print("click", s)
+dlg = QDialog(self)
+dlg.setWindowTitle("HELLO!")
+dlg.exec()
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+Run it!
+Click the button and you'll see an empty dialog appear.
+Create GUI Applications with Python & Qt6
+by Martin Fitzpatrick
+— (PyQt6 Edition) The hands-on guide to making apps with Python — Over 15,000 copies sold!
+More info
+Get the book
+Once we have created the dialog, we start it using
+.exec()
+- just like we did for
+QApplication
+to create the main event loop of our application. That’s not a coincidence: when you exec the
+QDialog
+an entirely new event loop - specific for the dialog - is created.
+The
+QDialog
+completely blocks your application execution. Don't start a dialog and expect anything else to happen anywhere else in your app. We'll see later how you can use threads & processes to get you out of this pickle.
+Our empty dialog overlaying the window.
+Like our very first window, this isn't very interesting. Let's fix that by adding a dialog title and a set of OK and Cancel buttons to allow the user to
+accept
+or
+reject
+the modal.
+To customize the
+QDialog
+we can subclass it.
+python
+class CustomDialog(QDialog):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("HELLO!")
+QBtn = (
+QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+)
+self.buttonBox = QDialogButtonBox(QBtn)
+self.buttonBox.accepted.connect(self.accept)
+self.buttonBox.rejected.connect(self.reject)
+layout = QVBoxLayout()
+message = QLabel("Something happened, is that OK?")
+layout.addWidget(message)
+layout.addWidget(self.buttonBox)
+self.setLayout(layout)
+In the above code, we first create our subclass of
+QDialog
+which we've called
+CustomDialog
+. As for the
+QMainWindow
+we apply our customizations in the class
+__init__
+block so our customizations are applied as the object is created. First we set a title for the
+QDialog
+using
+.setWindowTitle()
+, exactly the same as we did for our main window.
+The next block of code is concerned with creating and displaying the dialog buttons. This is probably a bit more involved than you were expecting. However, this is due to Qt's flexibility in handling dialog button positioning on different platforms.
+You could of course choose to ignore this and use a standard
+QButton
+in a layout, but the approach outlined here ensures that your dialog respects the host desktop standards (OK on left vs. right for example). Messing around with these behaviors can be incredibly annoying to your users, so I wouldn't recommend it.
+The first step in creating a dialog button box is to define the buttons want to show, using  namespace attributes from
+QDialogButtonBox
+. The full list of buttons available is below.
+QDialogButtonBox.StandardButton.Ok
+QDialogButtonBox.StandardButton.Open
+QDialogButtonBox.StandardButton.Save
+QDialogButtonBox.StandardButton.Cancel
+QDialogButtonBox.StandardButton.Close
+QDialogButtonBox.StandardButton.Discard
+QDialogButtonBox.StandardButton.Apply
+QDialogButtonBox.StandardButton.Reset
+QDialogButtonBox.StandardButton.RestoreDefaults
+QDialogButtonBox.StandardButton.Help
+QDialogButtonBox.StandardButton.SaveAll
+QDialogButtonBox.StandardButton.Yes
+QDialogButtonBox.StandardButton.YesToAll
+QDialogButtonBox.StandardButton.No
+QDialogButtonBox.StandardButton.Abort
+QDialogButtonBox.StandardButton.Retry
+QDialogButtonBox.StandardButton.Ignore
+QDialogButtonBox.StandardButton.NoButton
+These should be sufficient to create any dialog box you can think of. You can construct a line of multiple buttons by OR-ing them together using a pipe (
+|
+). Qt will handle the order automatically, according to platform standards. For example, to show an OK and a Cancel button we used:
+python
+buttons = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+The variable
+buttons
+now contains an integer value representing those two buttons. Next, we must create the
+QDialogButtonBox
+instance to hold the buttons. The flag for the buttons to display is passed in as the first parameter.
+To make the buttons have any effect, you must connect the correct
+QDialogButtonBox
+signals to the slots on the dialog. In our case we've connected the
+.accepted
+and
+.rejected
+signals from  the
+QDialogButtonBox
+to the handlers for
+.accept()
+and
+.reject()
+on  our subclass of
+QDialog
+.
+Lastly, to make the
+QDialogButtonBox
+appear in our dialog box we must add it to the dialog layout. So, as for the main window we create a layout, and add our
+QDialogButtonBox
+to it (
+QDialogButtonBox
+is a widget), and then set that layout on our dialog.
+Finally, we launch the
+CustomDialog
+in our
+MainWindow.button_clicked
+slot.
+python
+class MainWindow(QMainWindow):
+# ... add the following method after the __init__
+def button_clicked(self, s):
+print("click", s)
+dlg = CustomDialog()
+if dlg.exec():
+print("Success!")
+else:
+print("Cancel!")
+Run it!
+Click to launch the dialog and you will see a dialog box with buttons.
+Our dialog with a label and buttons.
+When you click the button to launch the dialog, you may notice that it appears away from the parent window -- probably in the center of the screen. Normally you want dialogs to appear over their launching window to make them easier for users to find. To do this we need to give Qt a
+parent
+for the dialog. If we pass our main window as the parent, Qt will position the new dialog so that the center of the dialog aligns with the center of the window.
+We can modify our
+CustomDialog
+class to accept a
+parent
+parameter.
+python
+class CustomDialog(QDialog):
+def __init__(self, parent=None):
+super().__init__(parent)
+self.setWindowTitle("HELLO!")
+QBtn = (
+QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+)
+self.buttonBox = QDialogButtonBox(QBtn)
+self.buttonBox.accepted.connect(self.accept)
+self.buttonBox.rejected.connect(self.reject)
+layout = QVBoxLayout()
+message = QLabel("Something happened, is that OK?")
+layout.addWidget(message)
+layout.addWidget(self.buttonBox)
+self.setLayout(layout)
+We set a default value of
+parent=None
+so we can omit the parent if we wish.
+Then, when we create our instance of
+CustomDialog
+we can pass the main window in as a parameter. In our
+button_clicked
+method,
+self
+is our main window object.
+python
+def button_clicked(self, s):
+print("click", s)
+dlg = CustomDialog(self)
+if dlg.exec():
+print("Success!")
+else:
+print("Cancel!")
+Run it!
+Click to launch the dialog and you should see the dialog pop up right in the middle of the parent window.
+PyQt/PySide 1:1 Coaching with Martin Fitzpatrick
+— Save yourself time and frustration. Get one on one help with your Python GUI projects. Working together with you I'll identify issues and suggest fixes, from bugs and usability to architecture and maintainability.
+Book Now
+60 mins ($195)
+Our dialog, centered over the parent window.
+Congratulations! You've created your first dialog box. Of course, you can continue to add any other content to the dialog box that you like. Simply insert it into the layout as normal.
+Simple message dialogs with
+QMessageBox
+There are many dialogs which follow the simple pattern we just saw -- a message with buttons with which you can accept or cancel the dialog. While you can construct these dialogs yourself, Qt also provides a built-in message dialog class called
+QMessageBox
+. This can be used to create information, warning, about or question dialogs.
+The example below creates a simple
+QMessageBox
+and shows it.
+python
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QPushButton
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.setWindowTitle("My App")
+button = QPushButton("Press me for a dialog!")
+button.clicked.connect(self.button_clicked)
+self.setCentralWidget(button)
+def button_clicked(self, s):
+dlg = QMessageBox(self)
+dlg.setWindowTitle("I have a question!")
+dlg.setText("This is a simple dialog")
+button = dlg.exec()
+if button == QMessageBox.StandardButton.Ok:
+print("OK!")
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+Run it!
+You'll see a simple dialog with an
+OK
+button.
+A QMessageBox dialog.
+As with the dialog button box we looked at already, the buttons shown on a
+QMessageBox
+are also configured with the same set of constants which can be combined with
+|
+(the binary OR operator) to show multiple buttons. The full list of available button types is shown below.
+QMessageBox.StandardButton.Ok
+QMessageBox.StandardButton.Open
+QMessageBox.StandardButton.Save
+QMessageBox.StandardButton.Cancel
+QMessageBox.StandardButton.Close
+QMessageBox.StandardButton.Discard
+QMessageBox.StandardButton.Apply
+QMessageBox.StandardButton.Reset
+QMessageBox.StandardButton.RestoreDefaults
+QMessageBox.StandardButton.Help
+QMessageBox.StandardButton.SaveAll
+QMessageBox.StandardButton.Yes
+QMessageBox.StandardButton.YesToAll
+QMessageBox.StandardButton.No
+QMessageBox.StandardButton.NoToAll
+QMessageBox.StandardButton.Abort
+QMessageBox.StandardButton.Retry
+QMessageBox.StandardButton.Ignore
+QMessageBox.StandardButton.NoButton
+You can also tweak the icon shown on the dialog by setting the icon with one of the following.
+Icon state
+Description
+QMessageBox.Icon.NoIcon
+The message box does not have an icon.
+QMessageBox.Icon.Question
+The message is asking a question.
+QMessageBox.Icon.Information
+The message is informational only.
+QMessageBox.Icon.Warning
+The message is warning.
+QMessageBox.Icon.Critical
+The message indicates a critical problem.
+For example, the following creates a question dialog with
+Yes
+and
+No
+buttons.
+python
+def button_clicked(self, s):
+dlg = QMessageBox(self)
+dlg.setWindowTitle("I have a question!")
+dlg.setText("This is a question dialog")
+dlg.setStandardButtons(
+QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+)
+dlg.setIcon(QMessageBox.Icon.Question)
+button = dlg.exec()
+if button == QMessageBox.StandardButton.Yes:
+print("Yes!")
+else:
+print("No!")
+Run it!
+You'll see a question dialog with
+Yes
+and
+No
+buttons.
+Question dialog created using QMessageBox.
+Built in
+QMessageBox
+dialogs
+To make things even simpler the
+QMessageBox
+has a number of methods which can be used to construct these types of message dialog. These methods are shown below --
+python
+QMessageBox.about(parent, title, message)
+QMessageBox.critical(parent, title, message)
+QMessageBox.information(parent, title, message)
+QMessageBox.question(parent, title, message)
+QMessageBox.warning(parent, title, message)
+The
+parent
+parameter is the window which the dialog will be a child of. If you're launching your dialog from your main window, you can just pass in
+self
+.
+The following example creates a question dialog, as before, with
+Yes
+and
+No
+buttons.
+python
+def button_clicked(self, s):
+button = QMessageBox.question(
+self,
+"Question dialog",
+"The longer message"
+)
+if button == QMessageBox.StandardButton.Yes:
+print("Yes!")
+else:
+print("No!")
+Run it!
+You'll see the same result, this time using the built in
+.question()
+method.
+The built-in question dialog.
+Notice that rather than call
+exec()
+we now simply call the dialog method and the dialog is created. The return value of each of the methods is the button which was pressed. We can detect what has been pressed by comparing the return value to the button constants.
+The four
+information
+,
+question
+,
+warning
+and
+critical
+methods also accept optional
+buttons
+and
+defaultButton
+arguments which can be used to tweak the buttons shown on the dialog and select one by default. Generally though you don't want to change this from the default.
+python
+def button_clicked(self, s):
+button = QMessageBox.critical(
+self,
+"Oh dear!",
+"Something went very wrong.",
+buttons=QMessageBox.StandardButton.Discard
+| QMessageBox.StandardButton.NoToAll
+| QMessageBox.StandardButton.Ignore,
+defaultButton=QMessageBox.StandardButton.Discard,
+)
+if button == QMessageBox.StandardButton.Discard:
+print("Discard!")
+elif button == QMessageBox.StandardButton.NoToAll:
+print("No to all!")
+else:
+print("Ignore!")
+Run it!
+You'll see a critical dialog with customized buttons.
+Critical error! This is a terrible dialog.
+For most situations these simple dialogs are all you need.
+The complete guide to packaging Python GUI applications with PyInstaller.
+Take a look
+[[ discount.discount_pc ]]% OFF
+for
+the next [[ discount.duration ]]
+[[discount.description ]]
+with the code
+[[ discount.coupon_code ]]
+Purchasing Power Parity
+Developers in [[ country ]] get
+[[ discount.discount_pc ]]% OFF
+on all books & courses
+with code
+[[ discount.coupon_code ]]
+Well done, you've finished this tutorial!
+Mark As Complete
+[[ user.completed.length ]] completed
+[[ user.streak+1 ]] day streak
+Continue with
+PyQt6 Tutorial
+Return to
+Create Desktop GUI Applications with PyQt6
+PyQt6 Dialogs and Alerts
+was written by
+Martin Fitzpatrick
+.
+Martin Fitzpatrick has been developing Python/Qt apps for 8 years. Building desktop applications to make data-analysis tools more user-friendly, Python was
+the obvious choice. Starting with Tk, later moving to wxWidgets and finally adopting PyQt. Martin founded PythonGUIs to provide easy to follow GUI programming tutorials to the Python community. He has written a number of popular
+Python books
+on the subject.
+PyQt6 Dialogs and Alerts
+was published in
+tutorials
+on
+November 10, 2021
+(updated
+October 18, 2024
+)
+. Feedback & Corrections
+can be submitted
+here
+.
+dialogs
+qdialog
+qt
+pyqt
+pyqt6
+foundation
+python
+qt6
+pyqt6-foundation
+
+=== RELATED PAGE ===
+Multiple windows in PyQt6
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+Creating Additional Windows in PyQt6
+Opening new windows for your application
+by
+Martin Fitzpatrick
+Last updated
+Apr 01
+This article has been updated for PyQt6.
+PyQt6
+Getting started with PyQt6
+PyQt6 Tutorial
+—
+Getting started with PyQt6
+Creating your first app with PyQt6
+PyQt6 Signals, Slots & Events
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Toolbars & Menus — QAction
+PyQt6 Dialogs and Alerts
+Creating Additional Windows in PyQt6
+This tutorial is also available for
+PySide6
+,
+PySide2
+and
+PyQt5
+Heads up! You've already completed this tutorial.
+In an earlier tutorial we've already covered how to open
+dialog
+windows. These are special windows which (by default) grab the focus of the user, and run their own event loop, effectively blocking the execution of the rest of your app.
+However, quite often you will want to open a second window in an application, without interrupting the main window -- for example, to show the output of some long-running process, or display graphs or other visualizations. Alternatively, you may want to create an application that allows you to work on multiple documents at once, in their own windows.
+It's relatively straightforward to open new windows but there are a few things to keep in mind to make sure they work well.  In this tutorial we'll step through how to create a new window, and how to show and hide external windows on demand.
+Table of Contents
+Creating a new window
+Toggling a window
+Persistent windows
+Showing & hiding persistent windows
+Multiple windows
+Creating a new window
+In Qt any widget without a parent is a window. This means, to show a new window you just need to create a new instance of a widget. This can be any widget type (technically any subclass of
+QWidget
+) including another
+QMainWindow
+if you prefer.
+There is no restriction on the number of
+QMainWindow
+instances you can have. If you
+need
+toolbars or menus on your second window you will have to use a
+QMainWindow
+to achieve this. This can get confusing for users however, so make sure it's necessary.
+As with your main window,
+creating
+a window is not sufficient, you must also show it.
+python
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
+import sys
+class AnotherWindow(QWidget):
+"""
+This "window" is a QWidget. If it has no parent, it
+will appear as a free-floating window as we want.
+"""
+def __init__(self):
+super().__init__()
+layout = QVBoxLayout()
+self.label = QLabel("Another Window")
+layout.addWidget(self.label)
+self.setLayout(layout)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.button = QPushButton("Push for Window")
+self.button.clicked.connect(self.show_new_window)
+self.setCentralWidget(self.button)
+def show_new_window(self, checked):
+w = AnotherWindow()
+w.show()
+app = QApplication(sys.argv)
+w = MainWindow()
+w.show()
+app.exec()
+A main window with a button to launch a child window,
+PyQt/PySide 1:1 Coaching with Martin Fitzpatrick
+— Save yourself time and frustration. Get one on one help with your Python GUI projects. Working together with you I'll identify issues and suggest fixes, from bugs and usability to architecture and maintainability.
+Book Now
+60 mins ($195)
+If you run this, you'll see the main window. Clicking the button
+may
+show the second window, but if you see it it will only be visible for a fraction of a second. What's happening?
+python
+def show_new_window(self, checked):
+w = AnotherWindow()
+w.show()
+Inside this method, we are creating our window (widget) object, storing it in the variable
+w
+and showing it. However, once we leave the method we no longer have a reference to the
+w
+variable (it is a
+local
+variable) and so it will be cleaned up – and the window destroyed. To fix this we need to keep a reference to the window
+somewhere
+, for example on the
+self
+object.
+python
+def show_new_window(self, checked):
+self.w = AnotherWindow()
+self.w.show()
+Now, when you click the button to show the new window, it will persist.
+However, what happens if you click the button again? The window will be re-created! This new window will replace the old in the
+self.w
+variable, and – because there is now no reference to it – the previous window will be destroyed.
+You can see this in action if you change the window definition to show a random number in the label each time it is created.
+python
+from random import randint
+class AnotherWindow(QWidget):
+"""
+This "window" is a QWidget. If it has no parent, it
+will appear as a free-floating window as we want.
+"""
+def __init__(self):
+super().__init__()
+layout = QVBoxLayout()
+self.label = QLabel("Another Window % d" % randint(0,100))
+layout.addWidget(self.label)
+self.setLayout(layout)
+The
+__init__
+block is only run when
+creating
+the window. If you keep clicking the button the number will change, showing that the window is being re-created.
+One solution is to simply check whether the window has already being created before creating it. The example below shows this in action.
+python
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
+import sys
+from random import randint
+class AnotherWindow(QWidget):
+"""
+This "window" is a QWidget. If it has no parent, it
+will appear as a free-floating window as we want.
+"""
+def __init__(self):
+super().__init__()
+layout = QVBoxLayout()
+self.label = QLabel("Another Window % d" % randint(0,100))
+layout.addWidget(self.label)
+self.setLayout(layout)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.w = None  # No external window yet.
+self.button = QPushButton("Push for Window")
+self.button.clicked.connect(self.show_new_window)
+self.setCentralWidget(self.button)
+def show_new_window(self, checked):
+if self.w is None:
+self.w = AnotherWindow()
+self.w.show()
+app = QApplication(sys.argv)
+w = MainWindow()
+w.show()
+app.exec()
+Child window with a label randomly generated on creation.
+Using the button you can pop up the window, and use the window controls to close it. If you click the button again, the same window will re-appear.
+This approach is fine for windows that you create temporarily – for example if you want to pop up a window to show a particular plot, or log output. However, for many applications you have a number of standard windows that you want to be able to show/hide them on demand.
+In the next part we'll look at how to work with these types of windows.
+Toggling a window
+Often you'll want to toggle the display of a window using an action on a toolbar or in a menu. As we previously saw, if no reference to a window is kept, it will be discarded (and closed). We can use this behaviour to close a window, replacing the
+show_new_window
+method from the previous example with –
+python
+def show_new_window(self, checked):
+if self.w is None:
+self.w = AnotherWindow()
+self.w.show()
+else:
+self.w = None  # Discard reference, close window.
+By setting
+self.w
+to
+None
+the reference to the window will be lost, and the window will close.
+Packaging Python Applications with PyInstaller
+by Martin Fitzpatrick
+— This step-by-step guide walks you through packaging your own Python applications from simple examples to complete installers and signed executables.
+More info
+Get the book
+If we set it to any other value that
+None
+the window will still close, but the
+if self.w is None
+test will not pass the next time we click the button and so we will not be able to recreate a window.
+This will only work if you have not kept a reference to this window somewhere else. To make sure the window closes regardless, you may want to explicitly call
+.close()
+on it. The full example is shown below.
+python
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
+import sys
+from random import randint
+class AnotherWindow(QWidget):
+"""
+This "window" is a QWidget. If it has no parent, it
+will appear as a free-floating window as we want.
+"""
+def __init__(self):
+super().__init__()
+layout = QVBoxLayout()
+self.label = QLabel("Another Window % d" % randint(0,100))
+layout.addWidget(self.label)
+self.setLayout(layout)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.w = None  # No external window yet.
+self.button = QPushButton("Push for Window")
+self.button.clicked.connect(self.show_new_window)
+self.setCentralWidget(self.button)
+def show_new_window(self, checked):
+if self.w is None:
+self.w = AnotherWindow()
+self.w.show()
+else:
+self.w.close()  # Close window.
+self.w = None  # Discard reference.
+app = QApplication(sys.argv)
+w = MainWindow()
+w.show()
+app.exec()
+Persistent windows
+So far we've looked at how to create new windows on demand. However, sometimes you have a number of standard application windows. In this case rather than create the windows when you want to show them, it can often make more sense to create them at start-up, then use
+.show()
+to display them when needed.
+In the following example we create our external window in the
+__init__
+block for the main window, and then our
+show_new_window
+method simply calls
+self.w.show()
+to display it.
+python
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
+import sys
+from random import randint
+class AnotherWindow(QWidget):
+"""
+This "window" is a QWidget. If it has no parent, it
+will appear as a free-floating window as we want.
+"""
+def __init__(self):
+super().__init__()
+layout = QVBoxLayout()
+self.label = QLabel("Another Window % d" % randint(0,100))
+layout.addWidget(self.label)
+self.setLayout(layout)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.w = AnotherWindow()
+self.button = QPushButton("Push for Window")
+self.button.clicked.connect(self.show_new_window)
+self.setCentralWidget(self.button)
+def show_new_window(self, checked):
+self.w.show()
+app = QApplication(sys.argv)
+w = MainWindow()
+w.show()
+app.exec()
+If you run this, clicking on the button will show the window as before. However, note that the window is only created once and calling
+.show()
+on an already visible window has no effect.
+Showing & hiding persistent windows
+Once you have created a persistent window you can show and hide it without recreating it. Once hidden the window still exists, but will not be visible and accept mouse/other input. However you can continue to call methods on the window and update it's state -- including changing it's appearance. Once re-shown any changes will be visible.
+Below we update our main window to create a
+toggle_window
+method which checks, using
+.isVisible()
+to see if the window is currently visible. If it is not, it is shown using
+.show()
+, if it is already visible we hide it with
+.hide()
+.
+python
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.w = AnotherWindow()
+self.button = QPushButton("Push for Window")
+self.button.clicked.connect(self.toggle_window)
+self.setCentralWidget(self.button)
+def toggle_window(self, checked):
+if self.w.isVisible():
+self.w.hide()
+else:
+self.w.show()
+The complete working example of this persistent window and toggling the show/hide state is shown below.
+python
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
+import sys
+from random import randint
+class AnotherWindow(QWidget):
+"""
+This "window" is a QWidget. If it has no parent, it
+will appear as a free-floating window as we want.
+"""
+def __init__(self):
+super().__init__()
+layout = QVBoxLayout()
+self.label = QLabel("Another Window % d" % randint(0,100))
+layout.addWidget(self.label)
+self.setLayout(layout)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.w = AnotherWindow()
+self.button = QPushButton("Push for Window")
+self.button.clicked.connect(self.toggle_window)
+self.setCentralWidget(self.button)
+def toggle_window(self, checked):
+if self.w.isVisible():
+self.w.hide()
+else:
+self.w.show()
+app = QApplication(sys.argv)
+w = MainWindow()
+w.show()
+app.exec()
+Note that, again, the window is only created once -- the window's
+__init__
+block is not re-run (so the number in the label does not change) each time the window is re-shown.
+Multiple windows
+You can use the same principle for creating multiple windows -- as long as you keep a reference to the window, things will work as expected. The simplest approach is to create a separate method to toggle the display of each of the windows.
+python
+import sys
+from random import randint
+from PyQt6.QtWidgets import (
+QApplication,
+QLabel,
+QMainWindow,
+QPushButton,
+QVBoxLayout,
+QWidget,
+)
+class AnotherWindow(QWidget):
+"""
+This "window" is a QWidget. If it has no parent,
+it will appear as a free-floating window.
+"""
+def __init__(self):
+super().__init__()
+layout = QVBoxLayout()
+self.label = QLabel("Another Window % d" % randint(0, 100))
+layout.addWidget(self.label)
+self.setLayout(layout)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.window1 = AnotherWindow()
+self.window2 = AnotherWindow()
+l = QVBoxLayout()
+button1 = QPushButton("Push for Window 1")
+button1.clicked.connect(self.toggle_window1)
+l.addWidget(button1)
+button2 = QPushButton("Push for Window 2")
+button2.clicked.connect(self.toggle_window2)
+l.addWidget(button2)
+w = QWidget()
+w.setLayout(l)
+self.setCentralWidget(w)
+def toggle_window1(self, checked):
+if self.window1.isVisible():
+self.window1.hide()
+else:
+self.window1.show()
+def toggle_window2(self, checked):
+if self.window2.isVisible():
+self.window2.hide()
+else:
+self.window2.show()
+app = QApplication(sys.argv)
+w = MainWindow()
+w.show()
+app.exec()
+A mainwindow with two child windows.
+However, you can also create a generic method which handles toggling for all windows -- see
+transmitting extra data with Qt signals
+for a detailed explanation of how this works. The example below shows that in action, using a
+lambda
+function to intercept the signal from each button and pass through the appropriate window. We can also discard the
+checked
+value since we aren't using it.
+python
+import sys
+from random import randint
+from PyQt6.QtWidgets import (
+QApplication,
+QLabel,
+QMainWindow,
+QPushButton,
+QVBoxLayout,
+QWidget,
+)
+class AnotherWindow(QWidget):
+"""
+This "window" is a QWidget. If it has no parent,
+it will appear as a free-floating window.
+"""
+def __init__(self):
+super().__init__()
+layout = QVBoxLayout()
+self.label = QLabel("Another Window % d" % randint(0, 100))
+layout.addWidget(self.label)
+self.setLayout(layout)
+class MainWindow(QMainWindow):
+def __init__(self):
+super().__init__()
+self.window1 = AnotherWindow()
+self.window2 = AnotherWindow()
+l = QVBoxLayout()
+button1 = QPushButton("Push for Window 1")
+button1.clicked.connect(
+lambda checked: self.toggle_window(self.window1)
+)
+l.addWidget(button1)
+button2 = QPushButton("Push for Window 2")
+button2.clicked.connect(
+lambda checked: self.toggle_window(self.window2)
+)
+l.addWidget(button2)
+w = QWidget()
+w.setLayout(l)
+self.setCentralWidget(w)
+def toggle_window(self, window):
+if window.isVisible():
+window.hide()
+else:
+window.show()
+app = QApplication(sys.argv)
+w = MainWindow()
+w.show()
+app.exec()
+Over
+15,000 developers
+have bought Create GUI Applications with Python & Qt!
+Take a look
+Downloadable ebook (PDF, ePub) & Complete Source code
+Also available from
+Leanpub
+and
+Amazon Paperback
+[[ discount.discount_pc ]]% OFF
+for
+the next [[ discount.duration ]]
+[[discount.description ]]
+with the code
+[[ discount.coupon_code ]]
+Purchasing Power Parity
+Developers in [[ country ]] get
+[[ discount.discount_pc ]]% OFF
+on all books & courses
+with code
+[[ discount.coupon_code ]]
+Well done, you've finished this tutorial!
+Mark As Complete
+[[ user.completed.length ]] completed
+[[ user.streak+1 ]] day streak
+Creating Additional Windows in PyQt6
+was written by
+Martin Fitzpatrick
+.
+Martin Fitzpatrick has been developing Python/Qt apps for 8 years. Building desktop applications to make data-analysis tools more user-friendly, Python was
+the obvious choice. Starting with Tk, later moving to wxWidgets and finally adopting PyQt. Martin founded PythonGUIs to provide easy to follow GUI programming tutorials to the Python community. He has written a number of popular
+Python books
+on the subject.
+Creating Additional Windows in PyQt6
+was published in
+tutorials
+on
+October 06, 2021
+(updated
+April 01, 2025
+)
+. Feedback & Corrections
+can be submitted
+here
+.
+window
+windows
+qt
+pyqt
+pyqt6
+foundation
+python
+qt6
+pyqt6-foundation
+
+=== RELATED PAGE ===
+Create your first PyQt6 app in Qt Creator
+Python GUIs
+Home
+Latest Articles
+FAQ
+Forum
+PyQt6
+PyQt6 Tutorial
+Basics
+Create a PyQt6 app
+PyQt6 Signals
+PyQt6 Widgets
+PyQt6 Layouts
+PyQt6 Menus
+PyQt6 Dialogs
+Multi-window PyQt6
+Qt Designer
+First Qt Designer app
+Qt Designer Layouts
+Dialogs in Qt Designer
+Concurrency
+Long-running tasks
+External processes
+Model Views
+Model Views
+Pandas & Numpy Views
+Plotting
+Plotting With PyQtGraph and PyQt6
+Plotting With Matplotlib and PyQt6
+QGraphics
+Vector Graphics
+Custom Widgets
+Bitmap Graphics
+Custom Widgets
+Animating Widgets
+Custom Designer Widgets
+Further
+Modifying Signals
+Taskbar apps
+Packaging
+Packaging for Windows
+Packaging for macOS
+Resources
+Books
+Services
+Consulting
+1:1 Coaching
+Contact
+About
+Libraries
+PySide6
+PyQt5
+Streamlit
+Tkinter
+PySide2
+Kivy
+Search Python GUIs
+Search Python GUIs
+First Steps With Qt Designer and PyQt6
+Use Qt Designer's drag and drop interface to design your PyQt6 GUI
+by
+Martin Fitzpatrick
+Last updated
+Mar 15
+PyQt6
+Creating applications with Qt Designer and PyQt6
+PyQt6 Tutorial
+—
+Creating applications with Qt Designer and PyQt6
+First Steps With Qt Designer and PyQt6
+Laying Out Your PyQt6 GUIs With Qt Designer
+Creating Dialogs With Qt Designer and PyQt6
+Embedding Custom Widgets from Qt Designer in PyQt6
+This tutorial is also available for
+PySide6
+,
+PySide2
+and
+PyQt5
+Heads up! You've already completed this tutorial.
+So far we have been creating apps using Python code. This works great in many cases, but as your applications get larger or interfaces more complicated, it can get a bit cumbersome to define all widgets programmatically. The good news is that Qt comes with a graphical editor —
+Qt Designer
+— which contains a drag-and-drop UI editor. Using
+Qt Designer
+you can define your UIs visually and then simply hook up the application logic later.
+In this tutorial we'll cover the basics of creating UIs with
+Qt Designer
+.
+The principles, layouts and widgets are identical, so you can apply
+everything you've already learnt. You'll also need your knowledge of
+the Python API to hook up your application logic later.
+This tutorial requires Qt Creator to be installed — you can download it free from the Qt website. Go to
+https://www.qt.io/download
+and download the Qt package. You can opt to install only Creator during the installation.
+Open up Qt Creator and you will be presented with the main window. The designer is available via the tab on the left hand side. However, to activate this you first need to start creating a
+.ui
+file.
+The Qt Creator interface, with the Design section shown on the left.
+To create a
+.ui
+file go to File -> New File or Project... In the window that appears select
+Qt
+under
+Files and Classes
+on the left, then select
+Qt Designer Form
+on the right. You'll notice the icon has "ui" on it, showing the type of file you're creating.
+Create a new Qt .ui file.
+Create GUI Applications with Python & Qt6
+by Martin Fitzpatrick
+— (PyQt6 Edition) The hands-on guide to making apps with Python — Over 15,000 copies sold!
+More info
+Get the book
+In the next step you'll be asked what type of widget you want to create. If you are starting an application then
+Main Window
+is the right choice. However, you can also create
+.ui
+files for dialog boxes, forms and custom compound widgets.
+Select the type of widget to create, for most applications this will be Main Window.
+Next choose a filename and save folder for your file. Save your
+.ui
+file with the same name as the class you'll be creating, just to make make subsequent commands simpler.
+Choose save name and folder your your file.
+Finally, you can choose to add the file to your version control system if you're using one. Feel free to skip this step — it doesn't affect your UI.
+Optionally add the file to your version control, e.g. Git.
+Laying out your Main Window
+You'll be presented with your newly created main window in the UI designer. There isn't much to see to begin with, just a grey working area representing the window, together with the beginnings of a window menu bar.
+The initial view of the created main window.
+You can resize the window by clicking the window and dragging the blue handles on each corner.
+The initial view of the created main window.
+The first step in building an application is to add some widgets to your window. In our first applications we learnt that to set the central widget for a
+QMainWindow
+we need to use
+.setCentralWidget()
+. We also saw that to add multiple widgets with a layout, we need an intermediary
+QWidget
+to apply the layout to, rather than adding the layout to the window directly.
+Qt Creator takes care of this for you automatically, although it's not particularly obvious about it.
+To add multiple widgets to the main window with a layout, first drag your widgets onto the
+QMainWindow
+. Here we're dragging 3 labels. It doesn't matter where you drop them.
+Main window with 1 labels and 1 button added.
+We've created 2 widgets by dragging them onto the window, made them children of that window. We can now apply a layout.
+Find the
+QMainWindow
+in the right hand panel (it should be right at the top). Underneath you see
+centralwidget
+representing the window's central widget. The icon for the central widget show the current layout applied. Initially it has a red circle-cross through it, showing that there is no layout active.
+Right click on the
+QMainWindow
+object, and find 'Layout' in the resulting dropdown.
+Right click on the main window, and choose layout.
+Next you'll see a list of layouts which you can apply to the window. Select
+Lay Out Horizontally
+and the layout will be applied to the widget.
+Select layout to apply to the main window.
+PyQt/PySide 1:1 Coaching with Martin Fitzpatrick
+— Save yourself time and frustration. Get one on one help with your Python GUI projects. Working together with you I'll identify issues and suggest fixes, from bugs and usability to architecture and maintainability.
+Book Now
+60 mins ($195)
+The selected layout is applied to the the
+centralwidget
+of the
+QMainWindow
+and the widgets are added the layout, being laid out depending on the selected layout. Note that in Qt Creator you can actually drag and re-order the widgets within the layout, or select a different layout, as you like. This makes it especially nice to prototyping and trying out things.
+Vertical layout applied to widgets on the main window.
+Using your generated .ui file
+We've created a very simple UI. The next step is to get this into Python and use it to construct a working application.
+First save your
+.ui
+file — by default it will save at the location you chosen while creating it, although you can choose another location if you like.
+The
+.ui
+file is in XML format. To use our UI from Python we have two alternative methods available —
+load into into a class using the
+.loadUI()
+method
+convert it to Python using the
+pyuic6
+tool.
+These two approaches are covered below. Personally I prefer to convert the UI to a Python file to keep things similar from a programming & packaging point of view.
+Loading the .ui file directly
+To load
+.ui
+files we can use the
+uic
+module included with PyQt6, specifically the
+uic.loadUI()
+method. This takes the filename of a UI file and loads it creating a fully-functional PyQt6 object.
+python
+import sys
+from PyQt6 import QtWidgets, uic
+app = QtWidgets.QApplication(sys.argv)
+window = uic.loadUi("mainwindow.ui")
+window.show()
+app.exec()
+A (very) simple UI designed in Qt Creator
+As the
+uid.loadUI()
+method turns an instance object you cannot attach custom
+__init__()
+code. You can however handle this through a custom setup function
+To load a UI from the
+__init__
+block of an existing widget (e.g. a
+QMainWindow
+) you can use
+uic.loadUI(filename, self)
+for PyQt6.
+python
+import sys
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import uic
+class MainWindow(QtWidgets.QMainWindow):
+def __init__(self, *args, **kwargs):
+super().__init__(*args, **kwargs)
+uic.loadUi("mainwindow.ui", self)
+app = QtWidgets.QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+Converting your .ui file to Python
+To generate a Python output file run
+pyuic6
+from the command line, passing the
+.ui
+file and the target file for output, with a
+-o
+parameter. The following will generate a Python file named
+MainWindow.py
+which contains our created UI.
+bash
+pyuic6 mainwindow.ui -o MainWindow.py
+If you're using PyQt5 the tool is named `pyuic4`, but is otherwise completely identical.
+You can open the resulting
+MainWindow.py
+file in an editor to take a look, although you should
+not
+edit this file. The power of using Qt Creator is being able to edit, tweak and update your application while you develop. Any changes made to this file will be lost when you update it. However, you
+can
+override and tweak anything you like when you import and use the file in your applications.
+Importing the resulting Python file works as for any other. You can import your class as follows. The
+pyuic6
+tool appends
+Ui_
+to the name of the object defined in
+Qt Creator
+, and it is this object you want to import.
+python
+from MainWindow import Ui_MainWindow
+To create the main window in your application, create a class as normal but subclassing from both
+QMainWindow
+and your imported
+Ui_MainWindow
+class. Finally, call
+self.setupUi(self)
+from within the
+__init__
+to trigger the setup of the interface.
+python
+import sys
+from PyQt6 import QtWidgets, uic
+from MainWindow import Ui_MainWindow
+class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+def __init__(self, *args, obj=None, **kwargs):
+super().__init__(*args, **kwargs)
+self.setupUi(self)
+app = QtWidgets.QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
+This produces exactly the same result as before.
+A (very) simple UI designed in Qt Creator
+That's it. Your window is now fully set up. Since the use of a .ui file abstracts out the UI-specific code, you can use this same pattern to load any interface you design.
+Adding application logic
+You can interact with widgets created through Qt Creator just as you would those created with code. To make things simpler
+uic
+adds all child widgets to the window object by their id name as specified in Qt Creator. We'll cover how to work with these in the next part.
+The complete guide to packaging Python GUI applications with PyInstaller.
+Take a look
+[[ discount.discount_pc ]]% OFF
+for
+the next [[ discount.duration ]]
+[[discount.description ]]
+with the code
+[[ discount.coupon_code ]]
+Purchasing Power Parity
+Developers in [[ country ]] get
+[[ discount.discount_pc ]]% OFF
+on all books & courses
+with code
+[[ discount.coupon_code ]]
+Well done, you've finished this tutorial!
+Mark As Complete
+[[ user.completed.length ]] completed
+[[ user.streak+1 ]] day streak
+Continue with
+PyQt6 Tutorial
+Return to
+Create Desktop GUI Applications with PyQt6
+First Steps With Qt Designer and PyQt6
+was written by
+Martin Fitzpatrick
+.
+Martin Fitzpatrick has been developing Python/Qt apps for 8 years. Building desktop applications to make data-analysis tools more user-friendly, Python was
+the obvious choice. Starting with Tk, later moving to wxWidgets and finally adopting PyQt. Martin founded PythonGUIs to provide easy to follow GUI programming tutorials to the Python community. He has written a number of popular
+Python books
+on the subject.
+First Steps With Qt Designer and PyQt6
+was published in
+tutorials
+on
+April 15, 2021
+(updated
+March 15, 2025
+)
+. Feedback & Corrections
+can be submitted
+here
+.
+qt
+pyqt
+pyqt6
+qt-designer
+qt-creator
+python
+qt6
+pyqt6-qt-designer

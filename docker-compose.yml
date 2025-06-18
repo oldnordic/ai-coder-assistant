@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  build-env:
+    build: .
+    volumes:
+      - ./dist:/app/dist
+      - ./logs:/app/logs
+    command: python build_all.py
+    environment:
+      - PYTHONUNBUFFERED=1
+    profiles:
+      - build
+
+  test-binary:
+    image: alpine:latest
+    volumes:
+      - ./dist:/app
+    working_dir: /app
+    command: ./ai-coder-launcher core
+    profiles:
+      - test
+
+  build-windows:
+    build: .
+    volumes:
+      - ./dist:/app/dist
+    command: python build_all.py
+    environment:
+      - PLATFORM=windows
+    profiles:
+      - build-windows
+
+  build-linux:
+    build: .
+    volumes:
+      - ./dist:/app/dist
+    command: python build_all.py
+    environment:
+      - PLATFORM=linux
+    profiles:
+      - build-linux
+
+  build-macos:
+    build: .
+    volumes:
+      - ./dist:/app/dist
+    command: python build_all.py
+    environment:
+      - PLATFORM=macos
+    profiles:
+      - build-macos 

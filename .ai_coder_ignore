@@ -8,6 +8,7 @@
 venv/
 .venv_coder_ai/
 env/
+.pyenv/
 
 # Python Caches & Compiled Files
 __pycache__/

@@ -1,0 +1,1160 @@
+=== MAIN PAGE ===
+FirstSpirit Online Documentation - Plug-In Development
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+ContentCreator Extensions
+SiteArchitect Extensions
+Universal Extensions
+Server Plug-Ins
+Implementation and Deployment
+Examples
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Plug-In Development
+Plug-In Development
+FirstSpirit provides multiple extensibility opportunities that allow developers to implement custom server-side as well as client-side functionality.
+This chapter aims to provide a quick-start guide towards understanding FirstSpirit Module (FSM) development and roll-out, use of the FirstSpirit Access and Access APIs and the implementation requirements of SiteArchitect and ContentCreator user interface extensions.
+Content
+The plug-in developer guide is structured into several chapters that describe the SiteArchitect and ContentCreator extension opportunities as well as plug-in types that may be implemented for both clients. A third chapter provides download links for example source code packages that illustrate various server and client extensions.
+Client User Interface Plug-Ins
+ContentCreator Extensions
+This section introduces plug-in types that extend the ContentCreator functionality. It also contains a development and deployment guide for FirstSpirit Modules, specific to API functionality and roll-out for ContentCreator extensions.
+SiteArchitect Extensions
+This section illustrates extensions of SiteArchitect functionality.
+Universal Extensions
+The plug-in types introduced in this section are available in both the SiteArchitect and the ContentCreator.
+Server Plug-Ins
+Server Plug-Ins
+This chapter contains documentation on select server-side functionality which may be extended with plug-ins. The functionality described here is usually not visible to editorial users of FirstSpirit.
+Developing FirstSpirit Modules
+Implementation and Deployment
+This section provides an overview of several FirstSpirit-specific activities that may be implemented using the Access APIs.
+Example Modules
+This section provides download links for FirstSpirit Modules containing example code that illustrate server- and client-side plug-ins.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+DXP-Documentation
+English
+Deutsch
+Documentation
+Digital Experience Platform
+Products
+Crownpeak CMS (FirstSpirit)
+The Crownpeak CMS (FirstSpirit) helps you engage customers and accelerates time to revenue with personalized, content rich digital experiences anytime, anywhere.
+Getting Started with FirstSpirit
+FirstSpirit ContentCreator
+FirstSpirit Developer Documentation
+FirstSpirit Documentation
+Fredhopper (FHR)
+Fredhopper is a powerful on-site search and advanced visual merchandising solution with AI support, campaign builder, and internationalization capabilities.
+Getting Started with Merchandising
+Insights User Guide
+FHR Developer Guide
+FHR Documentation
+Digital Quality Manager (DQM)
+The Digital Quality Manager allows website monitoring for reaching high digital quality standards and improving web accessibility, SEO, and page speed.
+DQM - Getting Started
+Checkpoints and Benchmarking
+Page Checker & Contrast Checker
+DQM Documentation
+Experience Orchestrator (XO)
+Experience Orchestrator (XO) is an omnichannel AI-powered merchandising and recommendation platform to easily personalize the entire customer journey and retention.
+XO Documentation
+Digital Governance (DG)
+The Digital Governance Tools offer means for complying with global privacy laws, managing cookie consent, and controlling third-party web technologies and data sharing.
+DG Documentation
+Digital Experience Management (DXM)
+Crownpeak's enterprise-grade SaaS digital experience platform offers content management capabilities, headless development, digital asset management, search, and more.
+DXM Documentation
+Crownpeak CMS (FirstSpirit)
+General Information
+Getting Started with FirstSpirit
+FirstSpirit ContentCreator
+Reference Architectures for FirstSpirit
+User and Access Management
+DQM Connect
+Technical Data Sheet
+Release Notes
+FirstSpirit Release Notes
+FirstSpirit Release Notes+ (from October 2015)
+Connect for Commerce
+Documentation
+Getting Started
+Main Documentation
+For ServerAdministrators
+Troubleshooting
+APIs
+Frontend API
+Bridge API
+How-to Guides
+Bridge Implementation
+Creation of a Page in FirstSpirit
+Display of content in the storefront
+Usage of the external Bridge API endpoints
+Release Notes
+Developing for FirstSpirit
+FirstSpirit Developer Documentation
+Template Development (Quick-Guide)
+Module Development in the Cloud
+FirstSpirit SiteArchitect
+External Synchronization
+Isolated Mode Guide
+FirstSpirit Access API
+Basic Workflows
+Documentation
+Release notes
+rsync deployment
+AWS Services URL Redirect
+Template Development for ContentCreator
+Multisite Management
+Content Integration
+VideoManagementPro
+Release notes
+ServerAdministrator-Documentation
+Documentation
+TranslationStudio
+Across Connector
+Transable XML Document
+Update Manual
+SDL Connector
+Tutorial Hooks
+Tutorial Component
+Default Connector
+Mass Data Test
+Technical Data Sheet
+Whitepaper
+Memoq Connector
+Administrator Manual
+Transable XML Document Simple
+Installation Manual
+Release notes
+GDPR Notice
+Editor Manual
+Tutorial Connector
+E-Commerce Integrations
+Connect for SAP Commerce Cloud
+Documentation
+Documentation for server administrators
+Release notes
+Connect for SAP Commerce Cloud (Headless)
+Release notes
+Documentation for server administrators
+Documentation
+Connect for Spryker Commerce OS
+Documentation
+Documentation for server administrators
+Release notes
+Connect for Salesforce
+Release notes
+Documentation
+Archive
+On-Premises Documentation
+Search
+SmartSearch.js
+Release notes
+API Documentation
+SmartSearch Connect
+The module is currently not yet generally available. For more information, please contact your Crownpeak representative.
+Server Administrator
+Documentation
+Release notes
+SmartSearch
+Documentation is available in all languages for version 2.4.5 and subsequent versions.
+Migration Guide
+Administrator's Manual
+REST API Documentation
+Release notes
+Documentation
+Headless
+Template: PWA Development
+CaaS Platform
+Product documentation
+Technical Datasheet
+Release notes
+Documentation
+CaaS Connect
+Release notes
+Documentation (Module)
+Documentation (Administrator)
+Navigation Service
+Documentation (Module)
+Release notes
+Documentation (Service)
+Omnichannel Manager 2.x
+Documentation
+Release notes
+API
+Omnichannel Manager 3.0
+JavaScript Content API Library
+Fredhopper (FHR)
+Digital Quality Manager (DQM)
+Experience Orchestrator (XO)
+Digital Governance (DG)
+Digital Experience Management (DXM)
+Central Services
+Company
+Crownpeak Website
+Upcoming Events
+Blog
+Get Started!
+Imprint
+Products
+Content Management System
+Digital Accessibility and Quality
+Privacy and Consent Management
+Product Discovery
+Support
+Crownpeak Community
+Resource Library
+Technical Support
+Training
+Partner Portal
+© 2024 Crownpeak Technology, Inc.
+All rights reserved.
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - Welcome to the FirstSpirit Online Documentation
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Overview
+Welcome to the FirstSpirit Developer Documentation
+For which users is this documentation intended?
+This documentation deals with template development and plug-in development in FirstSpirit. By linking different sub-areas of the template development and by the sub-division into two difficulty levels for beginners (see
+Basic principles of template development
+) and for advanced users (see
+Template development
+) this documentation provides clearly structured information and should therefore make familiarisation with the template syntax of FirstSpirit easier.
+Sub-areas of the online documentation
+This online documentation is divided into the following main sections:
+Template development
+All important aspects for the development of a FirstSpirit project in the Template Store can be read up in this section. The section is divided into the relevant sub-aspects of template development. These include:
+Forms
+for the definition of input components.
+Rules
+for influencing specific elements or characteristic of a form
+Snippets
+for influencing the display of objects (“teasers”)
+Template syntax
+divided into instructions, expressions, data types and functions.
+Variables
+for evaluation of contents of different areas.
+Debugging
+providing information about finding and fixing bugs in FirstSpirit projects.
+ContentCreator
+provides information about functional scope, requirements and restrictions of ContentCreator. For information about how to implement EasyEdit / InlineEdit / LiveEdit please refer to Chapter
+Content Highlighting and EasyEdit
+, for information about developing using JavaScript API please refer to Chapter
+JavaScript API
+.
+Scripting
+for automation of control sequences.
+FirstSpirit API
+as a public interface of FirstSpirit.
+Security
+with notes about security aspects for project and template development.
+Templates (basic principles)
+The topics used in most FirstSpirit projects are dealt with in this section.
+Among other things there is a
+step by step introduction
+to the development of a FirstSpirit project. From the initial creation of a new project to the creation of page and section templates through to use of databases; simple examples are used to explain working with FirstSpirit.
+ContentCreator
+Requirements
+,
+functions
+and
+restrictions
+for using the editing environment ContentCreator can be read up in this section.
+In addition, topics that affect template development for ContentCreator will be covered:
+Template development
+Primarily to simplify the editorial work in the preview (EasyEdit / InlineEdit / LiveEdit).
+Customization
+The interface of ContentCreator can be customized to meet the requirements of the respective project.
+JavaScript-API
+(
+WE_API
+)
+Enables interaction with the user interface and other ContentCreator functions via JavaScript, e.g. from documents in the preview.
+Plugins
+Custom extensions (modules) that extend the functionality of ContentCreator.
+Advanced topics
+Over-all aspects of the functionality of FirstSpirit are explained in this section.
+Generation
+Server-side release
+Exif data
+Remote access
+Document groups
+Tracking changes
+Input assistance
+(code completion)
+are illustrated here. Further subjects will be added successively.
+Tutorials
+This section provides
+exercises
+for developing templates.
+And now, enjoy working with FirstSpirit!
+FirstSpirit is not a universal “out-of-the-box” product, but is software which is constantly being developed. New functions are continuously being integrated and customer ideas are realised. The documentation can only satisfy this constant updating process to a limited extent. It is therefore possible that a figure in this document differs from the current view in FirstSpirit due to slight time delays. Do not let it confuse you and follow the instructions as usual.
+Disclaimer
+This documentation is provided for information purposes only. Crownpeak may change the contents hereof without notice. This documentation is not warranted to be error-free, nor subject to any other warranties or conditions, whether expressed orally or implied in law, including implied warranties and conditions of merchantability or fitness for a particular purpose. Crownpeak specifically disclaims any liability with respect to this documentation and no contractual obligations are formed either directly or indirectly by this documentation. The technologies, functionality, services, and processes described herein are subject to change without notice.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - Template development (basics)
+Overview
+Templates (basics)
+Basics
+Composition of templates
+Template development
+Plug-In Development
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Templates (basics)
+The basics of template development
+The strict
+separation
+of layout, content and structure is one part of the basics of working with FirstSpirit. Here, FirstSpirit consistently supports
+multiple languages
+.
+Every FirstSpirit project is based on what are called “templates”. These are used as a type of framework or structure to link together all of a project's content. Templates are developed individually for each project. A distinction is made between different types of templates. FirstSpirit collects all templates of a project in the templates store. A brief introduction covering this topic can be found in the
+Composition of templates
+section.
+Chapter
+First project
+(menu item
+Tutorials
+) serves as access point into FirstSpirit template development. It shows quickly and straightforwardly with the aid of an example project how projects can be realized efficiently with FirstSpirit.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - Template development (reference)
+Overview
+Templates (basics)
+Template development
+Forms
+Rules
+Snippets
+Template syntax
+Variables
+ContentCreator
+Debugging
+Scripting
+Content Highlighting and EasyEdit
+FirstSpirit API
+JavaScript APIs
+Security
+Template Wizard
+Distributed development
+Plug-In Development
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Template development
+Template development in FirstSpirit projects
+All aspects of development of FirstSpirit projects are explained in the area of template development.
+The
+Forms
+chapter contains descriptions of all input components, data elements and design elements which can be made available to editors by means of templates for the entering of contents. For detailed information about the template types see chapter
+Composition of templates
+.
+The
+Snippets
+chapter describes how to implement for some FirstSpirit object types a teaser, consisting of an image and text. This teaser representation is for example used for search results in SiteArchitect and ContentCreator.
+The
+Rules
+chapter describes how to create “Dynamic Forms”. By means of Dynamic Forms content can be checked for plausibility directly when it is entered by the editor for example.
+In the
+Template syntax
+chapter the terms: instructions, expressions, data types, functions and system objects are differentiated from each other and explained in detail.
+The
+Variables
+chapter deals with the definition of variables for saving contents and subsequent access within these variable contents.
+The
+Debugging
+chapter contains information about how to develop and debug in FirstSpirit. Here, the FirstSpirit Template Debugger is described as well.
+The
+Scripting
+chapter describes the creation and use of scripts with the help of BeanShell.
+Use
+Content Highlighting and EasyEdit
+in templates for making work with ContentCreator or SiteArchitect more easier for editors.
+The
+FirstSpirit API
+chapter refers to the official documentation of FirstSpirit API as the public interface with FirstSpirit.
+Information about using the
+ContentCreator
+(requirements, functions, restrictions and template development) can be looked up in a special chapter:
+ContentCreator
+.
+Information about using the
+FragmentCreator
+(equirements, functions, restrictions and template development) please see separate documentation (
+Content Experience Tools (CXT) (→Documentation “Content Experience Tools”)
+).
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - ContentCreator Extensions
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+ContentCreator Extensions
+Interactive Features
+Management Extensions
+SiteArchitect Extensions
+Universal Extensions
+Server Plug-Ins
+Implementation and Deployment
+Examples
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Plug-In Development
+/
+ContentCreator Extensions
+ContentCreator Extensions
+ContentCreator is designed to provide a safe and easy-to-use authoring environment for use by subject matter expert editors who do not require the complete range of content management capabilities available in the SiteArchitect. As part of the ContentCreator's user-centered design, we provide project developers with means to design custom functionality that presents additional interaction features that will help editors perform specific tasks.
+To this end, ContentCreator includes a plug-in infrastructure that allows modular extensions of the user interface as well as internal functionality. ContentCreator extensions are implemented in Java, installed as server modules or project-specific scripts and may use the FirstSpirit Access and Developer APIs.
+This chapter aims to provide a quick-start guide towards understanding the client's plug-in capabilities, implementing the essential aspects of each plug-in type and deploying complete plug-ins for use in the ContentCreator. This document does
+not
+aim to be a complete API documentation or to provide guidance in using FirstSpirit core functionality beyond what is required to extend the ContentCreator's user interface;
+the FirstSpirit Access API documentation sets
+, along with JavaDoc mark-up available in development environments, provide thorough information on these subjects.
+While the official, public name of the web-based editing environment in FirstSpirit 5 is
+ContentCreator
+, the internal name follows the traditional term
+WebEdit
+, which had been used up to and including FirstSpirit 4.
+The FirstSpirit API and the ServerManager application continue to use the
+WebEdit
+name.
+This chapter contains annotated code examples that describe individual plug-in classes and their methods in order to illustrate the required plug-in architecture, as well as API usage to control certain aspects of the ContentCreator user interface. The code examples have deliberately been kept simple for readability and demonstration of core concepts; thus, they do not aim to be code-complete or compilable.
+The FirstSpirit Module source code package
+ContentCreator Examples
+provides complete, compilable and functional examples for each plug-in type. This source code combines various examples in this documentation to illustrate real-world use of ContentCreator extensions.
+Extension Overview and Examples
+ContentCreator Extensions
+Each section describes several plug-in types and includes functional descriptions of plug-in features, implementation details and documented example code with references to the FirstSpirit API documentation.
+Interactive Features
+This section introduces the extension types that can be added to the ContentCreator's user interface.
+Management Extensions
+This section documents the administrative features that can be added to provide project-specific content handling.
+Module Development and Deployment
+Implementation and Deployment
+This section provides high-level guidance towards implementing additional ContentCreator functionality using the FSM format and FirstSpirit APIs, and illustrates the FSM roll-out process.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - SiteArchitect Extensions
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+ContentCreator Extensions
+SiteArchitect Extensions
+Interactive Features
+Universal Extensions
+Server Plug-Ins
+Implementation and Deployment
+Examples
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Plug-In Development
+/
+SiteArchitect Extensions
+SiteArchitect Extensions
+The FirstSpirit SiteArchitect provides multiple means to integrate plug-in components. These may implement automation features, additional input components as well as connectors to web services which serve as data providers or further content editing tools.
+Extension Overview and Examples
+Each section describes several plug-in types and includes functional descriptions of plug-in features, implementation details and documented example code with references to the FirstSpirit API documentation.
+Interactive Features
+This section introduces the extension types that can be added to the SiteArchitect's user interface.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - Universal Extensions
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+ContentCreator Extensions
+SiteArchitect Extensions
+Universal Extensions
+Data Access
+Input Components
+Permanent Plug-Ins
+Launching Applications (FirstSpirit Start Page)
+Reports (Legacy)
+Server Plug-Ins
+Implementation and Deployment
+Examples
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Plug-In Development
+/
+Universal Extensions
+Universal Extensions
+Several client extensions may add functionality to both the SiteArchitect and the ContentCreator. These plug-in types are explained in this chapter, and implementation differences necessary to target a plug-in at a specific client are pointed out.
+Extension Overview and Examples
+Each section describes several plug-in types and includes functional descriptions of plug-in features, implementation details and documented example code with references to the FirstSpirit API documentation.
+Data Access Plug-Ins
+This chapter introduces interfaces used to integrate custom data sources with FS_INDEX input components. These plug-ins may also be shown as reports, and the interfaces described here replace the legacy report interfaces described in
+Reports (Legacy)
+.
+Input Components
+This section provides documentation on custom input component implementations for both SiteArchitect and ContentCreator. These input components may be added to form definitions of FirstSpirit templates to provide new data input structures.
+Permanent Plug-Ins
+This section documents a plug-in type that runs in the background throughout a client session's lifetime to provide centralized services.
+Launching Applications (FirstSpirit Start Page)
+This section introduces a plugin type that allows FirstSpirit extension developers to offer to FirstSpirit users buttons on the start page that are used to launch custom applications.
+Reports (Legacy)
+This section describes legacy interfaces in FirstSpirit APIs which were used to define reports that can display various types of data from custom sources. Report functionality is now defined via
+Data Access Plug-Ins
+.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - Server Plug-Ins
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+ContentCreator Extensions
+SiteArchitect Extensions
+Universal Extensions
+Server Plug-Ins
+Schedule Tasks
+Implementation and Deployment
+Examples
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Plug-In Development
+/
+Server Plug-Ins
+Server Plug-Ins
+This chapter contains documentation on select server-side functionality which may be extended with plug-ins. The functionality described here is usually not visible to editorial users of FirstSpirit.
+Extension Overview and Examples
+Each section describes several plug-in types and includes functional descriptions of plug-in features, implementation details and documented example code with references to the FirstSpirit API documentation.
+Schedule Tasks
+This section describes the plug-in structure which defines custom schedule tasks used to automate project-specific tasks.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - Implementation and Deployment
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+ContentCreator Extensions
+SiteArchitect Extensions
+Universal Extensions
+Server Plug-Ins
+Implementation and Deployment
+The Development Environment
+Using FirstSpirit APIs
+Module Architecture
+Deploying Modules
+Examples
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Plug-In Development
+/
+Implementation and Deployment
+Implementation and Deployment
+FirstSpirit client extensions are normally implemented in Java code, access the
+FirstSpirit APIs
+for integration with FirstSpirit client and server components, and are deployed to FirstSpirit servers packaged into
+FirstSpirit Modules (FSM)
+.
+This chapter provides basic descriptions of and links to further information about using FirstSpirit API functionality as well as designing and deploying FirstSpirit Modules.
+While SiteArchitect plug-ins are loaded client-side and communicate with the server through API calls, ContentCreator plug-ins are generally loaded server-side and use operations to cause interactions with the client side. The chapter
+Using FirstSpirit APIs
+distinguishes between client-side and server-side operations when necessary.
+Most ContentCreator extensions are deployed using FirstSpirit Modules (FSM) and require roll-out to a project-specific ContentCreator web application after installation on a FirstSpirit server. A detailed description of the ContentCreator-specific roll-out process is available in the chapter
+Deploying Modules
+.
+The following client extensions are not generally deployed within FSM but are added to a project's templates:
+Beanshell scripts
+These are included in a project's Template Store folder, "Scripts". Scripting in FirstSpirit is introduced in the section
+Template Development: Scripting
+.
+FS_BUTTON instances
+These are defined in the form and relevant output channels of page, section or table templates. Please see the chapter
+FS_BUTTON (Template Development)
+for details. Details on providing interactive features for this button component are provided in the chapter
+Using FirstSpirit APIs
+.
+Contents
+The Development Environment
+details required tasks to prepare a build environment and the recommended configuration of an integrated development environment (IDE).
+Using FirstSpirit APIs
+provides an overview of how to access FirstSpirit functionality within plug-in Java code and illustrates the primary methods to programmatically interact with the FirstSpirit client user interfaces.
+Module Architecture
+describes the non-code requirements for building a FirstSpirit Module using Apache Ant.
+Deploying Modules
+details the best-practice installation methodology of an FSM.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - Examples
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+ContentCreator Extensions
+SiteArchitect Extensions
+Universal Extensions
+Server Plug-Ins
+Implementation and Deployment
+Examples
+Module: Editorial Search and Replace
+Modules: Accessing Web Services via OData/SOAP
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Plug-In Development
+/
+Examples
+Examples
+In order to support developers who create FirstSpirit Modules, we provide several source code packages that implement and demonstrate FirstSpirit extensions.
+Instructions on building and installing these FirstSpirit modules are available in the chapter
+Implementation and Deployment
+.
+The code and supporting files in these example packages are provided as-is for educational purposes and are not intended for use in a production environment. You are free to adapt the example code for use in project-specific implementations. As provided here, the examples are intended solely for reference, and we maintain, update and augment these examples, which may result in structural changes (e.g. module, component, package, and class naming, among other aspects) even without prior notice.
+For FirstSpirit Modules (FSM) based on these example packages, update procedures are not guaranteed to succeed;
+it is necessary to uninstall older versions of modules created from this code before installing a current version.
+ContentCreator Examples
+Name
+Brief description
+ContentCreator Examples
+The
+ContentCreator Examples Source Code Package
+(Version 2025.1) contains example implementations for
+ContentCreator extension types
+including interactive features and management extensions.
+Complex Examples
+The following table lists downloadable source code packages which present more involved example implementations, usually consisting of several different FirstSpirit plug-in types working together.
+Name
+Brief description
+Editorial Search and Replace
+The
+"Editorial Search and Replace" Source Code Package
+(Version 2025.1) contains a complex example which demonstrates a means to combine a report plug-in with various associated plug-in types and a client-side service.
+Accessing Web Services via OData/SOAP
+Two source code packages contain complex examples which demonstrate how DataAccessPlugins can be created to access data provided by OData and SOAP web services, respectively.
+See
+the chapter
+for download links of these source code packages.
+Device Preview with BrowserStack
+The
+"BrowserStack External Preview" Source Code Package
+(Version 2024.3) illustrates the use case of external preview item plug-ins, which may add executable menu items to the dropdown list associated with SiteArchitect's "Preview" button in the editorial toolbar. The items are used to access device-based live preview and screenshot services by BrowserStack (
+http://www.browserstack.com
+), which are loaded in a new browser tab.
+Compiled FirstSpirit Module (FSM) version of the "BrowserStack External Preview" plug-in
+(Version 2024.3) Updated versions of this FSM file may be obtained through
+Technical Support
+.
+Use of this example requires an Access Key from Browserstack, and configuration occurs via project application components added to individual projects.
+Note:
+This plug-in provides access to functionality of BrowserStack, a third-party service provider (see
+http://www.browserstack.com
+). Use of the BrowserStack service requires a paid plan, and compatibility between this plug-in example and BrowserStack's service interfaces is not guaranteed. The BrowserStack-specific functionality is not subject to technical support by Crownpeak, and neither the plug-in source code nor the compiled FirstSpirit Module (FSM) is guaranteed to respect future changes to BrowserStack's API.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - Advanced topics
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+Enhanced JSON support
+Advanced topics
+Generation
+Server-side release
+Media galleries
+Exif data
+Remote access
+Document groups
+Tracking changes
+Input assistance
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Advanced topics
+Advanced topics
+This chapter deals with further aspects, which are interesting for working with FirstSpirit.
+The following topics are elucidated:
+Generation
+: Creating and delivering content in FirstSpirit is based on the “pre-generation” principle. Wherever possible, the content is not first produced on the live system at the time of the user query (live rendering), but is instead already on the FirstSpirit server (i.e. in a less time-sensitive offline mode) for what is called “Generation”.
+Server-side release
+: In addition to release via a workflow, all objects in FirstSpirit can be released server-side via the Access API. To do so, there are methods of defining the different release settings for an object. In this way, the specific release can be used to release additional objects dependent on the current object, such as the complete parent chain and child elements of the object to be released.
+Exif data
+: This page describes how to store Exif data in the Media Store.
+Remote access
+: FirstSpirit allows to access contents of another project from one project. This chapter lists amongst others the input components which can be configured for remote access.
+Document groups
+: Several independent pages can be grouped together to one unit by means of the “Document groups”. The hierarchical structure, which is defined in the Site Store for these pages, will be negated. This chapter shows possible applications and concrete application examples.
+Tracking changes
+: FirstSpirit provides an option for tracking changes via the FirstSpirit Access API. Access to the revision metadata is possible via certain API functions.
+Input assistance
+: Code completion enables all available tags, parameters and values to be shown and inserted at the insert mark on respective tab with one keystroke.
+Successively, further topics will be added.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+FirstSpirit Online Documentation - Tutorials
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+Enhanced JSON support
+Advanced topics
+Tutorials
+First project
+Workflows
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Tutorials
+Tutorials for Template developers
+In this chapter you can find exercises for developing templates.
+First project
+serves as an entry in the template development.
+Starting point for the exercise is an “empty” project, which is to be populated with content step by step.
+Workflows
+: This chapter provides some examples for how to model workflows. These examples can are used for better explain structure and use of workflows.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+Documentation for Administrators - Introduction
+Introduction
+Note on the functional scope
+Architecture
+Overview applications for administration and monitoring
+Structure of this documentation
+Technical requirements and recommendations
+Installation
+FirstSpirit Server control
+FirstSpirit Server configuration
+FirstSpirit Server backing up and recovering
+Updating FirstSpirit
+FirstSpirit web application configuration
+FirstSpirit start page
+FirstSpirit ServerManager
+FirstSpirit ServerMonitoring
+FirstSpirit JMX Console
+User permission configuration
+Notes about GDPR
+FirstSpirit Online Documentation
+Documentation for Administrators
+-= Language =-
+Deutsch
+English
+Introduction
+Welcome to the documentation for FirstSpirit Administrators
+Table of contents
+•
+Feature scope description for our products
+•
+Deployment models
+•
+Cloud / SaaS
+•
+Hybrid
+•
+On-Premises
+•
+Authorization and administrator concept
+•
+Administrative roles (SaaS)
+•
+Administrative roles (On-Premises)
+This documentation is aimed at
+FirstSpirit administrators
+and provides information on configuring, managing and monitoring FirstSpirit.
+Additional documentation for administrators:
+Introduction (→Installation Instructions)
+Detailed information about installation and updating FirstSpirit servers.
+FirstSpirit Release Notes
+:
+Crownpeak develops software on the basis of a continuous improvement process. Crownpeak releases new FirstSpirit versions on a monthly basis. Each update contains new features and fixes which are explained in detail in the Release Notes.
+FirstSpirit Technical Datasheet
+: Technical requirements and recommendations for using FirstSpirit.
+This and additional documentation
+for other user groups
+and
+FirstSpirit products
+can be found at
+https://docs.e-spirit.com
+.
+This document is provided for information purposes only. Crownpeak may change the contents hereof without notice. This document is not warranted to be error-free, nor subject to any other warranties or conditions, whether expressed orally or implied in law, including implied warranties and conditions of merchantability or fitness for a particular purpose. Crownpeak specifically disclaims any liability with respect to this document and no contractual obligations are formed either directly or indirectly by this document. The technologies, functionality, services, and processes described herein are subject to change without notice.
+Feature scope description for our products
+This documentation describes the full functional scope of our products.
+Further restrictions may apply based on:
+your
+license agreement
+with Crownpeak Technology GmbH,
+your chosen
+deployment model
+and
+your
+role
+(and
+authorization
+) in the FirstSpirit environment.
+This means that certain functions and capabilities described in the documentation may not be available to you or not available in full, other functions and capabilities may be provided to you preconfigured and cannot be activated or deactivated manually.
+Information on deployment models and the respective roles can be found further down on this page.
+If you have any questions or problems related to missing or incorrect functionality, please contact
+Technical Support
+or your account manager.
+Deployment models
+Cloud / SaaS
+Our Cloud/SaaS model offers you a full product that is executed and managed by Crownpeak as a service provider. There are different shapings within the model. A shaping includes FirstSpirit components as well as components that are used outside FirstSpirit and even potentially outside our Cloud (see hybrid approach).
+Hybrid
+Hybrid solutions offer you a link between the provision of services via the Crownpeak Cloud and an on-premises installation. You can keep your on-premises solution, but connect yourself to the cloud with some requirements, with personalization of content via FirstSpirit ICE for example. This is usually done for security reasons or when complete migration to the cloud becomes costly and time-consuming.
+Hybrid solutions are possible by using FirstSpirit ICE or FirstSpirit CaaS, which are only available in SaaS operation, in conjunction with an on-premises installation.
+On-Premises
+In the on-premises model, all resources are installed directly on site. This model is perfect for companies that want to build their own digital ecosystem. It is highly customizable and gives you the flexibility to choose the infrastructure on which to run your application.
+Each deployment model has a different user, authorization, and administrator concept.
+Authorization and administrator concept
+Administrative roles (SaaS)
+In the SaaS environment, Crownpeak as a service provider takes over the installation, operation, and maintenance of FirstSpirit and guarantees reliable performance.
+Users and access authorizations in the cloud environment are also managed by Crownpeak via an identity provider (Keycloak). The administration concept provides the role of a project administrator on the client side.
+Project administrators in the SaaS environment can by default:
+change their project's properties
+export their projects
+cleanup their projects
+Administrative roles (On-Premises)
+The user with the ID 1 who was automatically created when a FirstSpirit Server was installed is named
+Administrator
+. There is only one administrator per Server. In principle, he has got all rights for FirstSpirit Server and applications. However, this user can be blocked from accessing specific projects (“ServerManager / Project / Settings / Options / Block administrator”). He is always server administrator at the same time, this role cannot be taken away from this user (he is “super administrator”).
+Server administrators
+always hold all of the permissions of the administrator. The role of server administrator can only be assigned to a FirstSpirit user by the administrator or by another server administrator. There can be multiple server administrators per server.
+Administrators and server administrators can for example:
+create / export / import / delete new projects
+create users
+change the properties of all projects
+define project administrators
+install und uninstall editor and function components
+execute special server operations
+Project administrators
+always hold all permissions in projects in which they have been added to the default “Administrators” group (see
+Add user
+).
+By default, they can:
+change their project's properties
+export their projects
+cleanup their projects
+FirstSpirit is not a universal “out-of-the-box” product, but continuously developed software. New functionalities and customer suggestions are constantly integrated and realized. These constant updates can only be reflected in the documentation to a limited degree. This may result in some figures in this documentation varying from the current FirstSpirit view. Please do not be confused by this, and just follow the instructions as normal.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy
+
+=== RELATED PAGE ===
+ContentCreator – for editors - ContentCreator – for editors
+Introduction
+Use of multiple languages
+Menu functions
+Report area
+Editing a preview page
+LiveEdit
+AI-powered tools
+Documentation ContentCreator
+-= Language =-
+Deutsch
+English
+Introduction
+ContentCreator – for editors
+Table of contents
+•
+Structure
+•
+Terms and concepts
+•
+Multiple login
+•
+Disclaimer
+FirstSpirit provides an intuitive and easy-to-operate authoring interface through ContentCreator (formerly called “WebClient” or “WebEdit”). It allows content to be edited
+directly on a website
+in a browser. This way, the editor can immediately see what effect changes will have on the website later on.
+The editor works on what are known as
+preview pages
+or even on pages that have already been deployed (
+LiveEdit
+), which operate largely without distracting control elements and pop-up windows. Control elements on the page are
+not permanently visible
+; instead, they are displayed only when the editor moves the mouse over the area that can be edited.
+In important places, on the other hand, maintenance of the site is supported by
+assistants
+(also called “wizards”). These are designed to guide the user through individual maintenance steps and to inform the user about input that has happened or is still necessary. In ideal cases, much of the suitable information will already be specified and only a little bit more input is required by the editor.
+Moreover,
+drag & drop
+is supported as a control form in many places. For instance, this allows images and files to be quickly and intuitively transferred from a workstation computer to ContentCreator. It also allows existing content (such as text or images) to be moved with the click of a mouse.
+In addition to navigation through a website to be edited using the navigation that the preview itself provides, ContentCreator provides a
+tree structure
+of the project on the left edge of the screen.
+The so-called
+Reports
+on the right edge of the screen allows topic and user-specific views of the project.
+This documentation describes the FirstSpirit ContentCreator in standard mode. Functions shown here may be hidden for specific projects and therefore not available or the order (e.g. of reports in the
+Report area
+) can differ (catch word: “Talored UI”).
+Structure
+The structure of this documentation follows roughly the ContentCreator's design on the screen:
+Menu functions
+: Menu functions available in the bar at the
+top
+of a page are explained here.
+Editing the preview page
+: All of the options for creating and editing content directly on the preview page are explained here. An important part play the so-called
+input elements
+.
+Report area
+: Individual reports available on the
+right
+side of the screen are explained here.
+Terms and concepts
+Some of the specialized terminology that comes up repeatedly when working with FirstSpirit is explained below:
+Projects
+FirstSpirit can be implemented in companies for a variety of purposes. For instance, it can be used to create and manage a company's intranet (with in-house information) in addition to a company's website.
+In order to meet various requirements, what is known as a
+project
+can be made available in FirstSpirit for each of the implementation areas. The intranet should not be available to users other than company employees (i.e. it should be secured), for instance. However, the pages on the public company website should not be available in just HTML, but rather they should be available as a printable and downloadable PDF version.
+Multilinguality
+FirstSpirit consistently supports the concept of multilingualism which runs through all aspects of FirstSpirit. Refer also to page
+Use of multiple languages
+.
+For more terms, also refer to the
+The FirstSpirit operating concept
+page.
+Multiple login
+It is possible to open multiple projects within the same instance of the browser. As a result, there are several possible scenarios:
+1
+editor,
+N
+instances of the project: The editor can open the same project on multiple browser tabs at the same time.
+1
+editor,
+N
+projects: The editor can open various different projects at the same time.
+Disclaimer
+This documentation is provided for information purposes only. Crownpeak may change the contents hereof without notice. This documentation is not warranted to be error-free, nor subject to any other warranties or conditions, whether expressed orally or implied in law, including implied warranties and conditions of merchantability or fitness for a particular purpose. Crownpeak specifically disclaims any liability with respect to this documentation and no contractual obligations are formed either directly or indirectly by this documentation. The technologies, functionality, services, and processes described herein are subject to change without notice.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy

@@ -1,0 +1,109 @@
+{
+  "name": "ai-coder-assistant",
+  "displayName": "AI Coder Assistant",
+  "description": "Real-time code analysis and suggestions powered by AI",
+  "version": "0.1.0",
+  "license": "GPL-3.0",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:ai-coder-assistant.scanFile",
+    "onCommand:ai-coder-assistant.scanWorkspace",
+    "onCommand:ai-coder-assistant.securityScan"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ai-coder.scanFile",
+        "title": "AI Coder: Scan Current File",
+        "category": "AI Coder"
+      },
+      {
+        "command": "ai-coder.scanWorkspace",
+        "title": "AI Coder: Scan Workspace",
+        "category": "AI Coder"
+      },
+      {
+        "command": "ai-coder.securityScan",
+        "title": "AI Coder: Security Scan",
+        "category": "AI Coder"
+      },
+      {
+        "command": "ai-coder.createPR",
+        "title": "AI Coder: Create PR from Scan Results",
+        "category": "AI Coder"
+      },
+      {
+        "command": "ai-coder.createPRFromCurrentScan",
+        "title": "AI Coder: Create PR from Current Scan",
+        "category": "AI Coder"
+      },
+      {
+        "command": "ai-coder.showPRTemplates",
+        "title": "AI Coder: Show PR Templates",
+        "category": "AI Coder"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "ai-coder.scanFile"
+        },
+        {
+          "command": "ai-coder.scanWorkspace"
+        },
+        {
+          "command": "ai-coder.securityScan"
+        },
+        {
+          "command": "ai-coder.createPR"
+        },
+        {
+          "command": "ai-coder.createPRFromCurrentScan"
+        },
+        {
+          "command": "ai-coder.showPRTemplates"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "ai-coder.scanFile",
+          "when": "resourceExtname == .py || resourceExtname == .js || resourceExtname == .ts || resourceExtname == .java || resourceExtname == .cpp || resourceExtname == .c || resourceExtname == .go || resourceExtname == .rs || resourceExtname == .php || resourceExtname == .rb"
+        },
+        {
+          "command": "ai-coder.createPR",
+          "when": "resourceExtname == .json"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AI Coder Assistant",
+      "properties": {
+        "ai-coder-assistant.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python executable"
+        },
+        "ai-coder-assistant.projectPath": {
+          "type": "string",
+          "description": "Path to AI Coder Assistant project"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  }
+} 

@@ -1,7 +1,28 @@
 # main.py
+"""
+AI Coder Assistant - Main Application Entry Point
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Copyright (C) 2024 AI Coder Assistant Contributors
+"""
+
 import sys
 import os
 import faulthandler
+import signal
+import atexit
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QCoreApplication
 
@@ -10,9 +31,21 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-# --- Import necessary components from the src package ---
-from src.ui.main_window import AICoderAssistant
-from src.core.logging_config import setup_logging
+# --- Import necessary components from the new frontend/backend structure ---
+from src.frontend.ui.main_window import AICoderAssistant
+from src.backend.services.logging_config import setup_logging
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals gracefully."""
+    print(f"\nReceived signal {signum}, shutting down gracefully...")
+    if 'app' in globals() and app:
+        app.quit()
+    sys.exit(0)
+
+def cleanup_on_exit():
+    """Cleanup function called on exit."""
+    print("Cleaning up on exit...")
+    # The main window's closeEvent will handle thread cleanup
 
 def create_project_directories():
     """
@@ -53,6 +86,11 @@ def create_project_directories():
 
 
 if __name__ == '__main__':
+    # --- Set up signal handlers for graceful shutdown ---
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    atexit.register(cleanup_on_exit)
+    
     # --- Create directories as the very first step ---
     create_project_directories()
 

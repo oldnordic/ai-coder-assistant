@@ -2,148 +2,282 @@
 
 ## Overview
 
-The AI Coder Assistant supports **20 programming languages** with language-specific linters and analysis tools. This guide provides detailed information about each supported language, installation instructions, and configuration options.
+The AI Coder Assistant supports **20 programming languages** with **intelligent analysis** that goes far beyond simple linter errors. Each language benefits from both traditional linter integration and advanced intelligent analysis that detects security vulnerabilities, performance issues, code smells, and maintainability problems.
+
+## Intelligent Analysis Features
+
+### 🔍 What Intelligent Analysis Detects
+
+**Across All Languages**:
+- **Security Vulnerabilities**: Hardcoded credentials, injection risks, unsafe practices
+- **Performance Issues**: Inefficient algorithms, memory leaks, bottlenecks
+- **Code Smells**: Anti-patterns, magic numbers, poor practices
+- **Maintainability Issues**: Complex functions, poor documentation, TODO/FIXME comments
+- **Best Practice Violations**: Language-specific violations and style issues
+
+**Language-Specific Intelligence**:
+- **Python**: AST analysis, complexity metrics, Python-specific patterns
+- **JavaScript/TypeScript**: Type safety, modern JS patterns, framework-specific issues
+- **Java**: Memory management, enterprise patterns, Spring-specific issues
+- **C/C++**: Memory safety, undefined behavior, low-level optimizations
+- **Go**: Concurrency patterns, Go idioms, performance considerations
+- **Rust**: Memory safety, ownership patterns, unsafe code detection
+- **And more...**
 
 ## Supported Languages
 
 ### 1. Python
 - **Extensions**: `.py`, `.pyw`, `.pyx`, `.pyi`
 - **Linter**: `flake8`
+- **Intelligent Analysis**: AST parsing, complexity analysis, Python-specific patterns
 - **Installation**: `pip install flake8`
 - **Configuration**: `setup.cfg`, `pyproject.toml`, or `.flake8`
-- **Features**: Syntax checking, style enforcement, complexity analysis
+
+**Intelligent Detection**:
+- **Security**: Hardcoded secrets, eval() usage, unsafe imports
+- **Performance**: List comprehensions vs loops, memory usage patterns
+- **Code Smells**: Bare except clauses, magic numbers, unused imports
+- **Maintainability**: Function complexity, long parameter lists, TODO comments
 
 ### 2. JavaScript
 - **Extensions**: `.js`, `.jsx`, `.mjs`
 - **Linter**: `eslint`
+- **Intelligent Analysis**: Modern JS patterns, framework detection, security analysis
 - **Installation**: `npm install -g eslint`
 - **Configuration**: `.eslintrc.js`, `.eslintrc.json`, or `package.json`
-- **Features**: Syntax validation, best practices, React support
+
+**Intelligent Detection**:
+- **Security**: eval() usage, innerHTML assignments, XSS vulnerabilities
+- **Performance**: DOM manipulation patterns, memory leaks, inefficient loops
+- **Code Smells**: var usage, console.log in production, debugger statements
+- **Best Practices**: Modern ES6+ patterns, framework-specific conventions
 
 ### 3. TypeScript
 - **Extensions**: `.ts`, `.tsx`
 - **Linter**: `eslint` with TypeScript plugin
+- **Intelligent Analysis**: Type safety analysis, interface patterns, strict mode violations
 - **Installation**: `npm install -g eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin`
 - **Configuration**: `.eslintrc.js` with TypeScript rules
-- **Features**: Type checking, interface validation, strict mode
+
+**Intelligent Detection**:
+- **Type Safety**: any usage, type assertions, interface violations
+- **Performance**: Type checking overhead, generic usage patterns
+- **Code Smells**: Type casting, unused interfaces, complex type definitions
+- **Best Practices**: Strict mode compliance, modern TypeScript patterns
 
 ### 4. Java
 - **Extensions**: `.java`
 - **Linter**: `checkstyle`
+- **Intelligent Analysis**: Memory management, enterprise patterns, Spring-specific analysis
 - **Installation**: Download from [Apache Checkstyle](https://checkstyle.org/)
 - **Configuration**: `checkstyle.xml`
-- **Features**: Code style, naming conventions, complexity metrics
+
+**Intelligent Detection**:
+- **Memory Management**: Resource leaks, proper exception handling
+- **Enterprise Patterns**: Design pattern violations, architectural issues
+- **Security**: Input validation, SQL injection risks, authentication patterns
+- **Performance**: Collection usage, string concatenation, I/O patterns
 
 ### 5. C/C++
 - **Extensions**: `.c`, `.cpp`, `.cc`, `.cxx`, `.h`, `.hpp`, `.hh`, `.hxx`
 - **Linter**: `cppcheck`
+- **Intelligent Analysis**: Memory safety, undefined behavior, low-level optimizations
 - **Installation**: 
   - Ubuntu/Debian: `sudo apt install cppcheck`
   - Arch: `sudo pacman -S cppcheck`
   - macOS: `brew install cppcheck`
 - **Configuration**: `cppcheck.cfg`
-- **Features**: Memory leaks, undefined behavior, style issues
+
+**Intelligent Detection**:
+- **Memory Safety**: Buffer overflows, memory leaks, dangling pointers
+- **Undefined Behavior**: Integer overflow, null pointer dereferences
+- **Performance**: Inefficient algorithms, cache misses, optimization opportunities
+- **Security**: Buffer overflows, format string vulnerabilities, race conditions
 
 ### 6. C#
 - **Extensions**: `.cs`
 - **Linter**: `dotnet` (built-in)
+- **Intelligent Analysis**: .NET patterns, async/await usage, LINQ optimization
 - **Installation**: .NET SDK
 - **Configuration**: `Directory.Build.props`, `.editorconfig`
-- **Features**: Code analysis, style enforcement, best practices
+
+**Intelligent Detection**:
+- **Async Patterns**: Proper async/await usage, deadlock prevention
+- **LINQ Optimization**: Inefficient queries, N+1 problems
+- **Memory Management**: IDisposable patterns, garbage collection optimization
+- **Security**: Input validation, authentication, authorization patterns
 
 ### 7. Go
 - **Extensions**: `.go`
 - **Linter**: `golangci-lint`
+- **Intelligent Analysis**: Concurrency patterns, Go idioms, performance analysis
 - **Installation**: `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest`
 - **Configuration**: `.golangci.yml`
-- **Features**: Multiple linters, performance analysis, security checks
+
+**Intelligent Detection**:
+- **Concurrency**: Goroutine leaks, race conditions, channel usage
+- **Go Idioms**: Error handling patterns, interface usage, package organization
+- **Performance**: Memory allocation, garbage collection, CPU usage
+- **Security**: Input validation, cryptographic usage, network security
 
 ### 8. Rust
 - **Extensions**: `.rs`
 - **Linter**: `cargo clippy`
+- **Intelligent Analysis**: Memory safety, ownership patterns, unsafe code detection
 - **Installation**: `cargo install clippy`
 - **Configuration**: `clippy.toml`
-- **Features**: Memory safety, performance hints, idiomatic code
+
+**Intelligent Detection**:
+- **Memory Safety**: Ownership violations, borrowing rules, lifetime issues
+- **Performance**: Zero-cost abstractions, efficient data structures
+- **Security**: Unsafe code usage, FFI patterns, cryptographic implementations
+- **Idiomatic Code**: Rust patterns, functional programming, error handling
 
 ### 9. PHP
 - **Extensions**: `.php`
 - **Linter**: `phpcs` (PHP_CodeSniffer)
+- **Intelligent Analysis**: Security patterns, framework-specific analysis, performance optimization
 - **Installation**: `composer global require squizlabs/php_codesniffer`
 - **Configuration**: `phpcs.xml`
-- **Features**: PSR standards, custom rules, security checks
+
+**Intelligent Detection**:
+- **Security**: SQL injection, XSS vulnerabilities, authentication bypass
+- **Performance**: Database query optimization, caching patterns, memory usage
+- **Framework Patterns**: Laravel, Symfony, WordPress specific patterns
+- **Code Smells**: Global variables, error suppression, deprecated functions
 
 ### 10. Ruby
 - **Extensions**: `.rb`
 - **Linter**: `rubocop`
+- **Intelligent Analysis**: Ruby idioms, Rails patterns, metaprogramming analysis
 - **Installation**: `gem install rubocop`
 - **Configuration**: `.rubocop.yml`
-- **Features**: Style enforcement, best practices, Rails support
+
+**Intelligent Detection**:
+- **Ruby Idioms**: Block usage, method chaining, functional programming
+- **Rails Patterns**: ActiveRecord optimization, controller patterns, view logic
+- **Performance**: N+1 queries, memory leaks, garbage collection
+- **Security**: Input validation, authentication, authorization patterns
 
 ### 11. Swift
 - **Extensions**: `.swift`
 - **Linter**: `swiftlint`
+- **Intelligent Analysis**: iOS/macOS patterns, memory management, performance optimization
 - **Installation**: `brew install swiftlint`
 - **Configuration**: `.swiftlint.yml`
-- **Features**: Swift style guide, best practices, iOS/macOS specific
+
+**Intelligent Detection**:
+- **Memory Management**: ARC patterns, retain cycles, memory leaks
+- **iOS/macOS**: UIKit patterns, Core Data usage, networking patterns
+- **Performance**: Image processing, UI rendering, background processing
+- **Security**: Keychain usage, network security, data protection
 
 ### 12. Kotlin
 - **Extensions**: `.kt`, `.kts`
 - **Linter**: `ktlint`
+- **Intelligent Analysis**: Android patterns, coroutines, functional programming
 - **Installation**: Download from [ktlint releases](https://github.com/pinterest/ktlint/releases)
 - **Configuration**: `.editorconfig`
-- **Features**: Kotlin style guide, Android support, custom rules
+
+**Intelligent Detection**:
+- **Android Patterns**: Activity lifecycle, Fragment usage, ViewModel patterns
+- **Coroutines**: Structured concurrency, exception handling, cancellation
+- **Functional Programming**: Higher-order functions, immutability, pure functions
+- **Performance**: Memory usage, UI rendering, background processing
 
 ### 13. Scala
 - **Extensions**: `.scala`
 - **Linter**: `scalafmt`
+- **Intelligent Analysis**: Functional programming patterns, Akka usage, Spark optimization
 - **Installation**: `coursier install scalafmt`
 - **Configuration**: `.scalafmt.conf`
-- **Features**: Code formatting, style enforcement, functional programming
+
+**Intelligent Detection**:
+- **Functional Programming**: Immutability, pure functions, monad usage
+- **Concurrency**: Akka patterns, actor systems, message passing
+- **Big Data**: Spark optimization, memory usage, distributed computing
+- **Performance**: JVM optimization, garbage collection, CPU usage
 
 ### 14. Dart
 - **Extensions**: `.dart`
 - **Linter**: `dart analyze` (built-in)
+- **Intelligent Analysis**: Flutter patterns, null safety, performance optimization
 - **Installation**: Dart SDK
 - **Configuration**: `analysis_options.yaml`
-- **Features**: Flutter support, null safety, performance analysis
+
+**Intelligent Detection**:
+- **Flutter Patterns**: Widget lifecycle, state management, UI optimization
+- **Null Safety**: Null-aware operators, null checking patterns
+- **Performance**: Widget rebuilding, memory usage, rendering optimization
+- **Security**: Input validation, network security, data protection
 
 ### 15. R
 - **Extensions**: `.r`, `.R`
 - **Linter**: `lintr`
+- **Intelligent Analysis**: Statistical analysis patterns, data science workflows, reproducibility
 - **Installation**: `install.packages("lintr")`
 - **Configuration**: `.lintr`
-- **Features**: R style guide, statistical analysis, reproducibility
+
+**Intelligent Detection**:
+- **Statistical Analysis**: Proper statistical methods, data validation
+- **Data Science**: Reproducible workflows, data pipeline optimization
+- **Performance**: Vectorization, memory usage, computational efficiency
+- **Reproducibility**: Random seed management, dependency tracking
 
 ### 16. MATLAB
 - **Extensions**: `.m`
 - **Linter**: `mlint` (built-in)
+- **Intelligent Analysis**: Numerical computing patterns, matrix operations, algorithm optimization
 - **Installation**: MATLAB installation
 - **Configuration**: `mlintrc`
-- **Features**: MATLAB best practices, performance analysis, code quality
+
+**Intelligent Detection**:
+- **Numerical Computing**: Matrix operations, algorithm efficiency, precision issues
+- **Performance**: Vectorization, memory usage, computational bottlenecks
+- **Code Quality**: Function organization, variable naming, documentation
+- **Best Practices**: MATLAB-specific patterns, toolbox usage
 
 ### 17. Shell Scripts
 - **Extensions**: `.sh`, `.bash`, `.zsh`, `.fish`
 - **Linter**: `shellcheck`
+- **Intelligent Analysis**: Security analysis, portability checks, system administration patterns
 - **Installation**:
   - Ubuntu/Debian: `sudo apt install shellcheck`
   - Arch: `sudo pacman -S shellcheck`
   - macOS: `brew install shellcheck`
 - **Configuration**: `.shellcheckrc`
-- **Features**: Shell script validation, portability checks, security analysis
+
+**Intelligent Detection**:
+- **Security**: Command injection, privilege escalation, file permission issues
+- **Portability**: Cross-platform compatibility, shell-specific features
+- **System Administration**: Process management, resource monitoring, automation patterns
+- **Best Practices**: Error handling, logging, documentation
 
 ### 18. SQL
 - **Extensions**: `.sql`
 - **Linter**: `sqlfluff`
+- **Intelligent Analysis**: Query optimization, database design patterns, security analysis
 - **Installation**: `pip install sqlfluff`
 - **Configuration**: `sqlfluff.ini`
-- **Features**: SQL formatting, dialect support, best practices
+
+**Intelligent Detection**:
+- **Query Optimization**: Index usage, join optimization, query complexity
+- **Database Design**: Normalization, constraint usage, data integrity
+- **Security**: SQL injection prevention, access control, data protection
+- **Performance**: Query execution plans, resource usage, scalability
 
 ### 19. HTML
 - **Extensions**: `.html`, `.htm`
 - **Linter**: `htmlhint`
+- **Intelligent Analysis**: Accessibility patterns, SEO optimization, web standards compliance
 - **Installation**: `npm install -g htmlhint`
 - **Configuration**: `.htmlhintrc`
-- **Features**: HTML validation, accessibility checks, best practices
+
+**Intelligent Detection**:
+- **Accessibility**: ARIA attributes, semantic HTML, screen reader support
+- **SEO**: Meta tags, structured data, search engine optimization
+- **Web Standards**: HTML5 compliance, cross-browser compatibility
+- **Performance**: Resource loading, rendering optimization, mobile responsiveness
 
 ## Installation Guide
 
@@ -412,6 +546,12 @@ The multi-language support is continuously being improved:
 3. **Performance**: Faster analysis and processing
 4. **Custom Rules**: Support for project-specific linting rules
 5. **Machine Learning**: AI-powered language-specific suggestions
+
+## Architecture Note
+
+- All language support logic is implemented in the backend (`src/backend/services/`).
+- The frontend (UI) calls backend services for language detection, translation, and LLM provider selection.
+- See `ARCHITECTURE.md` for details on the new separation and integration patterns.
 
 ---
 

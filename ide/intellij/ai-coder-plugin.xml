@@ -1,0 +1,77 @@
+<idea-plugin>
+    <id>com.aicoder.assistant</id>
+    <name>AI Coder Assistant</name>
+    <vendor>AI Coder Assistant Team</vendor>
+    <description><![CDATA[
+        AI-powered code analysis and security scanning plugin for IntelliJ IDEA.
+        
+        Features:
+        - Real-time code quality analysis
+        - Security vulnerability scanning
+        - Multi-language support
+        - Compliance checking (OWASP, CWE, PCI, NIST, SOC2, ISO 27001, HIPAA)
+        - Integration with AI models for intelligent suggestions
+        
+        Commands:
+        - Scan Current File: Analyze the currently open file
+        - Scan Project: Analyze entire project
+        - Security Scan: Perform security-focused analysis
+        - Compliance Check: Check against compliance standards
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.projectModel</depends>
+    <depends>com.intellij.modules.vcs</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="AI Coder Assistant" 
+                    secondary="true" 
+                    icon="AllIcons.General.InspectionsOK" 
+                    anchor="right"
+                    factoryClass="com.aicoder.assistant.AICoderToolWindowFactory"/>
+        
+        <projectService serviceImplementation="com.aicoder.assistant.AICoderProjectService"/>
+        
+        <applicationService serviceImplementation="com.aicoder.assistant.AICoderApplicationService"/>
+    </extensions>
+
+    <actions>
+        <action id="AICoder.ScanFile" 
+                class="com.aicoder.assistant.actions.ScanFileAction" 
+                text="Scan Current File" 
+                description="Analyze current file for code quality issues">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt S"/>
+        </action>
+        
+        <action id="AICoder.ScanProject" 
+                class="com.aicoder.assistant.actions.ScanProjectAction" 
+                text="Scan Project" 
+                description="Analyze entire project for code quality issues">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift S"/>
+        </action>
+        
+        <action id="AICoder.SecurityScan" 
+                class="com.aicoder.assistant.actions.SecurityScanAction" 
+                text="Security Scan" 
+                description="Perform security-focused analysis">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift V"/>
+        </action>
+        
+        <action id="AICoder.ComplianceCheck" 
+                class="com.aicoder.assistant.actions.ComplianceCheckAction" 
+                text="Compliance Check" 
+                description="Check against compliance standards">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift C"/>
+        </action>
+    </actions>
+
+    <project-components>
+        <component>
+            <implementation-class>com.aicoder.assistant.AICoderProjectComponent</implementation-class>
+        </component>
+    </project-components>
+</idea-plugin> 
