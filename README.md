@@ -571,7 +571,6 @@ Configure your API keys in the application settings:
 
 We welcome contributions! Please see our contributing guidelines and code of conduct.
 
-## 📄 License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
@@ -1183,3 +1182,9 @@ python -m unittest discover tests
 ---
 
 **Experience the power of intelligent code analysis with multi-threading performance and optimized binaries!** 🚀
+
+> **Note**: To make use of the machine learning capabilities, install a PyTorch build that matches your GPU (CUDA for NVIDIA or ROCm for AMD). Otherwise the application will fall back to CPU execution, which can be noticeably slower.
+
+> **Ollama**: To use the built-in Ollama integration you must have Ollama installed and the service running before launching the app.
+
+> **For detailed training steps, refer to: [docs/training_workflow.md](docs/training_workflow.md)**
