@@ -96,6 +96,21 @@ ai_code_review_report.html
 /evaluation_results/
 *.eval
 
+# --- Development Documentation Ignores ---
+# Ignore development and planning documentation that's not needed in git
+APP_PLAN_AND_COMPARISON.md
+REFACTORING_PLAN.md
+REFACTORING_PROGRESS.md
+WEB_SCRAPING_FIXES.md
+FINAL_FIXES_SUMMARY.md
+FIXES_SUMMARY.md
+ISSUES_AND_FIXES.md
+LICENSE_CHANGE_SUMMARY.md
+PERFORMANCE_IMPROVEMENTS.md
+PR_CREATION_FEATURE.md
+BUILD_PLAN.md
+ai_code_review_report.txt
+
 # Ignore temporary and cache directories
 /tmp/
 /cache/
@@ -290,3 +305,14 @@ dmypy.json
 # --- Keep Important Documentation ---
 # Keep taskmaster reports for documentation
 !.taskmaster/reports/continuous_learning_task.md
+
+# Ignore generated markdown reports
+src/backend/reports/*.md
+
+# Ignore unnecessary markdown files in the root, but keep main documentation
+/*.md
+!README.md
+!CHANGELOG.md
+!ARCHITECTURE.md
+!BUILD_README.md
+!FEATURE_SUMMARY.md
