@@ -25,6 +25,7 @@ Supports OpenAI, Google Gemini, Claude, and Ollama.
 import json
 import time
 import asyncio
+from datetime import datetime
 from typing import Dict, List, Optional, Any, AsyncGenerator
 from abc import ABC, abstractmethod
 import aiohttp
@@ -36,7 +37,7 @@ import httpx
 
 from .models import (
     ProviderType, ModelConfig, ProviderConfig, ChatMessage, 
-    ChatCompletionRequest, ChatCompletionResponse, ModelUsage
+    ChatCompletionRequest, ChatCompletionResponse, ModelUsage, ModelType
 )
 
 

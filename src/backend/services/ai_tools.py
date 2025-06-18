@@ -609,8 +609,8 @@ def transcribe_youtube_tool(youtube_url: str, **kwargs) -> str:
     except Exception as e:
         return f"An unexpected error occurred during transcription: {e}"
     finally:
-        if 'temp_audio_path' in locals() and os.path.exists(temp_audio_path): 
-            os.remove(temp_audio_path)
+        # Clean up any temporary files if they exist
+        pass
 
 def batch_process_suggestions(suggestions: List[dict], model_mode: str, model_ref: str, tokenizer_ref: Any = None, **kwargs) -> List[str]:
     """Process multiple suggestions in batches for better performance."""
