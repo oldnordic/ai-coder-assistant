@@ -39,12 +39,24 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal, QThread, pyqtSlot, QTimer
 from PyQt6.QtGui import QFont, QTextCursor
 
-from ...backend.services.continuous_learning import (
+from backend.services.continuous_learning import (
     get_continuous_learning_service,
     FeedbackType,
-    DataQuality
+    DataQuality,
+    ContinuousLearningService
 )
-from ...backend.utils.constants import WAIT_TIMEOUT_SHORT_MS
+from backend.utils.constants import (
+    WAIT_TIMEOUT_SHORT_MS,
+    CONTINUOUS_LEARNING_DB_PATH,
+    CONTINUOUS_LEARNING_MIN_INPUT_LENGTH,
+    CONTINUOUS_LEARNING_MIN_OUTPUT_LENGTH,
+    CONTINUOUS_LEARNING_MAX_INPUT_LENGTH,
+    CONTINUOUS_LEARNING_MAX_OUTPUT_LENGTH,
+    CONTINUOUS_LEARNING_REPLAY_BUFFER_SIZE,
+    CONTINUOUS_LEARNING_QUALITY_THRESHOLD,
+    CONTINUOUS_LEARNING_BATCH_SIZE,
+    CONTINUOUS_LEARNING_UPDATE_INTERVAL_HOURS
+)
 
 logger = logging.getLogger(__name__)
 

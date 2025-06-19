@@ -25,27 +25,36 @@ import logging
 import time
 from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
                              QPushButton, QMessageBox, QFileDialog, QProgressDialog,
-                             QTextEdit, QVBoxLayout, QLabel, QHBoxLayout)
+                             QTextEdit, QVBoxLayout, QLabel, QHBoxLayout, QGroupBox, QCheckBox, QLineEdit)
 from PyQt6.QtCore import QUrl, pyqtSlot, Qt
 from PyQt6.QtGui import QIcon
 
-from .browser_tab import setup_browser_tab
-from .data_tab_widgets import setup_data_tab
-from .ai_tab_widgets import setup_ai_tab
-from .ollama_export_tab import setup_ollama_export_tab
-from .continuous_learning_tab import ContinuousLearningTab
-from .refactoring_tab import RefactoringTab
-from .cloud_models_tab import CloudModelsTab
-from .worker_threads import Worker
-from .suggestion_dialog import SuggestionDialog
-from .markdown_viewer import MarkdownViewerDialog
-from ...backend.services.studio_ui import LLMStudioUI
+from frontend.ui.browser_tab import setup_browser_tab
+from frontend.ui.data_tab_widgets import setup_data_tab
+from frontend.ui.ai_tab_widgets import setup_ai_tab
+from frontend.ui.ollama_export_tab import setup_ollama_export_tab
+from frontend.ui.continuous_learning_tab import ContinuousLearningTab
+from frontend.ui.refactoring_tab import RefactoringTab
+from frontend.ui.cloud_models_tab import CloudModelsTab
+from frontend.ui.ollama_manager_tab import OllamaManagerTab
+from frontend.ui.pr_management_tab import PRManagementTab
+from frontend.ui.security_intelligence_tab import SecurityIntelligenceTab
+from frontend.ui.code_standards_tab import CodeStandardsTab
+from frontend.ui.performance_optimization_tab import PerformanceOptimizationTab
+from frontend.ui.web_server_tab import WebServerTab
+from frontend.ui.worker_threads import Worker
+from frontend.ui.suggestion_dialog import SuggestionDialog
+from frontend.ui.markdown_viewer import MarkdownViewerDialog
+from frontend.ui.pr_tab_widgets import PRCreationTab
+from backend.services.studio_ui import LLMStudioUI
+from frontend.ui.advanced_analytics_tab import AdvancedAnalyticsTab
+from frontend.ui.collaboration_tab import CollaborationTab
 
-from ...backend.services import ai_tools, scanner, ollama_client
-from ...backend.services import acquire, preprocess
-from ...backend.services import trainer
-from ...backend.utils import settings
-from ...utils.constants import (
+from backend.services import ai_tools, scanner, ollama_client
+from backend.services import acquire, preprocess
+from backend.services import trainer
+from backend.utils import settings
+from backend.utils.constants import (
     WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
     LOG_CONSOLE_MAX_HEIGHT, PROGRESS_MIN, PROGRESS_MAX, GRACEFUL_SHUTDOWN_WAIT,
     PERCENTAGE_MULTIPLIER, GRACEFUL_SHUTDOWN_WAIT_MS, WAIT_TIMEOUT_MS, DEFAULT_PERCENTAGE_MULTIPLIER,
@@ -53,6 +62,8 @@ from ...utils.constants import (
 )
 
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
+from backend.utils.settings import is_docker_available
+from backend.services.docker_utils import run_build_and_test_in_docker
 
 
 # Set up a logger for this module
@@ -97,34 +108,117 @@ class AICoderAssistant(QMainWindow):
         
         # Create LLM Studio tab
         self.llm_studio_tab = LLMStudioUI()
-        
-        # Add AI PR Creation tab (enterprise feature)
-        from .pr_tab_widgets import PRCreationTab
-        self.pr_tab = PRCreationTab()
-        self.tabs.addTab(self.pr_tab, "AI PR Creation")
-        
-        self.tabs.addTab(self.ai_tab, "AI Agent")
-        self.tabs.addTab(self.data_tab, "Data & Training")
-        self.tabs.addTab(self.browser_tab, "Browser & Transcription")
-        self.tabs.addTab(self.ollama_export_tab, "Export to Ollama")
-        self.tabs.addTab(self.llm_studio_tab, "LLM Studio")
-        
         # Add Continuous Learning tab
         self.continuous_learning_tab = ContinuousLearningTab()
-        self.tabs.addTab(self.continuous_learning_tab, "Continuous Learning")
-        
         # Add Advanced Refactoring tab
         self.refactoring_tab = RefactoringTab()
-        self.tabs.addTab(self.refactoring_tab, "Advanced Refactoring")
-        
         # Add Cloud Models tab
         self.cloud_models_tab = CloudModelsTab()
+        # Add Ollama Manager tab
+        self.ollama_manager_tab = OllamaManagerTab()
+        # Add AI PR Creation tab (enterprise feature)
+        self.pr_tab = PRCreationTab()
+        # Add PR Management tab
+        self.pr_management_tab = PRManagementTab()
+        # Add Security Intelligence tab
+        from frontend.controllers import BackendController
+        backend_controller = BackendController()
+        self.security_intelligence_tab = SecurityIntelligenceTab(backend_controller)
+        # Add Code Standards tab
+        self.code_standards_tab = CodeStandardsTab(backend_controller)
+        # Add Performance Optimization tab
+        self.performance_optimization_tab = PerformanceOptimizationTab()
+        # Add Web Server tab
+        self.web_server_tab = WebServerTab()
+        # Add Advanced Analytics tab
+        self.advanced_analytics_tab = AdvancedAnalyticsTab()
+        # Add Collaboration tab
+        self.collaboration_tab = CollaborationTab()
+        # self.tabs.addTab(self.pr_tab, "AI PR Creation")  # Move this to the end
+        
+        # Add tabs in logical groups
+        # Core AI Features
+        self.tabs.addTab(self.ai_tab, "AI Agent")
+        self.tabs.addTab(self.llm_studio_tab, "LLM Studio")
         self.tabs.addTab(self.cloud_models_tab, "Cloud Models")
+        self.tabs.addTab(self.ollama_manager_tab, "Ollama Manager")
+        
+        # Data & Training
+        self.tabs.addTab(self.data_tab, "Data & Training")
+        self.tabs.addTab(self.continuous_learning_tab, "Continuous Learning")
+        self.tabs.addTab(self.ollama_export_tab, "Export to Ollama")
+        
+        # Code Analysis & Quality
+        self.tabs.addTab(self.refactoring_tab, "Advanced Refactoring")
+        self.tabs.addTab(self.performance_optimization_tab, "Performance Optimization")
+        self.tabs.addTab(self.code_standards_tab, "Code Standards")
+        
+        # Security & Intelligence
+        self.tabs.addTab(self.security_intelligence_tab, "Security Intelligence")
+        
+        # Collaboration & Management
+        self.tabs.addTab(self.collaboration_tab, "Collaboration")
+        self.tabs.addTab(self.pr_tab, "AI PR Creation")
+        self.tabs.addTab(self.pr_management_tab, "PR Management")
+        
+        # Web & Analytics
+        self.tabs.addTab(self.web_server_tab, "Web Server")
+        self.tabs.addTab(self.advanced_analytics_tab, "Advanced Analytics")
+        
+        # Tools & Utilities
+        self.tabs.addTab(self.browser_tab, "Browser & Transcription")
         
         self.log_console = QTextEdit()
         self.log_console.setReadOnly(True)
         self.log_console.setMaximumHeight(LOG_CONSOLE_MAX_HEIGHT)
         self.main_layout.addWidget(self.log_console)
+
+        # --- Docker Integration Settings ---
+        docker_settings_group = QGroupBox("Docker Integration")
+        docker_settings_layout = QVBoxLayout(docker_settings_group)
+        docker_top_row = QHBoxLayout()
+        self.docker_enable_checkbox = QCheckBox("Enable Docker-based isolated build/test (if available)")
+        self.docker_enable_checkbox.setChecked(False)
+        self.docker_status_label = QLabel()
+        docker_top_row.addWidget(self.docker_enable_checkbox)
+        docker_top_row.addWidget(self.docker_status_label)
+        docker_settings_layout.addLayout(docker_top_row)
+
+        # Custom Dockerfile path
+        dockerfile_row = QHBoxLayout()
+        self.dockerfile_path_edit = QLineEdit()
+        self.dockerfile_path_edit.setPlaceholderText("Path to custom Dockerfile (optional)")
+        self.browse_dockerfile_btn = QPushButton("Browse")
+        dockerfile_row.addWidget(QLabel("Dockerfile:"))
+        dockerfile_row.addWidget(self.dockerfile_path_edit)
+        dockerfile_row.addWidget(self.browse_dockerfile_btn)
+        docker_settings_layout.addLayout(dockerfile_row)
+        self.browse_dockerfile_btn.clicked.connect(self.browse_dockerfile)
+
+        # Build arguments
+        build_args_row = QHBoxLayout()
+        self.build_args_edit = QLineEdit()
+        self.build_args_edit.setPlaceholderText("Build arguments (e.g., KEY1=val1 KEY2=val2)")
+        build_args_row.addWidget(QLabel("Build Args:"))
+        build_args_row.addWidget(self.build_args_edit)
+        docker_settings_layout.addLayout(build_args_row)
+
+        # Container run options
+        run_opts_row = QHBoxLayout()
+        self.run_opts_edit = QLineEdit()
+        self.run_opts_edit.setPlaceholderText("Container run options (e.g., -e ENV=prod -p 8080:80)")
+        run_opts_row.addWidget(QLabel("Run Options:"))
+        run_opts_row.addWidget(self.run_opts_edit)
+        docker_settings_layout.addLayout(run_opts_row)
+
+        # Test Docker integration button
+        self.test_docker_btn = QPushButton("Test Docker Build & Test")
+        docker_settings_layout.addWidget(self.test_docker_btn)
+        self.test_docker_btn.clicked.connect(self.on_test_docker_btn_clicked)
+
+        self.main_layout.addWidget(docker_settings_group)
+        self.update_docker_status()
+        self.docker_enable_checkbox.stateChanged.connect(self.on_docker_checkbox_changed)
 
         self._connect_signals()
         self.populate_ollama_models()
@@ -157,7 +251,7 @@ class AICoderAssistant(QMainWindow):
     def open_llm_studio(self):
         """Open LLM Studio in a new window."""
         try:
-            from ...backend.services.studio_ui import LLMStudioUI
+            from backend.services.studio_ui import LLMStudioUI
             self.llm_studio_window = LLMStudioUI()
             self.llm_studio_window.show()
             self.log_message("LLM Studio opened in new window")
@@ -378,6 +472,32 @@ class AICoderAssistant(QMainWindow):
                 self.log_message("No suggestions found - interactive mode not available")
             
             self.scan_results_text.setText(summary_text)
+            self.log_message("Scan complete. Reviewing results and applying fixes if needed.")
+            # If Docker integration is enabled, run build/test in Docker
+            if hasattr(self, 'docker_enable_checkbox') and self.docker_enable_checkbox.isChecked():
+                print("[DEBUG] Docker enabled in handle_scan_complete")
+                context_dir = os.getcwd()
+                dockerfile_path = self.dockerfile_path_edit.text().strip() or None
+                build_args = self.build_args_edit.text().strip()
+                run_opts = self.run_opts_edit.text().strip()
+                self.log_message("Running build/test in Docker container...")
+                print("[DEBUG] About to call run_build_and_test_in_docker in handle_scan_complete")
+                docker_result = run_build_and_test_in_docker(
+                    context_dir=context_dir,
+                    dockerfile_path=dockerfile_path,
+                    build_args=build_args,
+                    run_opts=run_opts,
+                    test_command="python run_tests.py"
+                )
+                print("[DEBUG] run_build_and_test_in_docker returned in handle_scan_complete")
+                if docker_result.get("success"):
+                    QMessageBox.information(self, "Docker Build/Test Success", f"Stage: {docker_result.get('stage')}\nOutput:\n{docker_result.get('output')}")
+                    self.log_message(f"Docker build/test succeeded: {docker_result.get('output')}")
+                else:
+                    QMessageBox.critical(self, "Docker Build/Test Failed", f"Stage: {docker_result.get('stage', 'unknown')}\nError:\n{docker_result.get('output', docker_result.get('error', 'Unknown error'))}")
+                    self.log_message(f"Docker build/test failed: {docker_result.get('output', docker_result.get('error', 'Unknown error'))}")
+            else:
+                self.log_message("Docker integration not enabled. Skipping containerized build/test.")
         else:
             self.scan_results_text.setText("Scan completed but no issues were found.")
             self.log_message("Scan completed - no issues found")
@@ -798,3 +918,47 @@ class AICoderAssistant(QMainWindow):
             QApplication.processEvents()
             if current >= total:
                 self.progress_dialog.setValue(total)
+
+    def update_docker_status(self):
+        if is_docker_available():
+            self.docker_status_label.setText("Docker detected ✔️")
+            self.docker_enable_checkbox.setEnabled(True)
+        else:
+            self.docker_status_label.setText("Docker not found ✖️")
+            self.docker_enable_checkbox.setEnabled(False)
+            self.docker_enable_checkbox.setChecked(False)
+
+    def on_docker_checkbox_changed(self, state):
+        if state == Qt.CheckState.Checked.value:
+            self.log_message("Docker integration enabled.")
+        else:
+            self.log_message("Docker integration disabled.")
+
+    def browse_dockerfile(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Dockerfile", "", "Dockerfile (*)")
+        if file_path:
+            self.dockerfile_path_edit.setText(file_path)
+
+    def on_test_docker_btn_clicked(self):
+        print("[DEBUG] Entered on_test_docker_btn_clicked")
+        # Gather settings from GUI
+        context_dir = os.getcwd()
+        dockerfile_path = self.dockerfile_path_edit.text().strip() or None
+        build_args = self.build_args_edit.text().strip()
+        run_opts = self.run_opts_edit.text().strip()
+        print(f"[DEBUG] context_dir={context_dir}, dockerfile_path={dockerfile_path}, build_args={build_args}, run_opts={run_opts}")
+        # Call backend logic
+        print("[DEBUG] About to call run_build_and_test_in_docker")
+        result = run_build_and_test_in_docker(
+            context_dir=context_dir,
+            dockerfile_path=dockerfile_path,
+            build_args=build_args,
+            run_opts=run_opts,
+            test_command="python run_tests.py"
+        )
+        print("[DEBUG] run_build_and_test_in_docker returned")
+        # Show result to user
+        if result.get("success"):
+            QMessageBox.information(self, "Docker Build/Test Success", f"Stage: {result.get('stage')}\nOutput:\n{result.get('output')}")
+        else:
+            QMessageBox.critical(self, "Docker Build/Test Failed", f"Stage: {result.get('stage', 'unknown')}\nError:\n{result.get('output', result.get('error', 'Unknown error'))}")

@@ -21,9 +21,10 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, 
                              QPushButton, QDialogButtonBox, QWidget)
 from PyQt6.QtGui import QFont
-from ...backend.utils.constants import (
+from backend.utils.constants import (
     DIALOG_DEFAULT_X, DIALOG_DEFAULT_Y, DIALOG_DEFAULT_WIDTH, DIALOG_DEFAULT_HEIGHT,
-    CONTEXT_TEXT_MAX_HEIGHT, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR, DEFAULT_BORDER_COLOR
+    CONTEXT_TEXT_MAX_HEIGHT, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR, DEFAULT_BORDER_COLOR,
+    PROGRESS_MAX, PROGRESS_MIN, PROGRESS_COMPLETE, DEFAULT_FONT_WEIGHT, DEFAULT_TEXT_COLOR
 )
 
 class SuggestionDialog(QDialog):

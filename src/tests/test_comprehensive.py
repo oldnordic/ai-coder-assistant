@@ -34,7 +34,7 @@ except ImportError:
     QApplication = None
 
 # Import constants for testing
-from src.utils.constants import (
+from backend.utils.constants import (
     PROGRESS_DIALOG_MAX_VALUE, PROGRESS_DIALOG_MIN_VALUE,
     WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
     WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, LOG_CONSOLE_MAX_HEIGHT,
@@ -55,7 +55,7 @@ class TestComprehensiveImports(unittest.TestCase):
     def test_backend_services_imports(self):
         """Test that all backend services can be imported."""
         try:
-            from src.backend.services import (
+            from backend.services import (
                 ai_tools, scanner, acquire, preprocess, trainer,
                 intelligent_analyzer, llm_manager, ollama_client,
                 providers, studio_ui
@@ -67,7 +67,7 @@ class TestComprehensiveImports(unittest.TestCase):
     def test_frontend_ui_imports(self):
         """Test that all frontend UI modules can be imported."""
         try:
-            from src.frontend.ui import (
+            from frontend.ui import (
                 main_window, ai_tab_widgets, data_tab_widgets,
                 browser_tab, ollama_export_tab, pr_tab_widgets,
                 suggestion_dialog, markdown_viewer, worker_threads
@@ -79,8 +79,8 @@ class TestComprehensiveImports(unittest.TestCase):
     def test_utils_imports(self):
         """Test that all utility modules can be imported."""
         try:
-            from src.utils import constants
-            from src.backend.utils import settings
+            from utils import constants
+            from backend.utils import settings
             self.assertTrue(True, "All utility modules imported successfully")
         except ImportError as e:
             self.fail(f"Failed to import utility modules: {e}")
@@ -96,7 +96,7 @@ class TestConstants(unittest.TestCase):
         self.assertEqual(WINDOW_DEFAULT_HEIGHT, 800)
         self.assertEqual(WINDOW_DEFAULT_X, 100)
         self.assertEqual(WINDOW_DEFAULT_Y, 100)
-        self.assertEqual(LOG_CONSOLE_MAX_HEIGHT, 200)
+        self.assertEqual(LOG_CONSOLE_MAX_HEIGHT, 150)
     
     def test_progress_constants(self):
         """Test progress constants are properly defined."""
@@ -109,7 +109,7 @@ class TestConstants(unittest.TestCase):
     def test_file_size_constants(self):
         """Test file size constants are properly defined."""
         self.assertEqual(MAX_FILE_SIZE_KB, 512)
-        self.assertEqual(MAX_FILENAME_LENGTH, 255)
+        self.assertEqual(MAX_FILENAME_LENGTH, 100)
         self.assertEqual(MAX_DESCRIPTION_LENGTH, 150)
         self.assertEqual(MAX_ERROR_MESSAGE_LENGTH, 100)
     
@@ -118,14 +118,14 @@ class TestConstants(unittest.TestCase):
         self.assertEqual(HTTP_TIMEOUT_SHORT, 10)
         self.assertEqual(HTTP_TIMEOUT_LONG, 30)
         self.assertEqual(OLLAMA_BASE_URL, "http://localhost:11434")
-        self.assertEqual(CACHE_EXPIRY_SECONDS, 3600)
+        self.assertEqual(CACHE_EXPIRY_SECONDS, 604800)
     
     def test_web_scraping_constants(self):
         """Test web scraping constants are properly defined."""
-        self.assertEqual(DEFAULT_MAX_PAGES, 15)
-        self.assertEqual(DEFAULT_MAX_DEPTH, 4)
-        self.assertEqual(DEFAULT_LINKS_PER_PAGE, 50)
-        self.assertEqual(DEFAULT_MAX_WORKERS, 6)
+        self.assertEqual(DEFAULT_MAX_PAGES, 100)
+        self.assertEqual(DEFAULT_MAX_DEPTH, 5)
+        self.assertEqual(DEFAULT_LINKS_PER_PAGE, 20)
+        self.assertEqual(DEFAULT_MAX_WORKERS, 4)
 
 class TestWebScrapingFunctionality(unittest.TestCase):
     """Test web scraping functionality with proper mocking."""
@@ -141,17 +141,17 @@ class TestWebScrapingFunctionality(unittest.TestCase):
     
     def test_crawl_docs_returns_summary_dict(self):
         """Test that crawl_docs returns a proper summary dictionary."""
-        from src.backend.services.acquire import crawl_docs
+        from backend.services.acquire import crawl_docs
         
         urls = ["https://example1.com", "https://example2.com"]
         
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
+        with patch('backend.services.acquire.browse_web_tool') as mock_browse:
             mock_browse.return_value = "Test content"
             
             result = crawl_docs(urls, self.temp_dir)
         
         self.assertIsInstance(result, dict)
-        self.assertIn('success_count', result)
+        self.assertIn('success_count', result)  # type: ignore
         self.assertIn('total', result)
         self.assertIn('files', result)
         self.assertIn('urls', result)
@@ -160,11 +160,11 @@ class TestWebScrapingFunctionality(unittest.TestCase):
     
     def test_crawl_docs_links_per_page_parameter(self):
         """Test that links_per_page parameter is properly handled."""
-        from src.backend.services.acquire import crawl_docs
+        from backend.services.acquire import crawl_docs
         
         urls = ["https://example.com"]
         
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
+        with patch('backend.services.acquire.browse_web_tool') as mock_browse:
             mock_browse.return_value = "Test content"
             
             result = crawl_docs(urls, self.temp_dir, links_per_page=7)
@@ -174,7 +174,7 @@ class TestWebScrapingFunctionality(unittest.TestCase):
     
     def test_crawl_docs_empty_urls(self):
         """Test that crawl_docs handles empty URL lists gracefully."""
-        from src.backend.services.acquire import crawl_docs
+        from backend.services.acquire import crawl_docs
         
         urls = []
         result = crawl_docs(urls, self.temp_dir)
@@ -187,11 +187,11 @@ class TestWebScrapingFunctionality(unittest.TestCase):
     
     def test_crawl_docs_error_handling(self):
         """Test that crawl_docs handles errors gracefully."""
-        from src.backend.services.acquire import crawl_docs
+        from backend.services.acquire import crawl_docs
         
         urls = ["https://error1.com", "https://error2.com"]
         
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
+        with patch('backend.services.acquire.browse_web_tool') as mock_browse:
             mock_browse.return_value = "Error: Connection failed"
             
             result = crawl_docs(urls, self.temp_dir)
@@ -216,7 +216,7 @@ class TestScannerFunctionality(unittest.TestCase):
     
     def test_scan_code_basic_functionality(self):
         """Test basic scanner functionality."""
-        from src.backend.services.scanner import scan_code
+        from backend.services.scanner import scan_code
         
         # Create a test Python file
         test_file = os.path.join(self.temp_dir, "test.py")
@@ -233,16 +233,18 @@ class TestScannerFunctionality(unittest.TestCase):
             'tokenizer_ref': None
         }
         
-        with patch('src.backend.services.scanner.run_linter') as mock_linter:
+        model_ref = MagicMock()
+        tokenizer_ref = MagicMock()
+        with patch('backend.services.scanner.run_linter') as mock_linter:
             mock_linter.return_value = ([], True)
             
-            result = scan_code(self.temp_dir, scan_config)
+            result = scan_code(self.temp_dir, scan_config, model_ref, tokenizer_ref)
         
-        self.assertIsInstance(result, list)
+        self.assertIsInstance(result, list)  # type: ignore
     
     def test_scanner_file_size_limits(self):
         """Test that scanner respects file size limits."""
-        from src.backend.services.scanner import scan_code
+        from backend.services.scanner import scan_code
         
         # Create a large test file
         test_file = os.path.join(self.temp_dir, "large_test.py")
@@ -260,20 +262,22 @@ class TestScannerFunctionality(unittest.TestCase):
             'tokenizer_ref': None
         }
         
-        with patch('src.backend.services.scanner.run_linter') as mock_linter:
+        model_ref = MagicMock()
+        tokenizer_ref = MagicMock()
+        with patch('backend.services.scanner.run_linter') as mock_linter:
             mock_linter.return_value = ([], True)
             
-            result = scan_code(self.temp_dir, scan_config)
+            result = scan_code(self.temp_dir, scan_config, model_ref, tokenizer_ref)
         
         # Should skip the large file
-        self.assertIsInstance(result, list)
+        self.assertIsInstance(result, list)  # type: ignore
 
 class TestAIToolsFunctionality(unittest.TestCase):
     """Test AI tools functionality with proper mocking."""
     
     def test_ai_tools_import(self):
         """Test that AI tools can be imported and basic functions exist."""
-        from src.backend.services import ai_tools
+        from backend.services import ai_tools
         
         # Check that key functions exist
         self.assertTrue(hasattr(ai_tools, 'generate_report_and_training_data'))
@@ -283,9 +287,9 @@ class TestAIToolsFunctionality(unittest.TestCase):
     
     def test_ai_tools_constants_usage(self):
         """Test that AI tools use constants instead of magic numbers."""
-        from src.backend.services.ai_tools import browse_web_tool
+        from backend.services.ai_tools import browse_web_tool
         
-        with patch('src.backend.services.ai_tools.requests.get') as mock_get:
+        with patch('backend.services.ai_tools.requests.get') as mock_get:
             mock_get.return_value.content = b"<html><body>Test content</body></html>"
             mock_get.return_value.status_code = 200
             
@@ -301,14 +305,14 @@ class TestMainWindowFunctionality(unittest.TestCase):
     def test_main_window_import(self):
         """Test that main window can be imported."""
         try:
-            from src.frontend.ui.main_window import AICoderAssistant
+            from frontend.ui.main_window import AICoderAssistant
             self.assertTrue(True, "Main window imported successfully")
         except ImportError as e:
             self.fail(f"Failed to import main window: {e}")
     
     def test_main_window_constants_usage(self):
         """Test that main window uses constants instead of magic numbers."""
-        from src.frontend.ui.main_window import AICoderAssistant
+        from frontend.ui.main_window import AICoderAssistant
         
         # Test that the constants are used in the main window
         app = QApplication.instance()

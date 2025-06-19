@@ -1,0 +1,148 @@
+{
+  "studio_settings": {
+    "default_model": "gpt-3.5-turbo",
+    "default_temperature": 0.7,
+    "default_max_tokens": 2048,
+    "default_system_prompt": "You are a helpful AI coding assistant. Provide clear, concise, and accurate responses to coding questions and tasks.",
+    "auto_save_interval": 30,
+    "max_conversation_history": 50,
+    "enable_code_highlighting": true,
+    "enable_auto_completion": true,
+    "theme": "dark",
+    "font_size": 14,
+    "font_family": "Consolas, 'Courier New', monospace"
+  },
+  "model_configurations": {
+    "gpt-3.5-turbo": {
+      "provider": "openai",
+      "max_tokens": 4096,
+      "temperature_range": [0.0, 2.0],
+      "supported_features": ["chat", "code_generation", "analysis"],
+      "cost_per_1k_tokens": 0.002
+    },
+    "gpt-4": {
+      "provider": "openai",
+      "max_tokens": 8192,
+      "temperature_range": [0.0, 2.0],
+      "supported_features": ["chat", "code_generation", "analysis", "reasoning"],
+      "cost_per_1k_tokens": 0.03
+    },
+    "claude-3-sonnet": {
+      "provider": "anthropic",
+      "max_tokens": 4096,
+      "temperature_range": [0.0, 1.0],
+      "supported_features": ["chat", "code_generation", "analysis"],
+      "cost_per_1k_tokens": 0.015
+    },
+    "claude-3-opus": {
+      "provider": "anthropic",
+      "max_tokens": 4096,
+      "temperature_range": [0.0, 1.0],
+      "supported_features": ["chat", "code_generation", "analysis", "reasoning"],
+      "cost_per_1k_tokens": 0.075
+    },
+    "gemini-pro": {
+      "provider": "google",
+      "max_tokens": 8192,
+      "temperature_range": [0.0, 2.0],
+      "supported_features": ["chat", "code_generation", "analysis"],
+      "cost_per_1k_tokens": 0.00125
+    },
+    "llama3:latest": {
+      "provider": "ollama",
+      "max_tokens": 4096,
+      "temperature_range": [0.0, 2.0],
+      "supported_features": ["chat", "code_generation"],
+      "cost_per_1k_tokens": 0.0
+    }
+  },
+  "prompt_templates": {
+    "code_review": {
+      "name": "Code Review",
+      "system_prompt": "You are an expert code reviewer. Analyze the provided code for:\n1. Code quality and best practices\n2. Potential bugs and issues\n3. Security vulnerabilities\n4. Performance optimizations\n5. Maintainability concerns\n\nProvide specific, actionable feedback with examples.",
+      "user_prompt_template": "Please review the following code:\n\n```{language}\n{code}\n```\n\nFocus on: {focus_areas}"
+    },
+    "bug_fix": {
+      "name": "Bug Fix Assistant",
+      "system_prompt": "You are a debugging expert. Help identify and fix bugs in the provided code. Provide clear explanations of the issue and the solution.",
+      "user_prompt_template": "I'm experiencing this issue:\n\n{error_description}\n\nHere's the relevant code:\n\n```{language}\n{code}\n```\n\nPlease help me fix this bug."
+    },
+    "code_optimization": {
+      "name": "Code Optimization",
+      "system_prompt": "You are a performance optimization expert. Analyze code for performance bottlenecks and suggest improvements.",
+      "user_prompt_template": "Please optimize this code for better performance:\n\n```{language}\n{code}\n```\n\nFocus on: {optimization_goals}"
+    },
+    "documentation": {
+      "name": "Documentation Generator",
+      "system_prompt": "You are a technical writer. Generate clear, comprehensive documentation for the provided code.",
+      "user_prompt_template": "Please generate documentation for this code:\n\n```{language}\n{code}\n```\n\nInclude: {doc_requirements}"
+    },
+    "testing": {
+      "name": "Test Generator",
+      "system_prompt": "You are a testing expert. Generate comprehensive test cases for the provided code.",
+      "user_prompt_template": "Please generate tests for this code:\n\n```{language}\n{code}\n```\n\nTest framework: {test_framework}\nCoverage requirements: {coverage_requirements}"
+    }
+  },
+  "conversation_presets": {
+    "python_development": {
+      "name": "Python Development",
+      "system_prompt": "You are a Python development expert. Help with Python programming, best practices, and common libraries.",
+      "model": "gpt-4",
+      "temperature": 0.3
+    },
+    "web_development": {
+      "name": "Web Development",
+      "system_prompt": "You are a web development expert. Help with HTML, CSS, JavaScript, and modern web frameworks.",
+      "model": "gpt-4",
+      "temperature": 0.3
+    },
+    "data_science": {
+      "name": "Data Science",
+      "system_prompt": "You are a data science expert. Help with data analysis, machine learning, and statistical programming.",
+      "model": "gpt-4",
+      "temperature": 0.2
+    },
+    "devops": {
+      "name": "DevOps",
+      "system_prompt": "You are a DevOps expert. Help with infrastructure, CI/CD, containerization, and cloud services.",
+      "model": "gpt-4",
+      "temperature": 0.3
+    },
+    "creative_coding": {
+      "name": "Creative Coding",
+      "system_prompt": "You are a creative coding expert. Help with generative art, interactive experiences, and experimental programming.",
+      "model": "gpt-4",
+      "temperature": 0.8
+    }
+  },
+  "sample_conversations": [
+    {
+      "title": "Code Review Example",
+      "model": "gpt-4",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can you review this Python function for potential issues?\n\n```python\ndef calculate_average(numbers):\n    total = 0\n    for num in numbers:\n        total += num\n    return total / len(numbers)\n```"
+        },
+        {
+          "role": "assistant",
+          "content": "Here's my review of your `calculate_average` function:\n\n**Issues Found:**\n\n1. **Division by Zero**: The function will crash if `numbers` is an empty list\n2. **Type Safety**: No validation that `numbers` contains numeric values\n3. **Performance**: Could use built-in `sum()` function for better performance\n\n**Improved Version:**\n```python\ndef calculate_average(numbers):\n    if not numbers:\n        raise ValueError(\"Cannot calculate average of empty list\")\n    \n    if not all(isinstance(num, (int, float)) for num in numbers):\n        raise TypeError(\"All elements must be numbers\")\n    \n    return sum(numbers) / len(numbers)\n```\n\n**Key Improvements:**\n- Added empty list check\n- Added type validation\n- Used `sum()` for better performance\n- Added proper error messages"
+        }
+      ]
+    },
+    {
+      "title": "Bug Fix Example",
+      "model": "gpt-4",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I'm getting a 'KeyError' when trying to access a dictionary key. Here's my code:\n\n```python\nuser_data = {\"name\": \"John\", \"age\": 30}\nprint(user_data[\"email\"])\n```"
+        },
+        {
+          "role": "assistant",
+          "content": "The issue is that you're trying to access a key `\"email\"` that doesn't exist in the dictionary. Here are several ways to fix this:\n\n**Option 1: Use `.get()` method (Recommended)**\n```python\nuser_data = {\"name\": \"John\", \"age\": 30}\nemail = user_data.get(\"email\", \"No email provided\")\nprint(email)\n```\n\n**Option 2: Check if key exists first**\n```python\nuser_data = {\"name\": \"John\", \"age\": 30}\nif \"email\" in user_data:\n    print(user_data[\"email\"])\nelse:\n    print(\"No email provided\")\n```\n\n**Option 3: Use try-except**\n```python\nuser_data = {\"name\": \"John\", \"age\": 30}\ntry:\n    print(user_data[\"email\"])\nexcept KeyError:\n    print(\"No email provided\")\n```\n\nThe `.get()` method is usually the cleanest approach as it provides a default value when the key doesn't exist."
+        }
+      ]
+    }
+  ]
+} 

@@ -22,7 +22,7 @@ from PyQt6.QtCore import QObject, QThread, pyqtSignal, QMetaObject, Qt
 import traceback
 import gc
 
-from ...backend.utils.constants import WORKER_WAIT_TIME, WAIT_TIMEOUT_SHORT_MS
+from backend.utils.constants import WORKER_WAIT_TIME, WAIT_TIMEOUT_SHORT_MS
 
 class WorkerSignals(QObject):
     """Defines the signals available from a running worker thread."""

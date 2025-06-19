@@ -24,12 +24,14 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont, QTextCursor, QTextCharFormat, QColor
 import re
 import os
-from ...backend.utils.constants import (
+from backend.utils.constants import (
     WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
     DIALOG_DEFAULT_WIDTH, DIALOG_DEFAULT_HEIGHT, 
-    LOG_CONSOLE_MAX_HEIGHT, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR, DEFAULT_BORDER_COLOR
+    LOG_CONSOLE_MAX_HEIGHT, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR, DEFAULT_BORDER_COLOR,
+    MARKDOWN_VIEWER_WIDTH, MARKDOWN_VIEWER_HEIGHT, MARKDOWN_VIEWER_FONT_SIZE,
+    MARKDOWN_VIEWER_FONT_FAMILY, MARKDOWN_VIEWER_BG_COLOR, MARKDOWN_VIEWER_FG_COLOR
 )
-from ...utils.constants import DEFAULT_FONT_WEIGHT, DEFAULT_TEXT_COLOR
+from backend.utils.constants import DEFAULT_FONT_WEIGHT, DEFAULT_TEXT_COLOR
 
 class MarkdownRenderer:
     """Simple markdown to HTML renderer for the viewer."""
@@ -72,58 +74,58 @@ class MarkdownRenderer:
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', sans-serif; 
                     line-height: 1.7; 
                     margin: 20px; 
-                    background-color: #ffffff; 
-                    color: #2c3e50;
+                    background-color: #2F2F2F; 
+                    color: #CCCCCC;
                     font-size: 14px;
                 }}
                 h1 {{ 
-                    color: #1a252f; 
-                    border-bottom: 3px solid #3498db; 
+                    color: #CCCCCC; 
+                    border-bottom: 3px solid #007bff; 
                     padding-bottom: 10px; 
                     font-size: 28px;
                     margin-top: 30px;
                     margin-bottom: 20px;
                 }}
                 h2 {{ 
-                    color: #2c3e50; 
-                    border-bottom: 2px solid #bdc3c7; 
+                    color: #CCCCCC; 
+                    border-bottom: 2px solid #444444; 
                     padding-bottom: 8px; 
                     font-size: 24px;
                     margin-top: 25px;
                     margin-bottom: 15px;
                 }}
                 h3 {{ 
-                    color: #34495e; 
+                    color: #CCCCCC; 
                     font-size: 20px;
                     margin-top: 20px;
                     margin-bottom: 10px;
                 }}
                 p {{
                     margin-bottom: 15px;
-                    color: #2c3e50;
+                    color: #CCCCCC;
                 }}
                 code {{ 
-                    background-color: #f8f9fa; 
-                    color: #e74c3c;
+                    background-color: #1F1F1F; 
+                    color: #FF6B6B;
                     padding: 3px 6px; 
                     border-radius: 4px; 
                     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                     font-size: 13px;
-                    border: 1px solid #e9ecef;
+                    border: 1px solid #444444;
                 }}
                 pre {{ 
-                    background-color: #2c3e50; 
-                    color: #ecf0f1; 
+                    background-color: #1F1F1F; 
+                    color: #CCCCCC; 
                     padding: 20px; 
                     border-radius: 8px; 
                     overflow-x: auto;
-                    border: 1px solid #34495e;
+                    border: 1px solid #444444;
                     margin: 15px 0;
                 }}
                 pre code {{ 
                     background-color: transparent; 
                     padding: 0; 
-                    color: #ecf0f1;
+                    color: #CCCCCC;
                     border: none;
                 }}
                 ul {{ 
@@ -132,77 +134,77 @@ class MarkdownRenderer:
                 }}
                 li {{ 
                     margin-bottom: 8px; 
-                    color: #2c3e50;
+                    color: #CCCCCC;
                 }}
                 a {{ 
-                    color: #2980b9; 
+                    color: #4ECDC4; 
                     text-decoration: none; 
                     font-weight: {DEFAULT_FONT_WEIGHT};
                 }}
                 a:hover {{ 
                     text-decoration: underline; 
-                    color: #3498db;
+                    color: #007bff;
                 }}
                 .issue-section {{ 
-                    background-color: #f8f9fa; 
+                    background-color: #1F1F1F; 
                     padding: 20px; 
                     margin: 15px 0; 
                     border-radius: 8px; 
-                    border-left: 5px solid #3498db;
-                    border: 1px solid #e9ecef;
+                    border-left: 5px solid #007bff;
+                    border: 1px solid #444444;
                 }}
                 .critical {{ 
-                    border-left-color: #e74c3c; 
-                    background-color: #fdf2f2;
+                    border-left-color: #FF6B6B; 
+                    background-color: #2F1F1F;
                 }}
                 .high {{ 
-                    border-left-color: #f39c12; 
-                    background-color: #fef9e7;
+                    border-left-color: #FFA500; 
+                    background-color: #2F2F1F;
                 }}
                 .medium {{ 
-                    border-left-color: #f1c40f; 
-                    background-color: #fefce8;
+                    border-left-color: #FFD700; 
+                    background-color: #2F2F1F;
                 }}
                 .low {{ 
-                    border-left-color: #27ae60; 
-                    background-color: #f0f9f4;
+                    border-left-color: #4ECDC4; 
+                    background-color: #1F2F1F;
                 }}
                 .summary {{
-                    background-color: #e8f4fd;
+                    background-color: #1F1F2F;
                     padding: 15px;
                     border-radius: 6px;
-                    border: 1px solid #bee5eb;
+                    border: 1px solid #444444;
                     margin: 15px 0;
                 }}
                 .recommendation {{
-                    background-color: #fff3cd;
+                    background-color: #2F2F1F;
                     padding: 15px;
                     border-radius: 6px;
-                    border: 1px solid #ffeaa7;
+                    border: 1px solid #444444;
                     margin: 15px 0;
                 }}
                 .file-path {{
                     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                    background-color: #f8f9fa;
+                    background-color: #1F1F1F;
                     padding: 4px 8px;
                     border-radius: 4px;
-                    color: #{DEFAULT_TEXT_COLOR};
+                    color: #CCCCCC;
                     font-size: 12px;
                 }}
                 .severity-high {{
-                    color: #e74c3c;
+                    color: #FF6B6B;
                     font-weight: bold;
                 }}
                 .severity-medium {{
-                    color: #f39c12;
+                    color: #FFA500;
                     font-weight: bold;
                 }}
                 .severity-low {{
-                    color: #27ae60;
+                    color: #4ECDC4;
                     font-weight: bold;
                 }}
                 .severity-critical {{
-                    color: #c0392b;
+                    color: #FF4757;
                     font-weight: bold;
                 }}
             </style>
@@ -269,13 +271,13 @@ class MarkdownViewerDialog(QDialog):
         self.content_browser.setFont(QFont("Segoe UI", 12))  # Larger, more readable font
         self.content_browser.setStyleSheet("""
             QTextBrowser {
-                background-color: #ffffff;
-                color: #2c3e50;
-                border: 1px solid #e9ecef;
+                background-color: #2F2F2F;
+                color: #CCCCCC;
+                border: 1px solid #444444;
                 border-radius: 6px;
                 padding: 10px;
-                selection-background-color: #3498db;
-                selection-color: #ffffff;
+                selection-background-color: #007bff;
+                selection-color: #CCCCCC;
             }
         """)
         

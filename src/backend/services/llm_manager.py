@@ -33,6 +33,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 from .models import ProviderType, ModelType, ModelConfig, ProviderConfig, LLMModel, ChatMessage, ChatCompletionRequest, ChatCompletionResponse, ModelUsage, LLMStudioConfig
 from .providers import OpenAIProvider, GoogleGeminiProvider, ClaudeProvider, OllamaProvider
+from .pr_automation import PRAutomationService, ServiceConfig, PRTemplate, PRRequest, PRResult
+from .security_intelligence import SecurityIntelligenceService, SecurityVulnerability, SecurityBreach, SecurityPatch, SecurityFeed
+from .code_standards import CodeStandardsService, CodeStandard, CodeRule, CodeAnalysisResult, Language, Severity
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +52,22 @@ class LLMManager:
         self.providers: Dict[ProviderType, Any] = {}
         self.models: Dict[str, LLMModel] = {}
         self.usage_stats: Dict[str, ModelUsage] = {}
+        self.ollama_instances: Dict[str, OllamaProvider] = {}  # instance_name -> OllamaProvider
+        self.pr_automation = PRAutomationService()  # PR automation service
+        
+        # Initialize security intelligence with correct config path
+        security_config_path = Path(self.config_path).parent / "security_intelligence_config.json"
+        self.security_intelligence = SecurityIntelligenceService(str(security_config_path))
+        
+        # Initialize code standards with correct config path
+        code_standards_config_path = Path(self.config_path).parent / "code_standards_config.json"
+        self.code_standards = CodeStandardsService(str(code_standards_config_path))
+        
         self._lock = threading.Lock()
         self._executor = ThreadPoolExecutor(max_workers=5)
         
         self._initialize_providers()
+        self._initialize_ollama_instances()
         self._initialize_models()
     
     def _load_config(self) -> LLMStudioConfig:
@@ -133,7 +148,8 @@ class LLMManager:
                     'cost_tracking': self.config.cost_tracking,
                     'auto_switch_on_error': self.config.auto_switch_on_error,
                     'providers': {},
-                    'models': {}
+                    'models': {},
+                    'ollama_instances': [c.__dict__ for c in self.config.ollama_instances],
                 }
                 
                 # Convert providers
@@ -174,6 +190,19 @@ class LLMManager:
                 
             except Exception as e:
                 logger.error(f"Failed to initialize {provider_type.value} provider: {e}")
+    
+    def _initialize_ollama_instances(self):
+        """Initialize all Ollama instances from config."""
+        self.ollama_instances = {}
+        for config in getattr(self.config, 'ollama_instances', []):
+            if not config.is_enabled:
+                continue
+            try:
+                provider = OllamaProvider(config)
+                self.ollama_instances[config.instance_name or config.base_url] = provider
+                logger.info(f"Initialized Ollama instance: {config.instance_name or config.base_url}")
+            except Exception as e:
+                logger.error(f"Failed to initialize Ollama instance {config.instance_name or config.base_url}: {e}")
     
     def _initialize_models(self):
         """Initialize models from configuration."""
@@ -477,4 +506,175 @@ class LLMManager:
             
         except Exception as e:
             logger.error(f"Error importing config: {e}")
-            raise 
+            raise
+
+    def add_ollama_instance(self, config: ProviderConfig):
+        """Add a new Ollama instance."""
+        self.config.ollama_instances.append(config)
+        self._initialize_ollama_instances()
+        self._save_config()
+
+    def remove_ollama_instance(self, instance_name: str):
+        """Remove an Ollama instance by name."""
+        self.config.ollama_instances = [c for c in self.config.ollama_instances if c.instance_name != instance_name]
+        self._initialize_ollama_instances()
+        self._save_config()
+
+    def list_ollama_instances(self) -> List[ProviderConfig]:
+        """List all Ollama instance configs."""
+        return self.config.ollama_instances
+
+    def get_ollama_models(self, instance_name: str) -> List[ModelConfig]:
+        """List models for a specific Ollama instance."""
+        provider = self.ollama_instances.get(instance_name)
+        if not provider:
+            raise Exception(f"Ollama instance '{instance_name}' not found")
+        return asyncio.run(provider.list_models())
+
+    def health_check_ollama(self, instance_name: str) -> bool:
+        """Health check for a specific Ollama instance."""
+        provider = self.ollama_instances.get(instance_name)
+        if not provider:
+            raise Exception(f"Ollama instance '{instance_name}' not found")
+        return asyncio.run(provider.health_check())
+
+    # PR Automation Methods
+    
+    async def create_pr(self, request: PRRequest, repo_path: str) -> PRResult:
+        """Create a PR with optional ticket creation."""
+        return await self.pr_automation.create_pr(request, repo_path)
+    
+    def add_service_config(self, config: ServiceConfig):
+        """Add a new service configuration (JIRA/ServiceNow)."""
+        self.pr_automation.add_service(config)
+    
+    def remove_service_config(self, service_name: str):
+        """Remove a service configuration."""
+        self.pr_automation.remove_service(service_name)
+    
+    def list_service_configs(self) -> List[ServiceConfig]:
+        """List all service configurations."""
+        return [service.config for service in self.pr_automation.services.values()]
+    
+    def add_pr_template(self, template: PRTemplate):
+        """Add a new PR template."""
+        self.pr_automation.add_template(template)
+    
+    def remove_pr_template(self, template_name: str):
+        """Remove a PR template."""
+        self.pr_automation.remove_template(template_name)
+    
+    def list_pr_templates(self) -> List[PRTemplate]:
+        """List all PR templates."""
+        return list(self.pr_automation.templates.values())
+    
+    def get_default_pr_template(self) -> Optional[PRTemplate]:
+        """Get the default PR template."""
+        return self.pr_automation.get_default_template()
+    
+    async def test_service_connection(self, service_name: str) -> bool:
+        """Test connection to a specific service."""
+        return await self.pr_automation.test_service_connection(service_name)
+    
+    def get_pr_automation_config(self) -> Dict[str, Any]:
+        """Get PR automation configuration."""
+        return {
+            "services": [service.config.__dict__ for service in self.pr_automation.services.values()],
+            "templates": [template.__dict__ for template in self.pr_automation.templates.values()]
+        }
+    
+    # Security Intelligence Methods
+    
+    async def fetch_security_feeds(self):
+        """Fetch security data from configured feeds."""
+        return await self.security_intelligence.fetch_security_feeds()
+    
+    def get_security_vulnerabilities(self, severity: Optional[str] = None, limit: int = 100) -> List[SecurityVulnerability]:
+        """Get security vulnerabilities with optional filtering."""
+        return self.security_intelligence.get_vulnerabilities(severity, limit)
+    
+    def get_security_breaches(self, limit: int = 100) -> List[SecurityBreach]:
+        """Get security breaches."""
+        return self.security_intelligence.get_breaches(limit)
+    
+    def get_security_patches(self, limit: int = 100) -> List[SecurityPatch]:
+        """Get security patches."""
+        return self.security_intelligence.get_patches(limit)
+    
+    def get_security_training_data(self, limit: int = 1000) -> List[Dict[str, Any]]:
+        """Get security training data for AI models."""
+        return self.security_intelligence.get_training_data(limit)
+    
+    def search_security_vulnerabilities(self, query: str) -> List[SecurityVulnerability]:
+        """Search security vulnerabilities by query."""
+        return self.security_intelligence.search_vulnerabilities(query)
+    
+    def add_security_feed(self, feed: SecurityFeed):
+        """Add a new security feed."""
+        self.security_intelligence.add_feed(feed)
+    
+    def remove_security_feed(self, feed_name: str):
+        """Remove a security feed."""
+        self.security_intelligence.remove_feed(feed_name)
+    
+    def get_security_feeds(self) -> List[SecurityFeed]:
+        """Get all configured security feeds."""
+        return self.security_intelligence.get_feeds()
+    
+    def mark_patch_applied(self, patch_id: str):
+        """Mark a security patch as applied."""
+        self.security_intelligence.mark_patch_applied(patch_id)
+    
+    def mark_vulnerability_patched(self, vuln_id: str):
+        """Mark a vulnerability as patched."""
+        self.security_intelligence.mark_vulnerability_patched(vuln_id)
+    
+    # Code Standards Methods
+    
+    def add_code_standard(self, standard: CodeStandard):
+        """Add a new code standard."""
+        self.code_standards.add_standard(standard)
+    
+    def remove_code_standard(self, standard_name: str):
+        """Remove a code standard."""
+        self.code_standards.remove_standard(standard_name)
+    
+    def get_code_standards(self) -> List[CodeStandard]:
+        """Get all code standards."""
+        return self.code_standards.get_standards()
+    
+    def get_current_code_standard(self) -> Optional[CodeStandard]:
+        """Get the current active code standard."""
+        return self.code_standards.get_current_standard()
+    
+    def set_current_code_standard(self, standard_name: str):
+        """Set the current active code standard."""
+        self.code_standards.set_current_standard(standard_name)
+    
+    def analyze_code_file(self, file_path: str) -> CodeAnalysisResult:
+        """Analyze a single file for code standard violations."""
+        return self.code_standards.analyze_file(file_path)
+    
+    def analyze_code_directory(self, directory_path: str) -> List[CodeAnalysisResult]:
+        """Analyze all files in a directory for code standard violations."""
+        return self.code_standards.analyze_directory(directory_path)
+    
+    def auto_fix_code_violations(self, violations: List[Any]) -> List[Any]:
+        """Automatically fix code violations where possible."""
+        return self.code_standards.auto_fix_violations(violations)
+    
+    def export_code_standard(self, standard_name: str, export_path: str):
+        """Export a code standard to a file."""
+        self.code_standards.export_standard(standard_name, export_path)
+    
+    def import_code_standard(self, import_path: str):
+        """Import a code standard from a file."""
+        self.code_standards.import_standard(import_path)
+    
+    def get_code_standards_config(self) -> Dict[str, Any]:
+        """Get code standards configuration."""
+        current_standard = self.get_current_code_standard()
+        return {
+            "standards": [standard.__dict__ for standard in self.get_code_standards()],
+            "current_standard": current_standard.name if current_standard else None
+        } 

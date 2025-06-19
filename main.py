@@ -31,9 +31,14 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+# --- Add the src directory to the Python path for src-layout ---
+src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "src")
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
+
 # --- Import necessary components from the new frontend/backend structure ---
-from src.frontend.ui.main_window import AICoderAssistant
-from src.backend.services.logging_config import setup_logging
+from frontend.ui.main_window import AICoderAssistant
+from backend.services.logging_config import setup_logging
 
 def signal_handler(signum, frame):
     """Handle shutdown signals gracefully."""

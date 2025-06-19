@@ -21,7 +21,7 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGroupBox,
                              QProgressBar, QFormLayout, QLineEdit, QComboBox, QTextEdit, QCheckBox)
 from PyQt6.QtCore import Qt
-from ...backend.utils import settings
+from backend.utils import settings
 
 def setup_ai_tab(parent_widget, main_app_instance):
     """

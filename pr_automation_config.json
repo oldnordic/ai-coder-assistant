@@ -1,0 +1,107 @@
+{
+  "services": [
+    {
+      "service_type": "jira",
+      "name": "Default JIRA",
+      "base_url": "https://your-company.atlassian.net",
+      "username": "your-email@company.com",
+      "api_token": "your-jira-api-token",
+      "project_key": "PROJ",
+      "is_enabled": false,
+      "metadata": {
+        "issue_types": ["Task", "Bug", "Story", "Epic"],
+        "custom_fields": {
+          "priority": "priority",
+          "component": "components"
+        }
+      }
+    },
+    {
+      "service_type": "servicenow",
+      "name": "Default ServiceNow",
+      "base_url": "https://your-company.service-now.com",
+      "username": "your-username",
+      "api_token": "your-servicenow-api-token",
+      "is_enabled": false,
+      "metadata": {
+        "table": "change_request",
+        "states": ["draft", "in_progress", "implemented", "closed"]
+      }
+    }
+  ],
+  "templates": [
+    {
+      "name": "Feature Development",
+      "title_template": "feat: {title}",
+      "body_template": "## Description\n\n{description}\n\n## Changes Made\n\n- [ ] Feature implementation\n- [ ] Unit tests added\n- [ ] Documentation updated\n\n## Related Issues\n\n- JIRA: {jira_ticket}\n- ServiceNow: {servicenow_ticket}\n\n## Testing\n\n- [ ] Manual testing completed\n- [ ] Automated tests passing\n- [ ] Code review completed\n\n## Checklist\n\n- [ ] Code follows project standards\n- [ ] No breaking changes introduced\n- [ ] Performance impact assessed\n- [ ] Security considerations reviewed",
+      "branch_prefix": "feature/",
+      "auto_assign": true,
+      "labels": ["feature", "enhancement"],
+      "reviewers": [],
+      "is_default": true
+    },
+    {
+      "name": "Bug Fix",
+      "title_template": "fix: {title}",
+      "body_template": "## Bug Description\n\n{description}\n\n## Root Cause\n\n[Describe the root cause of the issue]\n\n## Solution\n\n[Describe the solution implemented]\n\n## Related Issues\n\n- JIRA: {jira_ticket}\n- ServiceNow: {servicenow_ticket}\n\n## Testing\n\n- [ ] Bug reproduction verified\n- [ ] Fix tested and working\n- [ ] Regression testing completed\n- [ ] No new issues introduced\n\n## Checklist\n\n- [ ] Bug fix is minimal and focused\n- [ ] Tests added for the fix\n- [ ] Documentation updated if needed\n- [ ] Code review completed",
+      "branch_prefix": "fix/",
+      "auto_assign": true,
+      "labels": ["bug", "fix"],
+      "reviewers": [],
+      "is_default": false
+    },
+    {
+      "name": "Documentation Update",
+      "title_template": "docs: {title}",
+      "body_template": "## Documentation Update\n\n{description}\n\n## Changes Made\n\n- [ ] Documentation updated\n- [ ] Examples added/updated\n- [ ] Links verified\n\n## Related Issues\n\n- JIRA: {jira_ticket}\n- ServiceNow: {servicenow_ticket}\n\n## Review\n\n- [ ] Content accuracy verified\n- [ ] Grammar and spelling checked\n- [ ] Formatting consistent\n- [ ] Links working correctly",
+      "branch_prefix": "docs/",
+      "auto_assign": false,
+      "labels": ["documentation"],
+      "reviewers": [],
+      "is_default": false
+    },
+    {
+      "name": "Refactoring",
+      "title_template": "refactor: {title}",
+      "body_template": "## Refactoring Description\n\n{description}\n\n## Changes Made\n\n- [ ] Code refactored for better structure\n- [ ] Performance improvements\n- [ ] Code duplication reduced\n- [ ] Maintainability improved\n\n## Related Issues\n\n- JIRA: {jira_ticket}\n- ServiceNow: {servicenow_ticket}\n\n## Testing\n\n- [ ] All existing tests passing\n- [ ] New tests added if needed\n- [ ] Performance regression testing\n- [ ] Functionality verified\n\n## Checklist\n\n- [ ] No functional changes introduced\n- [ ] Code is more readable\n- [ ] Performance maintained or improved\n- [ ] Documentation updated if needed",
+      "branch_prefix": "refactor/",
+      "auto_assign": true,
+      "labels": ["refactoring"],
+      "reviewers": [],
+      "is_default": false
+    }
+  ],
+  "settings": {
+    "default_repo_path": "",
+    "auto_create_branch": true,
+    "auto_commit_changes": true,
+    "auto_push_branch": true,
+    "require_review": true,
+    "auto_merge": false,
+    "delete_branch_after_merge": true,
+    "commit_message_template": "{type}: {description}",
+    "branch_naming": "{prefix}{ticket}-{description}",
+    "max_title_length": 72,
+    "max_body_length": 1000
+  },
+  "sample_data": {
+    "recent_prs": [
+      {
+        "title": "feat: Add user authentication system",
+        "description": "Implemented comprehensive user authentication with JWT tokens, password hashing, and role-based access control.",
+        "branch": "feature/PROJ-123-user-auth",
+        "status": "open",
+        "jira_ticket": "PROJ-123",
+        "created_date": "2024-01-15T10:00:00Z"
+      },
+      {
+        "title": "fix: Resolve database connection timeout",
+        "description": "Fixed intermittent database connection timeout issues by implementing connection pooling and retry logic.",
+        "branch": "fix/PROJ-456-db-timeout",
+        "status": "merged",
+        "jira_ticket": "PROJ-456",
+        "created_date": "2024-01-10T14:30:00Z"
+      }
+    ]
+  }
+} 

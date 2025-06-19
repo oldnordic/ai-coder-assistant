@@ -80,6 +80,12 @@ class ProviderConfig:
     is_enabled: bool = True
     priority: int = 0
     metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    # Ollama-specific fields
+    verify_ssl: bool = True
+    custom_endpoints: Optional[Dict[str, str]] = None
+    auth_token: Optional[str] = None
+    instance_name: Optional[str] = None  # For multiple Ollama instances
 
 
 @dataclass
@@ -159,4 +165,5 @@ class LLMStudioConfig:
     enable_logging: bool = True
     enable_metrics: bool = True
     cost_tracking: bool = True
-    auto_switch_on_error: bool = True 
+    auto_switch_on_error: bool = True
+    ollama_instances: List[ProviderConfig] = field(default_factory=list) 

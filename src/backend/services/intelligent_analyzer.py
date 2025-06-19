@@ -23,7 +23,7 @@ import re
 import ast
 import json
 import hashlib
-from typing import List, Dict, Tuple, Optional, Any, Set
+from typing import List, Dict, Tuple, Optional, Any, Set, Iterable
 from dataclasses import dataclass
 from enum import Enum
 from collections import defaultdict, Counter
@@ -56,6 +56,7 @@ class CodeIssue:
     code_snippet: str = ""
     suggestion: str = ""
     context: Optional[Dict[str, Any]] = None
+    compliance_standards: Optional[List[str]] = None
     
     def __post_init__(self):
         """Initialize default values after dataclass creation."""
@@ -70,181 +71,6 @@ class CodePattern:
     severity: str
     confidence: float  # 0.0 to 1.0
     context: Optional[Dict[str, Any]] = None
-
-class SemanticAnalyzer:
-    """Advanced semantic analysis for understanding code meaning and relationships."""
-    
-    def __init__(self):
-        self.function_signatures = {}
-        self.variable_usage = defaultdict(list)
-        self.data_flows = defaultdict(list)
-        self.dependency_graph = nx.DiGraph()
-        
-    def analyze_semantics(self, file_path: str, content: str, language: str) -> List[CodeIssue]:
-        """Perform semantic analysis of code."""
-        issues = []
-        
-        if language == 'python':
-            issues.extend(self._analyze_python_semantics(file_path, content))
-        elif language in ['javascript', 'typescript']:
-            issues.extend(self._analyze_js_semantics(file_path, content))
-        
-        return issues
-    
-    def _analyze_python_semantics(self, file_path: str, content: str) -> List[CodeIssue]:
-        """Semantic analysis for Python code."""
-        issues = []
-        
-        try:
-            tree = ast.parse(content)
-            
-            # Analyze function calls and their arguments
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Call):
-                    issues.extend(self._analyze_function_call(node, file_path))
-                elif isinstance(node, ast.Assign):
-                    issues.extend(self._analyze_assignment(node, file_path))
-                elif isinstance(node, ast.Compare):
-                    issues.extend(self._analyze_comparison(node, file_path))
-                elif isinstance(node, ast.BoolOp):
-                    issues.extend(self._analyze_boolean_logic(node, file_path))
-        
-        except SyntaxError:
-            pass
-        
-        return issues
-    
-    def _analyze_function_call(self, node: ast.Call, file_path: str) -> List[CodeIssue]:
-        """Analyze function calls for semantic issues."""
-        issues = []
-        
-        # Check for suspicious function calls
-        if isinstance(node.func, ast.Name):
-            func_name = node.func.id
-            
-            # Security-sensitive functions
-            if func_name in ['eval', 'exec', 'input']:
-                issues.append(CodeIssue(
-                    file_path=file_path,
-                    line_number=node.lineno,
-                    issue_type=IssueType.SECURITY_VULNERABILITY,
-                    severity="high",
-                    description=f"Use of potentially dangerous function: {func_name}",
-                    code_snippet=ast.unparse(node),
-                    suggestion=f"Consider using safer alternatives to {func_name}."
-                ))
-            
-            # Performance-sensitive functions
-            if func_name in ['sleep']:
-                issues.append(CodeIssue(
-                    file_path=file_path,
-                    line_number=node.lineno,
-                    issue_type=IssueType.PERFORMANCE_ISSUE,
-                    severity="medium",
-                    description=f"Blocking call detected: {func_name}",
-                    code_snippet=ast.unparse(node),
-                    suggestion="Consider using async/await or non-blocking alternatives."
-                ))
-        
-        # Check for attribute calls (e.g., time.sleep)
-        elif isinstance(node.func, ast.Attribute):
-            if isinstance(node.func.value, ast.Name):
-                module_name = node.func.value.id
-                func_name = node.func.attr
-                
-                # Performance-sensitive functions
-                if module_name == 'time' and func_name == 'sleep':
-                    issues.append(CodeIssue(
-                        file_path=file_path,
-                        line_number=node.lineno,
-                        issue_type=IssueType.PERFORMANCE_ISSUE,
-                        severity="medium",
-                        description=f"Blocking call detected: {module_name}.{func_name}",
-                        code_snippet=ast.unparse(node),
-                        suggestion="Consider using async/await or non-blocking alternatives."
-                    ))
-        
-        return issues
-    
-    def _analyze_assignment(self, node: ast.Assign, file_path: str) -> List[CodeIssue]:
-        """Analyze assignments for semantic issues."""
-        issues = []
-        
-        # Check for unused variables
-        for target in node.targets:
-            if isinstance(target, ast.Name):
-                # This would require tracking variable usage across the file
-                pass
-        
-        return issues
-    
-    def _analyze_comparison(self, node: ast.Compare, file_path: str) -> List[CodeIssue]:
-        """Analyze comparisons for semantic issues."""
-        issues = []
-        
-        # Check for suspicious comparisons
-        for op, comparator in zip(node.ops, node.comparators):
-            if isinstance(op, ast.Eq) and isinstance(comparator, ast.Constant):
-                if comparator.value is None:
-                    issues.append(CodeIssue(
-                        file_path=file_path,
-                        line_number=node.lineno,
-                        issue_type=IssueType.SEMANTIC_ISSUE,
-                        severity="low",
-                        description="Comparison with None using == instead of 'is'",
-                        code_snippet=ast.unparse(node),
-                        suggestion="Use 'is None' instead of '== None' for identity comparison."
-                    ))
-        
-        return issues
-    
-    def _analyze_boolean_logic(self, node: ast.BoolOp, file_path: str) -> List[CodeIssue]:
-        """Analyze boolean logic for semantic issues."""
-        issues = []
-        
-        # Check for redundant boolean expressions
-        if isinstance(node.op, ast.And):
-            for value in node.values:
-                if isinstance(value, ast.Constant) and value.value is True:
-                    issues.append(CodeIssue(
-                        file_path=file_path,
-                        line_number=node.lineno,
-                        issue_type=IssueType.SEMANTIC_ISSUE,
-                        severity="low",
-                        description="Redundant True in AND expression",
-                        code_snippet=ast.unparse(node),
-                        suggestion="Remove redundant True from boolean expression."
-                    ))
-        
-        return issues
-    
-    def _analyze_js_semantics(self, file_path: str, content: str) -> List[CodeIssue]:
-        """Semantic analysis for JavaScript/TypeScript code."""
-        issues = []
-        
-        # Check for common JavaScript semantic issues
-        patterns = [
-            (r'==\s*null', "Use === null for null comparison"),
-            (r'==\s*undefined', "Use === undefined for undefined comparison"),
-            (r'console\.log', "Consider removing console.log statements in production"),
-            (r'debugger;', "Remove debugger statements before production"),
-        ]
-        
-        for pattern, suggestion in patterns:
-            matches = re.finditer(pattern, content)
-            for match in matches:
-                line_number = content[:match.start()].count('\n') + 1
-                issues.append(CodeIssue(
-                    file_path=file_path,
-                    line_number=line_number,
-                    issue_type=IssueType.CODE_SMELL,
-                    severity="low",
-                    description=f"Semantic issue: {suggestion}",
-                    code_snippet=match.group(),
-                    suggestion=suggestion
-                ))
-        
-        return issues
 
 class DependencyAnalyzer:
     """Analyze code dependencies and architectural relationships."""
@@ -1132,4 +958,248 @@ class IntelligentCodeAnalyzer:
         }
         allowed = set(compliance_map.get(compliance, []))
         filtered = [i for i in issues if getattr(i, 'pattern_name', None) in allowed or i.issue_type == 'SECURITY_VULNERABILITY']
-        return filtered 
+        return filtered
+
+    def analyze_semantics(self, file_path: str, content: str, language: str) -> List[CodeIssue]:
+        issues: List[CodeIssue] = []
+        if language == 'python':
+            result: List[CodeIssue] = self._analyze_python_semantics(file_path, content)
+            issues.extend(result)
+        elif language in ['javascript', 'typescript']:
+            result: List[CodeIssue] = self._analyze_js_semantics(file_path, content)
+            issues.extend(result)
+        return issues
+
+    def _analyze_python_semantics(self, file_path: str, content: str) -> List[CodeIssue]:
+        issues: List[CodeIssue] = []
+        self._debug_log = []
+        try:
+            tree = ast.parse(content)
+            for node in ast.walk(tree):
+                self._debug_log.append(f"[DEBUG] AST node: {type(node).__name__}, line={getattr(node, 'lineno', '?')}")
+                if isinstance(node, ast.Call):
+                    result: List[CodeIssue] = self._analyze_function_call(node, file_path)
+                    issues.extend(result)
+                elif isinstance(node, ast.Assign):
+                    result: List[CodeIssue] = self._analyze_assignment(node, file_path)
+                    issues.extend(result)
+                elif isinstance(node, ast.Compare):
+                    result: List[CodeIssue] = self._analyze_comparison(node, file_path)
+                    issues.extend(result)
+                elif isinstance(node, ast.BoolOp):
+                    result: List[CodeIssue] = self._analyze_boolean_logic(node, file_path)
+                    issues.extend(result)
+        except SyntaxError:
+            pass
+        for log_entry in self._debug_log:
+            print(log_entry)
+        return issues
+    
+    def _analyze_function_call(self, node: ast.Call, file_path: str) -> List[CodeIssue]:
+        issues: List[CodeIssue] = []
+        print(f"[DEBUG] Entered _analyze_function_call: {ast.unparse(node) if hasattr(ast, 'unparse') else node}")
+        func_repr = ast.unparse(node.func) if hasattr(ast, 'unparse') else str(node.func)
+        arg_types = [type(arg).__name__ for arg in node.args]
+        print(f"[DEBUG] Function call: func={func_repr}, arg_types={arg_types}, line={getattr(node, 'lineno', '?')}")
+        
+        # Check for suspicious function calls
+        if isinstance(node.func, ast.Name):
+            func_name = node.func.id
+            
+            # Security-sensitive functions
+            if func_name in ['eval', 'exec', 'input']:
+                issues.append(CodeIssue(
+                    file_path=file_path,
+                    line_number=node.lineno,
+                    issue_type=IssueType.SECURITY_VULNERABILITY,
+                    severity="high",
+                    description=f"Use of potentially dangerous function: {func_name}",
+                    code_snippet=ast.unparse(node),
+                    suggestion=f"Consider using safer alternatives to {func_name}.",
+                    compliance_standards=["OWASP", "PCI", "GDPR"]
+                ))
+            
+            # Performance-sensitive functions
+            if func_name in ['sleep']:
+                issues.append(CodeIssue(
+                    file_path=file_path,
+                    line_number=node.lineno,
+                    issue_type=IssueType.PERFORMANCE_ISSUE,
+                    severity="medium",
+                    description=f"Blocking call detected: {func_name}",
+                    code_snippet=ast.unparse(node),
+                    suggestion="Consider using async/await or non-blocking alternatives.",
+                    compliance_standards=["OWASP", "PCI", "GDPR"]
+                ))
+        
+        # Check for attribute calls (e.g., time.sleep)
+        elif isinstance(node.func, ast.Attribute):
+            if isinstance(node.func.value, ast.Name):
+                module_name = node.func.value.id
+                func_name = node.func.attr
+                
+                # Performance-sensitive functions
+                if module_name == 'time' and func_name == 'sleep':
+                    issues.append(CodeIssue(
+                        file_path=file_path,
+                        line_number=node.lineno,
+                        issue_type=IssueType.PERFORMANCE_ISSUE,
+                        severity="medium",
+                        description=f"Blocking call detected: {module_name}.{func_name}",
+                        code_snippet=ast.unparse(node),
+                        suggestion="Consider using async/await or non-blocking alternatives.",
+                        compliance_standards=["OWASP", "PCI", "GDPR"]
+                    ))
+        
+        # SSRF detection (broadened)
+        # Detect requests.get(url), requests.post(url), urllib.request.urlopen(url), etc.
+        if (
+            (isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name) and node.func.value.id in ['requests', 'urllib'] and node.func.attr in ['get', 'post', 'put', 'delete', 'head', 'options', 'urlopen']) or
+            (isinstance(node.func, ast.Name) and node.func.id in ['urlopen'])
+        ):
+            if node.args:
+                first_arg = node.args[0]
+                # Debug: print the function and argument type for SSRF detection
+                print(f"[DEBUG] SSRF check: func={ast.unparse(node.func)}, first_arg_type={type(first_arg).__name__}")
+                # If the first argument is not a literal (not ast.Constant or ast.Str), flag as SSRF risk
+                if not (isinstance(first_arg, ast.Constant) or isinstance(first_arg, ast.Str)):
+                    print(f"[DEBUG] SSRF detected: {ast.unparse(node)}")
+                    issues.append(CodeIssue(
+                        file_path=file_path,
+                        line_number=node.lineno,
+                        issue_type=IssueType.SECURITY_VULNERABILITY,
+                        severity="high",
+                        description="Potential SSRF vulnerability: user-controlled URL in HTTP request.",
+                        code_snippet=ast.unparse(node),
+                        suggestion="Validate and sanitize all URLs used in HTTP requests.",
+                        compliance_standards=["OWASP", "PCI", "GDPR"]
+                    ))
+        
+        # Insecure deserialization
+        if isinstance(node.func, ast.Name) and node.func.id in ['pickle', 'yaml', 'marshal']:
+            issues.append(CodeIssue(
+                file_path=file_path,
+                line_number=node.lineno,
+                issue_type=IssueType.SECURITY_VULNERABILITY,
+                severity="critical",
+                description="Insecure deserialization detected.",
+                code_snippet=ast.unparse(node),
+                suggestion="Avoid using insecure deserialization libraries with untrusted data.",
+                compliance_standards=["OWASP", "PCI", "HIPAA"]
+            ))
+        # Weak cryptography
+        if isinstance(node.func, ast.Name) and node.func.id in ['md5', 'sha1', 'des', 'rc4']:
+            issues.append(CodeIssue(
+                file_path=file_path,
+                line_number=node.lineno,
+                issue_type=IssueType.SECURITY_VULNERABILITY,
+                severity="high",
+                description="Weak cryptography algorithm used.",
+                code_snippet=ast.unparse(node),
+                suggestion="Use strong cryptographic algorithms (e.g., SHA-256, AES).",
+                compliance_standards=["OWASP", "PCI", "GDPR"]
+            ))
+        # Unsafe package usage
+        if isinstance(node.func, ast.Name) and node.func.id in ['os', 'subprocess', 'eval', 'exec']:
+            issues.append(CodeIssue(
+                file_path=file_path,
+                line_number=node.lineno,
+                issue_type=IssueType.SECURITY_VULNERABILITY,
+                severity="high",
+                description="Potential unsafe package or function usage.",
+                code_snippet=ast.unparse(node),
+                suggestion="Avoid using unsafe functions or properly validate input.",
+                compliance_standards=["OWASP", "PCI"]
+            ))
+        # Compliance checks (PCI, HIPAA, GDPR)
+        # Example: Check for logging of sensitive data
+        if isinstance(node.func, ast.Name) and node.func.id in ['print', 'logging', 'log']:
+            for arg in node.args:
+                if isinstance(arg, ast.Str) and any(s in arg.s.lower() for s in ['password', 'ssn', 'credit card', 'token']):
+                    issues.append(CodeIssue(
+                        file_path=file_path,
+                        line_number=node.lineno,
+                        issue_type=IssueType.BEST_PRACTICE_VIOLATION,
+                        severity="high",
+                        description="Sensitive data may be logged (PCI/HIPAA/GDPR compliance issue).",
+                        code_snippet=ast.unparse(node),
+                        suggestion="Never log sensitive data.",
+                        compliance_standards=["PCI", "HIPAA", "GDPR"]
+                    ))
+        
+        return issues
+    
+    def _analyze_assignment(self, node: ast.Assign, file_path: str) -> List[CodeIssue]:
+        issues: List[CodeIssue] = []
+        
+        # Check for unused variables
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                # This would require tracking variable usage across the file
+                pass
+        
+        return issues
+    
+    def _analyze_comparison(self, node: ast.Compare, file_path: str) -> List[CodeIssue]:
+        issues: List[CodeIssue] = []
+        
+        # Check for suspicious comparisons
+        for op, comparator in zip(node.ops, node.comparators):
+            if isinstance(op, ast.Eq) and isinstance(comparator, ast.Constant):
+                if comparator.value is None:
+                    issues.append(CodeIssue(
+                        file_path=file_path,
+                        line_number=node.lineno,
+                        issue_type=IssueType.SEMANTIC_ISSUE,
+                        severity="low",
+                        description="Comparison with None using == instead of 'is'",
+                        code_snippet=ast.unparse(node),
+                        suggestion="Use 'is None' instead of '== None' for identity comparison."
+                    ))
+        
+        return issues
+    
+    def _analyze_boolean_logic(self, node: ast.BoolOp, file_path: str) -> List[CodeIssue]:
+        issues: List[CodeIssue] = []
+        
+        # Check for redundant boolean expressions
+        if isinstance(node.op, ast.And):
+            for value in node.values:
+                if isinstance(value, ast.Constant) and value.value is True:
+                    issues.append(CodeIssue(
+                        file_path=file_path,
+                        line_number=node.lineno,
+                        issue_type=IssueType.SEMANTIC_ISSUE,
+                        severity="low",
+                        description="Redundant True in AND expression",
+                        code_snippet=ast.unparse(node),
+                        suggestion="Remove redundant True from boolean expression."
+                    ))
+        
+        return issues
+    
+    def _analyze_js_semantics(self, file_path: str, content: str) -> List[CodeIssue]:
+        issues: List[CodeIssue] = []
+        # Check for common JavaScript semantic issues
+        patterns = [
+            (r'==\s*null', "Use === null for null comparison"),
+            (r'==\s*undefined', "Use === undefined for undefined comparison"),
+            (r'console\.log', "Consider removing console.log statements in production"),
+            (r'debugger;', "Remove debugger statements before production"),
+        ]
+        
+        for pattern, suggestion in patterns:
+            matches = re.finditer(pattern, content)
+            for match in matches:
+                line_number = content[:match.start()].count('\n') + 1
+                issues.append(CodeIssue(
+                    file_path=file_path,
+                    line_number=line_number,
+                    issue_type=IssueType.CODE_SMELL,
+                    severity="low",
+                    description=f"Semantic issue: {suggestion}",
+                    code_snippet=match.group(),
+                    suggestion=suggestion
+                ))
+        
+        return issues 

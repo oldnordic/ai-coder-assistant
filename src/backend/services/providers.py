@@ -467,15 +467,31 @@ class ClaudeProvider(BaseProvider):
 
 
 class OllamaProvider(BaseProvider):
-    """Ollama provider implementation for local models."""
+    """Ollama provider implementation for local and remote models."""
     
     def _setup_client(self):
-        """Setup Ollama client."""
+        """Setup Ollama client with support for remote instances."""
         self.base_url = self.config.base_url or "http://localhost:11434"
+        
+        # Prepare headers for authentication if needed
+        headers = {}
+        if self.config.api_key:
+            headers["Authorization"] = f"Bearer {self.config.api_key}"
+        
+        # Add custom headers from metadata if present
+        if self.config.metadata and "headers" in self.config.metadata:
+            headers.update(self.config.metadata["headers"])
+        
+        # Create client with authentication support
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
-            timeout=self.config.timeout
+            timeout=self.config.timeout,
+            headers=headers
         )
+        
+        # Store additional configuration
+        self.verify_ssl = self.config.metadata.get("verify_ssl", True)
+        self.custom_endpoints = self.config.metadata.get("custom_endpoints", {})
     
     async def chat_completion(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
         """Send chat completion request to Ollama."""
@@ -506,9 +522,12 @@ class OllamaProvider(BaseProvider):
                     data["options"] = {}
                 data["options"]["top_p"] = request.top_p
             
+            # Use custom endpoint if specified
+            endpoint = self.custom_endpoints.get("chat", "/api/chat")
+            
             # Make request
-            response = await self.client.post("/api/chat", json=data)
-            response.raise_for_status()
+            response = await self.client.post(endpoint, json=data)
+            await response.raise_for_status()
             result = response.json()
             
             response_time = time.time() - start_time
@@ -531,14 +550,26 @@ class OllamaProvider(BaseProvider):
                 cost=0.0  # Local models have no cost
             )
             
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                raise Exception(f"Ollama authentication failed: {str(e)}")
+            elif e.response.status_code == 404:
+                raise Exception(f"Ollama model not found: {request.model}")
+            else:
+                raise Exception(f"Ollama HTTP error {e.response.status_code}: {str(e)}")
+        except httpx.ConnectError as e:
+            raise Exception(f"Ollama connection failed: {str(e)}")
         except Exception as e:
             raise Exception(f"Ollama API error: {str(e)}")
     
     async def list_models(self) -> List[ModelConfig]:
         """List available Ollama models."""
         try:
-            response = await self.client.get("/api/tags")
-            response.raise_for_status()
+            # Use custom endpoint if specified
+            endpoint = self.custom_endpoints.get("list_models", "/api/tags")
+            
+            response = await self.client.get(endpoint)
+            await response.raise_for_status()
             result = response.json()
             
             models = []
@@ -555,8 +586,28 @@ class OllamaProvider(BaseProvider):
             
             return models
             
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                raise Exception(f"Ollama authentication failed: {str(e)}")
+            else:
+                raise Exception(f"Ollama HTTP error {e.response.status_code}: {str(e)}")
+        except httpx.ConnectError as e:
+            raise Exception(f"Ollama connection failed: {str(e)}")
         except Exception as e:
             raise Exception(f"Error listing Ollama models: {str(e)}")
+    
+    async def health_check(self) -> bool:
+        """Check if Ollama instance is healthy."""
+        try:
+            # Use custom health endpoint if specified
+            endpoint = self.custom_endpoints.get("health", "/api/tags")
+            
+            response = await self.client.get(endpoint)
+            await response.raise_for_status()
+            return True
+        except Exception as e:
+            logger.error(f"Ollama health check failed: {e}")
+            return False
     
     def calculate_cost(self, usage: Dict[str, int], model: str) -> float:
         """Calculate cost for Ollama token usage (always 0 for local models)."""

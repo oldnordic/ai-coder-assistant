@@ -1,0 +1,133 @@
+{
+  "feeds": [
+    {
+      "name": "NVD CVE Feed",
+      "url": "https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss-analyzed.xml",
+      "feed_type": "rss",
+      "enabled": true,
+      "last_fetch": null,
+      "fetch_interval": 3600,
+      "tags": ["cve", "vulnerability", "nist"]
+    },
+    {
+      "name": "SecurityWeek",
+      "url": "https://www.securityweek.com/feed/",
+      "feed_type": "rss",
+      "enabled": true,
+      "last_fetch": null,
+      "fetch_interval": 7200,
+      "tags": ["breach", "security-news", "cybersecurity"]
+    },
+    {
+      "name": "The Hacker News",
+      "url": "https://feeds.feedburner.com/TheHackersNews",
+      "feed_type": "rss",
+      "enabled": true,
+      "last_fetch": null,
+      "fetch_interval": 7200,
+      "tags": ["breach", "security-news", "hacking"]
+    },
+    {
+      "name": "CISA Alerts",
+      "url": "https://www.cisa.gov/news-events/cybersecurity-advisories/feed",
+      "feed_type": "rss",
+      "enabled": true,
+      "last_fetch": null,
+      "fetch_interval": 10800,
+      "tags": ["advisory", "government", "cisa"]
+    },
+    {
+      "name": "Microsoft Security Response Center",
+      "url": "https://api.msrc.microsoft.com/update-guide/rss",
+      "feed_type": "rss",
+      "enabled": true,
+      "last_fetch": null,
+      "fetch_interval": 7200,
+      "tags": ["microsoft", "windows", "security-updates"]
+    },
+    {
+      "name": "GitHub Security Advisories",
+      "url": "https://github.com/advisories.rss",
+      "feed_type": "rss",
+      "enabled": true,
+      "last_fetch": null,
+      "fetch_interval": 3600,
+      "tags": ["github", "open-source", "vulnerability"]
+    }
+  ],
+  "settings": {
+    "auto_fetch_interval": 3600,
+    "max_vulnerabilities": 1000,
+    "max_breaches": 500,
+    "max_patches": 200,
+    "severity_filter": ["Critical", "High", "Medium"],
+    "language_filter": ["python", "javascript", "java", "cpp", "csharp"],
+    "auto_training": true,
+    "training_threshold": 10
+  },
+  "sample_data": {
+    "vulnerabilities": [
+      {
+        "id": "CVE-2024-0001",
+        "title": "Sample Python Package Vulnerability",
+        "description": "A critical vulnerability in a popular Python package allowing remote code execution.",
+        "severity": "Critical",
+        "cvss_score": 9.8,
+        "affected_products": ["sample-package"],
+        "affected_versions": ["<2.0.0"],
+        "published_date": "2024-01-15T10:00:00Z",
+        "source": "NVD",
+        "is_patched": false,
+        "patch_available": true
+      },
+      {
+        "id": "CVE-2024-0002",
+        "title": "Sample JavaScript Library Vulnerability",
+        "description": "A high severity vulnerability in a JavaScript library allowing XSS attacks.",
+        "severity": "High",
+        "cvss_score": 7.5,
+        "affected_products": ["sample-js-lib"],
+        "affected_versions": ["<1.5.0"],
+        "published_date": "2024-01-10T14:30:00Z",
+        "source": "GitHub",
+        "is_patched": true,
+        "patch_available": true
+      }
+    ],
+    "breaches": [
+      {
+        "id": "BREACH-2024-001",
+        "title": "Sample Company Data Breach",
+        "description": "A major data breach affecting millions of users.",
+        "company": "Sample Corp",
+        "breach_date": "2024-01-01T00:00:00Z",
+        "affected_users": 5000000,
+        "data_types": ["email", "password", "personal_info"],
+        "attack_vector": "SQL Injection",
+        "severity": "High",
+        "source": "SecurityWeek",
+        "lessons_learned": [
+          "Implement proper input validation",
+          "Use parameterized queries",
+          "Enable multi-factor authentication"
+        ]
+      }
+    ],
+    "patches": [
+      {
+        "id": "PATCH-2024-001",
+        "title": "Sample Security Patch",
+        "description": "Critical security patch for sample application.",
+        "affected_products": ["sample-app"],
+        "patch_version": "2.1.0",
+        "release_date": "2024-01-20T09:00:00Z",
+        "severity": "Critical",
+        "source": "Sample Vendor",
+        "download_url": "https://example.com/patches/2.1.0",
+        "installation_instructions": "Run the installer and restart the application.",
+        "tested": true,
+        "applied": false
+      }
+    ]
+  }
+} 
