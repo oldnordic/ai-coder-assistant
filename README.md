@@ -354,3 +354,4 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - OpenAI, Anthropic, and Google for AI capabilities
 - Ollama for local model support
 - The open-source community for inspiration and tools
+# Trigger CI pipeline
