@@ -3,22 +3,25 @@ from unittest.mock import patch, MagicMock
 import sys
 import os
 import tempfile
-from typing import Callable, Any
+from typing import Callable, Any, TypeVar, ParamSpec, Dict, List
 import signal
 from functools import wraps
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 from backend.utils import settings
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QComboBox
 from frontend.ui.main_window import AICoderAssistant
 from frontend.ui.ai_tab_widgets import setup_ai_tab  # type: ignore
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-def timeout(seconds=10):
-    def decorator(func):
+P = ParamSpec('P')
+R = TypeVar('R')
+
+def timeout(seconds: int) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
-            def handler(signum, frame):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            def handler(signum: int, frame: Any) -> None:
                 raise TimeoutError(f"Test timed out after {seconds} seconds")
             old_handler = signal.signal(signal.SIGALRM, handler)
             signal.alarm(seconds)
@@ -36,33 +39,46 @@ def timeout(seconds=10):
 class TestMainWindowBackendCalls(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        from PyQt5.QtWidgets import QApplication
         app = QApplication.instance()
         if app is None:
             cls.app = QApplication(sys.argv)
         else:
             cls.app = app
 
-    @patch('src.backend.services.ai_tools.generate_report_and_training_data')
+    @patch('backend.services.ai_tools.generate_report_and_training_data')
     def test_generate_report_and_training_data_called(self, mock_generate_report: MagicMock):
         # Arrange
         mock_generate_report.return_value = ("# Report", "{}")
         window = AICoderAssistant()
         setup_ai_tab(window.ai_tab, window)
-        window.suggestion_list = [{"issue_type": "test", "description": "desc"}]
-        window.model_source_selector.setCurrentIndex(0)  # type: ignore
+        window.suggestion_list = [{"issue_type": "test", "description": "desc"}]  # type: List[Dict[str, str]]
+        window.model_source_selector = QComboBox()  # type: ignore
+        window.model_source_selector.addItem("Local Model")
         window.current_model_ref = MagicMock()
         window.current_tokenizer_ref = MagicMock()
         print(f"[DEBUG] Before start_report_generation: suggestion_list={window.suggestion_list}, model_source_selector={window.model_source_selector.currentIndex()}, input_file_path={getattr(window, 'input_file_path', None)}")  # type: ignore
-        # Patch start_worker to call the backend directly
+        
+        # Patch start_worker to call the backend directly and verify arguments
         def fake_start_worker(task_type: str, func: Callable[..., Any], *args: tuple[Any, ...], **kwargs: dict[str, Any]):
+            # Verify task type
+            self.assertEqual(task_type, 'generate_report')
+            # Call the function with args
             func(*args, **kwargs)
+        
         window.start_worker = fake_start_worker
+        
         # Act
         window.start_report_generation()
         print(f"[DEBUG] After start_report_generation: mock_generate_report.call_count={mock_generate_report.call_count}")
+        
         # Assert
-        mock_generate_report.assert_called()
+        mock_generate_report.assert_called_once_with(
+            window.suggestion_list,
+            window.model_source_selector.currentText().lower().replace(" ", "_"),
+            window.current_model_ref,
+            window.current_tokenizer_ref,
+            progress_callback=window.update_report_progress
+        )
 
     def test_docker_imports_and_detection(self):
         # Test that Docker detection function is importable and callable
