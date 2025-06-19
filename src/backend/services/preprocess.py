@@ -22,7 +22,7 @@ import os
 import json
 import re
 from bs4 import BeautifulSoup
-import PyPDF2
+from pypdf import PdfReader
 import logging
 import datetime
 from typing import Optional, Callable
@@ -39,7 +39,7 @@ def extract_text_from_pdf(filepath: str) -> str:
     """Extracts text content from a PDF file."""
     try:
         with open(filepath, 'rb') as f:
-            reader = PyPDF2.PdfReader(f)
+            reader = PdfReader(f)
             text = ""
             for page in reader.pages:
                 text += page.extract_text() or ""

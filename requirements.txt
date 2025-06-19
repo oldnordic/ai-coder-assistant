@@ -55,7 +55,7 @@ youtube-transcript-api>=0.5.0
 git+https://github.com/openai/whisper.git
 
 # Data Processing
-PyPDF2
+pypdf>=4.0.0
 networkx>=2.8.0
 
 # Development and Build Tools
