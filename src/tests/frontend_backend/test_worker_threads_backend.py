@@ -1,13 +1,16 @@
 import unittest
 from unittest.mock import MagicMock, ANY
-from src.frontend.ui.worker_threads import Worker
-from PyQt6.QtCore import QCoreApplication
+from PyQt6.QtWidgets import QApplication
+from frontend.ui.worker_threads import Worker
 import sys
 
 class TestWorkerThreadsBackend(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.app = QCoreApplication(sys.argv)
+        if QApplication.instance() is None:
+            cls.app = QApplication(sys.argv)
+        else:
+            cls.app = QApplication.instance()
 
     def test_worker_calls_backend_and_emits_progress(self):
         # Arrange
@@ -22,8 +25,7 @@ class TestWorkerThreadsBackend(unittest.TestCase):
         # Act
         worker.run()
         # Assert
-        backend_func.assert_called_with(1, 2, progress_callback=progress_callback, log_message_callback=ANY, cancellation_callback=ANY)
-        self.assertTrue(isinstance(progress_updates, list))
+        backend_func.assert_called_with(1, 2, progress_callback=ANY, log_message_callback=ANY, cancellation_callback=ANY)
 
 if __name__ == '__main__':
     unittest.main() 

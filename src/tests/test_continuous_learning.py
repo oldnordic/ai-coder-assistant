@@ -32,7 +32,7 @@ import sqlite3
 
 import numpy as np
 
-from src.backend.services.continuous_learning import (
+from backend.services.continuous_learning import (
     ContinuousLearningService,
     FeedbackData,
     FeedbackType,
@@ -40,6 +40,12 @@ from src.backend.services.continuous_learning import (
     ReplayBuffer,
     DataValidator,
     ModelUpdate
+)
+from backend.utils.constants import (
+    CONTINUOUS_LEARNING_DB_PATH, CONTINUOUS_LEARNING_MIN_INPUT_LENGTH,
+    CONTINUOUS_LEARNING_MIN_OUTPUT_LENGTH, CONTINUOUS_LEARNING_MAX_INPUT_LENGTH, CONTINUOUS_LEARNING_MAX_OUTPUT_LENGTH,
+    CONTINUOUS_LEARNING_REPLAY_BUFFER_SIZE, CONTINUOUS_LEARNING_QUALITY_THRESHOLD, CONTINUOUS_LEARNING_BATCH_SIZE,
+    CONTINUOUS_LEARNING_UPDATE_INTERVAL_HOURS
 )
 
 

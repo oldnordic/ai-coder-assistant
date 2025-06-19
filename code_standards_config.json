@@ -1,0 +1,103 @@
+{
+  "standards": [
+    {
+      "name": "Python PEP 8",
+      "description": "Python code style guide based on PEP 8",
+      "company": "Default",
+      "version": "1.0.0",
+      "languages": [
+        "python"
+      ],
+      "rules": [
+        {
+          "id": "python_naming_functions",
+          "name": "Function Naming Convention",
+          "description": "Functions should use snake_case naming",
+          "language": "python",
+          "severity": "warning",
+          "pattern": "^[a-z_][a-z0-9_]*$",
+          "message": "Function names should use snake_case",
+          "category": "naming",
+          "enabled": true,
+          "auto_fix": true,
+          "fix_template": null,
+          "tags": []
+        },
+        {
+          "id": "python_naming_classes",
+          "name": "Class Naming Convention",
+          "description": "Classes should use PascalCase naming",
+          "language": "python",
+          "severity": "warning",
+          "pattern": "^[A-Z][a-zA-Z0-9]*$",
+          "message": "Class names should use PascalCase",
+          "category": "naming",
+          "enabled": true,
+          "auto_fix": true,
+          "fix_template": null,
+          "tags": []
+        },
+        {
+          "id": "python_function_length",
+          "name": "Function Length",
+          "description": "Functions should not exceed 50 lines",
+          "language": "python",
+          "severity": "warning",
+          "pattern": "50",
+          "message": "Function is too long, consider breaking it down",
+          "category": "complexity",
+          "enabled": true,
+          "auto_fix": false,
+          "fix_template": null,
+          "tags": []
+        },
+        {
+          "id": "python_class_length",
+          "name": "Class Length",
+          "description": "Classes should not exceed 20 methods",
+          "language": "python",
+          "severity": "warning",
+          "pattern": "20",
+          "message": "Class has too many methods, consider splitting",
+          "category": "complexity",
+          "enabled": true,
+          "auto_fix": false,
+          "fix_template": null,
+          "tags": []
+        },
+        {
+          "id": "python_docstring",
+          "name": "Docstring Required",
+          "description": "Public functions and classes should have docstrings",
+          "language": "python",
+          "severity": "info",
+          "pattern": "",
+          "message": "Missing docstring",
+          "category": "documentation",
+          "enabled": true,
+          "auto_fix": false,
+          "fix_template": null,
+          "tags": []
+        },
+        {
+          "id": "python_magic_numbers",
+          "name": "Magic Numbers",
+          "description": "Avoid magic numbers, use named constants",
+          "language": "python",
+          "severity": "warning",
+          "pattern": "^(0|1|2|3|4|5|6|7|8|9|10)$",
+          "message": "Consider using a named constant instead of magic number",
+          "category": "style",
+          "enabled": true,
+          "auto_fix": false,
+          "fix_template": null,
+          "tags": []
+        }
+      ],
+      "created_date": "2025-06-19 02:16:01.666819",
+      "last_updated": "2025-06-19 02:16:01.666821",
+      "enabled": true
+    }
+  ],
+  "current_standard": "Python PEP 8"
+}

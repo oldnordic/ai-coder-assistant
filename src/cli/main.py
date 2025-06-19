@@ -28,9 +28,9 @@ from typing import List, Dict, Any, Optional
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.backend.services.scanner import scan_code
-from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
-from src.backend.utils import settings
+from backend.services.scanner import scan_code
+from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
+from backend.utils import settings
 
 
 def analyze_file(file_path: str, language: str, output_format: str = "text") -> Dict[str, Any]:
@@ -94,43 +94,52 @@ def scan_workspace(workspace_path: str, output_file: Optional[str] = None, outpu
 
 def security_scan(workspace_path: str, output_file: Optional[str] = None, output_format: str = "json", 
                   fail_on_critical: bool = False) -> Dict[str, Any]:
-    """Perform security-focused analysis."""
+    """Perform security-focused analysis with advanced compliance and vulnerability checks."""
     try:
         if not os.path.exists(workspace_path):
             return {"error": f"Workspace not found: {workspace_path}"}
-        
         # Use the existing scanner with security focus
         model_mode = "ollama"  # Default model mode
         results = scan_code(workspace_path, model_mode, None, None)
-        
-        # Filter for security issues
+        # Filter for security issues and compliance
         security_issues = []
+        compliance_summary = {"PCI": 0, "HIPAA": 0, "GDPR": 0, "OWASP": 0}
+        vuln_types = {"ssrf": 0, "insecure_deserialization": 0, "weak_crypto": 0, "unsafe_package": 0}
         for issue in results:
             if 'security' in issue.get('issue_type', '').lower() or \
                'vulnerability' in issue.get('issue_type', '').lower():
                 security_issues.append(issue)
-        
+                for std in issue.get('compliance_standards', []):
+                    if std in compliance_summary:
+                        compliance_summary[std] += 1
+                desc = issue.get('description', '').lower()
+                if 'ssrf' in desc:
+                    vuln_types['ssrf'] += 1
+                if 'deserialization' in desc:
+                    vuln_types['insecure_deserialization'] += 1
+                if 'cryptography' in desc or 'md5' in desc or 'sha1' in desc:
+                    vuln_types['weak_crypto'] += 1
+                if 'unsafe' in desc or 'subprocess' in desc or 'eval' in desc:
+                    vuln_types['unsafe_package'] += 1
         security_results = {
             "workspace": workspace_path,
             "security_issues": security_issues,
             "total_security_issues": len(security_issues),
-            "critical_issues": [i for i in security_issues if i.get('severity') == 'critical']
+            "critical_issues": [i for i in security_issues if i.get('severity') == 'critical'],
+            "compliance_summary": compliance_summary,
+            "vulnerability_types": vuln_types
         }
-        
         if output_file:
             with open(output_file, 'w', encoding='utf-8') as f:
                 if output_format == "json":
                     json.dump(security_results, f, indent=2, default=str)
                 else:
                     f.write(format_security_results_text(security_results))
-        
         # Check if we should fail on critical issues
         if fail_on_critical and security_results["critical_issues"]:
             print(f"Critical security issues found: {len(security_results['critical_issues'])}")
             sys.exit(1)
-        
         return security_results
-        
     except Exception as e:
         return {"error": f"Security scan failed: {str(e)}"}
 

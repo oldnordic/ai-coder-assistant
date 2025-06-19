@@ -20,8 +20,8 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 # config/settings.py
 import os
 import torch
-from .constants import OLLAMA_API_BASE_URL
 from typing import Dict, Any
+from backend.utils.constants import OLLAMA_API_BASE_URL as _OLLAMA_API_BASE_URL
 
 # The project root is now two levels up from this file's directory (config/ -> project_root/)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +32,6 @@ def get_best_device():
     with enhanced ROCm support and better diagnostics.
     """
     import subprocess
-    import sys
     
     # Set environment variables for GPU selection
     os.environ["ROCR_VISIBLE_DEVICES"] = "0"
@@ -114,6 +113,7 @@ MODEL_SAVE_PATH = os.path.join(PROCESSED_DATA_DIR, MODEL_DIR_NAME)
 
 # --- Ollama Configuration ---
 # OLLAMA_API_BASE_URL is now imported from constants
+OLLAMA_API_BASE_URL = _OLLAMA_API_BASE_URL
 OLLAMA_MODEL = "llama3"
 
 # --- Custom Language Model Hyperparameters ---
@@ -142,3 +142,8 @@ def get_settings() -> Dict[str, Any]:
         "aws_region": os.environ.get("AWS_REGION", ""),
         "cohere_api_key": os.environ.get("COHERE_API_KEY", ""),
     }
+
+def is_docker_available() -> bool:
+    """Check if Docker is installed and available in the system PATH."""
+    import shutil
+    return shutil.which("docker") is not None

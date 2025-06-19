@@ -12,14 +12,16 @@
 8. [Export to Ollama Tab](#export-to-ollama-tab)
 9. [Multi-Language Support](#multi-language-support)
 10. [Advanced Features](#advanced-features)
-11. [Building Optimized Binaries](#building-optimized-binaries)
-12. [Troubleshooting](#troubleshooting)
-13. [Best Practices](#best-practices)
-14. [Application Structure](#application-structure)
-15. [How the UI Connects to Backend Logic](#how-the-ui-connects-to-backend-logic)
-16. [Testing Frontend-Backend Integration](#testing-frontend-backend-integration)
-17. [Progress Bars and Responsiveness](#progress-bars-and-responsiveness)
-18. [Further Reading](#further-reading)
+11. [Docker-Based Isolated Build & Test](#docker-based-isolated-build--test)
+12. [PR Tab Placement](#pr-tab-placement)
+13. [Building Optimized Binaries](#building-optimized-binaries)
+14. [Troubleshooting](#troubleshooting)
+15. [Best Practices](#best-practices)
+16. [Application Structure](#application-structure)
+17. [How the UI Connects to Backend Logic](#how-the-ui-connects-to-backend-logic)
+18. [Testing Frontend-Backend Integration](#testing-frontend-backend-integration)
+19. [Progress Bars and Responsiveness](#progress-bars-and-responsiveness)
+20. [Further Reading](#further-reading)
 
 ## Introduction
 
@@ -567,6 +569,28 @@ Operations: 1 refactoring operation
 - **CI/CD Pipeline**: Integration with continuous integration systems
 - **Team Collaboration**: Shared refactoring suggestions
 - **Version Control**: Direct integration with Git workflows
+
+#### **Docker-Based Isolated Build & Test**
+
+The application can now automatically build and test your code in a Docker container, providing full isolation from your development environment. This is useful for testing fixes, running security scans, and ensuring reproducibility.
+
+### How to Use
+1. Go to the main window and find the "Docker Integration" section below the main tabs.
+2. If Docker is installed, you will see a status indicator and can enable Docker integration with a checkbox.
+3. (Optional) Specify a custom Dockerfile path, build arguments, and container run options.
+4. Use the "Test Docker Build & Test" button to verify your settings.
+5. When enabled, all scan/fix/test operations will run inside the container, and results will be shown in the UI.
+
+**Note:** If Docker is not installed, the integration will be disabled.
+
+### Advanced Settings
+- **Dockerfile Path**: Use a custom Dockerfile for your build environment.
+- **Build Arguments**: Pass build-time variables to Docker.
+- **Run Options**: Set environment variables, ports, or other container options.
+
+#### **PR Tab Placement**
+
+The "AI PR Creation" tab is now always the last tab on the right in the main application window, making it easy to find and access for all PR-related workflows.
 
 ### Examples
 
@@ -1896,6 +1920,131 @@ python -m unittest discover tests
 
 ## Further Reading
 - See `ARCHITECTURE.md` for a full developer-oriented overview of the new structure and integration patterns.
+
+## Security Intelligence Tab
+
+The Security Intelligence Tab provides real-time monitoring of vulnerabilities, breaches, and patches from multiple security feeds (NVD, CISA, SecurityWeek, etc.).
+
+### Usage
+- **Feeds**: Add/remove RSS/API feeds for CVEs, advisories, and news.
+- **Vulnerabilities**: View, filter, and search CVEs by severity, date, and source.
+- **Breaches**: Track major security breaches, affected companies, and impact.
+- **Patches**: Monitor available patches, mark as applied, and view details.
+- **Training Data**: Export security data for AI model training.
+
+### Configuration
+- Feeds are managed in the Feeds sub-tab or via `security_intelligence_config.json`.
+- Auto-refresh and manual fetch supported.
+
+### Troubleshooting
+- If no data appears, check feed URLs, network, and logs.
+- Use the Refresh button to reload data.
+
+---
+
+## Code Standards Tab
+
+The Code Standards Tab enforces company-specific coding standards across multiple languages.
+
+### Usage
+- **Standards**: Add, edit, and remove standards and rules.
+- **Analysis**: Analyze files/directories for violations.
+- **Auto-fix**: Automatically fix common violations.
+- **Import/Export**: Share standards across teams.
+
+### Configuration
+- Standards and rules can be managed in the UI or via `code_standards_config.json`.
+- Supports Python, JS, TS, Java, C++, C#, Go, Rust, PHP, Ruby.
+
+### Troubleshooting
+- Ensure correct file permissions and supported languages.
+- Review logs for analysis errors.
+
+---
+
+## PR Management Tab
+
+Automate PR creation with JIRA/ServiceNow integration, templates, and API support.
+
+### Usage
+- **Service Config**: Add JIRA/ServiceNow instances, test connections.
+- **Templates**: Create/manage PR templates with variables.
+- **Create PR**: Fill in details, select repo/template, and create PR.
+
+### API
+- Use the REST API for external PR automation and ticket creation.
+
+### Troubleshooting
+- Ensure API server is running and service configs are correct.
+
+---
+
+## Ollama Manager Tab
+
+Manage multiple local/remote Ollama instances.
+
+### Usage
+- **Add Instance**: Configure name, URL, auth, headers, SSL.
+- **Health Check**: Test connectivity.
+- **Model Listing**: View available models.
+- **Test Chat**: Test model responses.
+
+### Troubleshooting
+- Check URLs, network, and authentication.
+
+---
+
+## Performance Optimization Tab
+
+Monitor system metrics and analyze code performance.
+
+### Usage
+- **Metrics**: View CPU, memory, disk, network usage.
+- **Code Analysis**: Profile code, detect bottlenecks, get recommendations.
+- **Benchmarking**: Compare performance across versions.
+
+---
+
+## Collaboration Tab
+
+Team chat, file sharing, and project management.
+
+### Usage
+- **Team Chat**: Real-time messaging.
+- **File Sharing**: Upload/share code/files.
+- **Project Management**: Track tasks, status, and team members.
+
+---
+
+## Advanced Analytics Tab
+
+Track developer metrics, trends, and generate custom reports.
+
+### Usage
+- **Metrics**: Code quality, performance, security, productivity.
+- **Reports**: Generate/export custom analytics reports.
+- **Trends**: View historical and predictive trends.
+
+---
+
+## Web Server Tab
+
+Enable web-based access and multi-user collaboration.
+
+### Usage
+- **Start Server**: Use the Web Server tab or run `python run_api_server.py --web-server`.
+- **Access**: Open browser to configured host/port.
+- **API Docs**: Available at `/docs` endpoint.
+
+### Security
+- Configure SSL, authentication, and CORS as needed.
+
+---
+
+## Integration Points
+- All tabs communicate with the backend via the BackendController and REST API.
+- Configuration files are located in the project root and can be edited directly or via the UI.
+- For advanced automation, use the provided API endpoints.
 
 ---
 

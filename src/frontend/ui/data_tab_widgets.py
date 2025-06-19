@@ -20,8 +20,8 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 # src/frontend/ui/data_tab_widgets.py
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QLabel, QGroupBox,
                              QTextEdit, QComboBox, QHBoxLayout, QSpinBox, QCheckBox)
-from ...backend.utils import settings
-from ...backend.utils.constants import INPUT_HEIGHT
+from backend.utils import settings
+from backend.utils.constants import INPUT_HEIGHT
 
 def setup_data_tab(parent_widget, main_app_instance):
     """

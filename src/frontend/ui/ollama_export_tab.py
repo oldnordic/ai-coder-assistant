@@ -29,9 +29,9 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtWidgets import QApplication
 import sys
 
-from ...backend.utils.constants import HTTP_TIMEOUT_SHORT, HTTP_TIMEOUT_LONG, HTTP_OK, STATUS_BOX_MIN_HEIGHT
-from ...backend.utils import settings
-from ...utils.constants import OLLAMA_BASE_URL
+from backend.utils.constants import HTTP_TIMEOUT_SHORT, HTTP_TIMEOUT_LONG, HTTP_OK, STATUS_BOX_MIN_HEIGHT
+from backend.utils import settings
+from backend.utils.constants import OLLAMA_BASE_URL
 
 def is_ollama_running() -> bool:
     try:
@@ -113,7 +113,7 @@ class OllamaExportWorker(QThread):
                 return
             else:
                 log("Ollama server is running.")
-            from ...backend.utils import settings
+            from backend.utils import settings
             model_dir = settings.MODEL_SAVE_PATH
             if not os.path.exists(model_dir):
                 self.error.emit(f"Model directory not found: {model_dir}")

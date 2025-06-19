@@ -41,7 +41,7 @@ from PyQt6.QtGui import QFont, QTextCursor
 # from ..pr.ai_advisor import AIAdvisor, PriorityStrategy
 # from ..pr.scan_integrator import ScanIntegrator
 # from ..pr.pr_templates import PRType
-from ...backend.utils.constants import WAIT_TIMEOUT_SHORT_MS, SPLITTER_LEFT_SIZE, SPLITTER_RIGHT_SIZE
+from backend.utils.constants import WAIT_TIMEOUT_SHORT_MS, SPLITTER_LEFT_SIZE, SPLITTER_RIGHT_SIZE
 
 
 class PRCreationWorker(QThread):

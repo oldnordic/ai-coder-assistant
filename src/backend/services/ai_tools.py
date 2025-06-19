@@ -43,12 +43,12 @@ from urllib.parse import urlparse, urljoin
 from ..utils import settings
 from . import ollama_client
 from .trainer import train_model as train_language_model
-from ...utils.constants import (
+from backend.utils.constants import (
     CACHE_EXPIRY_SECONDS, DEFAULT_USER_AGENT, MAX_CONTENT_SIZE, 
     PROGRESS_COMPLETE, PROGRESS_WEIGHT_DOWNLOAD,
     PROGRESS_MAX, PROGRESS_MIN, MAX_FILE_SIZE_KB, MAX_DESCRIPTION_LENGTH,
     DEFAULT_MAX_PAGES, DEFAULT_MAX_DEPTH, DEFAULT_LINKS_PER_PAGE,
-    PERCENTAGE_MULTIPLIER
+    PERCENTAGE_MULTIPLIER, HTTP_TIMEOUT_SHORT, HTTP_TIMEOUT_LONG, OLLAMA_API_BASE_URL, OLLAMA_TAGS_ENDPOINT
 )
 from .docker_utils import build_docker_image, run_docker_container
 from ..utils.settings import is_docker_available

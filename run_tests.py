@@ -23,6 +23,7 @@ import sys
 import os
 import time
 import traceback
+import subprocess
 
 def run_all_tests():
     """Run all unit tests and return results."""
@@ -127,4 +128,11 @@ def main():
     sys.exit(0 if success else 1)
 
 if __name__ == '__main__':
-    main() 
+    main()
+    print("\n=== Running direct main.py import test (should not fail) ===")
+    result = subprocess.run([sys.executable, 'main.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode != 0:
+        print("main.py failed to run directly!\nSTDOUT:\n", result.stdout.decode(), "\nSTDERR:\n", result.stderr.decode())
+        sys.exit(1)
+    else:
+        print("main.py ran successfully as a script.") 

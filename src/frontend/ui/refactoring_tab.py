@@ -33,8 +33,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 from PyQt6.QtGui import QFont, QColor, QPalette
 
-from ...backend.services.refactoring import refactoring_engine, RefactoringSuggestion, RefactoringOperation
-from ...utils.constants import MAX_FILE_SIZE_KB
+from backend.services.refactoring import refactoring_engine, RefactoringSuggestion, RefactoringOperation
+from backend.utils.constants import MAX_FILE_SIZE_KB
 
 logger = logging.getLogger(__name__)
 

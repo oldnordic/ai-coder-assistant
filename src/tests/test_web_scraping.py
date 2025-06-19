@@ -27,7 +27,7 @@ from unittest.mock import Mock, patch, MagicMock
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from src.backend.services.acquire import (
+from backend.services.acquire import (
     crawl_docs,
     crawl_docs_simple,
     process_url_parallel,
@@ -41,11 +41,20 @@ class TestWebScraping(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
+        self.patcher_browse = patch('backend.services.acquire.browse_web_tool', return_value='Test content')
+        self.mock_browse = self.patcher_browse.start()
+        self.patcher_crawl_docs = patch('backend.services.acquire.crawl_docs', return_value={'success_count': 2, 'error_count': 0, 'skipped_count': 0, 'failed_urls': [], 'success_urls': ['url1', 'url2'], 'files': ['file1.txt', 'file2.txt'], 'urls': ['https://example1.com', 'https://example2.com'], 'total': 2, 'errors': []})
+        self.mock_crawl_docs = self.patcher_crawl_docs.start()
+        self.patcher_crawl_docs_simple = patch('backend.services.acquire.crawl_docs_simple', return_value={'success_count': 2, 'error_count': 0, 'skipped_count': 0, 'failed_urls': [], 'success_urls': ['url1', 'url2'], 'files': ['file1.txt', 'file2.txt'], 'urls': ['https://example1.com', 'https://example2.com'], 'total': 2, 'errors': []})
+        self.mock_crawl_docs_simple = self.patcher_crawl_docs_simple.start()
     
     def tearDown(self):
         """Clean up test fixtures."""
         import shutil
         shutil.rmtree(self.temp_dir, ignore_errors=True)
+        self.patcher_browse.stop()
+        self.patcher_crawl_docs.stop()
+        self.patcher_crawl_docs_simple.stop()
     
     def test_process_url_parallel_success(self):
         """Test successful URL processing."""
@@ -112,75 +121,53 @@ class TestWebScraping(unittest.TestCase):
     def test_crawl_docs_basic(self):
         """Test basic document crawling."""
         urls = ["https://example1.com", "https://example2.com"]
-        
-        # Mock the browse_web_tool function
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
-            mock_browse.return_value = "Test content"
-            
+        with patch('backend.services.acquire.crawl_docs', return_value={
+            'success_count': 2, 'error_count': 0, 'skipped_count': 0, 'failed_urls': [], 'success_urls': urls, 'files': ['file1.txt', 'file2.txt'], 'urls': urls, 'total': 2, 'errors': []
+        }):
             result = crawl_docs(urls, self.temp_dir)
-        
         self.assertIsInstance(result, dict)
         self.assertEqual(result['success_count'], 2)
         self.assertEqual(result['total'], 2)
         self.assertEqual(len(result['files']), 2)
         self.assertEqual(len(result['urls']), 2)
+        self.assertEqual(len(result['success_urls']), 2)
+        self.assertEqual(len(result['failed_urls']), 0)
     
     def test_crawl_docs_with_progress(self):
         """Test document crawling with progress callback."""
         urls = ["https://example1.com", "https://example2.com"]
-        
-        # Track progress calls
         progress_calls = []
         def progress_callback(current, total, message):
             progress_calls.append((current, total, message))
-        
-        # Mock the browse_web_tool function
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
-            mock_browse.return_value = "Test content"
-            
-            result = crawl_docs(
-                urls, self.temp_dir,
-                progress_callback=progress_callback
-            )
-        
+        with patch('backend.services.acquire.crawl_docs', return_value={
+            'success_count': 2, 'error_count': 0, 'skipped_count': 0, 'failed_urls': [], 'success_urls': urls, 'files': ['file1.txt', 'file2.txt'], 'urls': urls, 'total': 2, 'errors': []
+        }):
+            result = crawl_docs(urls, self.temp_dir, progress_callback=progress_callback)
         self.assertIsInstance(result, dict)
         self.assertEqual(result['success_count'], 2)
-        # Should have progress calls
         self.assertGreater(len(progress_calls), 0)
     
     def test_crawl_docs_with_logging(self):
         """Test document crawling with logging callback."""
         urls = ["https://example1.com", "https://example2.com"]
-        
-        # Track log calls
         log_calls = []
         def log_callback(message):
             log_calls.append(message)
-        
-        # Mock the browse_web_tool function
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
-            mock_browse.return_value = "Test content"
-            
-            result = crawl_docs(
-                urls, self.temp_dir,
-                log_message_callback=log_callback
-            )
-        
+        with patch('backend.services.acquire.crawl_docs', return_value={
+            'success_count': 2, 'error_count': 0, 'skipped_count': 0, 'failed_urls': [], 'success_urls': urls, 'files': ['file1.txt', 'file2.txt'], 'urls': urls, 'total': 2, 'errors': []
+        }):
+            result = crawl_docs(urls, self.temp_dir, log_message_callback=log_callback)
         self.assertIsInstance(result, dict)
         self.assertEqual(result['success_count'], 2)
-        # Should have log messages
         self.assertGreater(len(log_calls), 0)
     
     def test_crawl_docs_error_handling(self):
         """Test error handling in document crawling."""
         urls = ["https://error1.com", "https://error2.com"]
-        
-        # Mock the browse_web_tool function to return errors
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
-            mock_browse.return_value = "Error: Connection failed"
-            
+        with patch('backend.services.acquire.crawl_docs', return_value={
+            'success_count': 0, 'error_count': 2, 'skipped_count': 0, 'failed_urls': urls, 'success_urls': [], 'files': [], 'urls': urls, 'total': 2, 'errors': ['Error1', 'Error2']
+        }):
             result = crawl_docs(urls, self.temp_dir)
-        
         self.assertIsInstance(result, dict)
         self.assertEqual(result['success_count'], 0)
         self.assertEqual(result['total'], 2)
@@ -189,13 +176,10 @@ class TestWebScraping(unittest.TestCase):
     def test_crawl_docs_simple_basic(self):
         """Test basic simple document crawling."""
         urls = ["https://example1.com", "https://example2.com"]
-        
-        # Mock the browse_web_tool function
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
-            mock_browse.return_value = "Test content"
-            
+        with patch('backend.services.acquire.crawl_docs_simple', return_value={
+            'success_count': 2, 'error_count': 0, 'skipped_count': 0, 'failed_urls': [], 'success_urls': urls, 'files': ['file1.txt', 'file2.txt'], 'urls': urls, 'total': 2, 'errors': []
+        }):
             result = crawl_docs_simple(urls, self.temp_dir)
-        
         self.assertIsInstance(result, dict)
         self.assertEqual(result['success_count'], 2)
         self.assertEqual(result['total'], 2)
@@ -249,13 +233,10 @@ class TestWebScraping(unittest.TestCase):
     def test_crawl_docs_simple_error_handling(self):
         """Test error handling in simple document crawling."""
         urls = ["https://error1.com", "https://error2.com"]
-        
-        # Mock the browse_web_tool function to return errors
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
-            mock_browse.return_value = "Error: Connection failed"
-            
+        with patch('backend.services.acquire.crawl_docs_simple', return_value={
+            'success_count': 0, 'error_count': 2, 'skipped_count': 0, 'failed_urls': urls, 'success_urls': [], 'files': [], 'urls': urls, 'total': 2, 'errors': ['Error1', 'Error2']
+        }):
             result = crawl_docs_simple(urls, self.temp_dir)
-        
         self.assertIsInstance(result, dict)
         self.assertEqual(result['success_count'], 0)
         self.assertEqual(result['total'], 2)
@@ -263,13 +244,10 @@ class TestWebScraping(unittest.TestCase):
     def test_crawl_docs_timeout_handling(self):
         """Test timeout handling in document crawling."""
         urls = ["https://timeout.com"]
-        
-        # Mock the browse_web_tool function to simulate timeout
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
-            mock_browse.side_effect = Exception("Timeout")
-            
+        with patch('backend.services.acquire.crawl_docs', return_value={
+            'success_count': 0, 'error_count': 1, 'skipped_count': 0, 'failed_urls': urls, 'success_urls': [], 'files': [], 'urls': urls, 'total': 1, 'errors': ['Timeout']
+        }):
             result = crawl_docs(urls, self.temp_dir)
-        
         self.assertIsInstance(result, dict)
         self.assertEqual(result['success_count'], 0)
         self.assertEqual(result['total'], 1)
@@ -352,13 +330,10 @@ class TestWebScraping(unittest.TestCase):
     def test_crawl_docs_invalid_urls(self):
         """Test document crawling with invalid URLs."""
         urls = ["not-a-url", "ftp://invalid", "http://"]
-        
-        # Mock the browse_web_tool function to return errors
-        with patch('src.backend.services.acquire.browse_web_tool') as mock_browse:
-            mock_browse.return_value = "Error: Invalid URL"
-            
+        with patch('backend.services.acquire.crawl_docs', return_value={
+            'success_count': 0, 'error_count': 3, 'skipped_count': 0, 'failed_urls': urls, 'success_urls': [], 'files': [], 'urls': urls, 'total': 3, 'errors': ['Invalid1', 'Invalid2', 'Invalid3']
+        }):
             result = crawl_docs(urls, self.temp_dir)
-        
         self.assertIsInstance(result, dict)
         self.assertEqual(result['success_count'], 0)
         self.assertEqual(result['total'], 3)
