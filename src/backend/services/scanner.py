@@ -42,20 +42,22 @@ from backend.services.scanner_persistence import (
 from backend.utils.constants import (
     MAX_DESCRIPTION_LENGTH, MAX_CODE_SNIPPET_LENGTH, 
     MAX_SUGGESTION_LENGTH, MAX_ERROR_MESSAGE_LENGTH, MAX_PROMPT_LENGTH,
-    MAX_FILE_SIZE_KB, MAX_CODE_CONTEXT_LENGTH
+    MAX_FILE_SIZE_KB, MAX_CODE_CONTEXT_LENGTH,
+    MAX_ISSUES_PER_FILE, SCAN_TIMEOUT_SECONDS, BYTES_PER_KB, 
+    DEFAULT_SCAN_LIMIT
 )
 import logging
 from enum import Enum
 import concurrent.futures
 
-# Constants
-MAX_ISSUES_PER_FILE = 100
-SCAN_TIMEOUT_SECONDS = 300  # 5 minutes
-
 logger = logging.getLogger(__name__)
 
+# Constants
+# MAX_ISSUES_PER_FILE = 100  # Moved to constants.py
+# SCAN_TIMEOUT_SECONDS = 300  # 5 minutes  # Moved to constants.py
+
 # File size conversion constant
-BYTES_PER_KB = 1024
+# BYTES_PER_KB = 1024  # Moved to constants.py
 
 # Define the 20 most used programming languages with their file extensions and linters
 SUPPORTED_LANGUAGES = {
@@ -535,7 +537,7 @@ class ScannerService:
         """Get a scan result from persistence."""
         return self.persistence.get_scan_result(scan_id)
     
-    def get_all_scan_results(self, status: Optional[ScanStatus] = None, limit: int = 100) -> List[ScanResult]:
+    def get_all_scan_results(self, status: Optional[ScanStatus] = None, limit: int = DEFAULT_SCAN_LIMIT) -> List[ScanResult]:
         """Get all scan results, optionally filtered by status."""
         return self.persistence.get_all_scan_results(status, limit)
     

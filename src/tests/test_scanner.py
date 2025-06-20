@@ -24,6 +24,9 @@ import sys
 from unittest.mock import Mock, patch, MagicMock
 import signal
 from functools import wraps
+from src.backend.utils.constants import (
+    TEST_LARGE_ITERATION_COUNT, TEST_ITERATION_COUNT
+)
 
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -351,7 +354,7 @@ function function2() {
         """Test handling of large files."""
         # Create a large test file
         test_file = os.path.join(self.temp_dir, "large_test.py")
-        large_content = "def test():\n" + "\n".join(["    pass"] * 10000)  # Large file
+        large_content = "def test():\n" + "\n".join(["    pass"] * TEST_LARGE_ITERATION_COUNT)  # Large file
         
         with open(test_file, 'w') as f:
             f.write(large_content)
@@ -397,7 +400,7 @@ function function2() {
             f.write("""
 def test_function():
     password = "hardcoded_password"  # Should trigger security issue
-    for i in range(1000):  # Should trigger performance issue
+    for i in range(TEST_LARGE_ITERATION_COUNT):  # Should trigger performance issue
         print(i)
 """)
         

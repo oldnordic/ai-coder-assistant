@@ -19,6 +19,9 @@ from backend.services.models import (
     ProviderType, ModelType, ModelConfig, ProviderConfig, 
     ChatMessage, ChatCompletionRequest, ChatCompletionResponse
 )
+from src.backend.utils.constants import (
+    TEST_CONTEXT_LENGTH, TEST_MAX_TOKENS, TEST_TEMPERATURE
+)
 
 
 class TestProviderTypes:
@@ -48,7 +51,7 @@ class TestModelConfig:
             name="gpt-4",
             provider=ProviderType.OPENAI,
             model_type=ModelType.CHAT,
-            context_length=8192,
+            context_length=TEST_CONTEXT_LENGTH,
             cost_per_1k_tokens=0.03,
             capabilities=["chat", "vision"]
         )
@@ -56,7 +59,7 @@ class TestModelConfig:
         assert config.name == "gpt-4"
         assert config.provider == ProviderType.OPENAI
         assert config.model_type == ModelType.CHAT
-        assert config.context_length == 8192
+        assert config.context_length == TEST_CONTEXT_LENGTH
         assert config.cost_per_1k_tokens == 0.03
         assert config.capabilities == ["chat", "vision"]
 
@@ -110,13 +113,13 @@ class TestRequestResponse:
         request = ChatCompletionRequest(
             messages=messages,
             model="gpt-4",
-            temperature=0.7,
-            max_tokens=1000
+            temperature=TEST_TEMPERATURE,
+            max_tokens=TEST_MAX_TOKENS
         )
         
         assert request.model == "gpt-4"
-        assert request.temperature == 0.7
-        assert request.max_tokens == 1000
+        assert request.temperature == TEST_TEMPERATURE
+        assert request.max_tokens == TEST_MAX_TOKENS
         assert len(request.messages) == 1
 
 

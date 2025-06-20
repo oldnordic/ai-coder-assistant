@@ -31,6 +31,10 @@ from backend.services.refactoring import (
     AdvancedRefactoringEngine, PythonRefactoringParser, JavaScriptRefactoringParser,
     refactoring_engine, RefactoringSuggestion, RefactoringOperation
 )
+from src.backend.utils.constants import (
+    TEST_LARGE_ITERATION_COUNT, TEST_MEDIUM_ITERATION_COUNT, 
+    TEST_SMALL_ITERATION_COUNT, TEST_ITERATION_COUNT
+)
 
 def timeout(seconds=10):
     def decorator(func):
@@ -73,14 +77,14 @@ class TestRefactoringEngine(unittest.TestCase):
 def very_long_function_with_many_lines():
     """This function is too long and should be refactored."""
     result = 0
-    for i in range(1000):  # Magic number
+    for i in range(TEST_LARGE_ITERATION_COUNT):  # Magic number
         if i % 2 == 0:
             result += i
         else:
             result -= i
     
     # More complex logic
-    for j in range(500):  # Another magic number
+    for j in range(TEST_MEDIUM_ITERATION_COUNT):  # Another magic number
         if j % 3 == 0:
             result *= 2
         elif j % 5 == 0:
@@ -89,7 +93,7 @@ def very_long_function_with_many_lines():
             result += 1
     
     # Even more logic
-    for k in range(200):  # Yet another magic number
+    for k in range(TEST_SMALL_ITERATION_COUNT):  # Yet another magic number
         if k % 7 == 0:
             result **= 2
         elif k % 11 == 0:
@@ -118,7 +122,7 @@ class VeryLargeClass:
     def method1(self):
         """First method with complex logic."""
         result = 0
-        for i in range(100):
+        for i in range(TEST_ITERATION_COUNT):
             if i % 2 == 0:
                 result += i
             else:
@@ -128,7 +132,7 @@ class VeryLargeClass:
     def method2(self):
         """Second method with complex logic."""
         result = 1
-        for i in range(50):
+        for i in range(TEST_ITERATION_COUNT):
             if i % 3 == 0:
                 result *= i
             else:
@@ -138,7 +142,7 @@ class VeryLargeClass:
     def method3(self):
         """Third method with complex logic."""
         result = []
-        for i in range(75):
+        for i in range(TEST_ITERATION_COUNT):
             if i % 4 == 0:
                 result.append(i * 2)
             elif i % 6 == 0:
@@ -150,7 +154,7 @@ class VeryLargeClass:
     def method4(self):
         """Fourth method with complex logic."""
         result = {}
-        for i in range(25):
+        for i in range(TEST_ITERATION_COUNT):
             if i % 5 == 0:
                 result[f"key_{i}"] = i * 3
             else:
@@ -160,7 +164,7 @@ class VeryLargeClass:
     def method5(self):
         """Fifth method with complex logic."""
         result = set()
-        for i in range(60):
+        for i in range(TEST_ITERATION_COUNT):
             if i % 7 == 0:
                 result.add(i * 4)
             else:
@@ -199,7 +203,7 @@ function veryLongFunctionWithManyLines() {
     let result = 0;
     
     // First loop
-    for (let i = 0; i < 1000; i++) {  // Magic number
+    for (let i = 0; i < TEST_LARGE_ITERATION_COUNT; i++) {  // Magic number
         if (i % 2 === 0) {
             result += i;
         } else {
@@ -208,7 +212,7 @@ function veryLongFunctionWithManyLines() {
     }
     
     // Second loop
-    for (let j = 0; j < 500; j++) {  // Another magic number
+    for (let j = 0; j < TEST_MEDIUM_ITERATION_COUNT; j++) {  // Another magic number
         if (j % 3 === 0) {
             result *= 2;
         } else if (j % 5 === 0) {
@@ -219,7 +223,7 @@ function veryLongFunctionWithManyLines() {
     }
     
     // Third loop
-    for (let k = 0; k < 200; k++) {  // Yet another magic number
+    for (let k = 0; k < TEST_SMALL_ITERATION_COUNT; k++) {  // Yet another magic number
         if (k % 7 === 0) {
             result = Math.pow(result, 2);
         } else if (k % 11 === 0) {
@@ -250,7 +254,7 @@ class VeryLargeClass {
     
     method1() {
         let result = 0;
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
             if (i % 2 === 0) {
                 result += i;
             } else {
@@ -262,7 +266,7 @@ class VeryLargeClass {
     
     method2() {
         let result = 1;
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
             if (i % 3 === 0) {
                 result *= i;
             } else {
@@ -274,7 +278,7 @@ class VeryLargeClass {
     
     method3() {
         let result = [];
-        for (let i = 0; i < 75; i++) {
+        for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
             if (i % 4 === 0) {
                 result.push(i * 2);
             } else if (i % 6 === 0) {
@@ -288,7 +292,7 @@ class VeryLargeClass {
     
     method4() {
         let result = {};
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
             if (i % 5 === 0) {
                 result[`key_${i}`] = i * 3;
             } else {
@@ -300,7 +304,7 @@ class VeryLargeClass {
     
     method5() {
         let result = new Set();
-        for (let i = 0; i < 60; i++) {
+        for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
             if (i % 7 === 0) {
                 result.add(i * 4);
             } else {
@@ -530,19 +534,19 @@ class TestPythonRefactoringParser(unittest.TestCase):
 def very_long_function():
     """This function is too long."""
     result = 0
-    for i in range(100):
+    for i in range(TEST_ITERATION_COUNT):
         if i % 2 == 0:
             result += i
         else:
             result -= i
     
-    for j in range(50):
+    for j in range(TEST_ITERATION_COUNT):
         if j % 3 == 0:
             result *= 2
         else:
             result /= 2
     
-    for k in range(25):
+    for k in range(TEST_ITERATION_COUNT):
         if k % 5 == 0:
             result **= 2
         else:
@@ -673,7 +677,7 @@ class VeryLargeClass:
 def calculate_something():
     """Function with magic numbers."""
     result = 0
-    for i in range(1000):  # Magic number
+    for i in range(TEST_ITERATION_COUNT):  # Magic number
         if i % 2 == 0:
             result += i
         else:
@@ -769,13 +773,13 @@ def complex_function(x, y, z):
             else:
                 result = -x - y - z
     
-    for i in range(10):
+    for i in range(TEST_ITERATION_COUNT):
         if i % 2 == 0:
             result += i
         else:
             result -= i
     
-    while result > 100:
+    while result > TEST_ITERATION_COUNT:
         if result % 2 == 0:
             result /= 2
         else:
@@ -836,7 +840,7 @@ class TestJavaScriptRefactoringParser(unittest.TestCase):
 function veryLongFunction() {
     let result = 0;
     
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
         if (i % 2 === 0) {
             result += i;
         } else {
@@ -844,7 +848,7 @@ function veryLongFunction() {
         }
     }
     
-    for (let j = 0; j < 50; j++) {
+    for (let j = 0; j < TEST_ITERATION_COUNT; j++) {
         if (j % 3 === 0) {
             result *= 2;
         } else {
@@ -852,7 +856,7 @@ function veryLongFunction() {
         }
     }
     
-    for (let k = 0; k < 25; k++) {
+    for (let k = 0; k < TEST_ITERATION_COUNT; k++) {
         if (k % 5 === 0) {
             result = Math.pow(result, 2);
         } else {
@@ -997,7 +1001,7 @@ class TestRefactoringIntegration(unittest.TestCase):
 def long_function():
     """A function that should be refactored."""
     result = 0
-    for i in range(1000):
+    for i in range(TEST_ITERATION_COUNT):
         if i % 2 == 0:
             result += i
         else:
@@ -1035,7 +1039,7 @@ class LargeClass:
         javascript_code = '''
 function longFunction() {
     let result = 0;
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
         if (i % 2 === 0) {
             result += i;
         } else {

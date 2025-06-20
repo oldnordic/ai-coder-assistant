@@ -23,6 +23,9 @@ import os
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QTimer, QThread
 from unittest.mock import MagicMock, patch
+from src.backend.utils.constants import (
+    TEST_WAIT_TIMEOUT_MS, TEST_WAIT_LONG_TIMEOUT_MS
+)
 
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -48,7 +51,7 @@ def app():
             for thread in current_thread.findChildren(QThread):
                 if thread != current_thread:
                     thread.quit()
-                    thread.wait(1000)  # Wait up to 1 second
+                    thread.wait(TEST_WAIT_TIMEOUT_MS)  # Wait up to 1 second
     
     # Register cleanup
     import atexit
@@ -135,8 +138,8 @@ def safe_qtbot(qtbot):
     
     # Process events after each test
     try:
-        qtbot.wait(100)  # Small delay to let signals propagate
-        qtbot.waitUntil(lambda: True, timeout=1000)  # Wait for any pending events
+        qtbot.wait(TEST_WAIT_TIMEOUT_MS / 10)  # Small delay to let signals propagate
+        qtbot.waitUntil(lambda: True, timeout=TEST_WAIT_LONG_TIMEOUT_MS)  # Wait for any pending events
     except Exception:
         # Ignore qtbot errors
         pass 
