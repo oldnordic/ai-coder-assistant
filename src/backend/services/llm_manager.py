@@ -36,6 +36,7 @@ from .providers import OpenAIProvider, GoogleGeminiProvider, ClaudeProvider, Oll
 from .pr_automation import PRAutomationService, ServiceConfig, PRTemplate, PRRequest, PRResult
 from .security_intelligence import SecurityIntelligenceService, SecurityVulnerability, SecurityBreach, SecurityPatch, SecurityFeed
 from .code_standards import CodeStandardsService, CodeStandard, CodeAnalysisResult
+from core.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,8 @@ class LLMManager:
     
     def __init__(self, config_path: Optional[str] = None):
         """Initialize the LLMManager with a path to the configuration file."""
-        self.config_path = config_path or "config/llm_studio_config.json"
+        self._config_manager = Config()
+        self.config_path = config_path or str(self._config_manager.get_config_file_path('llm_studio_config.json'))
         self.config = self._load_config()
         self.providers: Dict[ProviderType, Any] = {}
         self.models: Dict[str, LLMModel] = {}
@@ -60,8 +62,8 @@ class LLMManager:
         self.security_intelligence = SecurityIntelligenceService()
         
         # Initialize code standards with correct config path
-        code_standards_config_path = Path(self.config_path).parent / "code_standards_config.json"
-        self.code_standards = CodeStandardsService(str(code_standards_config_path))
+        code_standards_config_path = str(self._config_manager.get_config_file_path('code_standards_config.json'))
+        self.code_standards = CodeStandardsService(code_standards_config_path)
         
         self._lock = threading.Lock()
         self._executor = ThreadPoolExecutor(max_workers=5)
@@ -772,13 +774,13 @@ class LLMManager:
     def get_code_standards_manager(self) -> 'CodeStandardsManager':
         """Get the CodeStandardsManager instance."""
         from .code_standards import CodeStandardsManager
-        # Assuming the config directory is at the same level as the entry script
-        code_standards_config_path = "config/code_standards_config.json"
+        # Use centralized configuration management
+        code_standards_config_path = str(self._config_manager.get_config_file_path('code_standards_config.json'))
         return CodeStandardsManager(config_path=code_standards_config_path)
 
     def get_security_intelligence(self) -> 'SecurityIntelligence':
         """Get the SecurityIntelligence instance."""
         from .security_intelligence import SecurityIntelligence
-        # Assuming the config directory is at the same level as the entry script
-        security_config_path = "config/security_intelligence_config.json"
+        # Use centralized configuration management
+        security_config_path = str(self._config_manager.get_config_file_path('security_intelligence_config.json'))
         return SecurityIntelligence(config_path=security_config_path) 

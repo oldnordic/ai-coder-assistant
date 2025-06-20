@@ -25,6 +25,7 @@ import logging
 from typing import Dict, List, Optional, Any
 
 from backend.services.llm_manager import LLMManager
+from core.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -34,12 +35,14 @@ class BackendController:
     
     def __init__(self):
         self._llm_manager = None
+        self._config = Config()
     
     def get_llm_manager(self):
         """Get the LLMManager instance."""
         if self._llm_manager is None:
-            # More direct path to the config file
-            config_path = "config/llm_studio_config.json"
+            # Use centralized configuration management
+            config_file_name = self._config.get('config_files.llm_studio', 'llm_studio_config.json')
+            config_path = str(self._config.get_config_file_path(config_file_name))
             self._llm_manager = LLMManager(config_path=config_path)
         return self._llm_manager
     

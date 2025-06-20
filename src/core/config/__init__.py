@@ -34,6 +34,71 @@ class Config:
         """Get the main configuration file path."""
         return self.config_dir / 'config.json'
     
+    @property
+    def app_config_dir(self) -> Path:
+        """Get the application configuration directory path (relative to project root)."""
+        # Get the project root directory (assuming this is run from the project root)
+        project_root = Path(__file__).parent.parent.parent.parent
+        return project_root / 'config'
+    
+    def get_config_file_path(self, config_name: str) -> Path:
+        """Get the path to a specific configuration file.
+        
+        Args:
+            config_name: Name of the configuration file (e.g., 'llm_studio_config.json')
+            
+        Returns:
+            Path to the configuration file
+        """
+        return self.app_config_dir / config_name
+    
+    def load_config_file(self, config_name: str) -> Dict[str, Any]:
+        """Load a specific configuration file.
+        
+        Args:
+            config_name: Name of the configuration file to load
+            
+        Returns:
+            Configuration data as dictionary
+            
+        Raises:
+            FileNotFoundError: If the configuration file doesn't exist
+            json.JSONDecodeError: If the configuration file is invalid JSON
+        """
+        config_path = self.get_config_file_path(config_name)
+        
+        if not config_path.exists():
+            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+        
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    
+    def save_config_file(self, config_name: str, config_data: Dict[str, Any]) -> None:
+        """Save data to a specific configuration file.
+        
+        Args:
+            config_name: Name of the configuration file to save
+            config_data: Configuration data to save
+        """
+        config_path = self.get_config_file_path(config_name)
+        
+        # Ensure the config directory exists
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(config_path, 'w') as f:
+            json.dump(config_data, f, indent=4)
+    
+    def config_file_exists(self, config_name: str) -> bool:
+        """Check if a configuration file exists.
+        
+        Args:
+            config_name: Name of the configuration file to check
+            
+        Returns:
+            True if the file exists, False otherwise
+        """
+        return self.get_config_file_path(config_name).exists()
+    
     def load_config(self) -> None:
         """Load configuration from file."""
         try:
@@ -75,6 +140,13 @@ class Config:
                 'default_model': 'ollama',
                 'excluded_dirs': ['.git', '__pycache__', 'node_modules'],
                 'file_extensions': ['.py', '.js', '.ts', '.java', '.cpp', '.h']
+            },
+            'config_files': {
+                'llm_studio': 'llm_studio_config.json',
+                'security': 'security_config.json',
+                'pr_automation': 'pr_automation_config.json',
+                'security_intelligence': 'security_intelligence_config.json',
+                'code_standards': 'code_standards_config.json'
             }
         }
         self.save_config()

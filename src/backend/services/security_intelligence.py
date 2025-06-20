@@ -125,7 +125,7 @@ class SecurityIntelligenceService:
     """
     
     def __init__(self):
-        self.config = Config()
+        self._config_manager = Config()
         self.logger = LogManager().get_logger('security_intelligence')
         self.error_handler = ErrorHandler()
         self.event_bus = EventBus()
@@ -138,8 +138,8 @@ class SecurityIntelligenceService:
         self.analysis_lock = threading.Lock()
         
         # Load configuration
-        self.max_file_size_kb = self.config.get('security.max_file_size_kb', MAX_FILE_SIZE_KB)
-        self.analysis_timeout = self.config.get('security.timeout_seconds', ANALYSIS_TIMEOUT_SECONDS)
+        self.max_file_size_kb = self._config_manager.get('security.max_file_size_kb', MAX_FILE_SIZE_KB)
+        self.analysis_timeout = self._config_manager.get('security.timeout_seconds', ANALYSIS_TIMEOUT_SECONDS)
         
         self.logger.info("Security intelligence service initialized")
         
@@ -155,8 +155,9 @@ class SecurityIntelligenceService:
     def load_config(self):
         """Load configuration from file."""
         try:
-            if Path("config/security_intelligence_config.json").exists():
-                with open("config/security_intelligence_config.json", 'r') as f:
+            config_path = self._config_manager.get_config_file_path('security_intelligence_config.json')
+            if config_path.exists():
+                with open(config_path, 'r') as f:
                     data = json.load(f)
                 
                 # Load feeds
@@ -209,7 +210,8 @@ class SecurityIntelligenceService:
                 "feeds": [feed.__dict__ for feed in self.feeds.values()]
             }
             
-            with open("config/security_intelligence_config.json", 'w') as f:
+            config_path = self._config_manager.get_config_file_path('security_intelligence_config.json')
+            with open(config_path, 'w') as f:
                 json.dump(config_data, f, indent=2, default=str)
                 
         except Exception as e:

@@ -31,6 +31,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from ast import NodeVisitor
 from enum import Enum
+from core.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +244,8 @@ class CodeStandardsService:
     """Main code standards service."""
     
     def __init__(self, config_path: Optional[str] = None):
-        self.config_path = config_path or "config/code_standards_config.json"
+        self._config_manager = Config()
+        self.config_path = config_path or str(self._config_manager.get_config_file_path('code_standards_config.json'))
         self.standards: Dict[str, 'CodeStandard'] = {}
         self._current_standard_name: Optional[str] = None
         
