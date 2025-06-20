@@ -19,21 +19,31 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 
 # src/training/trainer.py
 import os
-from typing import Dict
+import json
+import logging
+from typing import Dict, List, Optional
+from pathlib import Path
 
 import torch
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 from transformers import (
-    DataCollatorForLanguageModeling,
+    AutoModelForCausalLM,
+    AutoTokenizer,
     GPT2LMHeadModel,
     GPT2Tokenizer,
-    Trainer,
-    TrainingArguments,
 )
+from transformers.data.data_collator import DataCollatorForLanguageModeling
+from transformers.trainer import Trainer
+from transformers.training_args import TrainingArguments
+from transformers.utils.quantization_config import BitsAndBytesConfig
+from transformers.trainer_callback import TrainerCallback
+from peft import LoraConfig, get_peft_model, TaskType
 
 # --- FIXED: Import the new settings module from the config package ---
 from src.backend.utils import settings
 from src.backend.utils.constants import PROGRESS_MAX, PROGRESS_MIN
+
+logger = logging.getLogger(__name__)
 
 
 def get_best_device(log_callback):
@@ -51,6 +61,193 @@ def get_best_device(log_callback):
     device = torch.device("cpu")
     log_callback("No compatible GPU detected. Falling back to CPU.")
     return device
+
+
+def fine_tune_code_model(
+    dataset_path: str, 
+    base_model: str = "microsoft/DialoGPT-medium",
+    output_model_name: str = "code-reviewer",
+    **kwargs
+) -> str:
+    """
+    Fine-tune a model specifically for code review and analysis tasks.
+    
+    This function implements the model specialization workflow for creating
+    custom-trained local models for code analysis.
+    
+    Args:
+        dataset_path: Path to the training dataset (JSON format with code examples)
+        base_model: Base model to fine-tune (default: microsoft/DialoGPT-medium)
+        output_model_name: Name for the output fine-tuned model
+        **kwargs: Additional training parameters
+        
+    Returns:
+        "Success" if training completed successfully, error message otherwise
+    """
+    log_message_callback = kwargs.get("log_message_callback", print)
+    progress_callback = kwargs.get("progress_callback", lambda c, t, m: None)
+    _log = log_message_callback
+    
+    try:
+        _log(f"Starting code model fine-tuning with base model: {base_model}")
+        progress_callback(PROGRESS_MIN, PROGRESS_MAX, "Initializing fine-tuning...")
+        
+        # Get best device
+        device = get_best_device(_log)
+        
+        # Load and prepare dataset
+        _log("Loading code review dataset...")
+        if not os.path.exists(dataset_path):
+            return f"Error: Dataset file not found: {dataset_path}"
+        
+        # Load dataset from JSON file
+        with open(dataset_path, 'r', encoding='utf-8') as f:
+            dataset_data = json.load(f)
+        
+        # Prepare training data
+        training_texts = []
+        for item in dataset_data:
+            # Format: "Code: {code}\nIssue: {issue}\nAnalysis: {analysis}\nSuggestion: {suggestion}"
+            text = f"Code: {item.get('code', '')}\n"
+            text += f"Issue: {item.get('issue', '')}\n"
+            text += f"Analysis: {item.get('analysis', '')}\n"
+            text += f"Suggestion: {item.get('suggestion', '')}\n"
+            text += f"<|endoftext|>\n"
+            training_texts.append({"text": text})
+        
+        _log(f"Prepared {len(training_texts)} training examples")
+        
+        # Create dataset
+        dataset = Dataset.from_list(training_texts)
+        
+        # Load tokenizer and model
+        _log("Loading tokenizer and model...")
+        tokenizer = AutoTokenizer.from_pretrained(base_model)
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+        
+        # Load model with quantization for memory efficiency
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16
+        )
+        
+        model = AutoModelForCausalLM.from_pretrained(
+            base_model,
+            quantization_config=bnb_config,
+            device_map="auto",
+            trust_remote_code=True
+        )
+        
+        # Configure LoRA for efficient fine-tuning
+        lora_config = LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            inference_mode=False,
+            r=8,
+            lora_alpha=32,
+            lora_dropout=0.1,
+            target_modules=["q_proj", "v_proj", "k_proj", "o_proj"]
+        )
+        
+        # Apply LoRA
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
+        
+        # Tokenize dataset
+        _log("Tokenizing dataset...")
+        def tokenize_function(examples):
+            return tokenizer(
+                examples["text"],
+                truncation=True,
+                max_length=512,
+                padding="max_length"
+            )
+        
+        tokenized_dataset = dataset.map(
+            tokenize_function, 
+            batched=True, 
+            remove_columns=["text"]
+        )
+        
+        # Data collator
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=tokenizer, 
+            mlm=False
+        )
+        
+        # Training arguments
+        training_args = TrainingArguments(
+            output_dir=f"models/{output_model_name}",
+            overwrite_output_dir=True,
+            num_train_epochs=3,
+            per_device_train_batch_size=4,
+            gradient_accumulation_steps=4,
+            warmup_steps=100,
+            learning_rate=2e-4,
+            fp16=True,
+            logging_steps=10,
+            save_steps=500,
+            save_total_limit=2,
+            report_to="none",
+            remove_unused_columns=False,
+        )
+        
+        # Custom callback for progress
+        class ProgressCallback(TrainerCallback):
+            def __init__(self, progress_callback, log_callback):
+                self.progress_callback = progress_callback
+                self.log_callback = log_callback
+                
+            def on_step_end(self, args, state, control, **kwargs):
+                if state.global_step % 10 == 0:
+                    progress = (state.global_step / state.max_steps) * 100
+                    self.progress_callback(
+                        int(progress), 
+                        100, 
+                        f"Step {state.global_step}/{state.max_steps}"
+                    )
+        
+        # Initialize trainer
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=tokenized_dataset,
+            data_collator=data_collator,
+            callbacks=[ProgressCallback(progress_callback, _log)]
+        )
+        
+        # Start training
+        _log("Starting fine-tuning...")
+        trainer.train()
+        
+        # Save the fine-tuned model
+        output_path = f"models/{output_model_name}"
+        trainer.save_model(output_path)
+        tokenizer.save_pretrained(output_path)
+        
+        # Save model metadata
+        metadata = {
+            "model_name": output_model_name,
+            "base_model": base_model,
+            "fine_tuned_for": "code_review",
+            "training_examples": len(training_texts),
+            "training_epochs": 3,
+            "lora_config": lora_config.to_dict()
+        }
+        
+        with open(f"{output_path}/model_metadata.json", 'w') as f:
+            json.dump(metadata, f, indent=2)
+        
+        _log(f"Fine-tuning completed successfully. Model saved to: {output_path}")
+        return "Success"
+        
+    except Exception as e:
+        import traceback
+        error_msg = f"Error during fine-tuning: {e}\n{traceback.format_exc()}"
+        _log(error_msg)
+        return f"Error: {e}"
 
 
 def train_model(

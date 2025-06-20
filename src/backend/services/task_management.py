@@ -302,53 +302,77 @@ class TaskAnalytics:
 
 
 class DatabaseConnectionPool:
-    """Thread-safe database connection pool for better concurrency."""
+    """Thread-safe database connection pool using threading.local()."""
 
     def __init__(self, db_path: Path, max_connections: int = 10):
         self.db_path = db_path
         self.max_connections = max_connections
-        self._connections: queue.Queue[sqlite3.Connection] = queue.Queue(
-            maxsize=max_connections
-        )
+        # Use threading.local() for thread-safe storage
+        self._local = threading.local()
         self._lock = threading.Lock()
-
-        # Initialize connections
-        for _ in range(max_connections):
-            conn = sqlite3.connect(str(db_path), check_same_thread=False)
-            conn.execute(
-                "PRAGMA journal_mode=WAL"
-            )  # Enable WAL mode for better concurrency
-            conn.execute(
-                "PRAGMA synchronous=NORMAL"
-            )  # Balance between safety and performance
-            conn.execute("PRAGMA cache_size=10000")  # Increase cache size
-            conn.execute("PRAGMA temp_store=MEMORY")  # Store temp tables in memory
-            self._connections.put(conn)
+        self._connection_count = 0
 
     @contextmanager
     def get_connection(self) -> Generator[sqlite3.Connection, None, None]:
-        """Get a database connection from the pool."""
-        conn: Optional[sqlite3.Connection] = None
+        """
+        Get a thread-local database connection.
+        
+        This method ensures that each thread gets its own database connection,
+        preventing concurrency issues when multiple threads access the database.
+        """
+        # Get or create thread-local connection
+        if not hasattr(self._local, 'connection'):
+            with self._lock:
+                if self._connection_count >= self.max_connections:
+                    logger.warning("Maximum database connections reached")
+                
+                # Create new connection for this thread
+                self._local.connection = sqlite3.connect(
+                    str(self.db_path),
+                    check_same_thread=False,
+                    timeout=30.0
+                )
+                self._local.connection.row_factory = sqlite3.Row
+                
+                # Enable foreign keys and WAL mode for better concurrency
+                self._local.connection.execute("PRAGMA foreign_keys = ON")
+                self._local.connection.execute("PRAGMA journal_mode = WAL")
+                self._local.connection.execute("PRAGMA synchronous = NORMAL")
+                self._local.connection.execute("PRAGMA cache_size = 10000")
+                self._local.connection.execute("PRAGMA temp_store = MEMORY")
+                
+                self._connection_count += 1
+                logger.debug(f"Created new database connection. Total connections: {self._connection_count}")
+        
         try:
-            conn = self._connections.get(timeout=5.0)  # 5 second timeout
-            yield conn
-        except queue.Empty:
-            raise Exception("Database connection pool exhausted")
+            yield self._local.connection
+        except Exception as e:
+            # Rollback on error
+            try:
+                self._local.connection.rollback()
+            except Exception as rollback_error:
+                logger.error(f"Error during rollback: {rollback_error}")
+            raise e
         finally:
-            if conn:
-                try:
-                    self._connections.put(conn, timeout=1.0)
-                except queue.Full:
-                    conn.close()  # Close if pool is full
+            # Don't close the connection here - keep it for the thread
+            # The connection will be closed when the thread ends or when close_all() is called
+            pass
 
     def close_all(self) -> None:
-        """Close all connections in the pool."""
-        while not self._connections.empty():
-            try:
-                conn = self._connections.get_nowait()
-                conn.close()
-            except queue.Empty:
-                break
+        """Close all database connections."""
+        with self._lock:
+            # Close thread-local connections
+            if hasattr(self._local, 'connection'):
+                try:
+                    self._local.connection.close()
+                    delattr(self._local, 'connection')
+                    self._connection_count -= 1
+                    logger.debug(f"Closed thread-local database connection. Remaining connections: {self._connection_count}")
+                except Exception as e:
+                    logger.error(f"Error closing database connection: {e}")
+            
+            # Reset connection count
+            self._connection_count = 0
 
 
 class TaskManagementService:

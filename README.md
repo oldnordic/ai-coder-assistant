@@ -106,6 +106,63 @@ ai_coder_assistant/
 - **Comprehensive Tabs**: 15+ specialized tabs for different functionalities
 - **Real-time Updates**: Live data updates and progress monitoring
 
+## 🔒 Security Features
+
+### 🔐 Secure API Key Management
+AI Coder Assistant now includes enterprise-grade security features for managing sensitive configuration:
+
+#### Environment-Based Secrets Management
+- **Secure Storage**: API keys and sensitive data are stored in environment variables, not in configuration files
+- **Dotenv Support**: Use `.env` files for local development (automatically loaded from project root)
+- **System Integration**: Support for system environment variables for production deployments
+- **Template System**: `env.template` file provides a starting point for configuration
+
+#### Supported Environment Variables
+```bash
+# AI Provider API Keys
+OPENAI_API_KEY=your_openai_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+GOOGLE_API_KEY=your_google_api_key_here
+AZURE_API_KEY=your_azure_api_key_here
+COHERE_API_KEY=your_cohere_api_key_here
+
+# AWS Configuration
+AWS_ACCESS_KEY=your_aws_access_key_here
+AWS_SECRET_KEY=your_aws_secret_key_here
+AWS_REGION=us-east-1
+
+# External Services
+JIRA_BASE_URL=https://your-domain.atlassian.net
+JIRA_USERNAME=your-email@domain.com
+JIRA_API_TOKEN=your_jira_api_token_here
+JIRA_PROJECT_KEY=PROJ
+
+SERVICENOW_BASE_URL=https://your-instance.service-now.com
+SERVICENOW_USERNAME=your_username
+SERVICENOW_API_TOKEN=your_servicenow_api_token_here
+```
+
+#### Settings Management GUI
+- **Dedicated Settings Tab**: Complete GUI for managing API keys and configuration
+- **Real-time Validation**: Instant feedback on configuration status
+- **Secure Input**: Password fields for sensitive data entry
+- **Environment Integration**: Direct integration with .env files
+- **Template Creation**: Built-in .env template generation
+
+#### Security Best Practices
+1. **Never commit .env files** to version control
+2. **Use system environment variables** for production deployments
+3. **Regularly rotate API keys** and tokens
+4. **Use minimum required permissions** for each service
+5. **Enable auto-refresh** for security data updates
+
+### 🛡️ Security Intelligence
+- **CVE Monitoring**: Real-time vulnerability tracking and display
+- **Security Breach Tracking**: Monitor and analyze security incidents
+- **Patch Management**: Track and apply security patches
+- **Code Security Analysis**: Automated security scanning of codebases
+- **Dependency Vulnerability Scanning**: Identify vulnerable dependencies
+
 ## Quick Start
 
 ### 1. Clone the repository
@@ -128,22 +185,39 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### 3. Configure LLM Providers (Optional)
-Set up your API keys for cloud providers:
+### 3. Configure Security and API Keys
+Set up your API keys and sensitive configuration securely:
 
+#### Option A: Using .env file (Recommended for development)
 ```bash
-# OpenAI
+# Copy the template and fill in your values
+cp env.template .env
+# Edit .env with your actual API keys and configuration
+```
+
+#### Option B: Using environment variables (Recommended for production)
+```bash
+# AI Provider API Keys
 export OPENAI_API_KEY="your-openai-api-key"
-
-# Anthropic
 export ANTHROPIC_API_KEY="your-anthropic-api-key"
-
-# Google AI
 export GOOGLE_API_KEY="your-google-api-key"
 
-# Ollama (for local models)
-export OLLAMA_BASE_URL="http://localhost:11434"
+# External Services (if using PR automation)
+export JIRA_BASE_URL="https://your-domain.atlassian.net"
+export JIRA_USERNAME="your-email@domain.com"
+export JIRA_API_TOKEN="your-jira-api-token"
+export JIRA_PROJECT_KEY="PROJ"
+
+export SERVICENOW_BASE_URL="https://your-instance.service-now.com"
+export SERVICENOW_USERNAME="your-username"
+export SERVICENOW_API_TOKEN="your-servicenow-api-token"
 ```
+
+#### Option C: Using the Settings GUI
+1. Start the application
+2. Go to the "Settings" tab
+3. Enter your API keys and configuration
+4. Click "Save Settings" to create/update your .env file
 
 ### 4. Configure Application Settings (Optional)
 Edit configuration files in the `config/` directory:

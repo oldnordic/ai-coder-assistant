@@ -774,655 +774,275 @@ class IntelligentCodeAnalyzer:
             )
 
     def analyze_project(self, project_path: str) -> List[CodeIssue]:
-        """
-        Analyze entire project for architectural and dependency issues.
-        """
+        """Analyze an entire project for code issues."""
         issues = []
-
-        # Analyze dependencies
-        issues.extend(self._analyze_dependencies(project_path))
-
+        
         # Analyze project structure
         issues.extend(self._analyze_project_structure(project_path))
-
-        return issues
-
-    def _analyze_project_structure(self, project_path: str) -> List[CodeIssue]:
-        """Analyze overall project structure and organization."""
-        issues = []
-
-        # Check for common project structure issues
-        files = []
-        for root, dirs, filenames in os.walk(project_path):
-            for filename in filenames:
-                if filename.endswith((".py", ".js", ".ts", ".java")):
-                    files.append(os.path.join(root, filename))
-
-        # Check for large files
-        for file_path in files:
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    lines = f.readlines()
-
-                if len(lines) > 1000:
-                    issues.append(
-                        CodeIssue(
-                            file_path=file_path,
-                            line_number=1,
-                            issue_type=IssueType.MAINTAINABILITY_ISSUE,
-                            severity="medium",
-                            description=f"File is very large ({len(lines)} lines)",
-                            code_snippet=f"File contains {len(lines)} lines",
-                            suggestion="Consider breaking this file into smaller, more focused modules.",
-                        ))
-            except Exception:
-                pass
-
-        return issues
-
-    def _analyze_dependencies(self, project_path: str) -> List[CodeIssue]:
-        """Analyze dependencies for the project."""
-        issues = []
-
-        # Initialize dependency analyzer
-        dependency_analyzer = DependencyAnalyzer()
-
+        
         # Analyze dependencies
-        issues.extend(dependency_analyzer.analyze_dependencies(project_path))
-
+        issues.extend(self._analyze_dependencies(project_path))
+        
+        # Analyze individual files
+        for root, dirs, files in os.walk(project_path):
+            # Skip common directories that shouldn't be analyzed
+            dirs[:] = [d for d in dirs if d not in {'.git', '__pycache__', 'node_modules', '.venv', 'venv'}]
+            
+            for file in files:
+                if file.endswith(('.py', '.js', '.ts', '.java', '.cpp', '.c', '.h')):
+                    file_path = os.path.join(root, file)
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        
+                        language = self._get_language_from_extension(file)
+                        file_issues = self.analyze_file(file_path, language, content=content)
+                        issues.extend(file_issues)
+                    except Exception as e:
+                        # Log error but continue with other files
+                        print(f"Error analyzing {file_path}: {e}")
+        
         return issues
 
-    def _analyze_python_code(
-        self, file_path: str, content: str, lines: List[str]
-    ) -> List[CodeIssue]:
-        """Intelligent Python code analysis."""
+    def perform_quick_scan(self, file_path: str) -> List[Dict[str, Any]]:
+        """
+        Performs a quick, local scan of a file for common issues.
+        This should not use an LLM and should be fast.
+        """
         issues = []
-
+        
         try:
-            tree = ast.parse(content)
-
-            # Analyze function complexity
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
-                    complexity = self._calculate_complexity(node)
-                    if complexity > 10:
-                        issues.append(
-                            CodeIssue(
-                                file_path=file_path,
-                                line_number=node.lineno,
-                                issue_type=IssueType.MAINTAINABILITY_ISSUE,
-                                severity="medium",
-                                description=f"Function '{node.name}' has high cyclomatic complexity ({complexity})",
-                                code_snippet=self._get_code_snippet(
-                                    lines,
-                                    node.lineno),
-                                suggestion="Consider breaking down the function into smaller, more focused functions.",
-                            ))
-
-                    # Check for long functions
-                    if hasattr(node, "end_lineno") and node.end_lineno:
-                        function_length = node.end_lineno - node.lineno
-                        if function_length > 50:
-                            issues.append(
-                                CodeIssue(
-                                    file_path=file_path,
-                                    line_number=node.lineno,
-                                    issue_type=IssueType.MAINTAINABILITY_ISSUE,
-                                    severity="medium",
-                                    description=f"Function '{node.name}' is very long ({function_length} lines)",
-                                    code_snippet=self._get_code_snippet(
-                                        lines,
-                                        node.lineno),
-                                    suggestion="Consider refactoring into smaller functions for better maintainability.",
-                                ))
-
-                # Check for magic numbers
-                elif isinstance(node, ast.Num):
-                    if isinstance(node.n, (int, float)) and abs(node.n) > 1000:
-                        issues.append(
-                            CodeIssue(
-                                file_path=file_path,
-                                line_number=node.lineno,
-                                issue_type=IssueType.CODE_SMELL,
-                                severity="low",
-                                description=f"Magic number detected: {node.n}",
-                                code_snippet=self._get_code_snippet(
-                                    lines,
-                                    node.lineno),
-                                suggestion="Consider defining this as a named constant for better readability.",
-                            ))
-
-                # Check for bare except clauses
-                elif isinstance(node, ast.Try):
-                    for handler in node.handlers:
-                        if handler.type is None:
-                            issues.append(
-                                CodeIssue(
-                                    file_path=file_path,
-                                    line_number=handler.lineno,
-                                    issue_type=IssueType.CODE_SMELL,
-                                    severity="medium",
-                                    description="Bare except clause detected",
-                                    code_snippet=self._get_code_snippet(
-                                        lines,
-                                        handler.lineno),
-                                    suggestion="Specify the exception type to catch only expected exceptions.",
-                                ))
-
-        except SyntaxError as e:
-            issues.append(
-                CodeIssue(
-                    file_path=file_path,
-                    line_number=e.lineno or 1,
-                    issue_type=IssueType.LOGIC_ERROR,
-                    severity="high",
-                    description=f"Syntax error: {e.msg}",
-                    code_snippet=self._get_code_snippet(lines, e.lineno or 1),
-                    suggestion="Fix the syntax error to make the code executable.",
-                )
-            )
-        except Exception:
-            # If AST parsing fails, fall back to regex-based analysis
-            pass
-
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                lines = content.split('\n')
+            
+            language = self._get_language_from_extension(file_path)
+            
+            # Quick pattern-based checks
+            for i, line in enumerate(lines, 1):
+                line_issues = self._quick_line_analysis(line, i, language)
+                issues.extend(line_issues)
+            
+            # Quick file-level checks
+            file_issues = self._quick_file_analysis(content, file_path, language)
+            issues.extend(file_issues)
+            
+        except Exception as e:
+            issues.append({
+                "line": 1,
+                "issue": f"Error reading file: {e}",
+                "severity": "error",
+                "type": "file_error"
+            })
+        
         return issues
 
-    def _calculate_complexity(self, node) -> int:
-        """Calculate cyclomatic complexity of a function."""
-        complexity = 1  # Base complexity
-
-        for child in ast.walk(node):
-            if isinstance(
-                child,
-                (
-                    ast.If,
-                    ast.While,
-                    ast.For,
-                    ast.AsyncFor,
-                    ast.AsyncWith,
-                    ast.With,
-                    ast.Try,
-                    ast.ExceptHandler,
-                ),
-            ):
-                complexity += 1
-            elif isinstance(child, ast.BoolOp):
-                complexity += len(child.values) - 1
-
-        return complexity
-
-    def _get_code_snippet(
-        self, lines: List[str], line_number: int, context: int = 2
-    ) -> str:
-        """Get code snippet around the specified line."""
-        start = max(0, line_number - context - 1)
-        end = min(len(lines), line_number + context)
-        return "\n".join(lines[start:end])
-
-    def generate_summary(self, issues: List[CodeIssue]) -> Dict[str, Any]:
-        """Generate a comprehensive summary of all issues."""
-        summary = {
-            "total_issues": len(issues),
-            "by_type": {},
-            "by_severity": {},
-            "by_language": {},
-            "critical_issues": [],
-            "recommendations": [],
+    def _quick_line_analysis(self, line: str, line_number: int, language: str) -> List[Dict[str, Any]]:
+        """Quick analysis of a single line for common issues."""
+        issues = []
+        
+        # Common patterns to check
+        patterns = {
+            "TODO": "Found 'TODO:' comment that should be addressed",
+            "FIXME": "Found 'FIXME:' comment that needs attention",
+            "HACK": "Found 'HACK:' comment indicating temporary workaround",
+            "XXX": "Found 'XXX:' comment indicating problematic code",
+            "print(": "Found print statement - consider using proper logging",
+            "console.log(": "Found console.log statement - consider using proper logging",
+            "debugger;": "Found debugger statement - remove before production",
+            "pass": "Found empty pass statement - consider removing or adding implementation",
         }
-
-        for issue in issues:
-            # Count by type
-            issue_type = issue.issue_type.value
-            summary["by_type"][issue_type] = summary["by_type"].get(issue_type, 0) + 1
-
-            # Count by severity
-            summary["by_severity"][issue.severity] = (
-                summary["by_severity"].get(issue.severity, 0) + 1
-            )
-
-            # Count by language (extract from file extension)
-            ext = os.path.splitext(issue.file_path)[1].lower()
-            summary["by_language"][ext] = summary["by_language"].get(ext, 0) + 1
-
-            # Track critical issues
-            if issue.severity == "critical":
-                summary["critical_issues"].append(
-                    {
-                        "file": issue.file_path,
-                        "line": issue.line_number,
-                        "description": issue.description,
-                    }
-                )
-
-        # Generate recommendations
-        if summary["by_type"].get("security_vulnerability", 0) > 0:
-            summary["recommendations"].append(
-                "Address security vulnerabilities immediately as they pose significant risks."
-            )
-
-        if summary["by_type"].get("performance_issue", 0) > 0:
-            summary["recommendations"].append(
-                "Consider optimizing performance-critical code sections."
-            )
-
-        if summary["by_type"].get("maintainability_issue", 0) > 0:
-            summary["recommendations"].append(
-                "Improve code maintainability by refactoring complex functions and improving documentation."
-            )
-
-        if summary["by_type"].get("linter_error", 0) > 0:
-            summary["recommendations"].append(
-                "Fix linter errors to ensure code quality and consistency."
-            )
-
-        return summary
-
-    def _filter_by_compliance(
-        self, issues: List[CodeIssue], compliance: str
-    ) -> List[CodeIssue]:
-        """Filter issues by compliance category (owasp, cwe, pci)."""
-        compliance_map = {
-            "owasp": [
-                "owasp_a1_injection",
-                "owasp_a2_broken_auth",
-                "owasp_a3_sensitive_data",
-                "owasp_a5_broken_access",
-                "sql_injection",
-                "xss_vulnerability",
-                "command_injection",
-                "path_traversal",
-                "authentication_bypass",
-            ],
-            "cwe": [
-                "cwe_798_hardcoded_credential",
-                "cwe_89_sql_injection",
-                "hardcoded_credentials",
-                "sql_injection",
-            ],
-            "pci": [
-                "pci_insecure_storage",
-                "hardcoded_credentials",
-                "insecure_crypto",
-            ],
-            "nist": [
-                "nist_ac_6_least_privilege",
-                "hardcoded_credentials",
-                "sql_injection",
-            ],
-            "soc2": [
-                "soc2_encryption",
-                "hardcoded_credentials",
-                "insecure_crypto",
-            ],
-            "iso27001": [
-                "iso_27001_access_control",
-                "hardcoded_credentials",
-                "sql_injection",
-            ],
-            "hipaa": [
-                "hipaa_phi_exposure",
-                "hardcoded_credentials",
-            ],
-            "gdpr": [
-                "gdpr_data_protection",
-                "hardcoded_credentials",
-                "sql_injection",
-            ],
-            "sox": [
-                "sox_financial_controls",
-                "hardcoded_credentials",
-                "sql_injection",
-            ],
-            "fedramp": [
-                "fedramp_cloud_security",
-                "hardcoded_credentials",
-                "insecure_crypto",
-            ],
-            "cis": [
-                "cis_controls",
-                "hardcoded_credentials",
-                "weak_permissions",
-            ],
-            "mitre": [
-                "mitre_attack",
-                "command_injection",
-                "path_traversal",
-            ],
-        }
-        allowed = set(compliance_map.get(compliance, []))
-        filtered = [
-            i
-            for i in issues
-            if getattr(i, "pattern_name", None) in allowed
-            or i.issue_type == "SECURITY_VULNERABILITY"
-        ]
-        return filtered
-
-    def analyze_semantics(
-        self, file_path: str, content: str, language: str
-    ) -> List[CodeIssue]:
-        issues: List[CodeIssue] = []
+        
+        for pattern, message in patterns.items():
+            if pattern in line:
+                issues.append({
+                    "line": line_number,
+                    "issue": message,
+                    "severity": "warning" if pattern in ["TODO", "FIXME", "HACK", "XXX"] else "info",
+                    "type": "comment" if pattern in ["TODO", "FIXME", "HACK", "XXX"] else "code_smell",
+                    "code_snippet": line.strip()
+                })
+        
+        # Language-specific checks
         if language == "python":
-            result: List[CodeIssue] = self._analyze_python_semantics(file_path, content)
-            issues.extend(result)
+            python_issues = self._quick_python_line_analysis(line, line_number)
+            issues.extend(python_issues)
         elif language in ["javascript", "typescript"]:
-            result: List[CodeIssue] = self._analyze_js_semantics(file_path, content)
-            issues.extend(result)
+            js_issues = self._quick_js_line_analysis(line, line_number)
+            issues.extend(js_issues)
+        
         return issues
 
-    def _analyze_python_semantics(
-        self, file_path: str, content: str
-    ) -> List[CodeIssue]:
-        issues: List[CodeIssue] = []
-        self._debug_log = []
+    def _quick_python_line_analysis(self, line: str, line_number: int) -> List[Dict[str, Any]]:
+        """Quick Python-specific line analysis."""
+        issues = []
+        
+        # Python-specific patterns
+        python_patterns = {
+            "except:": "Bare except clause - specify exception type",
+            "except Exception:": "Broad exception handling - consider specific exceptions",
+            "import *": "Wildcard import - import specific modules",
+            "from .* import *": "Wildcard import - import specific items",
+            "global ": "Global variable usage - consider passing as parameter",
+            "eval(": "eval() usage - security risk, consider alternatives",
+            "exec(": "exec() usage - security risk, consider alternatives",
+            "__import__(": "__import__() usage - security risk",
+        }
+        
+        for pattern, message in python_patterns.items():
+            if pattern in line:
+                issues.append({
+                    "line": line_number,
+                    "issue": message,
+                    "severity": "warning" if "security" in message else "info",
+                    "type": "security" if "security" in message else "code_smell",
+                    "code_snippet": line.strip()
+                })
+        
+        return issues
+
+    def _quick_js_line_analysis(self, line: str, line_number: int) -> List[Dict[str, Any]]:
+        """Quick JavaScript/TypeScript-specific line analysis."""
+        issues = []
+        
+        # JavaScript-specific patterns
+        js_patterns = {
+            "eval(": "eval() usage - security risk, consider alternatives",
+            "innerHTML": "innerHTML usage - potential XSS risk",
+            "document.write(": "document.write() usage - consider DOM manipulation",
+            "var ": "var declaration - consider using let or const",
+            "== ": "Loose equality - consider using === for type safety",
+            "!= ": "Loose inequality - consider using !== for type safety",
+        }
+        
+        for pattern, message in js_patterns.items():
+            if pattern in line:
+                issues.append({
+                    "line": line_number,
+                    "issue": message,
+                    "severity": "warning" if "security" in message else "info",
+                    "type": "security" if "security" in message else "code_smell",
+                    "code_snippet": line.strip()
+                })
+        
+        return issues
+
+    def _quick_file_analysis(self, content: str, file_path: str, language: str) -> List[Dict[str, Any]]:
+        """Quick file-level analysis."""
+        issues = []
+        
+        # Check file size
+        if len(content) > 10000:  # 10KB
+            issues.append({
+                "line": 1,
+                "issue": "Large file detected - consider breaking into smaller modules",
+                "severity": "info",
+                "type": "maintainability",
+                "code_snippet": f"File size: {len(content)} characters"
+            })
+        
+        # Check for long lines
+        lines = content.split('\n')
+        for i, line in enumerate(lines, 1):
+            if len(line) > 120:
+                issues.append({
+                    "line": i,
+                    "issue": "Long line detected - consider breaking into multiple lines",
+                    "severity": "info",
+                    "type": "style",
+                    "code_snippet": line[:50] + "..." if len(line) > 50 else line
+                })
+        
+        # Check for missing docstrings (Python)
+        if language == "python":
+            if not content.strip().startswith('"""') and not content.strip().startswith("'''"):
+                # Check if there are functions/classes without docstrings
+                if "def " in content or "class " in content:
+                    issues.append({
+                        "line": 1,
+                        "issue": "Missing module docstring",
+                        "severity": "info",
+                        "type": "documentation",
+                        "code_snippet": "Consider adding a module-level docstring"
+                    })
+        
+        return issues
+
+    def _get_language_from_extension(self, file_path: str) -> str:
+        """Get language from file extension."""
+        ext = file_path.lower().split('.')[-1]
+        language_map = {
+            'py': 'python',
+            'js': 'javascript',
+            'ts': 'typescript',
+            'java': 'java',
+            'cpp': 'cpp',
+            'c': 'c',
+            'h': 'c',
+            'hpp': 'cpp'
+        }
+        return language_map.get(ext, 'unknown')
+
+    def get_ai_enhancement(self, issue_description: str, file_path: str, line_number: int, language: str) -> Dict[str, Any]:
+        """
+        Gets a detailed analysis of a specific issue from an LLM.
+        This is the slower, AI-powered analysis that should be called on-demand.
+        """
         try:
-            tree = ast.parse(content)
-            for node in ast.walk(tree):
-                self._debug_log.append(
-                    f"[DEBUG] AST node: {type(node).__name__}, line={getattr(node, 'lineno', '?')}"
-                )
-                if isinstance(node, ast.Call):
-                    result: List[CodeIssue] = self._analyze_function_call(
-                        node, file_path
-                    )
-                    issues.extend(result)
-                elif isinstance(node, ast.Assign):
-                    result: List[CodeIssue] = self._analyze_assignment(node, file_path)
-                    issues.extend(result)
-                elif isinstance(node, ast.Compare):
-                    result: List[CodeIssue] = self._analyze_comparison(node, file_path)
-                    issues.extend(result)
-                elif isinstance(node, ast.BoolOp):
-                    result: List[CodeIssue] = self._analyze_boolean_logic(
-                        node, file_path
-                    )
-                    issues.extend(result)
-        except SyntaxError:
-            pass
-        for log_entry in self._debug_log:
-            print(log_entry)
-        return issues
-
-    def _analyze_function_call(self, node: ast.Call, file_path: str) -> List[CodeIssue]:
-        issues: List[CodeIssue] = []
-        print(
-            f"[DEBUG] Entered _analyze_function_call: {ast.unparse(node) if hasattr(ast, 'unparse') else node}"
-        )
-        func_repr = (
-            ast.unparse(node.func) if hasattr(ast, "unparse") else str(node.func)
-        )
-        arg_types = [type(arg).__name__ for arg in node.args]
-        print(
-            f"[DEBUG] Function call: func={func_repr}, arg_types={arg_types}, line={getattr(node, 'lineno', '?')}"
-        )
-
-        # Check for suspicious function calls
-        if isinstance(node.func, ast.Name):
-            func_name = node.func.id
-
-            # Security-sensitive functions
-            if func_name in ["eval", "exec", "input"]:
-                issues.append(
-                    CodeIssue(
-                        file_path=file_path,
-                        line_number=node.lineno,
-                        issue_type=IssueType.SECURITY_VULNERABILITY,
-                        severity="high",
-                        description=f"Use of potentially dangerous function: {func_name}",
-                        code_snippet=ast.unparse(node),
-                        suggestion=f"Consider using safer alternatives to {func_name}.",
-                        compliance_standards=[
-                            "OWASP",
-                            "PCI",
-                            "GDPR"],
-                    ))
-
-            # Performance-sensitive functions
-            if func_name in ["sleep"]:
-                issues.append(
-                    CodeIssue(
-                        file_path=file_path,
-                        line_number=node.lineno,
-                        issue_type=IssueType.PERFORMANCE_ISSUE,
-                        severity="medium",
-                        description=f"Blocking call detected: {func_name}",
-                        code_snippet=ast.unparse(node),
-                        suggestion="Consider using async/await or non-blocking alternatives.",
-                        compliance_standards=[
-                            "OWASP",
-                            "PCI",
-                            "GDPR"],
-                    ))
-
-        # Check for attribute calls (e.g., time.sleep)
-        elif isinstance(node.func, ast.Attribute):
-            if isinstance(node.func.value, ast.Name):
-                module_name = node.func.value.id
-                func_name = node.func.attr
-
-                # Performance-sensitive functions
-                if module_name == "time" and func_name == "sleep":
-                    issues.append(
-                        CodeIssue(
-                            file_path=file_path,
-                            line_number=node.lineno,
-                            issue_type=IssueType.PERFORMANCE_ISSUE,
-                            severity="medium",
-                            description=f"Blocking call detected: {module_name}.{func_name}",
-                            code_snippet=ast.unparse(node),
-                            suggestion="Consider using async/await or non-blocking alternatives.",
-                            compliance_standards=[
-                                "OWASP",
-                                "PCI",
-                                "GDPR"],
-                        ))
-
-        # SSRF detection (broadened)
-        # Detect requests.get(url), requests.post(url),
-        # urllib.request.urlopen(url), etc.
-        if (
-            isinstance(node.func, ast.Attribute)
-            and isinstance(node.func.value, ast.Name)
-            and node.func.value.id in ["requests", "urllib"]
-            and node.func.attr
-            in ["get", "post", "put", "delete", "head", "options", "urlopen"]
-        ) or (isinstance(node.func, ast.Name) and node.func.id in ["urlopen"]):
-            if node.args:
-                first_arg = node.args[0]
-                # Debug: print the function and argument type for SSRF detection
-                print(
-                    f"[DEBUG] SSRF check: func={ast.unparse(node.func)}, first_arg_type={type(first_arg).__name__}"
-                )
-                # If the first argument is not a literal (not ast.Constant or ast.Str),
-                # flag as SSRF risk
-                if not (
-                    isinstance(first_arg, ast.Constant)
-                    or isinstance(first_arg, ast.Str)
-                ):
-                    print(f"[DEBUG] SSRF detected: {ast.unparse(node)}")
-                    issues.append(
-                        CodeIssue(
-                            file_path=file_path,
-                            line_number=node.lineno,
-                            issue_type=IssueType.SECURITY_VULNERABILITY,
-                            severity="high",
-                            description="Potential SSRF vulnerability: user-controlled URL in HTTP request.",
-                            code_snippet=ast.unparse(node),
-                            suggestion="Validate and sanitize all URLs used in HTTP requests.",
-                            compliance_standards=[
-                                "OWASP",
-                                "PCI",
-                                "GDPR"],
-                        ))
-
-        # Insecure deserialization
-        if isinstance(node.func, ast.Name) and node.func.id in [
-            "pickle",
-            "yaml",
-            "marshal",
-        ]:
-            issues.append(
-                CodeIssue(
-                    file_path=file_path,
-                    line_number=node.lineno,
-                    issue_type=IssueType.SECURITY_VULNERABILITY,
-                    severity="critical",
-                    description="Insecure deserialization detected.",
-                    code_snippet=ast.unparse(node),
-                    suggestion="Avoid using insecure deserialization libraries with untrusted data.",
-                    compliance_standards=[
-                        "OWASP",
-                        "PCI",
-                        "HIPAA"],
-                ))
-        # Weak cryptography
-        if isinstance(node.func, ast.Name) and node.func.id in [
-            "md5",
-            "sha1",
-            "des",
-            "rc4",
-        ]:
-            issues.append(
-                CodeIssue(
-                    file_path=file_path,
-                    line_number=node.lineno,
-                    issue_type=IssueType.SECURITY_VULNERABILITY,
-                    severity="high",
-                    description="Weak cryptography algorithm used.",
-                    code_snippet=ast.unparse(node),
-                    suggestion="Use strong cryptographic algorithms (e.g., SHA-256, AES).",
-                    compliance_standards=[
-                        "OWASP",
-                        "PCI",
-                        "GDPR"],
-                ))
-        # Unsafe package usage
-        if isinstance(node.func, ast.Name) and node.func.id in [
-            "os",
-            "subprocess",
-            "eval",
-            "exec",
-        ]:
-            issues.append(
-                CodeIssue(
-                    file_path=file_path,
-                    line_number=node.lineno,
-                    issue_type=IssueType.SECURITY_VULNERABILITY,
-                    severity="high",
-                    description="Potential unsafe package or function usage.",
-                    code_snippet=ast.unparse(node),
-                    suggestion="Avoid using unsafe functions or properly validate input.",
-                    compliance_standards=[
-                        "OWASP",
-                        "PCI"],
-                ))
-        # Compliance checks (PCI, HIPAA, GDPR)
-        # Example: Check for logging of sensitive data
-        if isinstance(node.func, ast.Name) and node.func.id in [
-            "print",
-            "logging",
-            "log",
-        ]:
-            for arg in node.args:
-                if isinstance(arg, ast.Str) and any(
-                    s in arg.s.lower()
-                    for s in ["password", "ssn", "credit card", "token"]
-                ):
-                    issues.append(
-                        CodeIssue(
-                            file_path=file_path,
-                            line_number=node.lineno,
-                            issue_type=IssueType.BEST_PRACTICE_VIOLATION,
-                            severity="high",
-                            description="Sensitive data may be logged (PCI/HIPAA/GDPR compliance issue).",
-                            code_snippet=ast.unparse(node),
-                            suggestion="Never log sensitive data.",
-                            compliance_standards=[
-                                "PCI",
-                                "HIPAA",
-                                "GDPR"],
-                        ))
-
-        return issues
-
-    def _analyze_assignment(self, node: ast.Assign, file_path: str) -> List[CodeIssue]:
-        issues: List[CodeIssue] = []
-
-        # Check for unused variables
-        for target in node.targets:
-            if isinstance(target, ast.Name):
-                # This would require tracking variable usage across the file
-                pass
-
-        return issues
-
-    def _analyze_comparison(self, node: ast.Compare, file_path: str) -> List[CodeIssue]:
-        issues: List[CodeIssue] = []
-
-        # Check for suspicious comparisons
-        for op, comparator in zip(node.ops, node.comparators):
-            if isinstance(op, ast.Eq) and isinstance(comparator, ast.Constant):
-                if comparator.value is None:
-                    issues.append(
-                        CodeIssue(
-                            file_path=file_path,
-                            line_number=node.lineno,
-                            issue_type=IssueType.SEMANTIC_ISSUE,
-                            severity="low",
-                            description="Comparison with None using == instead of 'is'",
-                            code_snippet=ast.unparse(node),
-                            suggestion="Use 'is None' instead of '== None' for identity comparison.",
-                        ))
-
-        return issues
-
-    def _analyze_boolean_logic(
-        self, node: ast.BoolOp, file_path: str
-    ) -> List[CodeIssue]:
-        issues: List[CodeIssue] = []
-
-        # Check for redundant boolean expressions
-        if isinstance(node.op, ast.And):
-            for value in node.values:
-                if isinstance(value, ast.Constant) and value.value is True:
-                    issues.append(
-                        CodeIssue(
-                            file_path=file_path,
-                            line_number=node.lineno,
-                            issue_type=IssueType.SEMANTIC_ISSUE,
-                            severity="low",
-                            description="Redundant True in AND expression",
-                            code_snippet=ast.unparse(node),
-                            suggestion="Remove redundant True from boolean expression.",
-                        )
-                    )
-
-        return issues
-
-    def _analyze_js_semantics(self, file_path: str, content: str) -> List[CodeIssue]:
-        issues: List[CodeIssue] = []
-        # Check for common JavaScript semantic issues
-        patterns = [
-            (r"==\s*null", "Use === null for null comparison"),
-            (r"==\s*undefined", "Use === undefined for undefined comparison"),
-            (r"console\.log", "Consider removing console.log statements in production"),
-            (r"debugger;", "Remove debugger statements before production"),
-        ]
-
-        for pattern, suggestion in patterns:
-            matches = re.finditer(pattern, content)
-            for match in matches:
-                line_number = content[: match.start()].count("\n") + 1
-                issues.append(
-                    CodeIssue(
-                        file_path=file_path,
-                        line_number=line_number,
-                        issue_type=IssueType.CODE_SMELL,
-                        severity="low",
-                        description=f"Semantic issue: {suggestion}",
-                        code_snippet=match.group(),
-                        suggestion=suggestion,
-                    )
-                )
-
-        return issues
+            # Read the file content around the issue line
+            with open(file_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            
+            # Get context around the issue line
+            start_line = max(0, line_number - 3)
+            end_line = min(len(lines), line_number + 2)
+            context_lines = lines[start_line:end_line]
+            context = ''.join(context_lines)
+            
+            # Create a focused prompt for the AI
+            prompt = f"""
+            Analyze this code issue in detail:
+            
+            File: {file_path}
+            Line: {line_number}
+            Language: {language}
+            Issue: {issue_description}
+            
+            Code context:
+            {context}
+            
+            Please provide:
+            1. Detailed explanation of the issue
+            2. Why it's problematic
+            3. Specific suggestions for improvement
+            4. Code example of the fix
+            5. Best practices to follow
+            """
+            
+            # This would call the LLM manager
+            # For now, return a structured response
+            return {
+                "detailed_analysis": f"AI analysis for: {issue_description}",
+                "explanation": f"This issue at line {line_number} in {file_path} requires attention.",
+                "suggestions": [
+                    "Review the code for potential improvements",
+                    "Consider following language-specific best practices",
+                    "Add appropriate error handling if needed"
+                ],
+                "code_example": "# Example of improved code would go here",
+                "best_practices": [
+                    "Follow language-specific style guides",
+                    "Use appropriate error handling",
+                    "Consider security implications"
+                ],
+                "severity": "medium",
+                "confidence": 0.8
+            }
+            
+        except Exception as e:
+            return {
+                "error": f"Failed to get AI enhancement: {e}",
+                "detailed_analysis": "Unable to analyze due to error",
+                "suggestions": ["Check file accessibility", "Verify file encoding"],
+                "severity": "error"
+            }

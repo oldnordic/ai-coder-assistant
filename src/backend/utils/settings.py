@@ -143,18 +143,22 @@ DROPOUT = 0.1
 # --- Cloud Models Settings ---
 def get_settings() -> Dict[str, Any]:
     """Get settings for cloud models and other services."""
+    from .secrets import get_secrets_manager
+    
+    secrets_manager = get_secrets_manager()
+    
     return {
-        "openai_api_key": os.environ.get("OPENAI_API_KEY", ""),
-        "openai_base_url": os.environ.get("OPENAI_BASE_URL", ""),
-        "openai_organization": os.environ.get("OPENAI_ORGANIZATION", ""),
-        "anthropic_api_key": os.environ.get("ANTHROPIC_API_KEY", ""),
-        "google_api_key": os.environ.get("GOOGLE_API_KEY", ""),
-        "azure_api_key": os.environ.get("AZURE_API_KEY", ""),
-        "azure_endpoint": os.environ.get("AZURE_ENDPOINT", ""),
-        "aws_access_key": os.environ.get("AWS_ACCESS_KEY", ""),
-        "aws_secret_key": os.environ.get("AWS_SECRET_KEY", ""),
-        "aws_region": os.environ.get("AWS_REGION", ""),
-        "cohere_api_key": os.environ.get("COHERE_API_KEY", ""),
+        "openai_api_key": secrets_manager.get_secret("OPENAI_API_KEY", ""),
+        "openai_base_url": secrets_manager.get_secret("OPENAI_BASE_URL", ""),
+        "openai_organization": secrets_manager.get_secret("OPENAI_ORGANIZATION", ""),
+        "anthropic_api_key": secrets_manager.get_secret("ANTHROPIC_API_KEY", ""),
+        "google_api_key": secrets_manager.get_secret("GOOGLE_API_KEY", ""),
+        "azure_api_key": secrets_manager.get_secret("AZURE_API_KEY", ""),
+        "azure_endpoint": secrets_manager.get_secret("AZURE_ENDPOINT", ""),
+        "aws_access_key": secrets_manager.get_secret("AWS_ACCESS_KEY", ""),
+        "aws_secret_key": secrets_manager.get_secret("AWS_SECRET_KEY", ""),
+        "aws_region": secrets_manager.get_secret("AWS_REGION", ""),
+        "cohere_api_key": secrets_manager.get_secret("COHERE_API_KEY", ""),
     }
 
 

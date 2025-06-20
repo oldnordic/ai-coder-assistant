@@ -23,7 +23,7 @@ Manages providers, models, and provides unified interface.
 """
 
 from src.core.config import Config
-from src.backend.utils.settings import get_settings
+from src.backend.utils.secrets import get_secrets_manager, is_provider_configured
 from src.backend.services.security_intelligence import (
     SecurityBreach,
     SecurityFeed,
@@ -201,42 +201,62 @@ class LLMManager:
             }
         )
 
+        # Add default providers
+        config.providers.update(
+            {
+                ProviderType.OPENAI: ProviderConfig(
+                    provider_type=ProviderType.OPENAI,
+                    api_key="",  # Will be loaded from environment
+                    is_enabled=True,
+                ),
+                ProviderType.GOOGLE_GEMINI: ProviderConfig(
+                    provider_type=ProviderType.GOOGLE_GEMINI,
+                    api_key="",  # Will be loaded from environment
+                    is_enabled=True,
+                ),
+                ProviderType.CLAUDE: ProviderConfig(
+                    provider_type=ProviderType.CLAUDE,
+                    api_key="",  # Will be loaded from environment
+                    is_enabled=True,
+                ),
+            }
+        )
+
         return config
 
     def _save_config(self):
         """Save configuration to file."""
         try:
-            # Convert enums to strings for JSON serialization
-            config_dict: Dict[str, Any] = {
+            # Convert config to dictionary format
+            config_data = {
                 "studio_settings": {
                     "default_model": self.config.default_model,
-                    "default_temperature": 0.7,
-                    "default_max_tokens": 2048,
-                    "default_system_prompt": "You are a helpful AI coding assistant.",
-                    "auto_save_interval": 30,
-                    "max_conversation_history": 50,
-                    "enable_code_highlighting": True,
-                    "enable_auto_completion": True,
-                    "theme": "dark",
-                    "font_size": 14,
-                    "font_family": "Consolas, 'Courier New', monospace",
+                    "enable_fallback": self.config.enable_fallback,
+                    "enable_retry": self.config.enable_retry,
+                    "max_concurrent_requests": self.config.max_concurrent_requests,
+                    "request_timeout": self.config.request_timeout,
+                    "enable_logging": self.config.enable_logging,
+                    "enable_metrics": self.config.enable_metrics,
+                    "cost_tracking": self.config.cost_tracking,
+                    "auto_switch_on_error": self.config.auto_switch_on_error,
                 },
                 "model_configurations": {},
             }
 
             # Convert models
             for model_name, model_config in self.config.models.items():
-                model_dict = {
+                config_data["model_configurations"][model_name] = {
                     "provider": model_config.provider.value,
                     "max_tokens": model_config.max_tokens,
-                    "temperature_range": [0.0, 2.0],
-                    "supported_features": model_config.capabilities,
                     "cost_per_1k_tokens": model_config.cost_per_1k_tokens,
+                    "supported_features": model_config.capabilities,
                 }
-                config_dict["model_configurations"][model_name] = model_dict
 
+            # Save to file
             with open(self.config_path, "w") as f:
-                json.dump(config_dict, f, indent=2, default=str)
+                json.dump(config_data, f, indent=2)
+
+            logger.info(f"Configuration saved to {self.config_path}")
 
         except Exception as e:
             logger.error(f"Error saving config: {e}")
@@ -246,50 +266,36 @@ class LLMManager:
         Check if a provider is properly configured with API keys.
         Returns True only if the provider has the necessary configuration.
         """
-        settings = get_settings()
-
+        # Use the new secrets management system
+        provider_name = provider_type.value.lower()
+        
         if provider_type == ProviderType.OPENAI:
-            # Check for OpenAI API key
-            return bool(settings.get("openai_api_key", "").strip())
-
-        elif (
-            provider_type == ProviderType.CLAUDE
-            or provider_type == ProviderType.ANTHROPIC
-        ):
-            # Check for Anthropic API key
-            return bool(settings.get("anthropic_api_key", "").strip())
-
-        elif (
-            provider_type == ProviderType.GOOGLE_GEMINI
-            or provider_type == ProviderType.GOOGLE
-        ):
-            # Check for Google API key
-            return bool(settings.get("google_api_key", "").strip())
-
+            return is_provider_configured("openai")
+        elif provider_type == ProviderType.CLAUDE or provider_type == ProviderType.ANTHROPIC:
+            return is_provider_configured("anthropic")
+        elif provider_type == ProviderType.GOOGLE_GEMINI or provider_type == ProviderType.GOOGLE:
+            return is_provider_configured("google")
         elif provider_type == ProviderType.OLLAMA:
             # Ollama is always available if it's running locally
             # We'll check availability during actual initialization
             return True
-
         elif provider_type == ProviderType.AZURE:
             # Check for Azure API key and endpoint
+            secrets_manager = get_secrets_manager()
             return bool(
-                settings.get("azure_api_key", "").strip()
-                and settings.get("azure_endpoint", "").strip()
+                secrets_manager.get_secret("AZURE_API_KEY", "").strip() and
+                secrets_manager.get_secret("AZURE_ENDPOINT", "").strip()
             )
-
         elif provider_type == ProviderType.AWS_BEDROCK:
             # Check for AWS credentials
+            secrets_manager = get_secrets_manager()
             return bool(
-                settings.get("aws_access_key", "").strip()
-                and settings.get("aws_secret_key", "").strip()
-                and settings.get("aws_region", "").strip()
+                secrets_manager.get_secret("AWS_ACCESS_KEY", "").strip() and
+                secrets_manager.get_secret("AWS_SECRET_KEY", "").strip() and
+                secrets_manager.get_secret("AWS_REGION", "").strip()
             )
-
         elif provider_type == ProviderType.COHERE:
-            # Check for Cohere API key
-            return bool(settings.get("cohere_api_key", "").strip())
-
+            return is_provider_configured("cohere")
         else:
             logger.warning(
                 f"Unknown provider type for configuration check: {provider_type.value}"

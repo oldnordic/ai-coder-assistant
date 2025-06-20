@@ -24,8 +24,18 @@ Backend Controller - Handles communication between frontend and backend services
 from src.core.config import Config
 from src.backend.services.scanner import ScannerService
 from src.backend.services.llm_manager import LLMManager
+from src.backend.services.local_code_reviewer import (
+    LocalCodeReviewer, 
+    EnhancementRequest, 
+    EnhancementResult, 
+    EnhancementType,
+    get_local_code_reviewer
+)
+from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
+from src.backend.utils.secrets import get_secrets_manager
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Callable
+import os
 
 
 logger = logging.getLogger(__name__)
@@ -37,6 +47,8 @@ class BackendController:
     def __init__(self):
         self._llm_manager = None
         self._scanner_service = None
+        self._local_code_reviewer = None
+        self._intelligent_analyzer = None
         self._config = Config()
 
     def get_llm_manager(self):
@@ -55,6 +67,267 @@ class BackendController:
         if self._scanner_service is None:
             self._scanner_service = ScannerService()
         return self._scanner_service
+
+    def get_local_code_reviewer(self) -> LocalCodeReviewer:
+        """Get the LocalCodeReviewer instance."""
+        if self._local_code_reviewer is None:
+            self._local_code_reviewer = get_local_code_reviewer()
+        return self._local_code_reviewer
+
+    def get_intelligent_analyzer(self) -> IntelligentCodeAnalyzer:
+        """Get the IntelligentCodeAnalyzer instance."""
+        if self._intelligent_analyzer is None:
+            self._intelligent_analyzer = IntelligentCodeAnalyzer()
+        return self._intelligent_analyzer
+
+    # AI Analysis Methods
+
+    def start_quick_scan(self, directory_path: str, include_patterns: Optional[List[str]] = None, 
+                        exclude_patterns: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Start a quick scan of the specified directory.
+        
+        This method implements the first stage of the two-stage analysis approach:
+        1. Quick Scan: Immediate local analysis using static rules
+        2. AI Enhancement: On-demand AI analysis of specific issues
+        
+        Args:
+            directory_path: Path to the directory to scan
+            include_patterns: List of file patterns to include
+            exclude_patterns: List of file patterns to exclude
+            
+        Returns:
+            Dictionary containing scan results with the following format:
+            {
+                "success": bool,
+                "issues": [
+                    {
+                        "file": "path/to/file.py",
+                        "line": 10,
+                        "issue": "Description of the issue",
+                        "severity": "high|medium|low",
+                        "type": "issue_type",
+                        "code_snippet": "line_of_code",
+                        "context": "surrounding_lines"
+                    }
+                ],
+                "total_issues": int,
+                "scan_type": "quick_scan"
+            }
+        """
+        try:
+            analyzer = self.get_intelligent_analyzer()
+            
+            # Use default patterns if none provided
+            if include_patterns is None:
+                include_patterns = ["*.py", "*.js", "*.ts", "*.java", "*.cpp", "*.c", "*.h", "*.hpp"]
+            if exclude_patterns is None:
+                exclude_patterns = ["__pycache__/*", "node_modules/*", ".git/*", "*.pyc", "*.log"]
+            
+            # Get all files to scan
+            files_to_scan = []
+            for root, dirs, files in os.walk(directory_path):
+                # Skip excluded directories
+                dirs[:] = [d for d in dirs if d not in {'.git', '__pycache__', 'node_modules', '.venv', 'venv'}]
+                
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    # Check if file matches include patterns
+                    if any(file.endswith(pattern.strip().replace('*', '')) for pattern in include_patterns):
+                        # Check if file should be excluded
+                        if not any(exclude.replace('*', '') in file_path for exclude in exclude_patterns):
+                            files_to_scan.append(file_path)
+            
+            logger.info(f"Found {len(files_to_scan)} files to scan in {directory_path}")
+            
+            # Perform quick scan on each file
+            all_issues = []
+            for file_path in files_to_scan:
+                try:
+                    file_issues = analyzer.perform_quick_scan(file_path)
+                    # Add file path to each issue
+                    for issue in file_issues:
+                        issue["file_path"] = file_path
+                    all_issues.extend(file_issues)
+                except Exception as e:
+                    logger.warning(f"Error scanning file {file_path}: {e}")
+                    # Add error issue
+                    all_issues.append({
+                        "file_path": file_path,
+                        "line_number": 1,
+                        "description": f"Error scanning file: {e}",
+                        "severity": "error",
+                        "issue_type": "file_error",
+                        "code_snippet": "",
+                        "context": "",
+                        "language": "unknown"
+                    })
+            
+            # Convert to frontend-friendly format
+            formatted_issues: List[Dict[str, Any]] = []
+            for issue in all_issues:
+                formatted_issue = {
+                    "file": issue.get("file_path", ""),
+                    "line": issue.get("line_number", 0),
+                    "issue": issue.get("description", ""),
+                    "severity": issue.get("severity", "medium"),
+                    "type": issue.get("issue_type", "code_quality"),
+                    "code_snippet": issue.get("code_snippet", ""),
+                    "context": issue.get("context", ""),
+                    "language": issue.get("language", "unknown")
+                }
+                formatted_issues.append(formatted_issue)
+            
+            logger.info(f"Quick scan completed. Found {len(formatted_issues)} issues in {len(files_to_scan)} files")
+            
+            return {
+                "success": True,
+                "issues": formatted_issues,
+                "total_issues": len(formatted_issues),
+                "scan_type": "quick_scan"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error during quick scan: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "issues": [],
+                "total_issues": 0,
+                "scan_type": "quick_scan"
+            }
+
+    def get_ai_enhancement(self, issue_data: Dict[str, Any], 
+                          enhancement_type: str = "code_improvement") -> EnhancementResult:
+        """
+        Get AI enhancement for a specific issue.
+        
+        This method implements the second stage of the two-stage analysis approach:
+        1. Quick Scan: Immediate local analysis using static rules
+        2. AI Enhancement: On-demand AI analysis of specific issues
+        
+        Args:
+            issue_data: Dictionary containing issue details with the following format:
+                {
+                    "file": "path/to/file.py",
+                    "line": 10,
+                    "issue": "Description of the issue",
+                    "severity": "high|medium|low",
+                    "type": "issue_type",
+                    "code_snippet": "line_of_code",
+                    "context": "surrounding_lines",
+                    "language": "language_name"
+                }
+            enhancement_type: Type of enhancement to perform (code_improvement, security_analysis, etc.)
+            
+        Returns:
+            EnhancementResult with detailed analysis and structured suggestions
+        """
+        try:
+            reviewer = self.get_local_code_reviewer()
+            
+            # Create enhancement request
+            request = EnhancementRequest(
+                issue_description=issue_data.get("issue", ""),
+                file_path=issue_data.get("file", ""),
+                line_number=issue_data.get("line", 0),
+                code_snippet=issue_data.get("code_snippet", ""),
+                language=issue_data.get("language", "unknown"),
+                enhancement_type=EnhancementType(enhancement_type),
+                context_lines=5,
+                include_suggestions=True,
+                include_explanation=True
+            )
+            
+            # Perform analysis
+            result = reviewer.analyze_snippet(request)
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error during AI enhancement: {e}")
+            # Return a fallback result
+            return EnhancementResult(
+                original_issue=issue_data.get("issue", ""),
+                enhanced_analysis=f"Error during AI enhancement: {e}",
+                suggestions=["Review the code manually", "Check for common patterns in similar issues"],
+                explanation="AI enhancement failed due to technical issues.",
+                confidence_score=0.0,
+                model_used="none",
+                processing_time=0.0
+            )
+
+    def get_ai_enhancement_async(self, issue_data: Dict[str, Any], 
+                                enhancement_type: str = "code_improvement",
+                                callback: Optional[Callable[[EnhancementResult], None]] = None) -> str:
+        """
+        Get AI enhancement asynchronously.
+        
+        Args:
+            issue_data: Dictionary containing issue details
+            enhancement_type: Type of enhancement to perform
+            callback: Optional callback function to call with result
+            
+        Returns:
+            Task ID for tracking the async operation
+        """
+        try:
+            reviewer = self.get_local_code_reviewer()
+            
+            # Create enhancement request
+            request = EnhancementRequest(
+                issue_description=issue_data.get("issue", ""),
+                file_path=issue_data.get("file", ""),
+                line_number=issue_data.get("line", 0),
+                code_snippet=issue_data.get("code_snippet", ""),
+                language=issue_data.get("language", "unknown"),
+                enhancement_type=EnhancementType(enhancement_type)
+            )
+            
+            # Start async analysis
+            task_id = reviewer.analyze_snippet_async(request, callback)
+            
+            return task_id
+            
+        except Exception as e:
+            logger.error(f"Error starting async AI enhancement: {e}")
+            return ""
+
+    def get_enhancement_status(self, task_id: str) -> Optional[str]:
+        """Get the status of an async enhancement task."""
+        try:
+            reviewer = self.get_local_code_reviewer()
+            return reviewer.get_enhancement_status(task_id)
+        except Exception as e:
+            logger.error(f"Error getting enhancement status: {e}")
+            return None
+
+    def cancel_enhancement(self, task_id: str) -> bool:
+        """Cancel an async enhancement task."""
+        try:
+            reviewer = self.get_local_code_reviewer()
+            return reviewer.cancel_enhancement(task_id)
+        except Exception as e:
+            logger.error(f"Error cancelling enhancement: {e}")
+            return False
+
+    def get_available_models(self) -> List[str]:
+        """Get list of available models for code review."""
+        try:
+            reviewer = self.get_local_code_reviewer()
+            return reviewer.get_available_models()
+        except Exception as e:
+            logger.error(f"Error getting available models: {e}")
+            return []
+
+    def switch_model(self, model_name: str) -> bool:
+        """Switch to a different model for code review."""
+        try:
+            reviewer = self.get_local_code_reviewer()
+            return reviewer.switch_model(model_name)
+        except Exception as e:
+            logger.error(f"Error switching model: {e}")
+            return False
 
     # Security Intelligence Methods
 
@@ -119,19 +392,10 @@ class BackendController:
                     "breach_date": (
                         breach.breach_date.isoformat() if breach.breach_date else None
                     ),
-                    "discovered_date": (
-                        breach.discovered_date.isoformat()
-                        if breach.discovered_date
-                        else None
-                    ),
                     "affected_users": breach.affected_users,
                     "data_types": breach.data_types,
-                    "attack_vector": breach.attack_vector,
-                    "severity": breach.severity,
                     "source": breach.source,
                     "references": breach.references,
-                    "lessons_learned": breach.lessons_learned,
-                    "mitigation_strategies": breach.mitigation_strategies,
                 }
                 result.append(breach_dict)
             return result
@@ -150,16 +414,11 @@ class BackendController:
                     "id": patch.id,
                     "title": patch.title,
                     "description": patch.description,
-                    "affected_products": patch.affected_products,
-                    "patch_version": patch.patch_version,
                     "release_date": (
                         patch.release_date.isoformat() if patch.release_date else None
                     ),
                     "severity": patch.severity,
                     "source": patch.source,
-                    "download_url": patch.download_url,
-                    "installation_instructions": patch.installation_instructions,
-                    "rollback_instructions": patch.rollback_instructions,
                     "tested": patch.tested,
                     "applied": patch.applied,
                 }
@@ -206,13 +465,12 @@ class BackendController:
                 feed_dict: Dict[str, Any] = {
                     "name": feed.name,
                     "url": feed.url,
-                    "feed_type": feed.feed_type,
+                    "type": feed.type,
                     "enabled": feed.enabled,
                     "last_fetch": (
                         feed.last_fetch.isoformat() if feed.last_fetch else None
                     ),
                     "fetch_interval": feed.fetch_interval,
-                    "tags": feed.tags,
                 }
                 result.append(feed_dict)
             return result
@@ -221,7 +479,7 @@ class BackendController:
             return []
 
     def mark_patch_applied(self, patch_id: str):
-        """Mark a patch as applied."""
+        """Mark a security patch as applied."""
         try:
             self.get_llm_manager().mark_patch_applied(patch_id)
         except Exception as e:
@@ -239,7 +497,7 @@ class BackendController:
     # Code Standards Methods
 
     def get_code_standards(self) -> List[Dict[str, Any]]:
-        """Get code standards."""
+        """Get all code standards."""
         try:
             standards = self.get_llm_manager().get_code_standards()
             # Convert dataclass objects to dictionaries
@@ -248,21 +506,15 @@ class BackendController:
                 standard_dict: Dict[str, Any] = {
                     "name": standard.name,
                     "description": standard.description,
-                    "company": standard.company,
-                    "version": standard.version,
-                    "languages": [lang.value for lang in standard.languages],
-                    "rules": [rule.__dict__ for rule in standard.rules],
-                    "created_date": (
-                        standard.created_date.isoformat()
-                        if standard.created_date
-                        else None
-                    ),
-                    "last_updated": (
-                        standard.last_updated.isoformat()
-                        if standard.last_updated
-                        else None
-                    ),
+                    "language": standard.language,
+                    "rules": standard.rules,
                     "enabled": standard.enabled,
+                    "created_at": (
+                        standard.created_at.isoformat() if standard.created_at else None
+                    ),
+                    "updated_at": (
+                        standard.updated_at.isoformat() if standard.updated_at else None
+                    ),
                 }
                 result.append(standard_dict)
             return result
@@ -271,100 +523,34 @@ class BackendController:
             return []
 
     def get_current_code_standard(self) -> Optional[Dict[str, Any]]:
-        """Get current code standard."""
+        """Get the currently active code standard."""
         try:
             standard = self.get_llm_manager().get_current_code_standard()
-            if not standard:
-                return None
-
-            # Convert dataclass object to dictionary
-            standard_dict: Dict[str, Any] = {
-                "name": standard.name,
-                "description": standard.description,
-                "company": standard.company,
-                "version": standard.version,
-                "languages": [lang.value for lang in standard.languages],
-                "rules": [rule.__dict__ for rule in standard.rules],
-                "created_date": (
-                    standard.created_date.isoformat() if standard.created_date else None
-                ),
-                "last_updated": (
-                    standard.last_updated.isoformat() if standard.last_updated else None
-                ),
-                "enabled": standard.enabled,
-            }
-            return standard_dict
+            if standard:
+                return {
+                    "name": standard.name,
+                    "description": standard.description,
+                    "language": standard.language,
+                    "rules": standard.rules,
+                    "enabled": standard.enabled,
+                    "created_at": (
+                        standard.created_at.isoformat() if standard.created_at else None
+                    ),
+                    "updated_at": (
+                        standard.updated_at.isoformat() if standard.updated_at else None
+                    ),
+                }
+            return None
         except Exception as e:
             logger.error(f"Error getting current code standard: {e}")
             return None
 
     def add_code_standard(self, standard_data: Dict[str, Any]):
-        """Add a code standard."""
+        """Add a new code standard."""
         try:
-            from backend.services.code_standards import (
-                CodeRule,
-                CodeStandard,
-                Language,
-                Severity,
-            )
+            from backend.services.code_standards import CodeStandard
 
-            # Convert language strings to Language enum
-            languages = []
-            for lang in standard_data.get("languages", []):
-                if isinstance(lang, str):
-                    languages.append(Language(lang))
-                elif hasattr(lang, "value"):  # Handle enum objects
-                    languages.append(lang)
-                else:
-                    languages.append(Language(str(lang)))
-
-            # Convert rules
-            rules = []
-            for rule_data in standard_data.get("rules", []):
-                # Handle language conversion in rules too
-                rule_language = rule_data["language"]
-                if isinstance(rule_language, str):
-                    rule_language = Language(rule_language)
-                elif hasattr(rule_language, "value"):  # Handle enum objects
-                    rule_language = rule_language
-                else:
-                    rule_language = Language(str(rule_language))
-
-                # Handle severity conversion
-                rule_severity = rule_data["severity"]
-                if isinstance(rule_severity, str):
-                    rule_severity = Severity(rule_severity)
-                elif hasattr(rule_severity, "value"):  # Handle enum objects
-                    rule_severity = rule_severity
-                else:
-                    rule_severity = Severity(str(rule_severity))
-
-                rule = CodeRule(
-                    id=rule_data["id"],
-                    name=rule_data["name"],
-                    description=rule_data["description"],
-                    language=rule_language,
-                    severity=rule_severity,
-                    pattern=rule_data["pattern"],
-                    message=rule_data["message"],
-                    category=rule_data["category"],
-                    enabled=rule_data.get("enabled", True),
-                    auto_fix=rule_data.get("auto_fix", False),
-                    fix_template=rule_data.get("fix_template"),
-                    tags=rule_data.get("tags", []),
-                )
-                rules.append(rule)
-
-            standard = CodeStandard(
-                name=standard_data["name"],
-                description=standard_data["description"],
-                company=standard_data.get("company", "Unknown"),
-                version=standard_data.get("version", "1.0.0"),
-                languages=languages,
-                rules=rules,
-                enabled=standard_data.get("enabled", True),
-            )
-
+            standard = CodeStandard(**standard_data)
             self.get_llm_manager().add_code_standard(standard)
         except Exception as e:
             logger.error(f"Error adding code standard: {e}")
@@ -379,7 +565,7 @@ class BackendController:
             raise
 
     def set_current_code_standard(self, standard_name: str):
-        """Set current code standard."""
+        """Set the current code standard."""
         try:
             self.get_llm_manager().set_current_code_standard(standard_name)
         except Exception as e:
@@ -387,49 +573,22 @@ class BackendController:
             raise
 
     def analyze_code_file(self, file_path: str) -> Dict[str, Any]:
-        """Analyze a single file for code standard violations."""
+        """Analyze a single code file."""
         try:
             result = self.get_llm_manager().analyze_code_file(file_path)
-            # Convert dataclass object to dictionary
-            result_dict: Dict[str, Any] = {
-                "file_path": result.file_path,
-                "language": result.language.value,
-                "violations": [violation.__dict__ for violation in result.violations],
-                "total_violations": result.total_violations,
-                "error_count": result.error_count,
-                "warning_count": result.warning_count,
-                "info_count": result.info_count,
-                "auto_fixable_count": result.auto_fixable_count,
-            }
-            return result_dict
+            return result
         except Exception as e:
             logger.error(f"Error analyzing code file: {e}")
-            return {}
+            return {"error": str(e)}
 
     def analyze_code_directory(self, directory_path: str) -> List[Dict[str, Any]]:
-        """Analyze all files in a directory for code standard violations."""
+        """Analyze all code files in a directory."""
         try:
             results = self.get_llm_manager().analyze_code_directory(directory_path)
-            # Convert dataclass objects to dictionaries
-            result_list: List[Dict[str, Any]] = []
-            for result in results:
-                result_dict: Dict[str, Any] = {
-                    "file_path": result.file_path,
-                    "language": result.language.value,
-                    "violations": [
-                        violation.__dict__ for violation in result.violations
-                    ],
-                    "total_violations": result.total_violations,
-                    "error_count": result.error_count,
-                    "warning_count": result.warning_count,
-                    "info_count": result.info_count,
-                    "auto_fixable_count": result.auto_fixable_count,
-                }
-                result_list.append(result_dict)
-            return result_list
+            return results
         except Exception as e:
             logger.error(f"Error analyzing code directory: {e}")
-            return []
+            return [{"error": str(e)}]
 
     def export_code_standard(self, standard_name: str, export_path: str):
         """Export a code standard to a file."""
@@ -446,3 +605,19 @@ class BackendController:
         except Exception as e:
             logger.error(f"Error importing code standard: {e}")
             raise
+
+    def save_secret(self, secret_name: str, secret_value: str):
+        """Save a secret."""
+        try:
+            get_secrets_manager().save_secret(secret_name, secret_value)
+        except Exception as e:
+            logger.error(f"Error saving secret: {e}")
+            raise
+
+    def load_secret(self, secret_name: str) -> Optional[str]:
+        """Load a secret."""
+        try:
+            return get_secrets_manager().load_secret(secret_name)
+        except Exception as e:
+            logger.error(f"Error loading secret: {e}")
+            return None
