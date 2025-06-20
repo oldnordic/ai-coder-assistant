@@ -20,8 +20,6 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 # src/training/trainer.py
 import os
 import torch
-from torch.utils.data import DataLoader
-import torch.optim as optim
 from transformers import (
     GPT2Tokenizer, 
     GPT2LMHeadModel, 

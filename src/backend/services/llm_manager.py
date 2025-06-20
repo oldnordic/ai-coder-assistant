@@ -35,7 +35,7 @@ from .models import ProviderType, ModelType, ModelConfig, ProviderConfig, LLMMod
 from .providers import OpenAIProvider, GoogleGeminiProvider, ClaudeProvider, OllamaProvider
 from .pr_automation import PRAutomationService, ServiceConfig, PRTemplate, PRRequest, PRResult
 from .security_intelligence import SecurityIntelligenceService, SecurityVulnerability, SecurityBreach, SecurityPatch, SecurityFeed
-from .code_standards import CodeStandardsService, CodeStandard, CodeRule, CodeAnalysisResult, Language, Severity
+from .code_standards import CodeStandardsService, CodeStandard, CodeAnalysisResult
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +57,7 @@ class LLMManager:
         self.pr_automation = PRAutomationService()  # PR automation service
         
         # Initialize security intelligence with correct config path
-        security_config_path = Path(self.config_path).parent / "security_intelligence_config.json"
-        self.security_intelligence = SecurityIntelligenceService(str(security_config_path))
+        self.security_intelligence = SecurityIntelligenceService()
         
         # Initialize code standards with correct config path
         code_standards_config_path = Path(self.config_path).parent / "code_standards_config.json"
@@ -196,11 +195,27 @@ class LLMManager:
             logger.error(f"Error saving config: {e}")
     
     def _initialize_providers(self):
-        """Initialize all configured providers."""
-        for provider_type, provider_config in self.config.providers.items():
-            if not provider_config.is_enabled:
+        """Initialize providers based on the models defined in the configuration."""
+        
+        # A set to keep track of initialized providers to avoid duplicates
+        initialized_providers = set()
+        
+        # Iterate over models to find out which providers are actually used
+        if not self.config.models:
+            logger.warning("No models found in configuration. No providers will be initialized.")
+            return
+
+        for model_config in self.config.models.values():
+            provider_type = model_config.provider
+            
+            if provider_type in initialized_providers:
                 continue
-                
+
+            provider_config = self.config.providers.get(provider_type)
+            if not (provider_config and provider_config.is_enabled):
+                logger.debug(f"Skipping disabled or unconfigured provider: {provider_type.value}")
+                continue
+
             try:
                 if provider_type == ProviderType.OPENAI:
                     self.providers[provider_type] = OpenAIProvider(provider_config)
@@ -209,9 +224,15 @@ class LLMManager:
                 elif provider_type == ProviderType.CLAUDE:
                     self.providers[provider_type] = ClaudeProvider(provider_config)
                 elif provider_type == ProviderType.OLLAMA:
-                    self.providers[provider_type] = OllamaProvider(provider_config)
-                
+                    # General Ollama provider. Specific instances are handled elsewhere.
+                    if provider_type not in self.providers:
+                         self.providers[provider_type] = OllamaProvider(provider_config)
+                else:
+                    logger.warning(f"Unknown provider type encountered: {provider_type.value}")
+                    continue
+
                 logger.info(f"Initialized {provider_type.value} provider")
+                initialized_providers.add(provider_type)
                 
             except Exception as e:
                 logger.error(f"Failed to initialize {provider_type.value} provider: {e}")

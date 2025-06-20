@@ -24,18 +24,13 @@ Web Server Service - Web-based interface for AI Coder Assistant.
 import json
 import logging
 import threading
-import time
 from datetime import datetime
 from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-
 from backend.services.llm_manager import LLMManager
 
 logger = logging.getLogger(__name__)

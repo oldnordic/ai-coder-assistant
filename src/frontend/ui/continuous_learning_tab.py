@@ -22,42 +22,23 @@ Continuous Learning Tab Widgets
 Provides GUI components for continuous learning management and monitoring.
 """
 
-import json
-import os
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
-from pathlib import Path
+from typing import Dict, Any, Optional
+import concurrent.futures
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QTextEdit, QComboBox, QLineEdit, QMessageBox, QGroupBox, 
-    QCheckBox, QSpinBox, QListWidget, QListWidgetItem, QProgressBar, 
-    QTabWidget, QSplitter, QFrame, QTableWidget, QTableWidgetItem,
-    QHeaderView, QDateEdit, QCalendarWidget, QFileDialog
+    QCheckBox, QSpinBox, QListWidget, QTabWidget, QTableWidget, QTableWidgetItem,
+    QHeaderView, QDateEdit, QFileDialog
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QThread, pyqtSlot, QTimer
-from PyQt6.QtGui import QFont, QTextCursor
+from PyQt6.QtCore import pyqtSlot, QTimer
 
 from backend.services.continuous_learning import (
     get_continuous_learning_service,
-    FeedbackType,
-    DataQuality,
-    ContinuousLearningService
+    FeedbackType
 )
-from backend.utils.constants import (
-    WAIT_TIMEOUT_SHORT_MS,
-    CONTINUOUS_LEARNING_DB_PATH,
-    CONTINUOUS_LEARNING_MIN_INPUT_LENGTH,
-    CONTINUOUS_LEARNING_MIN_OUTPUT_LENGTH,
-    CONTINUOUS_LEARNING_MAX_INPUT_LENGTH,
-    CONTINUOUS_LEARNING_MAX_OUTPUT_LENGTH,
-    CONTINUOUS_LEARNING_REPLAY_BUFFER_SIZE,
-    CONTINUOUS_LEARNING_QUALITY_THRESHOLD,
-    CONTINUOUS_LEARNING_BATCH_SIZE,
-    CONTINUOUS_LEARNING_UPDATE_INTERVAL_HOURS
-)
-from .worker_threads import get_thread_manager
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +104,7 @@ class ContinuousLearningTab(QWidget):
     def __init__(self):
         super().__init__()
         self.service = get_continuous_learning_service()
-        self.worker = None
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.stats_timer = QTimer()
         self.stats_timer.timeout.connect(self.refresh_stats)
         self.stats_timer.start(30000)  # Refresh every 30 seconds
@@ -537,20 +518,13 @@ class ContinuousLearningTab(QWidget):
             self.export_path_edit.setText(file_path)
     
     def start_continuous_learning(self, operation: str, **kwargs):
-        try:
-            self.progress_bar = QProgressBar()
-            self.progress_bar.setRange(0, 5)
-            self.progress_bar.setValue(0)
-            self.layout().addWidget(self.progress_bar)
-            self.worker_id = get_thread_manager().start_worker(
-                'continuous_learning',
-                self.backend_func,
-                operation,
-                progress_callback=self.update_progress,
-                log_message_callback=self.handle_log_message
-            )
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to start continuous learning: {e}")
+        """Start continuous learning operation using ThreadPoolExecutor."""
+        self.worker = self.executor.submit(
+            continuous_learning_backend,
+            operation,
+            **kwargs
+        )
+        self.worker.add_done_callback(self.on_training_complete)
 
     def handle_log_message(self, message):
         # Optionally handle log messages
@@ -582,13 +556,37 @@ class ContinuousLearningTab(QWidget):
         except RuntimeError:
             return  # Widget is deleted
 
-        self.progress_bar.hide()
         if result and result.get("success"):
             QMessageBox.information(self, "Training Complete", "Model training finished successfully.")
             self.load_training_history()  # Refresh the history
         else:
             error_msg = result.get("error", "An unknown error occurred.") if result else "An unknown error occurred."
             QMessageBox.critical(self, "Training Failed", f"Model training failed: {error_msg}")
+
+    def _on_training_complete(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.handle_training_result(result)
+                self.start_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+                self.status_label.setText("Training complete")
+            except Exception as e:
+                self.handle_error(f"Training failed: {e}")
+                self.start_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+        QTimer.singleShot(0, update_ui)
+
+    def _on_feedback_complete(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.update_feedback_display(result)
+                self.collect_btn.setEnabled(True)
+            except Exception as e:
+                self.handle_error(f"Feedback collection failed: {e}")
+                self.collect_btn.setEnabled(True)
+        QTimer.singleShot(0, update_ui)
 
 def continuous_learning_backend(operation: str, **kwargs):
     import time

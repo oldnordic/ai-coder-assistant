@@ -26,7 +26,6 @@ import threading
 from typing import Optional, Tuple, Callable, List, Dict, Any
 import multiprocessing
 
-from backend.utils import settings
 from backend.utils.constants import MAX_FILENAME_LENGTH
 
 # --- FIXED: Use relative imports for modules within the same package ---

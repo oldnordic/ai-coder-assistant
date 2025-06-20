@@ -29,12 +29,21 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from pathlib import Path
 import subprocess
-import tempfile
-import os
 import shlex
+import concurrent.futures
+import threading
 
 import httpx
 from git import Repo, GitCommandError
+from core.config import Config
+from core.logging import LogManager
+from core.error import ErrorHandler
+from core.events import EventBus
+from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
+from backend.utils.constants import MAX_FILE_SIZE_KB
+
+# Constants
+REVIEW_TIMEOUT_SECONDS = 300  # 5 minutes
 
 logger = logging.getLogger(__name__)
 
@@ -274,14 +283,29 @@ class GitService:
 
 
 class PRAutomationService:
-    """Main PR automation service."""
+    """
+    PR automation service with intelligent code review and automation.
+    Uses the core modules for configuration, logging, error handling, and threading.
+    """
     
-    def __init__(self, config_path: str = "config/pr_automation_config.json"):
-        self.config_path = config_path
-        self.services: Dict[str, Any] = {}
-        self.templates: Dict[str, PRTemplate] = {}
-        self.config = self.load_config()
-        self.github_token = self.config.get("github_token")
+    def __init__(self):
+        self.config = Config()
+        self.logger = LogManager().get_logger('pr_automation')
+        self.error_handler = ErrorHandler()
+        self.event_bus = EventBus()
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+        
+        # Initialize analyzers
+        self.intelligent_analyzer = IntelligentCodeAnalyzer()
+        
+        # Thread-safe locks
+        self.review_lock = threading.Lock()
+        
+        # Load configuration
+        self.max_file_size_kb = self.config.get('pr_automation.max_file_size_kb', MAX_FILE_SIZE_KB)
+        self.review_timeout = self.config.get('pr_automation.timeout_seconds', REVIEW_TIMEOUT_SECONDS)
+        
+        self.logger.info("PR automation service initialized")
     
     def load_config(self):
         """Load configuration from file."""

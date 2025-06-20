@@ -1,6 +1,6 @@
 """Base UI component for AI Coder Assistant."""
 
-from typing import Any, Callable, Dict, List, Optional, Set, Type
+from typing import Any, Callable, Dict, Optional, Set
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import pyqtSignal
 from core.config import Config

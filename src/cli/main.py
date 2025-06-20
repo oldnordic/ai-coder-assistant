@@ -30,7 +30,6 @@ sys.path.insert(0, str(project_root))
 
 from backend.services.scanner import scan_code
 from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
-from backend.utils import settings
 
 
 def analyze_file(file_path: str, language: str, output_format: str = "text") -> Dict[str, Any]:

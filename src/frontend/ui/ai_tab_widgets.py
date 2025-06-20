@@ -22,7 +22,6 @@ from typing import Any
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGroupBox,
                              QProgressBar, QFormLayout, QLineEdit, QComboBox, QTextEdit, QCheckBox)
 from PyQt6.QtCore import Qt
-from backend.utils import settings
 
 def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
     """

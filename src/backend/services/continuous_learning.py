@@ -30,21 +30,14 @@ import time
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple, Union
+from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 from collections import deque
-import hashlib
-import pickle
 import sqlite3
-from contextlib import contextmanager
-import tempfile
 import os
 
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from sklearn.model_selection import train_test_split
 
-from .models import LLMModel
 from .llm_manager import LLMManager
 from ..utils import constants
 from ..utils.settings import MODEL_SAVE_PATH

@@ -3,17 +3,15 @@ Web Server Mode Tab - Clean, modern interface for web server management.
 """
 
 import logging
-import threading
 import webbrowser
+import concurrent.futures
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QPushButton,
     QLabel, QTextEdit, QLineEdit, QSpinBox, QCheckBox, QFormLayout,
     QMessageBox, QProgressBar
 )
-from PyQt6.QtCore import Qt, QTimer, pyqtSlot
+from PyQt6.QtCore import Qt, pyqtSlot
 from PyQt6.QtGui import QFont
-from frontend.ui.worker_threads import get_thread_manager
-from typing import Dict, Optional, Any
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +73,7 @@ class WebServerTab(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
         self.connect_signals()
         self.apply_styles()
@@ -205,65 +204,66 @@ class WebServerTab(QWidget):
     
     def start_server(self):
         """Start the web server."""
+        if not self.validate_inputs():
+            return
+        
+        self.start_button.setEnabled(False)
+        self.progress_bar.setVisible(True)
+        self.status_label.setText("Starting web server...")
+        
+        # Start server using ThreadPoolExecutor
+        future = self.executor.submit(
+            web_server_backend,
+            'start',
+            port=int(self.port_spin.value()),
+            host=self.host_edit.text(),
+            progress_callback=self.update_progress,
+            log_message_callback=self.handle_error
+        )
+        future.add_done_callback(self._on_server_start_complete)
+
+    def _on_server_start_complete(self, future):
+        """Handle server start completion."""
         try:
-            host = self.host_edit.text()
-            port = self.port_spin.value()
-            
-            self.progress_bar.setVisible(True)
-            self.progress_bar.setValue(0)
-            
-            self.worker_id = start_worker(
-                'web_server',
-                web_server_backend,
-                'start_server',
-                operation_args={'host': host, 'port': port},
-                progress_callback=self.update_progress,
-                log_message_callback=self.handle_log_message
-            )
-            
-            thread_manager = get_thread_manager()
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-            # thread_manager.worker_progress.connect(self._on_worker_progress)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-            # thread_manager.worker_finished.connect(self._on_worker_finished)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-            # thread_manager.worker_error.connect(self._on_worker_error)
-            
+            result = future.result()
+            self.handle_server_result(result)
+            self.start_button.setEnabled(True)
+            self.progress_bar.setVisible(False)
+            self.status_label.setText("Server started successfully")
         except Exception as e:
-            logger.error(f"Error starting server: {e}")
-            QMessageBox.warning(self, "Error", f"Failed to start server: {e}")
+            self.handle_error(f"Server start failed: {e}")
+            self.start_button.setEnabled(True)
+            self.progress_bar.setVisible(False)
     
     def stop_server(self):
         """Stop the web server."""
         try:
+            self.stop_button.setEnabled(False)
             self.progress_bar.setVisible(True)
             self.progress_bar.setValue(0)
             
-            self.worker_id = start_worker(
-                'web_server',
+            # Start stop using ThreadPoolExecutor
+            future = self.executor.submit(
                 web_server_backend,
-                'stop_server',
+                'stop',
                 progress_callback=self.update_progress,
                 log_message_callback=self.handle_log_message
             )
-            
-            thread_manager = get_thread_manager()
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-            # thread_manager.worker_progress.connect(self._on_worker_progress)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-            # thread_manager.worker_finished.connect(self._on_worker_finished)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-            # thread_manager.worker_error.connect(self._on_worker_error)
+            future.add_done_callback(self._on_server_stop_complete)
             
         except Exception as e:
             logger.error(f"Error stopping server: {e}")
             QMessageBox.warning(self, "Error", f"Failed to stop server: {e}")
+
+    def _on_server_stop_complete(self, future):
+        """Handle server stop completion."""
+        try:
+            result = future.result()
+            self.handle_server_stopped()
+        except Exception as e:
+            self.handle_error(f"Server stop failed: {e}")
+            self.stop_button.setEnabled(True)
+            self.progress_bar.setVisible(False)
     
     def open_browser(self):
         """Open the web interface in browser."""

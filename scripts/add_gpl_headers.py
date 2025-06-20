@@ -9,7 +9,6 @@ Usage: python scripts/add_gpl_headers.py
 """
 
 import os
-import re
 from pathlib import Path
 
 # GPL-3 header template
@@ -102,7 +101,7 @@ def main():
             if add_gpl_header(file_path):
                 processed_files += 1
     
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"Total Python files found: {total_files}")
     print(f"Files processed: {processed_files}")
     print(f"Files skipped (already had headers): {total_files - processed_files}")

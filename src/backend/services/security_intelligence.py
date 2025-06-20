@@ -24,15 +24,26 @@ Security Intelligence Service - Track security breaches, CVEs, and patches.
 import json
 import logging
 import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, field, asdict
+from datetime import datetime
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass, field
 from pathlib import Path
 import re
+import concurrent.futures
+import threading
 
 import httpx
-from bs4 import BeautifulSoup
 import feedparser
+
+from core.config import Config
+from core.logging import LogManager
+from core.error import ErrorHandler
+from core.events import EventBus
+from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
+from backend.utils.constants import MAX_FILE_SIZE_KB
+
+# Constants
+ANALYSIS_TIMEOUT_SECONDS = 300  # 5 minutes
 
 logger = logging.getLogger(__name__)
 
@@ -108,11 +119,30 @@ class SecurityFeed:
 
 
 class SecurityIntelligenceService:
-    """Main security intelligence service."""
+    """
+    Security intelligence service with comprehensive vulnerability analysis.
+    Uses the core modules for configuration, logging, error handling, and threading.
+    """
     
-    def __init__(self, config_path: Optional[str] = None):
-        """Initialize SecurityIntelligence with feed configurations."""
-        self.config_path = config_path or "config/security_intelligence_config.json"
+    def __init__(self):
+        self.config = Config()
+        self.logger = LogManager().get_logger('security_intelligence')
+        self.error_handler = ErrorHandler()
+        self.event_bus = EventBus()
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+        
+        # Initialize analyzers
+        self.intelligent_analyzer = IntelligentCodeAnalyzer()
+        
+        # Thread-safe locks
+        self.analysis_lock = threading.Lock()
+        
+        # Load configuration
+        self.max_file_size_kb = self.config.get('security.max_file_size_kb', MAX_FILE_SIZE_KB)
+        self.analysis_timeout = self.config.get('security.timeout_seconds', ANALYSIS_TIMEOUT_SECONDS)
+        
+        self.logger.info("Security intelligence service initialized")
+        
         self.vulnerabilities: Dict[str, SecurityVulnerability] = {}
         self.breaches: Dict[str, SecurityBreach] = {}
         self.patches: Dict[str, SecurityPatch] = {}
@@ -125,8 +155,8 @@ class SecurityIntelligenceService:
     def load_config(self):
         """Load configuration from file."""
         try:
-            if Path(self.config_path).exists():
-                with open(self.config_path, 'r') as f:
+            if Path("config/security_intelligence_config.json").exists():
+                with open("config/security_intelligence_config.json", 'r') as f:
                     data = json.load(f)
                 
                 # Load feeds
@@ -179,7 +209,7 @@ class SecurityIntelligenceService:
                 "feeds": [feed.__dict__ for feed in self.feeds.values()]
             }
             
-            with open(self.config_path, 'w') as f:
+            with open("config/security_intelligence_config.json", 'w') as f:
                 json.dump(config_data, f, indent=2, default=str)
                 
         except Exception as e:

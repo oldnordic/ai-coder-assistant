@@ -18,20 +18,15 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
 # src/frontend/ui/main_window.py
-import sys
 import os
-import torch
 import logging
 import time
-import traceback
 from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
                              QPushButton, QMessageBox, QFileDialog, QProgressDialog,
-                             QTextEdit, QVBoxLayout, QLabel, QHBoxLayout, QGroupBox, QCheckBox, QLineEdit, QStatusBar, QComboBox, QSpinBox, QFormLayout, QGridLayout)
-from PyQt6.QtCore import QUrl, pyqtSlot, Qt, QTimer, QMetaObject, Q_ARG, QMutex, QMutexLocker
-from PyQt6.QtGui import QIcon, QFont
+                             QTextEdit, QVBoxLayout, QLabel, QHBoxLayout, QGroupBox, QCheckBox, QLineEdit, QComboBox, QSpinBox, QGridLayout)
+from PyQt6.QtCore import QUrl, pyqtSlot, Qt, QTimer, QMutex, QMutexLocker, pyqtSignal
 
 from frontend.controllers.backend_controller import BackendController
-from frontend.ui.ai_tab_widgets import setup_ai_tab
 from frontend.ui.data_tab_widgets import setup_data_tab
 from frontend.ui.ollama_manager_tab import OllamaManagerTab, LLMManager
 from frontend.ui.ollama_export_tab import setup_ollama_export_tab
@@ -45,34 +40,32 @@ from frontend.ui.advanced_analytics_tab import AdvancedAnalyticsTab
 from frontend.ui.web_server_tab import WebServerTab
 from frontend.ui.collaboration_tab import CollaborationTab
 from frontend.ui.cloud_models_tab import CloudModelsTab
-from frontend.ui.worker_threads import get_thread_manager
 from backend.utils import settings
 
-from backend.services import ai_tools, scanner, ollama_client, get_available_models_sync
+from backend.services import ai_tools, scanner, get_available_models_sync
 from backend.services import acquire, preprocess
 from backend.services import trainer
-from backend.utils import settings
 from backend.utils.constants import (
-    WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
-    LOG_CONSOLE_MAX_HEIGHT, PROGRESS_MIN, PROGRESS_MAX, GRACEFUL_SHUTDOWN_WAIT,
-    PERCENTAGE_MULTIPLIER, GRACEFUL_SHUTDOWN_WAIT_MS, WAIT_TIMEOUT_MS, DEFAULT_PERCENTAGE_MULTIPLIER,
-    PROGRESS_DIALOG_MAX_VALUE, PROGRESS_DIALOG_MIN_VALUE, MAX_FILE_SIZE_KB
+    PROGRESS_DIALOG_MAX_VALUE, PROGRESS_DIALOG_MIN_VALUE
 )
 
-from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from backend.utils.settings import is_docker_available
 from backend.services.docker_utils import run_build_and_test_in_docker
 from backend.services.llm_manager import LLMManager
 from frontend.ui.suggestion_dialog import SuggestionDialog
-from frontend.ui.markdown_viewer import MarkdownViewerDialog
-from datetime import datetime
 from typing import Dict, Any, Optional, List
+import concurrent.futures
 
 
 # Set up a logger for this module
 logger = logging.getLogger(__name__)
 
 class AICoderAssistant(QMainWindow):
+    # --- Signals for thread-safe UI updates ---
+    scan_progress_updated = pyqtSignal(int, int, str)
+    scan_completed = pyqtSignal(list)
+    # ---
+
     def __init__(self):
         super().__init__()
         self.active_workers = []
@@ -81,22 +74,16 @@ class AICoderAssistant(QMainWindow):
         self.current_model_ref = None  # Initialize model reference
         self.current_tokenizer_ref = None  # Initialize tokenizer reference
         self.scan_directory = None
-        
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         # Create backend controller
         self.backend_controller = BackendController()
-        
-        # Get thread manager and connect signals
-        self.thread_manager = get_thread_manager()
-        # Note: The ThreadManager doesn't have these signals directly
-        # They are handled by individual WorkerThread objects
-        
+        # Remove thread_manager and related logic
         # Initialize thread-safe logging
         self._log_mutex = QMutex()
         self._log_queue = []
         self._log_timer = QTimer()
         self._log_timer.timeout.connect(self._process_log_queue)
         self._log_timer.start(50)  # Process log queue every 50ms
-        
         self.setup_ui()
         self.setup_menu()
         self.setup_ai_tab()
@@ -110,14 +97,16 @@ class AICoderAssistant(QMainWindow):
         self.setup_security_intelligence_tab()
         self.setup_performance_optimization_tab()
         self.setup_advanced_refactoring_tab()
+        self.setup_advanced_analytics_tab()
         self.setup_web_server_tab()
         self.setup_collaboration_tab()
-        self.setup_advanced_analytics_tab()
-        
         # Connect all UI signals after setup is complete
         self._connect_signals()
-        
         self.log_message("Main Window Initialized Successfully.")
+
+        # Connect signals to their slots for thread-safe UI updates
+        self.scan_progress_updated.connect(self._update_scan_progress_safe)
+        self.scan_completed.connect(self._handle_scan_complete_ui)
     
     def start_doc_acquisition(self):
         """Start document acquisition from URLs."""
@@ -169,7 +158,7 @@ class AICoderAssistant(QMainWindow):
                 errors = result.get('errors', [])
                 
                 # Show results dialog
-                message = f"Web Scraping Complete\n\n"
+                message = "Web Scraping Complete\n\n"
                 message += f"Successfully scraped {success_count} out of {total} URLs.\n\n"
                 
                 if files:
@@ -237,7 +226,7 @@ class AICoderAssistant(QMainWindow):
         """Cancel the document acquisition process."""
         try:
             if worker_id and worker_id in self.active_workers:
-                self.thread_manager.cancel_worker(worker_id)
+                self.executor.submit(lambda: None)  # Placeholder for cancellation
             
             if self.progress_dialog:
                 self.progress_dialog.setLabelText("Cancelling web scraping...")
@@ -326,6 +315,10 @@ class AICoderAssistant(QMainWindow):
         self.enhance_button.setEnabled(False)
         self.enhance_button.clicked.connect(self.start_ai_enhancement)
         buttons_layout.addWidget(self.enhance_button)
+
+        self.review_suggestions_button = QPushButton("Review Suggestions")
+        self.review_suggestions_button.setEnabled(False)
+        buttons_layout.addWidget(self.review_suggestions_button)
 
     def setup_ai_tab(self):
         """Set up the AI tab."""
@@ -525,7 +518,12 @@ class AICoderAssistant(QMainWindow):
         """Set up the advanced refactoring tab."""
         advanced_refactoring_tab = RefactoringTab()
         self.tab_widget.addTab(advanced_refactoring_tab, "Advanced Refactoring")
-    
+
+    def setup_advanced_analytics_tab(self):
+        """Set up the advanced analytics tab."""
+        advanced_analytics_tab = AdvancedAnalyticsTab()
+        self.tab_widget.addTab(advanced_analytics_tab, "Advanced Analytics")
+
     def setup_web_server_tab(self):
         """Set up the web server tab."""
         web_server_tab = WebServerTab()
@@ -535,11 +533,6 @@ class AICoderAssistant(QMainWindow):
         """Set up the collaboration tab."""
         collaboration_tab = CollaborationTab()
         self.tab_widget.addTab(collaboration_tab, "Collaboration")
-    
-    def setup_advanced_analytics_tab(self):
-        """Set up the advanced analytics tab."""
-        advanced_analytics_tab = AdvancedAnalyticsTab()
-        self.tab_widget.addTab(advanced_analytics_tab, "Advanced Analytics")
 
     def _connect_signals(self):
         """Connect all UI signals to their respective slots."""
@@ -593,15 +586,6 @@ class AICoderAssistant(QMainWindow):
             if hasattr(self, 'stop_scraping_button'):
                 self.stop_scraping_button.clicked.connect(self.cancel_doc_acquisition)
                 logger.debug("Connected stop_scraping_button")
-            
-            # Thread manager signal connections (if needed)
-            thread_manager = get_thread_manager()
-            # Note: These signals don't exist on the ThreadManager
-            # They are handled by individual WorkerThread objects
-            # # thread_manager.worker_started.connect(self._on_worker_started)
-            # # thread_manager.worker_progress.connect(self._on_worker_progress)
-            # # thread_manager.worker_finished.connect(self._on_worker_finished_with_result)
-            # # thread_manager.worker_error.connect(self._on_worker_error)
             
             logger.debug("UI signals connected successfully.")
             
@@ -802,15 +786,16 @@ class AICoderAssistant(QMainWindow):
         self.start_worker('transcribe_youtube', ai_tools.transcribe_youtube_tool, youtube_url)
 
     @pyqtSlot(str)
-    def log_message(self, message: str) -> None:
-        """Thread-safe log message that queues UI updates to the main thread."""
-        try:
-            with QMutexLocker(self._log_mutex):
-                self._log_queue.append(message)
-        except Exception as e:
-            # Fallback to direct logging if mutex fails
-            print(f"Log message error: {e}")
-            print(f"Original message: {message}")
+    def log_message(self, message: str, level: str = "info") -> None:
+        """Append a message to the log output widget."""
+        timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+        formatted_message = f"[{timestamp}][{level.upper()}] {message}"
+        self.log_output.append(formatted_message)
+        # Also log to file
+        if level == "error":
+            logger.error(message)
+        else:
+            logger.info(message)
 
     def _process_log_queue(self):
         """Process queued log messages on the main thread."""
@@ -932,57 +917,15 @@ class AICoderAssistant(QMainWindow):
 
     def closeEvent(self, event):
         """Handle application shutdown and cleanup worker threads."""
-        logger.info("Application shutting down, cleaning up...")
-        
-        # Shut down the thread manager gracefully
-        try:
-            get_thread_manager().shutdown()
-        except Exception as e:
-            logger.error(f"Error shutting down thread manager: {e}")
-        
-        # Close progress dialog if open
-        try:
-            if hasattr(self, 'progress_dialog') and self.progress_dialog and self.progress_dialog.isVisible():
-                self.progress_dialog.close()
-                self.progress_dialog = None
-        except Exception as e:
-            logger.warning(f"Error closing progress dialog: {e}")
-        
-        # Close report progress dialog if open
-        try:
-            if hasattr(self, 'report_progress_dialog') and self.report_progress_dialog and self.report_progress_dialog.isVisible():
-                self.report_progress_dialog.close()
-                self.report_progress_dialog = None
-        except Exception as e:
-            logger.warning(f"Error closing report progress dialog: {e}")
-        
-        # Clean up PyTorch models to free GPU memory
-        if hasattr(self, 'own_trained_model') and self.own_trained_model is not None:
-            try:
-                del self.own_trained_model
-                del self.own_tokenizer
-                import torch
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
-                logger.info("PyTorch models cleaned up")
-            except Exception as e:
-                logger.warning(f"Error cleaning up PyTorch models: {e}")
-        
-        # Force garbage collection
-        try:
-            import gc
-            gc.collect()
-        except Exception as e:
-            logger.warning(f"Error during garbage collection: {e}")
-        
-        logger.info("Cleanup complete")
+        self.log_message("Shutting down...")
+        self.executor.shutdown(wait=False, cancel_futures=True)
         event.accept()
 
     def stop_scan(self):
         """Stop the current scan operation."""
         if hasattr(self, 'current_worker_id') and self.current_worker_id:
             self.log_message("Stopping scan operation...")
-            self.thread_manager.cancel_worker(self.current_worker_id)
+            self.executor.submit(lambda: None)  # Placeholder for cancellation
             self.current_worker_id = None
         
         # Reset UI state
@@ -1008,35 +951,228 @@ class AICoderAssistant(QMainWindow):
             QMessageBox.warning(self, "Invalid Directory", f"The directory '{self.scan_directory}' does not exist.")
             return
 
+        self.progress_dialog = QProgressDialog("Scanning files...", "Cancel", PROGRESS_DIALOG_MIN_VALUE, PROGRESS_DIALOG_MAX_VALUE, self)
+        self.progress_dialog.setWindowTitle("Scan Progress")
+        self.progress_dialog.setAutoClose(True)
+        self.progress_dialog.setAutoReset(True)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.setValue(0)
+        self.progress_dialog.show()
+
+        include_patterns = self.include_patterns_edit.text().split(',')
+        exclude_patterns = self.exclude_patterns_edit.text().split(',')
+        enable_ai_powered = self.enable_ai_analysis_checkbox.isChecked()
+
         self.start_worker(
-            'scan_code_local', 
+            "local_scan",
             scanner.scan_code_local,
-            self.scan_directory,
-            callback=self.handle_scan_complete,
+            directory=self.scan_directory,
+            include_patterns=include_patterns,
+            exclude_patterns=exclude_patterns,
+            enable_ai_powered=enable_ai_powered,
             progress_callback=self.update_scan_progress,
-            log_message_callback=self.log_message
+            model_name=self.current_model_ref,
+            callback=self.handle_scan_complete
         )
 
     def update_scan_progress(self, current: int, total: int, message: str):
-        """Update scan progress with proper error handling and thread safety."""
-        try:
-            # Use QTimer.singleShot to queue UI updates to the main thread
-            QTimer.singleShot(0, lambda: self._update_scan_progress_safe(current, total, message))
-        except Exception as e:
-            self.log_message(f"Error queuing progress update: {e}")
+        """
+        Thread-safe method to update scan progress by emitting a signal.
+        This method is called from the background thread.
+        """
+        self.scan_progress_updated.emit(current, total, message)
 
     @pyqtSlot(int, int, str)
     def _update_scan_progress_safe(self, current: int, total: int, message: str):
-        """Thread-safe scan progress update (called on main thread)."""
+        """
+        Updates the progress dialog from the main UI thread.
+        This is a slot connected to the `scan_progress_updated` signal.
+        """
+        if self.progress_dialog:
+            if self.progress_dialog.maximum() != total:
+                self.progress_dialog.setMaximum(total)
+            self.progress_dialog.setValue(current)
+            self.progress_dialog.setLabelText(message)
+            if self.progress_dialog.wasCanceled():
+                self.stop_scan()
+
+    def handle_scan_complete(self, result):
+        """
+        Callback for when a scan is complete. Emits a signal to update the UI
+        on the main thread. This method is called from the background thread.
+        """
+        self.scan_completed.emit(result or [])
+        self.log_message("Scan complete.")
+        self._handle_scan_complete_ui(result)
+
+    @pyqtSlot(list)
+    def _handle_scan_complete_ui(self, result):
+        """Update the UI with scan results, running in the main thread."""
         try:
-            if hasattr(self, 'progress_dialog') and self.progress_dialog:
-                self.progress_dialog.setRange(0, total)
-                self.progress_dialog.setValue(current)
-                self.progress_dialog.setLabelText(message)
-                if current >= total:
-                    self.progress_dialog.setValue(total)
+            self.scan_results = result  # Store results
+            formatted_text = self.format_issues_for_display(result)
+            self.scan_results_text.setText(formatted_text)
+            self.log_message(f"Scan finished. Displaying {len(result)} files with issues.")
         except Exception as e:
-            self.log_message(f"Error updating progress: {e}")
+            self.log_message(f"Error displaying scan results: {e}", "error")
+        finally:
+            self.start_scan_button.setEnabled(True)
+            if self.progress_dialog:
+                self.progress_dialog.close()
+                self.progress_dialog = None
+            
+            # Enable post-scan buttons only if there are results
+            if self.scan_results:
+                self._enable_post_scan_buttons(True)
+            else:
+                self._enable_post_scan_buttons(False)
+
+    def _enable_post_scan_buttons(self, enabled: bool):
+        """Enable or disable buttons that require scan results."""
+        self.create_report_button.setEnabled(enabled)
+        self.enhance_button.setEnabled(enabled)
+        self.review_suggestions_button.setEnabled(enabled)
+
+    def show_suggestion_dialog(self, suggestion: Dict[str, Any], ai_explanation: str):
+        dialog = SuggestionDialog(suggestion, ai_explanation, self)
+        result = dialog.exec()
+        
+        if result == SuggestionDialog.ApplyCode:
+            # Apply the suggestion
+            self.apply_suggestion(suggestion)
+            self.current_suggestion_index += 1
+            self.review_next_suggestion()
+        elif result == SuggestionDialog.CancelCode:
+            # Skip this suggestion
+            self.current_suggestion_index += 1
+            self.review_next_suggestion()
+        elif result == SuggestionDialog.CancelAllCode:
+            # Cancel the entire review process
+            self.current_suggestion_index = len(self.suggestion_list)
+            QMessageBox.information(self, "Review Cancelled", "Code review process cancelled.")
+        
+        # Store user feedback if provided
+        user_feedback = dialog.get_user_justification()
+        if user_feedback:
+            self.log_message(f"User feedback for suggestion {self.current_suggestion_index}: {user_feedback}")
+
+    def refresh_ollama_models(self):
+        """Refresh the list of available Ollama models."""
+        try:
+            from backend.services.ollama_client import get_available_models_sync
+            
+            # Get available models
+            models = get_available_models_sync()
+            
+            if not models:
+                self.log_message("No Ollama models found. Please ensure Ollama is running and models are installed.")
+                return
+            
+            # Update model selector
+            if hasattr(self, 'ollama_model_selector'):
+                current_model = self.ollama_model_selector.currentText()
+                self.ollama_model_selector.clear()
+                self.ollama_model_selector.addItems(models)
+                
+                # Try to restore previous selection if it still exists
+                if current_model in models:
+                    self.ollama_model_selector.setCurrentText(current_model)
+                elif models:
+                    # Select first available model
+                    self.ollama_model_selector.setCurrentText(models[0])
+                    
+                self.log_message(f"Found {len(models)} Ollama models")
+        except Exception as e:
+            self.log_message(f"Error refreshing Ollama models: {str(e)}")
+            QMessageBox.warning(self, "Refresh Error", f"Failed to refresh Ollama models: {str(e)}")
+
+    def start_ai_enhancement(self):
+        """Starts AI enhancement of scan results in a background thread."""
+        model_name = self.ollama_model_selector.currentText()
+        if not model_name:
+            QMessageBox.warning(self, "Model Not Selected", "Please select an Ollama model first.")
+            return
+
+        if not self.scan_results:
+            QMessageBox.warning(self, "No Results", "Please run a scan first to generate results to enhance.")
+            return
+
+        self._enable_post_scan_buttons(False)
+        
+        self.progress_dialog = QProgressDialog("Enhancing with AI...", "Cancel", 0, len(self.scan_results), self)
+        self.progress_dialog.setWindowTitle("AI Enhancement Progress")
+        self.progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
+        self.progress_dialog.show()
+
+        future = self.executor.submit(
+            scanner.enhance_issues_with_ai,
+            self.scan_results,
+            model_name,
+            progress_callback=self.scan_progress_updated.emit
+        )
+        future.add_done_callback(self.handle_enhancement_complete)
+        self.progress_dialog.canceled.connect(future.cancel)
+
+    def handle_enhancement_complete(self, future):
+        """Callback for when AI enhancement is complete."""
+        try:
+            if future.cancelled():
+                self.log_message("AI enhancement was cancelled.", "warning")
+                # Don't overwrite results if cancelled
+                QTimer.singleShot(0, lambda: self._enable_post_scan_buttons(True))
+            else:
+                enhanced_results = future.result()
+                if enhanced_results is not None:
+                    # Update UI on the main thread
+                    QTimer.singleShot(0, lambda: self._handle_scan_complete_ui(enhanced_results))
+                else:
+                    self.log_message("AI enhancement failed. Check logs.", "error")
+                    QTimer.singleShot(0, lambda: self._enable_post_scan_buttons(True))
+        except Exception as e:
+            self.log_message(f"AI enhancement failed: {e}", "error")
+            QTimer.singleShot(0, lambda: self._enable_post_scan_buttons(True))
+        finally:
+            if self.progress_dialog:
+                QTimer.singleShot(0, self.progress_dialog.close)
+    
+    @pyqtSlot(int, int, str)
+    def _update_scan_progress_safe(self, current: int, total: int, message: str):
+        """Updates the progress dialog from the main UI thread."""
+        if self.progress_dialog:
+            self.progress_dialog.setMaximum(total)
+            self.progress_dialog.setValue(current)
+            self.progress_dialog.setLabelText(message)
+
+    def _enable_post_scan_buttons(self, enabled: bool):
+        """Enable or disable buttons that require scan results."""
+        self.create_report_button.setEnabled(enabled)
+        self.enhance_button.setEnabled(enabled)
+        self.review_suggestions_button.setEnabled(enabled)
+
+    def format_issues_for_display(self, result: List[Dict[str, Any]]) -> str:
+        """Formats the scan results for display in the QTextEdit."""
+        if not result:
+            return "No issues found."
+
+        output_lines = []
+        for file_result in result:
+            file_path = file_result.get('file_path', 'N/A')
+            issues = file_result.get('issues', [])
+            if not issues:
+                continue
+
+            output_lines.append(f"--- {file_path} ({len(issues)} issues) ---")
+            for issue in issues:
+                line = issue.get('line', 'N/A')
+                desc = issue.get('description', 'No description.')
+                suggestion = issue.get('suggestion')
+
+                output_lines.append(f"  Line {line}: {desc}")
+                if suggestion:
+                    output_lines.append(f"    └ Suggestion: {suggestion}")
+            output_lines.append("")
+        
+        return "\n".join(output_lines)
 
     def update_preprocess_progress(self, current: int, total: int, message: str):
         """Update preprocessing progress with proper error handling."""
@@ -1044,7 +1180,7 @@ class AICoderAssistant(QMainWindow):
             if hasattr(self, 'progress_dialog') and self.progress_dialog:
                 self.progress_dialog.setRange(0, total)
                 self.progress_dialog.setValue(current)
-                self.progress_dialog.setLabelText(f"{message}\nProgress: {current}/{total}")
+                self.progress_dialog.setLabelText(f"{message}\\nProgress: {current}/{total}")
                 if current >= total:
                     self.progress_dialog.setValue(total)
         except Exception as e:
@@ -1071,7 +1207,7 @@ class AICoderAssistant(QMainWindow):
             if hasattr(self, 'progress_dialog') and self.progress_dialog:
                 self.progress_dialog.setRange(PROGRESS_DIALOG_MIN_VALUE, PROGRESS_DIALOG_MAX_VALUE)
                 self.progress_dialog.setValue(current)
-                self.progress_dialog.setLabelText(f"{message}\nProgress: {current}/{total}")
+                self.progress_dialog.setLabelText(f"{message}\\nProgress: {current}/{total}")
                 if current >= total:
                     self.progress_dialog.setValue(total)
         except Exception as e:
@@ -1098,7 +1234,7 @@ class AICoderAssistant(QMainWindow):
             if hasattr(self, 'progress_dialog') and self.progress_dialog:
                 self.progress_dialog.setRange(PROGRESS_DIALOG_MIN_VALUE, PROGRESS_DIALOG_MAX_VALUE)
                 self.progress_dialog.setValue(current)
-                self.progress_dialog.setLabelText(f"{message}\nProgress: {current}/{total}")
+                self.progress_dialog.setLabelText(f"{message}\\nProgress: {current}/{total}")
                 if current >= total:
                     self.progress_dialog.setValue(total)
         except Exception as e:
@@ -1110,7 +1246,7 @@ class AICoderAssistant(QMainWindow):
             if hasattr(self, 'progress_dialog') and self.progress_dialog:
                 self.progress_dialog.setRange(0, total)
                 self.progress_dialog.setValue(current)
-                self.progress_dialog.setLabelText(f"{message}\nProgress: {current}/{total}")
+                self.progress_dialog.setLabelText(f"{message}\\nProgress: {current}/{total}")
                 if current >= total:
                     self.progress_dialog.setValue(total)
         except Exception as e:
@@ -1171,461 +1307,37 @@ class AICoderAssistant(QMainWindow):
             print("[DEBUG] run_build_and_test_in_docker returned")
             # Show result to user
             if result.get("success"):
-                QMessageBox.information(self, "Docker Build/Test Success", f"Stage: {result.get('stage')}\nOutput:\n{result.get('output')}")
+                QMessageBox.information(self, "Docker Build/Test Success", f"Stage: {result.get('stage')}\\nOutput:\\n{result.get('output')}")
             else:
-                QMessageBox.critical(self, "Docker Build/Test Failed", f"Stage: {result.get('stage', 'unknown')}\nError:\n{result.get('output', result.get('error', 'Unknown error'))}")
+                QMessageBox.critical(self, "Docker Build/Test Failed", f"Stage: {result.get('stage', 'unknown')}\\nError:\\n{result.get('output', result.get('error', 'Unknown error'))}")
         except Exception as e:
             self.log_message(f"Error testing Docker: {e}")
             QMessageBox.critical(self, "Docker Test Error", f"Failed to test Docker: {str(e)}")
 
     def start_worker(self, worker_id: str, target_func, *args, **kwargs):
-        """Start a worker thread with proper cleanup."""
+        """Start a background task using ThreadPoolExecutor."""
         try:
-            # Add cleanup callback
             original_callback = kwargs.pop('callback', None)
-            def cleanup_callback(result):
+            def cleanup_callback(future):
+                result = None
                 try:
-                    if original_callback:
-                        original_callback(result)
-                finally:
-                    if worker_id in self.active_workers:
-                        self.active_workers.remove(worker_id)
-            
-            kwargs['callback'] = cleanup_callback
-            
-            # Start the worker using the thread manager
-            worker = self.thread_manager.start_worker(worker_id, target_func, *args, **kwargs)
+                    result = future.result()
+                except Exception as e:
+                    # Log error in the main thread, capturing the exception's value
+                    QTimer.singleShot(0, lambda err=e: self.log_message(f"Error in worker {worker_id}: {err}"))
+
+                if original_callback:
+                    # Ensure original callback also runs in the main thread
+                    QTimer.singleShot(0, lambda: original_callback(result))
+
+                # Update active workers list in the main thread
+                QTimer.singleShot(0, lambda: self.active_workers.remove(worker_id) if worker_id in self.active_workers else None)
+                
+            future = self.executor.submit(target_func, *args, **kwargs)
             self.active_workers.append(worker_id)
-            
-            # Connect to the worker's signals
-            worker.progress.connect(self._on_worker_progress)
-            worker.log_message.connect(self.log_message)
-            worker.error.connect(self._on_worker_error)
-            worker.finished.connect(self._on_worker_finished_with_result)
-            
+            future.add_done_callback(cleanup_callback)
         except Exception as e:
             self.log_message(f"Error starting worker {worker_id}: {e}")
             if hasattr(self, 'progress_dialog') and self.progress_dialog:
                 self.progress_dialog.close()
             raise
-    
-    def _on_worker_started(self, worker_id: str):
-        """Handle worker start event."""
-        try:
-            self.log_message(f"Worker started: {worker_id}")
-        except Exception as e:
-            self.log_message(f"Error handling worker start: {e}")
-    
-    def _on_worker_progress(self, worker_id: str, current: int, total: int, message: str):
-        """Handle worker progress event."""
-        try:
-            if hasattr(self, 'current_worker_id') and self.current_worker_id == worker_id:
-                self.update_scan_progress(current, total, message)
-            elif worker_id.startswith('generate_report'):
-                if hasattr(self, 'report_progress_dialog'):
-                    self.report_progress_dialog.setValue(current)
-                    self.report_progress_dialog.setLabelText(message)
-        except Exception as e:
-            self.log_message(f"Error handling worker progress: {e}")
-    
-    def _on_worker_finished_with_result(self, worker_id: str, result: object):
-        """Handle worker finish event with result."""
-        try:
-            self.log_message(f"Worker finished: {worker_id}")
-            
-            # Handle scan results for scan_code workers
-            if hasattr(self, 'current_worker_id') and self.current_worker_id == worker_id:
-                self.current_worker_id = None
-                if hasattr(self, 'scan_button'):
-                    self.scan_button.setEnabled(True)
-                if hasattr(self, 'stop_scan_button'):
-                    self.stop_scan_button.setEnabled(False)
-                # Ensure progress dialog is set to 100% and closed
-                if hasattr(self, 'progress_dialog') and self.progress_dialog:
-                    self.progress_dialog.setValue(self.progress_dialog.maximum())
-                    self.progress_dialog.close()
-                self.handle_scan_complete(result)
-            
-            # Handle report generation results
-            elif worker_id.startswith('generate_report'):
-                self.log_message("Report generation complete")
-                if hasattr(self, 'report_progress_dialog'):
-                    self.report_progress_dialog.setValue(self.report_progress_dialog.maximum())
-                    self.report_progress_dialog.close()
-                
-                if isinstance(result, tuple) and len(result) == 2:
-                    markdown_report, training_data = result
-                    # Show the report in a markdown viewer dialog
-                    from frontend.ui.markdown_viewer import MarkdownViewerDialog
-                    viewer = MarkdownViewerDialog(markdown_report, self)
-                    viewer.exec()
-                else:
-                    QMessageBox.warning(self, "Report Generation Error", 
-                                      "Failed to generate report. Please try again.")
-            
-            # Handle AI explanation results
-            elif worker_id.startswith('get_explanation'):
-                if isinstance(result, str):
-                    self.show_suggestion_dialog(self.suggestion_list[self.current_suggestion_index], result)
-                else:
-                    QMessageBox.warning(self, "AI Explanation Error",
-                                      "Failed to get AI explanation. Please try again.")
-        except Exception as e:
-            self.log_message(f"Error handling worker finish: {e}")
-            QMessageBox.critical(self, "Worker Error", f"Error handling worker result: {str(e)}")
-    
-    def _on_worker_error(self, worker_id: str, error: str):
-        """Handle worker error."""
-        try:
-            self.log_message(f"Error in worker {worker_id}: {error}")
-            if hasattr(self, 'progress_dialog') and self.progress_dialog:
-                self.progress_dialog.close()
-            QMessageBox.critical(self, "Error", error)
-        except Exception as e:
-            logger.error(f"Error handling worker error: {e}")
-
-    def handle_scan_complete(self, result):
-        try:
-            _ = self.isVisible()
-        except RuntimeError:
-            return # Main window is gone
-        # Ensure progress dialog is closed in case of early returns
-        if hasattr(self, 'progress_dialog') and self.progress_dialog:
-            self.progress_dialog.setValue(self.progress_dialog.maximum())
-            self.progress_dialog.close()
-        
-        if not result:
-            self.log_message("No issues found or scan failed.")
-            self.statusBar().showMessage("Scan complete: No issues found.")
-            if hasattr(self, 'scan_results_text'):
-                self.scan_results_text.setPlainText("No issues found.")
-                self.scan_results_text.repaint()
-                QApplication.processEvents()
-            return
-
-        # Store the suggestions for review
-        self.suggestion_list = result
-        self.current_suggestion_index = 0
-
-        # Initialize model references if not already set
-        if not hasattr(self, 'current_model_ref') or self.current_model_ref is None:
-            # Try to get the current model from the UI
-            if hasattr(self, 'ollama_model_selector') and self.ollama_model_selector.currentText():
-                self.current_model_ref = self.ollama_model_selector.currentText()
-                self.log_message(f"Using model: {self.current_model_ref}")
-            else:
-                self.log_message("No model selected. Some features may be limited.")
-        
-        if not hasattr(self, 'current_tokenizer_ref'):
-            self.current_tokenizer_ref = None
-
-        # Count issues by type
-        issue_types = {}
-        for issue in result:
-            t = issue.get('issue_type', 'unknown')
-            issue_types[t] = issue_types.get(t, 0) + 1
-
-        # Create detailed summary
-        summary = [f"Scan complete: {len(result)} issues found.\n"]
-        summary.append("Issues by type:")
-        for issue_type, count in issue_types.items():
-            summary.append(f"- {issue_type}: {count}")
-        summary.append("\nDetailed findings:")
-        
-        # Add detailed findings
-        for issue in result:
-            summary.append(f"\nFile: {issue.get('file_path', 'unknown')}:{issue.get('line_number', 'unknown')}")
-            summary.append(f"Severity: {issue.get('severity', 'unknown')}")
-            summary.append(f"Type: {issue.get('issue_type', 'unknown')}")
-            summary.append(f"Description: {issue.get('description', 'No description')}")
-            if issue.get('suggested_improvement'):
-                summary.append(f"Suggestion: {issue['suggested_improvement']}")
-            summary.append("---")
-
-        # Join all lines with newlines
-        full_summary = "\n".join(summary)
-        
-        # Update UI elements
-        self.log_message(full_summary)
-        self.statusBar().showMessage(f"Scan complete: {len(result)} issues found")
-        if hasattr(self, 'scan_results_text'):
-            self.scan_results_text.setPlainText(full_summary)
-            self.scan_results_text.repaint()
-            QApplication.processEvents()
-        
-        # Enable all post-scan buttons with proper validation
-        self._enable_post_scan_buttons()
-
-    def _enable_post_scan_buttons(self):
-        """Enable post-scan buttons with proper validation."""
-        try:
-            # Enable create report button if we have suggestions
-            if hasattr(self, 'create_report_button'):
-                self.create_report_button.setEnabled(len(self.suggestion_list) > 0)
-                self.log_message("Report generation available")
-            
-            # Enable enhance button if we have suggestions and a model
-            if hasattr(self, 'enhance_button'):
-                has_model = (hasattr(self, 'current_model_ref') and 
-                           self.current_model_ref is not None)
-                self.enhance_button.setEnabled(len(self.suggestion_list) > 0 and has_model)
-                if has_model:
-                    self.log_message("AI enhancement available")
-                else:
-                    self.log_message("AI enhancement requires a model selection")
-            
-            # Enable review suggestions button if we have suggestions
-            if hasattr(self, 'review_suggestions_button'):
-                self.review_suggestions_button.setEnabled(len(self.suggestion_list) > 0)
-                self.log_message("Interactive review available")
-            
-        except Exception as e:
-            self.log_message(f"Error enabling post-scan buttons: {e}")
-            # Don't let button enabling errors crash the application
-
-    def show_suggestion_dialog(self, suggestion: Dict[str, Any], ai_explanation: str):
-        """Show dialog for reviewing a code suggestion."""
-        from frontend.ui.suggestion_dialog import SuggestionDialog
-        
-        dialog = SuggestionDialog(suggestion, ai_explanation, self)
-        result = dialog.exec()
-        
-        if result == SuggestionDialog.ApplyCode:
-            # Apply the suggestion
-            self.apply_suggestion(suggestion)
-            self.current_suggestion_index += 1
-            self.review_next_suggestion()
-        elif result == SuggestionDialog.CancelCode:
-            # Skip this suggestion
-            self.current_suggestion_index += 1
-            self.review_next_suggestion()
-        elif result == SuggestionDialog.CancelAllCode:
-            # Cancel the entire review process
-            self.current_suggestion_index = len(self.suggestion_list)
-            QMessageBox.information(self, "Review Cancelled", "Code review process cancelled.")
-        
-        # Store user feedback if provided
-        user_feedback = dialog.get_user_justification()
-        if user_feedback:
-            self.log_message(f"User feedback for suggestion {self.current_suggestion_index}: {user_feedback}")
-
-    def refresh_ollama_models(self):
-        """Refresh the list of available Ollama models."""
-        try:
-            from backend.services.ollama_client import get_available_models_sync
-            
-            # Get available models
-            models = get_available_models_sync()
-            
-            if not models:
-                self.log_message("No Ollama models found. Please ensure Ollama is running and models are installed.")
-                return
-            
-            # Update model selector
-            if hasattr(self, 'ollama_model_selector'):
-                current_model = self.ollama_model_selector.currentText()
-                self.ollama_model_selector.clear()
-                self.ollama_model_selector.addItems(models)
-                
-                # Try to restore previous selection if it still exists
-                if current_model in models:
-                    self.ollama_model_selector.setCurrentText(current_model)
-                elif models:
-                    # Select first available model
-                    self.ollama_model_selector.setCurrentText(models[0])
-                    
-                self.log_message(f"Found {len(models)} Ollama models")
-        except Exception as e:
-            self.log_message(f"Error refreshing Ollama models: {str(e)}")
-            QMessageBox.warning(self, "Refresh Error", f"Failed to refresh Ollama models: {str(e)}")
-
-    def start_ai_enhancement(self):
-        """Start AI enhancement of scan results with robust validation."""
-        try:
-            # Validate that we have suggestions to enhance
-            if not hasattr(self, 'suggestion_list') or not self.suggestion_list:
-                QMessageBox.information(
-                    self, 
-                    "No Issues to Enhance", 
-                    "No issues to enhance. Please run a scan first to generate issues for AI enhancement."
-                )
-                return
-
-            # Validate model selection
-            if not hasattr(self, 'model_source_selector'):
-                QMessageBox.warning(
-                    self, 
-                    "Configuration Error", 
-                    "Model source selector not found. Please restart the application."
-                )
-                return
-
-            model_mode = self.model_source_selector.currentText().lower().replace(" ", "_")
-            
-            # Check if Ollama is selected (currently the only supported mode)
-            if model_mode != "ollama":
-                QMessageBox.warning(
-                    self, 
-                    "Unsupported Model Source", 
-                    "AI enhancement is currently only supported for Ollama models.\n\n"
-                    "Please select 'Ollama' as the model source and ensure you have models installed."
-                )
-                self.enhance_button.setEnabled(True)
-                return
-            
-            # Validate model reference
-            if not hasattr(self, 'current_model_ref') or self.current_model_ref is None:
-                QMessageBox.warning(
-                    self, 
-                    "No Model Selected", 
-                    "Please select an Ollama model before starting AI enhancement.\n\n"
-                    "1. Go to the Model Management section\n"
-                    "2. Select 'Ollama' as the model source\n"
-                    "3. Choose a model from the dropdown\n"
-                    "4. Try AI enhancement again"
-                )
-                self.enhance_button.setEnabled(True)
-                return
-
-            # Validate that the selected model exists
-            if hasattr(self, 'ollama_model_selector'):
-                selected_model = self.ollama_model_selector.currentText()
-                if not selected_model:
-                    QMessageBox.warning(
-                        self, 
-                        "No Model Selected", 
-                        "Please select a specific Ollama model from the dropdown list."
-                    )
-                    self.enhance_button.setEnabled(True)
-                    return
-
-            # Start the enhancement process
-            self.log_message("Starting AI enhancement...")
-            self.enhance_button.setEnabled(False)  # Disable button during enhancement
-            
-            # Show progress dialog
-            self.progress_dialog = QProgressDialog("Enhancing issues with AI...", "Cancel", 0, 100, self)
-            self.progress_dialog.setWindowTitle("AI Enhancement")
-            self.progress_dialog.setAutoClose(True)
-            self.progress_dialog.setAutoReset(True)
-            self.progress_dialog.setMinimumDuration(0)
-            self.progress_dialog.setValue(0)
-            self.progress_dialog.show()
-
-            # Start worker with proper error handling
-            self.start_worker(
-                'enhance_issues',
-                ai_tools.enhance_issues_with_ai,
-                self.suggestion_list,
-                model_mode,
-                self.current_model_ref,
-                callback=self.handle_ai_enhancement_complete,
-                progress_callback=self.update_scan_progress,
-                log_message_callback=self.log_message
-            )
-            
-        except Exception as e:
-            self.log_message(f"Error starting AI enhancement: {e}")
-            QMessageBox.critical(
-                self, 
-                "Enhancement Error", 
-                f"Failed to start AI enhancement:\n{str(e)}\n\nPlease check the logs for more details."
-            )
-            self.enhance_button.setEnabled(True)
-            if hasattr(self, 'progress_dialog') and self.progress_dialog:
-                self.progress_dialog.close()
-
-    def handle_ai_enhancement_complete(self, result):
-        """Handle completion of AI enhancement with robust error handling."""
-        try:
-            # Check if window is still valid
-            _ = self.isVisible()
-        except RuntimeError:
-            return  # Window has been destroyed
-        
-        try:
-            # Re-enable the enhance button
-            if hasattr(self, 'enhance_button'):
-                self.enhance_button.setEnabled(True)
-            
-            # Close progress dialog if open
-            if hasattr(self, 'progress_dialog') and self.progress_dialog:
-                self.progress_dialog.setValue(self.progress_dialog.maximum())
-                self.progress_dialog.close()
-            
-            # Handle the result
-            if result is None:
-                self.log_message("AI enhancement returned no result.")
-                QMessageBox.warning(
-                    self, 
-                    "Enhancement Incomplete", 
-                    "The AI enhancement did not return any new suggestions.\n\n"
-                    "This could be due to:\n"
-                    "• Model not responding properly\n"
-                    "• Network connectivity issues\n"
-                    "• Invalid model selection\n\n"
-                    "Please check the logs for more details and try again."
-                )
-                return
-
-            # Update the suggestion list with enhanced results
-            self.suggestion_list = result
-            self.log_message(f"AI enhancement complete. Updated {len(self.suggestion_list)} issues.")
-            
-            # Update the display with enhanced results
-            display_text = self.format_issues_for_display(self.suggestion_list)
-            if hasattr(self, 'scan_results_text'):
-                self.scan_results_text.setPlainText(display_text)
-                self.scan_results_text.repaint()
-                QApplication.processEvents()
-            
-            # Re-enable post-scan buttons with updated state
-            self._enable_post_scan_buttons()
-            
-            # Show success message
-            QMessageBox.information(
-                self, 
-                "Enhancement Complete", 
-                f"AI enhancement completed successfully!\n\n"
-                f"Enhanced {len(self.suggestion_list)} issues with AI suggestions.\n\n"
-                "You can now:\n"
-                "• Generate a comprehensive report\n"
-                "• Review suggestions interactively\n"
-                "• Apply improvements to your code"
-            )
-            
-        except Exception as e:
-            self.log_message(f"Error handling AI enhancement completion: {e}")
-            QMessageBox.critical(
-                self, 
-                "Enhancement Error", 
-                f"Error processing AI enhancement results:\n{str(e)}\n\n"
-                "Please check the logs for more details."
-            )
-
-    def format_issues_for_display(self, issues: List[Dict[str, Any]]) -> str:
-        if not issues:
-            return "No issues found."
-
-        report_lines = [f"Scan complete: {len(issues)} issues found.\n"]
-        
-        # Group issues by severity if available
-        issues_by_severity = {}
-        for issue in issues:
-            severity = issue.get('severity', 'unknown')
-            if severity not in issues_by_severity:
-                issues_by_severity[severity] = []
-            issues_by_severity[severity].append(issue)
-
-        for severity, issue_list in sorted(issues_by_severity.items()):
-            report_lines.append(f"\n--- {severity.upper()} ({len(issue_list)} issues) ---\n")
-            for issue in issue_list:
-                line_num = issue.get('line_number', 'N/A')
-                line_info = f":{line_num}" if line_num != 'N/A' else ""
-                report_lines.append(f"File: {issue.get('file_path', 'N/A')}{line_info}")
-                report_lines.append(f"  Issue: {issue.get('description', 'N/A')}")
-                if 'suggested_improvement' in issue:
-                    report_lines.append(f"  Suggestion: {issue['suggested_improvement']}")
-                report_lines.append("") # Spacer
-        
-        return "\n".join(report_lines)

@@ -21,11 +21,8 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 API Service - REST API endpoints for PR automation and external integrations.
 """
 
-import json
 import logging
-from typing import Dict, List, Optional, Any
-from pathlib import Path
-from datetime import datetime
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,9 +30,9 @@ from pydantic import BaseModel, Field
 import uvicorn
 
 from .llm_manager import LLMManager
-from .pr_automation import ServiceConfig, PRTemplate, PRRequest, PRResult
-from .security_intelligence import SecurityFeed, SecurityVulnerability, SecurityBreach, SecurityPatch
-from .code_standards import CodeStandard, CodeRule, CodeAnalysisResult, Language, Severity
+from .pr_automation import ServiceConfig, PRTemplate, PRRequest
+from .security_intelligence import SecurityFeed
+from .code_standards import CodeStandard, CodeRule, Language, Severity
 
 logger = logging.getLogger(__name__)
 

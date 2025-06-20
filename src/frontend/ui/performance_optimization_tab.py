@@ -22,18 +22,16 @@ Performance Optimization Tab - Clean, modern interface for performance analysis.
 """
 
 import os
-import logging
-from typing import Optional, Any, Dict, Union, List, cast, Callable, Sequence
+from typing import Optional, Any, Dict, Callable
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox, QPushButton,
     QLabel, QTextEdit, QProgressBar, QFileDialog, QMessageBox, QTableWidget,
-    QTableWidgetItem, QHeaderView, QComboBox, QLineEdit, QFormLayout
+    QTableWidgetItem, QHeaderView, QComboBox, QLineEdit
 )
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QThread, pyqtSlot, QObject
+from PyQt6.QtCore import Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QFont
-from frontend.ui.worker_threads import get_thread_manager
 from core.logging import LogManager
-from core.threading import TaskResult, TaskStatus
+import concurrent.futures
 
 logger = LogManager().get_logger(__name__)
 
@@ -114,7 +112,6 @@ class AnalysisWidget(QWidget):
         """Initialize the analysis widget."""
         super().__init__(parent)
         self.worker_id: Optional[str] = None
-        self.thread_manager = get_thread_manager()
         self.setup_ui()
     
     def setup_ui(self) -> None:
@@ -430,7 +427,9 @@ class PerformanceOptimizationTab(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
+        self.load_sample_data()
         self.apply_styles()
     
     def setup_ui(self):
@@ -602,6 +601,45 @@ class PerformanceOptimizationTab(QWidget):
             }
         """) 
 
+    def start_optimization(self):
+        """Start performance optimization analysis."""
+        if not self.validate_inputs():
+            return
+        
+        self.optimize_btn.setEnabled(False)
+        self.progress_bar.setVisible(True)
+        self.status_label.setText("Starting optimization analysis...")
+        
+        # Start optimization using ThreadPoolExecutor
+        future = self.executor.submit(
+            performance_optimization_backend,
+            'analyze',
+            target_path=self.target_path.text(),
+            optimization_type=self.optimization_type.currentText(),
+            progress_callback=self.update_progress,
+            log_message_callback=self.handle_error
+        )
+        future.add_done_callback(self._on_optimization_complete)
+
+    def _on_optimization_complete(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.display_results(result)
+                self.optimize_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+                self.status_label.setText("Optimization analysis complete")
+            except Exception as e:
+                self.handle_error(f"Optimization failed: {e}")
+                self.optimize_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+        QTimer.singleShot(0, update_ui)
+
+    def load_sample_data(self):
+        """Load sample data for demonstration."""
+        # This method will be implemented when the full UI is added
+        pass
+
 # Backend functions for ThreadManager
 def analyze_directory_performance_backend(dir_path: str, progress_callback: Optional[Callable[[int, int, str], None]] = None, log_callback: Optional[Callable[[str], None]] = None, cancellation_callback: Optional[Callable[[], bool]] = None) -> Dict[str, Any]:
     """Analyze performance of all Python files in a directory."""
@@ -678,3 +716,10 @@ def _on_optimization_complete(self, result: Optional[Dict[str, Any]]):
     else:
         error = result.get("error", "An unknown error occurred.") if result else "An unknown error occurred."
         QMessageBox.critical(self, "Optimization Failed", f"Optimization failed: {error}") 
+
+# Stub backend function
+def performance_optimization_backend(operation: str, target_path: str, optimization_type: str, progress_callback=None, log_message_callback=None):
+    """Stub function for performance optimization backend."""
+    import time
+    time.sleep(1)
+    return {"success": True, "result": "Performance optimization completed"} 

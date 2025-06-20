@@ -5,7 +5,6 @@ Supports dry-run mode and logs progress.
 """
 import argparse
 import logging
-from pathlib import Path
 from src.backend.services.model_persistence import ModelPersistenceService
 from src.backend.services.scanner_persistence import ScannerPersistenceService
 

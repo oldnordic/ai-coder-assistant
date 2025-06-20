@@ -21,24 +21,15 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 Security Intelligence Tab - Track security breaches, CVEs, and patches.
 """
 
-import json
 import logging
-import os
-from typing import Dict, List, Optional, Any
-from datetime import datetime
-from pathlib import Path
-
+import concurrent.futures
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QTableWidget, 
-    QTableWidgetItem, QPushButton, QLabel, QComboBox, QLineEdit,
-    QTextEdit, QGroupBox, QFormLayout, QSpinBox, QCheckBox,
-    QMessageBox, QProgressBar, QSplitter, QHeaderView, QFrame
+    QWidget, QVBoxLayout, QLabel
 )
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont, QColor, QPalette
+from PyQt6.QtGui import QFont
 
 from ..controllers import BackendController
-from .worker_threads import get_thread_manager
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +105,9 @@ class SecurityIntelligenceTab(QWidget):
     def __init__(self, backend_controller: BackendController):
         super().__init__()
         self.backend_controller = backend_controller
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
+        self.load_sample_data()
     
     def setup_ui(self):
         """Setup the user interface."""
@@ -131,3 +124,43 @@ class SecurityIntelligenceTab(QWidget):
         layout.addWidget(placeholder)
         
         self.setLayout(layout)
+
+    def load_sample_data(self):
+        """Load sample data for demonstration."""
+        # This method will be implemented when the full UI is added
+        pass
+
+    def start_analysis(self):
+        """Start security analysis."""
+        if not self.validate_inputs():
+            return
+        
+        self.analyze_btn.setEnabled(False)
+        self.progress_bar.setVisible(True)
+        self.status_label.setText("Starting security analysis...")
+        
+        # Start analysis using ThreadPoolExecutor
+        future = self.executor.submit(
+            security_analysis_backend,
+            'analyze',
+            target_path=self.target_path.text(),
+            analysis_type=self.analysis_type.currentText(),
+            progress_callback=self.update_progress,
+            log_message_callback=self.handle_error
+        )
+        future.add_done_callback(self._on_analysis_complete)
+
+    def _on_analysis_complete(self, future):
+        """Handle analysis completion."""
+        def update_ui():
+            try:
+                result = future.result()
+                self.display_results(result)
+                self.analyze_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+                self.status_label.setText("Analysis complete")
+            except Exception as e:
+                self.handle_error(f"Analysis failed: {e}")
+                self.analyze_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+        QTimer.singleShot(0, update_ui)

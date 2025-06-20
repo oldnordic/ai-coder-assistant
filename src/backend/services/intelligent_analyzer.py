@@ -21,14 +21,11 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 import os
 import re
 import ast
-import json
-import hashlib
-from typing import List, Dict, Tuple, Optional, Any, Set, Iterable
+from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
 from enum import Enum
-from collections import defaultdict, Counter
+from collections import defaultdict
 import networkx as nx
-from pathlib import Path
 
 class IssueType(Enum):
     LOGIC_ERROR = "logic_error"
@@ -845,7 +842,7 @@ class IntelligentCodeAnalyzer:
                 code_snippet=self._get_code_snippet(lines, e.lineno or 1),
                 suggestion="Fix the syntax error to make the code executable."
             ))
-        except Exception as e:
+        except Exception:
             # If AST parsing fails, fall back to regex-based analysis
             pass
         

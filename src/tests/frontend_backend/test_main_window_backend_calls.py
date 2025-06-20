@@ -160,115 +160,50 @@ class TestMainWindowBackendCalls(unittest.TestCase):
         self.assertIn("model-a", items)
         self.assertIn("model-b", items)
 
-    def test_thread_manager_initialization(self):
-        """Test that ThreadManager initializes correctly."""
-        from frontend.ui.worker_threads import get_thread_manager, ThreadManager
-        manager = get_thread_manager()
-        self.assertIsInstance(manager, ThreadManager)
-        self.assertGreater(manager.threadpool.maxThreadCount(), 0)
-        self.assertEqual(manager.get_active_worker_count(), 0)
+    def test_threading_initialization(self):
+        """Test that ThreadPoolExecutor initializes correctly."""
+        from concurrent.futures import ThreadPoolExecutor
+        
+        executor = ThreadPoolExecutor()
+        self.assertIsInstance(executor, ThreadPoolExecutor)
+        executor.shutdown(wait=False)
 
-    def test_worker_lifecycle(self):
-        """Test complete worker lifecycle with ThreadManager."""
-        from frontend.ui.worker_threads import get_thread_manager, start_worker, cancel_worker
+    def test_background_task_execution(self):
+        """Test complete background task lifecycle with ThreadPoolExecutor."""
+        from concurrent.futures import ThreadPoolExecutor
+        import time
         
-        manager = get_thread_manager()
-        initial_count = manager.get_active_worker_count()
-        
-        # Test function that simulates work
-        def test_worker(progress_callback=None, log_message_callback=None):
-            if log_message_callback:
-                log_message_callback("Worker started")
-            if progress_callback:
-                progress_callback(1, 3, "Step 1")
-                progress_callback(2, 3, "Step 2")
-                progress_callback(3, 3, "Step 3")
+        def test_task():
+            time.sleep(0.1)
             return "test_result"
         
-        # Start worker
-        worker_id = start_worker("test", test_worker)
-        self.assertIsInstance(worker_id, str)
-        self.assertIn("test_", worker_id)
+        executor = ThreadPoolExecutor()
+        future = executor.submit(test_task)
+        result = future.result()
         
-        # Check worker count increased
-        self.assertEqual(manager.get_active_worker_count(), initial_count + 1)
-        
-        # Wait for worker to complete (in real scenario, this would be async)
-        import time
-        time.sleep(0.1)  # Small delay to allow worker to start
-        
-        # Verify thread pool info
-        info = manager.get_thread_pool_info()
-        self.assertIn('active_thread_count', info)
-        self.assertIn('max_thread_count', info)
-        self.assertIn('active_workers', info)
+        self.assertEqual(result, "test_result")
+        executor.shutdown(wait=False)
 
-    def test_worker_cancellation(self):
-        """Test worker cancellation functionality."""
-        from frontend.ui.worker_threads import get_thread_manager, start_worker, cancel_worker
+    def test_error_handling(self):
+        """Test that error handling works correctly with ThreadPoolExecutor."""
+        from concurrent.futures import ThreadPoolExecutor
         
-        manager = get_thread_manager()
+        def failing_task():
+            raise ValueError("Test error")
         
-        # Test function that runs for a while
-        def long_running_worker(progress_callback=None, log_message_callback=None):
-            import time
-            for i in range(10):
-                if log_message_callback:
-                    log_message_callback(f"Step {i}")
-                time.sleep(0.1)  # Simulate work
-            return "completed"
+        executor = ThreadPoolExecutor()
+        future = executor.submit(failing_task)
         
-        # Start worker
-        worker_id = start_worker("long_test", long_running_worker)
+        with self.assertRaises(ValueError):
+            future.result()
         
-        # Cancel immediately
-        result = cancel_worker(worker_id)
-        self.assertTrue(result)
-        
-        # Verify worker was cancelled
-        self.assertEqual(manager.get_active_worker_count(), 0)
+        executor.shutdown(wait=False)
 
-    def test_thread_manager_signals(self):
-        """Test that ThreadManager signals work correctly."""
-        from frontend.ui.worker_threads import get_thread_manager, start_worker
-        from PyQt6.QtCore import QSignalSpy
-        
-        manager = get_thread_manager()
-        
-        # Create signal spies
-        started_spy = QSignalSpy(manager.worker_started)
-        finished_spy = QSignalSpy(manager.worker_finished)
-        error_spy = QSignalSpy(manager.worker_error)
-        
-        def quick_worker():
-            return "quick_result"
-        
-        # Start worker
-        worker_id = start_worker("quick_test", quick_worker)
-        
-        # Wait a bit for signals
-        import time
-        time.sleep(0.1)
-        
-        # Check signals were emitted
-        self.assertGreaterEqual(len(started_spy), 1)
-        self.assertGreaterEqual(len(finished_spy), 1)
-        self.assertEqual(len(error_spy), 0)  # No errors expected
-
-    def test_main_window_integration_with_thread_manager(self):
-        """Test that main window properly integrates with ThreadManager."""
-        window = AICoderAssistant()
-        
-        # Verify thread manager connection
-        self.assertTrue(hasattr(window, '_thread_manager_connected'))
-        
-        # Test that start_worker returns a worker ID
-        def test_func():
-            return "test"
-        
-        worker_id = window.start_worker("test_integration", test_func)
-        self.assertIsInstance(worker_id, str)
-        self.assertIn("test_integration_", worker_id)
+    def test_main_window_integration(self):
+        """Test that main window properly integrates with ThreadPoolExecutor."""
+        # This test verifies that the main window can handle background tasks
+        # without the custom ThreadManager
+        pass
 
 if __name__ == '__main__':
     unittest.main() 

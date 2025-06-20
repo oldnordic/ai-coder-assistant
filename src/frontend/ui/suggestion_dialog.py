@@ -22,13 +22,7 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit,
     QPushButton, QGroupBox
 )
-from PyQt6.QtCore import Qt
 from typing import Dict, Any, Optional
-from backend.utils.constants import (
-    DIALOG_DEFAULT_X, DIALOG_DEFAULT_Y, DIALOG_DEFAULT_WIDTH, DIALOG_DEFAULT_HEIGHT,
-    CONTEXT_TEXT_MAX_HEIGHT, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR, DEFAULT_BORDER_COLOR,
-    PROGRESS_MAX, PROGRESS_MIN, PROGRESS_COMPLETE, DEFAULT_FONT_WEIGHT, DEFAULT_TEXT_COLOR
-)
 
 class SuggestionDialog(QDialog):
     """Dialog for reviewing code suggestions interactively."""

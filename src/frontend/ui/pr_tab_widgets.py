@@ -22,43 +22,21 @@ PR Creation Tab Widgets
 Provides GUI components for AI-powered PR creation and review.
 """
 
-import os
-import json
 from typing import List, Dict, Any, Optional, Callable
-from pathlib import Path
+import concurrent.futures
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QTextEdit, QComboBox, QLineEdit, QFileDialog, QMessageBox,
-    QGroupBox, QCheckBox, QSpinBox, QListWidget, QListWidgetItem,
-    QProgressBar, QTabWidget, QSplitter, QFrame
+    QGroupBox, QCheckBox, QListWidget, QProgressBar, QTabWidget, QSplitter
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
-from PyQt6.QtGui import QFont, QTextCursor
-
-# TODO: The following imports are commented out because the modules do not exist in the current codebase.
-# from ..pr.pr_creator import PRCreator
-# from ..pr.ai_advisor import AIAdvisor, PriorityStrategy
-# from ..pr.scan_integrator import ScanIntegrator
-# from ..pr.pr_templates import PRType
-from backend.utils.constants import WAIT_TIMEOUT_SHORT_MS, SPLITTER_LEFT_SIZE, SPLITTER_RIGHT_SIZE
-from .worker_threads import get_thread_manager
+from PyQt6.QtCore import Qt, pyqtSlot, QTimer
+from PyQt6.QtGui import QFont
 
 
-"""
-
-# MIGRATION NEEDED: Replace QThread subclass with ThreadManager pattern
-
-# 1. Remove this QThread subclass.
-# 2. Create a backend function for the threaded operation:
-#    def backend_func(..., progress_callback=None, log_message_callback=None, cancellation_callback=None):
-#        # do work, call callbacks, return result
-# 3. In the UI, use:
-#    from .worker_threads import start_worker
-#    worker_id = start_worker("task_type", backend_func, ..., progress_callback=..., log_message_callback=...)
-# 4. Connect ThreadManager signals to UI slots for progress, result, and error.
-
-"""
+# Constants for splitter sizes
+SPLITTER_LEFT_SIZE = 400
+SPLITTER_RIGHT_SIZE = 600
 
 def pr_creation_backend(
     scan_files: List[str], 
@@ -113,7 +91,7 @@ class PRCreationTab(QWidget):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.scan_files: List[str] = []
-        self.thread_manager = get_thread_manager()
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
         self.setup_connections()
     
@@ -269,10 +247,6 @@ class PRCreationTab(QWidget):
         self.clear_scan_files_btn.clicked.connect(self.clear_scan_files)
         self.preview_pr_btn.clicked.connect(self.preview_pr)
         self.create_pr_btn.clicked.connect(self.create_pr)
-        
-        # Connect thread manager signals globally
-        # Note: Worker-specific signals are handled via callbacks in start_worker
-        self.thread_manager.worker_error.connect(self._on_worker_error)
 
     def add_scan_files(self):
         """Add scan result files."""
@@ -298,16 +272,14 @@ class PRCreationTab(QWidget):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
         
-        worker = self.thread_manager.start_worker(
-            "preview_pr",
+        future = self.executor.submit(
             pr_creation_backend,
             self.get_scan_files(),
             config,
             callback=self.show_preview,
             error_callback=self.show_error
         )
-        worker.progress.connect(self.update_progress)
-        worker.log_message.connect(self.handle_log_message)
+        future.add_done_callback(self._on_preview_complete)
 
     def create_pr(self):
         if not self.get_scan_files():
@@ -318,23 +290,53 @@ class PRCreationTab(QWidget):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
 
-        worker = self.thread_manager.start_worker(
-            "create_pr",
+        future = self.executor.submit(
             pr_creation_backend,
             self.get_scan_files(),
             config,
             callback=self.show_pr_result,
             error_callback=self.show_error
         )
-        worker.progress.connect(self.update_progress)
-        worker.log_message.connect(self.handle_log_message)
+        future.add_done_callback(self._on_pr_creation_complete)
 
-    def _on_worker_error(self, worker_id: str, error: str):
-        # This slot handles errors from any worker managed by the thread manager
-        self.show_error(f"Error in task '{worker_id}': {error}")
+    def _on_preview_complete(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.show_preview(result)
+            except Exception as e:
+                self.show_error(f"Preview failed: {e}")
+        QTimer.singleShot(0, update_ui)
 
-    def handle_log_message(self, message: str):
-        self.log_output_edit.append(message)
+    def _on_pr_creation_complete(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.show_pr_result(result)
+            except Exception as e:
+                self.show_error(f"PR creation failed: {e}")
+        QTimer.singleShot(0, update_ui)
+
+    def show_preview(self, result: Optional[Dict[str, Any]]):
+        self.progress_bar.setVisible(False)
+        if result and result.get('success'):
+            self.pr_preview_edit.setText(result.get('description', 'Preview not available.'))
+            self.log_output_edit.append("PR preview generated successfully.")
+        else:
+            self.show_error("Failed to generate PR preview.")
+
+    def show_pr_result(self, result: Optional[Dict[str, Any]]):
+        self.progress_bar.setVisible(False)
+        if result and result.get('success'):
+            QMessageBox.information(self, "PR Created", f"PR created successfully!\nURL: {result.get('pr_url', 'N/A')}")
+            self.pr_preview_edit.setText(result.get('description', ''))
+        else:
+            self.show_error(f"Failed to create PR: {result.get('error', 'Unknown error') if result else 'Worker cancelled or failed'}")
+
+    def show_error(self, error: str):
+        self.progress_bar.setVisible(False)
+        QMessageBox.critical(self, "Worker Error", error)
+        self.log_output_edit.append(f"ERROR: {error}")
 
     def get_scan_files(self) -> List[str]:
         return [self.scan_files_list.item(i).text() for i in range(self.scan_files_list.count())]
@@ -344,30 +346,6 @@ class PRCreationTab(QWidget):
         self.progress_bar.setRange(0, total)
         self.progress_bar.setValue(current)
         self.log_output_edit.append(f"Progress: {message}")
-
-    @pyqtSlot(object)
-    def show_preview(self, result: Optional[Dict[str, Any]]):
-        self.progress_bar.setVisible(False)
-        if result and result.get('success'):
-            self.pr_preview_edit.setText(result.get('description', 'Preview not available.'))
-            self.log_output_edit.append("PR preview generated successfully.")
-        else:
-            self.show_error("Failed to generate PR preview.")
-
-    @pyqtSlot(object)
-    def show_pr_result(self, result: Optional[Dict[str, Any]]):
-        self.progress_bar.setVisible(False)
-        if result and result.get('success'):
-            QMessageBox.information(self, "PR Created", f"PR created successfully!\nURL: {result.get('pr_url', 'N/A')}")
-            self.pr_preview_edit.setText(result.get('description', ''))
-        else:
-            self.show_error(f"Failed to create PR: {result.get('error', 'Unknown error') if result else 'Worker cancelled or failed'}")
-
-    @pyqtSlot(str)
-    def show_error(self, error: str):
-        self.progress_bar.setVisible(False)
-        QMessageBox.critical(self, "Worker Error", error)
-        self.log_output_edit.append(f"ERROR: {error}")
 
     @pyqtSlot(object)
     def on_pr_fetch_complete(self, pr_data):

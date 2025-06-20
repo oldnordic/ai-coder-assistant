@@ -21,21 +21,31 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 Performance Optimization Service - Analyze and optimize code performance.
 """
 
-import json
 import logging
 import re
 import ast
 import time
 import psutil
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple, Callable
+from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 import cProfile
 import pstats
 import io
-import subprocess
 import threading
+import concurrent.futures
+import json
+import asyncio
+from core.config import Config
+from core.logging import LogManager
+from core.error import ErrorHandler
+from core.events import EventBus
+from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
+from backend.utils.constants import MAX_FILE_SIZE_KB
+
+# Constants
+ANALYSIS_TIMEOUT_SECONDS = 300  # 5 minutes
 
 logger = logging.getLogger(__name__)
 
@@ -317,9 +327,30 @@ class PythonPerformanceAnalyzer:
 
 
 class PerformanceOptimizationService:
-    """Main performance optimization service."""
+    """
+    Performance optimization service with intelligent analysis and recommendations.
+    Uses the core modules for configuration, logging, error handling, and threading.
+    """
     
     def __init__(self):
+        self.config = Config()
+        self.logger = LogManager().get_logger('performance_optimization')
+        self.error_handler = ErrorHandler()
+        self.event_bus = EventBus()
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+        
+        # Initialize analyzers
+        self.intelligent_analyzer = IntelligentCodeAnalyzer()
+        
+        # Thread-safe locks
+        self.analysis_lock = threading.Lock()
+        
+        # Load configuration
+        self.max_file_size_kb = self.config.get('performance.max_file_size_kb', MAX_FILE_SIZE_KB)
+        self.analysis_timeout = self.config.get('performance.timeout_seconds', ANALYSIS_TIMEOUT_SECONDS)
+        
+        self.logger.info("Performance optimization service initialized")
+        
         self.analyzers = {
             "python": PythonPerformanceAnalyzer()
         }

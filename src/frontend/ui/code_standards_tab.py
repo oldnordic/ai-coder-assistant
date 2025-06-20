@@ -22,25 +22,17 @@ Code Standards Tab - Enforce company-specific coding standards.
 """
 
 import os
-import json
 import logging
 from typing import Dict, List, Optional, Any, Callable
-from datetime import datetime
-from pathlib import Path
-
+import concurrent.futures
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QTableWidget, 
     QTableWidgetItem, QPushButton, QLabel, QComboBox, QLineEdit,
-    QTextEdit, QGroupBox, QFormLayout, QSpinBox, QCheckBox,
-    QMessageBox, QProgressBar, QSplitter, QHeaderView, QFrame,
-    QFileDialog, QTreeWidget, QTreeWidgetItem, QDialog, QDialogButtonBox,
-    QTextBrowser
+    QTextEdit, QGroupBox, QFormLayout, QCheckBox,
+    QMessageBox, QProgressBar, QHeaderView, QFileDialog, QTreeWidget, QTreeWidgetItem, QDialog, QDialogButtonBox
 )
-from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QFont, QColor, QPalette
-
+from PyQt6.QtCore import pyqtSlot
 from frontend.controllers import BackendController
-from .worker_threads import get_thread_manager
 
 logger = logging.getLogger(__name__)
 
@@ -181,7 +173,7 @@ class CodeStandardsTab(QWidget):
     def __init__(self, backend_controller: BackendController, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.backend_controller = backend_controller
-        self.thread_manager = get_thread_manager()
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
         self.load_data()
     
@@ -451,16 +443,15 @@ class CodeStandardsTab(QWidget):
 
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
-        worker = self.thread_manager.start_worker(
-            "analyze_file",
+        worker = self.executor.submit(
             analyze_code_file_backend,
             self.backend_controller,
             file_path,
-            callback=self.on_analysis_finished,
-            error_callback=self.handle_error
+            self.update_progress,
+            self.handle_error
         )
         if worker:
-            worker.progress.connect(self.update_progress)
+            worker.result().connect(self.on_analysis_finished)
 
     def analyze_directory(self):
         """Analyze a directory of code files."""
@@ -470,16 +461,15 @@ class CodeStandardsTab(QWidget):
 
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
-        worker = self.thread_manager.start_worker(
-            "analyze_directory",
+        worker = self.executor.submit(
             analyze_code_directory_backend,
             self.backend_controller,
             dir_path,
-            callback=self.on_directory_analysis_finished,
-            error_callback=self.handle_error
+            self.update_progress,
+            self.handle_error
         )
         if worker:
-            worker.progress.connect(self.update_progress)
+            worker.result().connect(self.on_directory_analysis_finished)
 
     @pyqtSlot(str, int, int, str)
     def update_progress(self, worker_id: str, current: int, total: int, message: str):

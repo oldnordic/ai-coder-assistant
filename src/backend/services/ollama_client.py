@@ -5,10 +5,10 @@ Ollama client service module.
 import logging
 import httpx
 from typing import List, Dict, Any
-import asyncio
 import requests
 import json
 import re
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +73,23 @@ class OllamaClient:
 # Global instance
 _global_ollama_client = OllamaClient()
 
+def get_ollama_response(prompt: str, model_name: str) -> str:
+    """Generate text using Ollama model synchronously.
+    
+    Args:
+        prompt: The prompt to send to the model
+        model_name: Name of the Ollama model to use
+        
+    Returns:
+        The generated response text
+    """
+    try:
+        # Use asyncio to run the async generate method
+        return asyncio.run(_global_ollama_client.generate(model_name, prompt))
+    except Exception as e:
+        logger.error(f"Error in get_ollama_response: {e}")
+        return f"API_ERROR: {str(e)}"
+
 def get_available_models_sync() -> List[str]:
     """Get list of available Ollama models synchronously."""
     try:
@@ -83,16 +100,17 @@ def get_available_models_sync() -> List[str]:
             return []
             
         # Parse response
-        data: Dict[str, List[Dict[str, str]]] = response.json()
-        if not isinstance(data, dict) or 'models' not in data:
+        data = response.json()
+        if 'models' not in data:
             logger.error("Invalid response format from Ollama service")
             return []
             
-        # Extract model names with proper type hints
-        models: List[str] = []
-        for model_data in data['models']:
-            if isinstance(model_data, dict) and 'name' in model_data and isinstance(model_data['name'], str):
-                models.append(model_data['name'])
+        # Extract model names
+        models: List[str] = [
+            model_data['name'] 
+            for model_data in data.get('models', []) 
+            if 'name' in model_data
+        ]
                 
         if not models:
             logger.warning("No models found in Ollama service")
@@ -108,54 +126,78 @@ def get_available_models_sync() -> List[str]:
 
 def _extract_json_from_response(response_text: str) -> str:
     """Extracts JSON string from a response that might contain other text."""
-    # Pattern to find JSON block within triple backticks
-    pattern = r"```json\s*([\s\S]*?)\s*```"
-    match = re.search(pattern, response_text)
+    if not response_text or not response_text.strip():
+        return ""
+    
+    # 1. Try to find a JSON block within ```
+    match = re.search(r"```(json)?\s*([\s\S]*?)\s*```", response_text, re.DOTALL)
     if match:
-        return match.group(1).strip()
+        json_text = match.group(2).strip()
+        # Try to parse it to validate
+        try:
+            json.loads(json_text)
+            return json_text
+        except json.JSONDecodeError:
+            pass  # Continue to other extraction methods
 
-    # Fallback for responses without backticks
-    # Find the start of the JSON - it can be an object or an array
-    json_start = -1
-    first_brace = response_text.find('{')
-    first_bracket = response_text.find('[')
-
-    if first_brace != -1 and first_bracket != -1:
-        json_start = min(first_brace, first_bracket)
-    elif first_brace != -1:
-        json_start = first_brace
-    else:
-        json_start = first_bracket
-
-    if json_start == -1:
-        return "" # No JSON found
-
-    # Find the end of the JSON by balancing brackets/braces
-    # This is a simplified implementation and might not cover all edge cases
-    open_brackets = 0
-    open_braces = 0
-    in_string = False
+    # 2. If no ``` block, find the content between the first { or [ and the last } or ]
+    start_chars = ['{', '[']
+    end_chars = ['}', ']']
     
-    for i in range(json_start, len(response_text)):
-        char = response_text[i]
-        
-        if char == '"' and (i == 0 or response_text[i-1] != '\\'):
-            in_string = not in_string
-        
-        if not in_string:
-            if char == '[':
-                open_brackets += 1
-            elif char == ']':
-                open_brackets -= 1
-            elif char == '{':
-                open_braces += 1
-            elif char == '}':
-                open_braces -= 1
+    start_index = -1
+    for char in start_chars:
+        idx = response_text.find(char)
+        if idx != -1:
+            if start_index == -1 or idx < start_index:
+                start_index = idx
 
-            if open_brackets == 0 and open_braces == 0 and (open_braces > 0 or open_brackets > 0):
-                return response_text[json_start:i+1]
+    if start_index == -1:
+        return "" # No JSON object or array found
+
+    end_index = -1
+    for char in end_chars:
+        idx = response_text.rfind(char)
+        if idx > end_index:
+            end_index = idx
+
+    if end_index == -1 or end_index < start_index:
+        return "" # No valid end found
+
+    json_text = response_text[start_index : end_index + 1].strip()
     
-    return "" # Unbalanced JSON
+    # Try to fix common JSON issues
+    try:
+        # Try to parse as-is first
+        json.loads(json_text)
+        return json_text
+    except json.JSONDecodeError:
+        # Try to fix common issues
+        fixed_json = _fix_common_json_issues(json_text)
+        try:
+            json.loads(fixed_json)
+            return fixed_json
+        except json.JSONDecodeError:
+            # If still failing, return empty string
+            logger.warning(f"Could not fix JSON issues in response: {json_text[:200]}...")
+            return ""
+    
+    return ""
+
+def _fix_common_json_issues(json_text: str) -> str:
+    """Attempt to fix common JSON formatting issues."""
+    # Remove trailing commas
+    json_text = re.sub(r',(\s*[}\]])', r'\1', json_text)
+    
+    # Fix unescaped quotes in strings
+    json_text = re.sub(r'(?<!\\)"(?=.*":)', r'\\"', json_text)
+    
+    # Fix missing quotes around keys
+    json_text = re.sub(r'(\s*)(\w+)(\s*):', r'\1"\2"\3:', json_text)
+    
+    # Fix single quotes to double quotes
+    json_text = json_text.replace("'", '"')
+    
+    return json_text
 
 async def analyze_code(client: OllamaClient, content: str, model_name: str) -> List[Dict[str, Any]]:
     """Analyze code using Ollama model (async).
@@ -184,6 +226,7 @@ Provide your analysis in a valid JSON format. The JSON should be an array of obj
     }}
 ]
 """
+    response_text = ""
     try:
         response_text = await client.generate(
             model=model_name,
@@ -216,11 +259,60 @@ Provide your analysis in a valid JSON format. The JSON should be an array of obj
         return results
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse model response as JSON: {e}")
-        logger.debug(f"Response text that failed to parse: {response_text}")
+        logger.debug(f"Response text that failed to parse: {response_text[:500]}...")
+        
+        # Try to extract any useful information from the response
+        fallback_results = _extract_fallback_results(response_text)
+        if fallback_results:
+            logger.info("Using fallback results from malformed JSON response")
+            return fallback_results
+        
         return []
     except Exception as e:
         logger.error(f"An unexpected error occurred during code analysis: {e}", exc_info=True)
         return []
+
+def _extract_fallback_results(response_text: str) -> List[Dict[str, Any]]:
+    """Extract useful information from malformed JSON responses."""
+    results: List[Dict[str, Any]] = []
+    
+    # Look for patterns that might indicate issues
+    lines = response_text.split('\n')
+    current_issue: Dict[str, Any] = {}
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Look for line numbers
+        line_match = re.search(r'line\s+(\d+)', line, re.IGNORECASE)
+        if line_match:
+            if current_issue:
+                results.append(current_issue)
+            current_issue = {'line_number': int(line_match.group(1))}
+            continue
+            
+        # Look for severity indicators
+        if any(severity in line.lower() for severity in ['error', 'warning', 'info', 'critical']):
+            if 'error' in line.lower() or 'critical' in line.lower():
+                current_issue['severity'] = 'high'
+            elif 'warning' in line.lower():
+                current_issue['severity'] = 'medium'
+            else:
+                current_issue['severity'] = 'low'
+            continue
+            
+        # Look for descriptions
+        if len(line) > 20 and not line.startswith('```') and not line.startswith('{') and not line.startswith('['):
+            current_issue['description'] = line[:200]  # Limit length
+            continue
+    
+    # Add the last issue if it exists
+    if current_issue:
+        results.append(current_issue)
+    
+    return results
 
 async def get_suggestion_for_issue(client: OllamaClient, issue: Dict[str, Any], model_name: str) -> str:
     """Gets an AI-powered suggestion for a single code issue."""
@@ -250,8 +342,21 @@ Only provide the corrected code, without any additional explanation or formattin
         logger.error(f"Error getting suggestion from Ollama: {e}")
         return "Suggestion not available."
 
+def get_suggestion_for_issue_sync(client: OllamaClient, issue: Dict[str, Any], model_name: str) -> str:
+    """Synchronous wrapper for get_suggestion_for_issue."""
+    # This is a simple way to run an async function from sync code.
+    # Be mindful of running this in an environment that already has an
+    # asyncio event loop (like a running PyQt application's main thread).
+    # Since we run this in a ThreadPoolExecutor, it's safe.
+    try:
+        return asyncio.run(get_suggestion_for_issue(client, issue, model_name))
+    except Exception as e:
+        logger.error(f"Error in sync wrapper for get_suggestion_for_issue: {e}")
+        return "Error generating suggestion."
+
 async def get_suggestions_for_issues_batch(client: OllamaClient, issues: List[Dict[str, Any]], model_name: str) -> List[Dict[str, Any]]:
     """Gets AI-powered suggestions for a batch of code issues."""
+    updated_issues = []
     
     issue_list_str = ""
     for i, issue in enumerate(issues):
@@ -296,7 +401,8 @@ Respond with a single JSON object containing a key "suggestions" which is a list
                 suggestions = [s for s in loaded if isinstance(s, dict)]
         except Exception as e:
             logger.error(f"Failed to parse suggestions JSON: {e}")
-        return suggestions
+        updated_issues.extend(suggestions)
+        return updated_issues
     except json.JSONDecodeError as e:
         logger.error(f"Failed to decode JSON response from Ollama: {e}")
         logger.debug(f"Ollama response text: {response_text}")

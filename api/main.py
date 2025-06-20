@@ -6,7 +6,6 @@ Provides programmatic access to code analysis and security scanning features
 
 import os
 import sys
-import json
 import asyncio
 from pathlib import Path
 from typing import List, Optional, Dict, Any
@@ -21,20 +20,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 import uvicorn
-import logging
 
 # Import our modules
 from src.core.scanner import CodeScanner
 from src.core.intelligent_analyzer import IntelligentAnalyzer
 from src.core.ai_tools import AITools
 from src.config.settings import Settings
-from src.core import scanner, ai_tools, ollama_client
-from src.processing import acquire
-from src.training import trainer
+from src.core import scanner, ai_tools
 from src.config import settings
-from src.cli.git_utils import PRCreationConfig, create_ai_powered_pr
 from src.llm_studio import LLMManager
-from src.llm_studio.models import ProviderConfig, ProviderType, ChatMessage, ModelInfo
+from src.llm_studio.models import ProviderConfig, ProviderType, ChatMessage
 
 # Initialize FastAPI app
 app = FastAPI(

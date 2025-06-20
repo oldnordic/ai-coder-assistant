@@ -18,24 +18,21 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
 import os
-import json
 import logging
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+import concurrent.futures
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QPushButton, QLabel,
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
     QTableWidget, QTableWidgetItem, QTextEdit, QGroupBox, QSplitter,
     QHeaderView, QMessageBox, QFileDialog, QProgressBar, QComboBox,
-    QCheckBox, QSpinBox, QListWidget, QListWidgetItem, QTreeWidget,
-    QTreeWidgetItem, QDialog, QDialogButtonBox, QFormLayout, QLineEdit
+    QCheckBox, QListWidget, QListWidgetItem, QTreeWidget,
+    QTreeWidgetItem, QDialog, QDialogButtonBox, QLineEdit
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, pyqtSlot
-from PyQt6.QtGui import QFont, QColor, QPalette
+from PyQt6.QtCore import Qt, QTimer, pyqtSlot
+from PyQt6.QtGui import QFont, QColor
 
 from backend.services.refactoring import refactoring_engine, RefactoringSuggestion, RefactoringOperation
-from backend.utils.constants import MAX_FILE_SIZE_KB
-from .worker_threads import get_thread_manager
 
 logger = logging.getLogger(__name__)
 
@@ -277,9 +274,11 @@ class RefactoringTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.project_path = None
-        self.suggestions = []
         self.current_suggestion = None
+        self.suggestions = []
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
+        self.connect_signals()
     
     def setup_ui(self):
         """Setup the refactoring tab UI."""
@@ -463,26 +462,30 @@ class RefactoringTab(QWidget):
         self.progress_bar.setVisible(True)
         self.status_label.setText("Analyzing project...")
         
-        # Start analysis worker
-        self.current_worker_id = start_worker(
-            "refactoring_analysis",
+        # Start analysis using ThreadPoolExecutor
+        future = self.executor.submit(
             analyze_refactoring_opportunities_backend,
             self.project_path,
             ["python", "javascript", "typescript", "java", "cpp"],
             progress_callback=self.update_progress,
             log_message_callback=self.handle_error
         )
-        
-        thread_manager = get_thread_manager()
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-        # thread_manager.worker_progress.connect(self._on_worker_progress)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-        # thread_manager.worker_finished.connect(self._on_worker_finished)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-        # thread_manager.worker_error.connect(self._on_worker_error)
+        future.add_done_callback(self._on_analysis_complete)
+
+    def _on_analysis_complete(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.suggestions = result
+                self.refresh_suggestions_list()
+                self.analyze_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+                self.status_label.setText("Analysis complete")
+            except Exception as e:
+                self.handle_error(f"Analysis failed: {e}")
+                self.analyze_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+        QTimer.singleShot(0, update_ui)
     
     def refresh_suggestions(self):
         """Refresh the suggestions list."""
@@ -553,25 +556,28 @@ class RefactoringTab(QWidget):
         self.progress_bar.setVisible(True)
         self.status_label.setText("Generating preview...")
         
-        # Start preview worker
-        self.current_worker_id = start_worker(
-            "refactoring_preview",
+        # Start preview using ThreadPoolExecutor
+        future = self.executor.submit(
             preview_refactoring_backend,
             self.current_suggestion,
             progress_callback=self.update_progress,
             log_message_callback=self.handle_error
         )
-        
-        thread_manager = get_thread_manager()
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-        # thread_manager.worker_progress.connect(self._on_worker_progress)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-        # thread_manager.worker_finished.connect(self._on_worker_finished)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-        # thread_manager.worker_error.connect(self._on_worker_error)
+        future.add_done_callback(self._on_preview_complete)
+
+    def _on_preview_complete(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.show_preview(result)
+                self.preview_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+                self.status_label.setText("Preview complete")
+            except Exception as e:
+                self.handle_error(f"Preview failed: {e}")
+                self.preview_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+        QTimer.singleShot(0, update_ui)
     
     def apply_suggestion(self):
         """Apply the selected suggestion."""
@@ -590,44 +596,26 @@ class RefactoringTab(QWidget):
             self.progress_bar.setVisible(True)
             self.status_label.setText("Applying refactoring...")
             
-            # Start apply worker
-            self.current_worker_id = start_worker(
-                "refactoring_apply",
+            # Start apply using ThreadPoolExecutor
+            future = self.executor.submit(
                 apply_refactoring_backend,
                 self.current_suggestion,
                 backup=self.backup_checkbox.isChecked(),
                 progress_callback=self.update_progress,
                 log_message_callback=self.handle_error
             )
-            
-            thread_manager = get_thread_manager()
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-            # thread_manager.worker_progress.connect(self._on_worker_progress)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-            # thread_manager.worker_finished.connect(self._on_worker_finished)
-        # Note: These signals don't exist on the ThreadManager
-        # They are handled by individual WorkerThread objects
-            # thread_manager.worker_error.connect(self._on_worker_error)
-    
-    def _on_worker_progress(self, worker_id, current, total, message):
-        if hasattr(self, 'current_worker_id') and worker_id == self.current_worker_id:
-            self.update_progress(current, total, message)
+            future.add_done_callback(self._on_apply_complete)
 
-    def _on_worker_finished(self, worker_id, result):
-        if hasattr(self, 'current_worker_id') and worker_id == self.current_worker_id:
-            # Handle completion based on worker type
-            if hasattr(self, 'preview_mode') and self.preview_mode:
-                self.handle_preview_complete(result)
-            else:
-                self.handle_analysis_complete(result)
-            self.progress_bar.setVisible(False)
-
-    def _on_worker_error(self, worker_id, error):
-        if hasattr(self, 'current_worker_id') and worker_id == self.current_worker_id:
-            self.handle_error(error)
-            self.progress_bar.setVisible(False)
+    def _on_apply_complete(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.handle_apply_complete(result)
+            except Exception as e:
+                self.handle_error(f"Apply failed: {e}")
+                self.apply_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+        QTimer.singleShot(0, update_ui)
     
     def update_progress(self, current: int, total: int, message: str):
         """Update progress display."""
@@ -670,7 +658,7 @@ class RefactoringTab(QWidget):
             applied_count = len(result['applied_operations'])
             modified_files = len(result['modified_files'])
             
-            message = f"Refactoring applied successfully!\n\n"
+            message = "Refactoring applied successfully!\n\n"
             message += f"Applied operations: {applied_count}\n"
             message += f"Modified files: {modified_files}\n"
             
@@ -779,4 +767,9 @@ class RefactoringTab(QWidget):
             self.refactored_code_edit.setPlainText(result["code_with_docstrings"])
             QMessageBox.information(self, "Success", "Docstrings generated successfully.")
         else:
-            QMessageBox.warning(self, "Docstring Generation Failed", result.get("error", "An unknown error occurred.")) 
+            QMessageBox.warning(self, "Docstring Generation Failed", result.get("error", "An unknown error occurred."))
+
+    def connect_signals(self):
+        """Connect signals and slots for the tab."""
+        # This method will be implemented when the full UI is added
+        pass 

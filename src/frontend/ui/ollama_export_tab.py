@@ -18,20 +18,13 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
 import os
-import shutil
-from PyQt6.QtWidgets import (QVBoxLayout, QLabel, QPushButton, QTextEdit, QFileDialog, 
-                             QMessageBox, QWidget, QComboBox, QInputDialog, QProgressDialog)
-import subprocess
+from PyQt6.QtWidgets import (QVBoxLayout, QLabel, QPushButton, QTextEdit, QMessageBox, QWidget, QComboBox, QProgressDialog)
 import requests
 from typing import Any
-import time
-from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtWidgets import QApplication
-import sys
-import shlex
+import concurrent.futures
 
 from backend.utils.constants import HTTP_TIMEOUT_SHORT, HTTP_TIMEOUT_LONG, HTTP_OK, STATUS_BOX_MIN_HEIGHT
-from backend.utils import settings
 from backend.utils.constants import OLLAMA_BASE_URL
 
 def is_ollama_running() -> bool:
@@ -167,4 +160,18 @@ This tool will export your locally trained model (HuggingFace format) to GGUF an
         worker.error.connect(on_error)
         progress_dialog.canceled.connect(worker.cancel)
         worker.start()
-    export_button.clicked.connect(start_export) 
+    export_button.clicked.connect(start_export)
+
+# Stub class for OllamaExportWorker
+class OllamaExportWorker:
+    """Stub class for Ollama export worker."""
+    def __init__(self, parent_widget, model_selector, status_box):
+        self.parent_widget = parent_widget
+        self.model_selector = model_selector
+        self.status_box = status_box
+
+class OllamaExportTab(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.executor = concurrent.futures.ThreadPoolExecutor()
+        self.setup_ui() 

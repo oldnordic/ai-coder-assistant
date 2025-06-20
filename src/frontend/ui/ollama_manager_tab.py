@@ -6,16 +6,16 @@ including configuration, health monitoring, and model management.
 """
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QPushButton, QDialog, QFormLayout, QLineEdit, QCheckBox, QSpinBox, QDialogButtonBox, QLabel, QMessageBox, QTabWidget, QComboBox, QTextEdit, QInputDialog, QProgressBar, QGroupBox, QHeaderView
+    QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QPushButton, QDialog, QFormLayout, QLineEdit, QCheckBox, QSpinBox, QDialogButtonBox, QLabel, QMessageBox, QProgressBar, QHeaderView
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import pyqtSlot, QTimer
 from PyQt6.QtGui import QFont
 from backend.services.llm_manager import LLMManager
-from backend.services.models import ProviderConfig, ProviderType, ChatMessage, ChatCompletionRequest
+from backend.services.models import ProviderConfig, ProviderType
 import asyncio
 import logging
 from typing import List, Dict, Any, Optional
-from .worker_threads import get_thread_manager
+import concurrent.futures
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +111,7 @@ class OllamaManagerTab(QWidget):
     def __init__(self, llm_manager: LLMManager, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.llm_manager = llm_manager
-        self.thread_manager = get_thread_manager()
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
         self.load_data()
     
@@ -152,42 +152,36 @@ class OllamaManagerTab(QWidget):
         
         layout.addWidget(self.models_table)
 
+    def handle_error(self, error):
+        QTimer.singleShot(0, lambda: QMessageBox.critical(self, "Error", str(error)))
+
     def load_data(self):
         """Load Ollama models data by running it in a worker thread."""
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)  # Indeterminate progress
-        self.thread_manager.start_worker(
-            'list_ollama_models',
-            self.llm_manager.list_ollama_models,
-            callback=self._on_models_loaded
-        )
+        def fetch_models():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(self.llm_manager.list_ollama_models())
+            loop.close()
+            return result
+        self.executor.submit(fetch_models).add_done_callback(self._on_models_loaded)
 
     def refresh_models(self):
         """Refresh the list of available models."""
         self.load_data()
 
     @pyqtSlot(object)
-    def _on_models_loaded(self, models: Optional[List[Any]]):
-        """Callback executed when the list of models is fetched."""
-        try:
-            # Check if the widget is still valid before updating the UI
-            _ = self.isVisible()
-        except RuntimeError:
-            # Widget has been deleted, do nothing
-            return
-
-        self.progress_bar.setVisible(False)
-        if models is None:
-            QMessageBox.warning(self, "Error", "Failed to load Ollama models. The operation returned no result.")
-            logger.error("Failed to load Ollama models, received None.")
-            self.models_table.setRowCount(0)
-            return
-
-        try:
-            self.populate_models_table(models)
-        except Exception as e:
-            logger.error(f"Error populating models table: {e}", exc_info=True)
-            QMessageBox.warning(self, "Error", f"An error occurred while populating the models table: {e}")
+    def _on_models_loaded(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.populate_models_table(result)
+                self.test_btn.setEnabled(True)
+            except Exception as e:
+                self.handle_error(f"Loading models failed: {e}")
+                self.test_btn.setEnabled(True)
+        QTimer.singleShot(0, update_ui)
 
     def populate_models_table(self, models: List[Any]):
         """Populate models table with data."""
@@ -252,27 +246,17 @@ class OllamaManagerTab(QWidget):
             self.progress_bar.setVisible(True)
             self.progress_bar.setRange(0, 0)
             logger.info(f"Starting deletion for model: {model_name}")
-            self.thread_manager.start_worker(
-                'delete_ollama_model',
-                self.llm_manager.delete_model,
-                callback=self._on_delete_complete,
-                model_name=model_name,
-            )
+            self.executor.submit(self.llm_manager.delete_model, model_name).add_done_callback(self._on_delete_complete)
 
     @pyqtSlot(object)
-    def _on_delete_complete(self, result: Any):
-        """Callback executed after a model deletion attempt."""
-        logger.info(f"Model deletion result: {result}")
-        self.progress_bar.setVisible(False)
-        # The worker returns the result of the target function.
-        # We assume delete_model returns something indicating success.
-        # For now, a simple notification and refresh is sufficient.
-        if result:
-            QMessageBox.information(self, "Success", "Model deleted successfully. Refreshing list.")
-        else:
-            QMessageBox.warning(self, "Error", "Failed to delete model. See logs for details.")
-        
-        self.refresh_models()
+    def _on_delete_complete(self, future):
+        def update_ui():
+            try:
+                result = future.result()
+                self.handle_delete_result(result)
+            except Exception as e:
+                self.handle_error(f"Delete failed: {e}")
+        QTimer.singleShot(0, update_ui)
 
     def export_model(self, model_name: str):
         """Export a model from Ollama."""

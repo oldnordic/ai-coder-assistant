@@ -21,40 +21,27 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 import os
 import requests
 from bs4 import BeautifulSoup
-import yt_dlp
-from yt_dlp import YoutubeDL
 import json
-import re
-from youtube_transcript_api import YouTubeTranscriptApi
-import html
 import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
-from typing import Optional, List, Dict, Tuple, Any, Callable
+from typing import Optional, List, Dict, Any, Callable
 import hashlib
 import pickle
 from pathlib import Path
 import time
-import threading
-import subprocess
 import tempfile
-import shutil
 from urllib.parse import urlparse, urljoin
 import asyncio
-import aiohttp
 
-from backend.utils import settings
 from backend.services import ollama_client
-from backend.services.trainer import train_model as train_language_model
 from backend.services.docker_utils import build_docker_image, run_docker_container
 from backend.utils.settings import is_docker_available
 from backend.utils.constants import (
     CACHE_EXPIRY_SECONDS, DEFAULT_USER_AGENT, MAX_CONTENT_SIZE, 
     PROGRESS_COMPLETE, PROGRESS_WEIGHT_DOWNLOAD,
-    PROGRESS_MAX, PROGRESS_MIN, MAX_FILE_SIZE_KB, MAX_DESCRIPTION_LENGTH,
-    DEFAULT_MAX_PAGES, DEFAULT_MAX_DEPTH, DEFAULT_LINKS_PER_PAGE,
-    PERCENTAGE_MULTIPLIER, HTTP_TIMEOUT_SHORT, HTTP_TIMEOUT_LONG, OLLAMA_API_BASE_URL, OLLAMA_TAGS_ENDPOINT
+    PROGRESS_MAX, PROGRESS_MIN, PERCENTAGE_MULTIPLIER
 )
-from backend.services.ollama_client import OllamaClient, get_suggestion_for_issue, get_suggestions_for_issues_batch
+from backend.services.ollama_client import OllamaClient, get_suggestions_for_issues_batch
 
 # Global cache for the embedding model to prevent re-downloading
 _embedding_model_cache = None
@@ -152,7 +139,7 @@ def generate_report_and_training_data(suggestion_list, model_mode, model_ref, to
     progress_callback = kwargs.get('progress_callback', lambda c, t, m: None)
 
     log_message_callback("=== REPORT GENERATION START ===")
-    log_message_callback(f"Starting optimized report and training data generation...")
+    log_message_callback("Starting optimized report and training data generation...")
     log_message_callback(f"Input: {len(suggestion_list)} suggestions")
     log_message_callback(f"Model mode: {model_mode}")
     log_message_callback(f"Model ref: {type(model_ref).__name__}")
@@ -291,7 +278,7 @@ def get_ai_explanation(suggestion, model_mode, model_ref, tokenizer_ref, **kwarg
     """Get AI explanation for a suggestion with comprehensive logging."""
     log_message_callback = kwargs.get('log_message_callback', print)
     
-    log_message_callback(f"=== AI EXPLANATION START ===")
+    log_message_callback("=== AI EXPLANATION START ===")
     log_message_callback(f"Model mode: {model_mode}")
     log_message_callback(f"Model ref type: {type(model_ref).__name__}")
     log_message_callback(f"Suggestion type: {suggestion.get('issue_type', 'unknown')}")
@@ -381,7 +368,7 @@ def browse_web_tool(url: str, **kwargs) -> str:
     
     try:
         _progress(PROGRESS_MIN, PROGRESS_MAX, f"Starting enhanced web scraping of {url}")
-        log_message_callback(f"=== WEB SCRAPING START ===")
+        log_message_callback("=== WEB SCRAPING START ===")
         log_message_callback(f"URL: {url}")
         log_message_callback(f"Max pages: {max_pages}, Max depth: {max_depth}")
         log_message_callback(f"Timeout: {timeout} seconds")
@@ -575,7 +562,7 @@ def browse_web_tool(url: str, **kwargs) -> str:
             final_content = final_content[:MAX_CONTENT_SIZE] + "\n\n[Content truncated due to length]"
         
         elapsed_time = time.time() - start_time
-        log_message_callback(f"=== WEB SCRAPING COMPLETE ===")
+        log_message_callback("=== WEB SCRAPING COMPLETE ===")
         log_message_callback(f"Pages scraped: {pages_scraped}")
         log_message_callback(f"Total content: {len(final_content)} characters")
         log_message_callback(f"Time elapsed: {elapsed_time:.2f} seconds")
@@ -641,7 +628,7 @@ def batch_process_suggestions(suggestions: List[dict], model_mode: str, model_re
     batch_size = 5  # Process 5 suggestions at a time
     explanations = []
     
-    log_message_callback(f"=== BATCH PROCESSING START ===")
+    log_message_callback("=== BATCH PROCESSING START ===")
     log_message_callback(f"Total suggestions: {total_suggestions}")
     log_message_callback(f"Batch size: {batch_size}")
     
@@ -672,7 +659,7 @@ def batch_process_suggestions(suggestions: List[dict], model_mode: str, model_re
         log_message_callback(f"Batch {batch_num} delay: 0.1 seconds")
         time.sleep(0.1)
     
-    log_message_callback(f"=== BATCH PROCESSING COMPLETE ===")
+    log_message_callback("=== BATCH PROCESSING COMPLETE ===")
     log_message_callback(f"Total explanations generated: {len(explanations)}")
     
     return explanations

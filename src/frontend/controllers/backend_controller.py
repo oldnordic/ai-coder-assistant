@@ -21,12 +21,8 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 Backend Controller - Handles communication between frontend and backend services.
 """
 
-import json
 import logging
 from typing import Dict, List, Optional, Any
-from pathlib import Path
-import os
-import asyncio
 
 from backend.services.llm_manager import LLMManager
 

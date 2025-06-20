@@ -42,10 +42,67 @@ from core.config import Config
 from core.logging import LogManager
 from core.error import ErrorHandler, ErrorSeverity
 from core.events import EventBus, Event, EventType
-from core.threading import ThreadManager, TaskStatus, Task, TaskResult
 import heapq
 import queue
-import uuid
+import concurrent.futures
+
+# Define our own TaskStatus enum since we removed the core.threading module
+
+class TaskStatus(Enum):
+    """Canonical task status values."""
+    TODO = "todo"
+    IN_PROGRESS = "in_progress"
+    REVIEW = "review"
+    DONE = "done"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
+    BLOCKED = "blocked"
+
+# Mapping from various string representations to the canonical enum value
+STATUS_MAP = {
+    # Variants for 'todo'
+    "Pending": "todo", "pending": "todo", "PENDING": "todo",
+    "To Do": "todo", "to do": "todo", "TODO": "todo",
+
+    # Variants for 'in_progress'
+    "In Progress": "in_progress", "in progress": "in_progress", "IN_PROGRESS": "in_progress",
+    "Running": "in_progress", "running": "in_progress", "RUNNING": "in_progress",
+
+    # Variants for 'done'
+    "Done": "done", "done": "done", "DONE": "done",
+    "Completed": "done", "completed": "done", "COMPLETED": "done",
+
+    # Variants for other statuses
+    "Cancelled": "cancelled", "cancelled": "cancelled", "CANCELLED": "cancelled",
+    "Failed": "failed", "failed": "failed", "FAILED": "failed",
+    "Blocked": "blocked", "blocked": "blocked", "BLOCKED": "blocked",
+    "Review": "review", "review": "review", "REVIEW": "review",
+}
+
+def _normalize_status(status_str: str) -> TaskStatus:
+    """Normalizes a status string and returns a TaskStatus enum member."""
+    if not isinstance(status_str, str):
+        # If it's already an enum or something else, return it as is if valid
+        if isinstance(status_str, TaskStatus):
+            return status_str
+        # Otherwise, it's an unknown type, try to convert to string
+        status_str = str(status_str)
+
+    normalized_value = STATUS_MAP.get(status_str, status_str.lower())
+    try:
+        return TaskStatus(normalized_value)
+    except ValueError:
+        logger.warning(f"'{status_str}' normalized to '{normalized_value}' which is not a valid TaskStatus. Defaulting to TODO.")
+        return TaskStatus.TODO
+
+class TaskResult:
+    """Task result class."""
+    def __init__(self, task_id: str, status: TaskStatus, result=None, error=None):
+        self.task_id = task_id
+        self.status = status
+        self.result = result
+        self.error = error
+        self.completed_at = datetime.now()
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +225,7 @@ class Task:
         
         status_str = data['status']
         status_str = status_map.get(status_str, status_str)
-        data['status'] = TaskStatus(status_str)
+        data['status'] = _normalize_status(status_str)
         
         # Handle priority conversion
         priority_value = data['priority']
@@ -279,7 +336,7 @@ class TaskManagementService:
         self.logger = LogManager().get_logger('task_service')
         self.error_handler = ErrorHandler()
         self.event_bus = EventBus()
-        self.thread_manager = ThreadManager()
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
         
         self._tasks: Dict[str, TaskMetadata] = {}
         self._dependencies: Dict[str, Set[str]] = {}
@@ -720,7 +777,7 @@ class TaskManagementService:
             title=row[1],
             description=row[2],
             assignee=row[3],
-            status=TaskStatus(row[4]),
+            status=_normalize_status(row[4]),
             priority=priority,
             created_date=datetime.fromisoformat(row[6]) if row[6] else None,
             due_date=datetime.fromisoformat(row[7]) if row[7] else None,
@@ -813,7 +870,7 @@ class TaskManagementService:
             
             # Submit task if not blocked
             if task_id not in self._blocked_tasks:
-                self._submit_to_thread_manager(
+                self._submit_to_executor(
                     task_id,
                     func,
                     args,
@@ -842,7 +899,7 @@ class TaskManagementService:
             )
             return False
     
-    def _submit_to_thread_manager(
+    def _submit_to_executor(
         self,
         task_id: str,
         func: Callable[..., T],
@@ -850,7 +907,7 @@ class TaskManagementService:
         kwargs: dict,
         callback: Optional[Callable[[Any], None]]
     ) -> None:
-        """Submit task to thread manager.
+        """Submit task to thread executor.
         
         Args:
             task_id: Task identifier
@@ -859,21 +916,22 @@ class TaskManagementService:
             kwargs: Function keyword arguments
             callback: Completion callback
         """
-        self.thread_manager.submit_task(
-            task_id,
-            func,
-            args=args,
-            kwargs=kwargs,
-            callback=self._handle_task_completion if callback is None else callback
-        )
-    
-    def _handle_task_completion(self, task_result: Dict[str, Any]) -> None:
+        future = self.executor.submit(func, *args, **kwargs)
+        future.add_done_callback(lambda f: self._handle_task_completion(task_id, f, callback))
+
+    def _handle_task_completion(self, task_id: str, future: concurrent.futures.Future, callback: Optional[Callable[[Any], None]]):
         """Handle task completion.
         
         Args:
-            task_result: Task execution result
+            task_id: Task identifier
+            future: Future object containing the result
+            callback: Optional callback function
         """
-        task_id = task_result['task_id']
+        try:
+            result = future.result()
+            task_result = {'task_id': task_id, 'status': TaskStatus.COMPLETED, 'result': result}
+        except Exception as e:
+            task_result = {'task_id': task_id, 'status': TaskStatus.FAILED, 'error': e}
         
         if task_result['status'] == TaskStatus.COMPLETED:
             # Mark task as completed
@@ -897,6 +955,9 @@ class TaskManagementService:
                     'error': task_result.get('error')
                 }
             ))
+        
+        if callback:
+            callback(task_result)
     
     def _check_dependent_tasks(self, completed_task_id: str) -> None:
         """Check and potentially unblock dependent tasks.
@@ -914,7 +975,7 @@ class TaskManagementService:
                     self._blocked_tasks.discard(dependent_id)
                     
                     # Submit now-unblocked task
-                    self._submit_to_thread_manager(
+                    self._submit_to_executor(
                         dependent_id,
                         lambda: None,  # Placeholder
                         (),
@@ -938,7 +999,7 @@ class TaskManagementService:
         self._blocked_tasks.discard(task_id)
         
         # Cancel in thread manager if running
-        cancelled = self.thread_manager.cancel_task(task_id)
+        cancelled = self.executor.submit(lambda: None).cancel()
         
         if cancelled:
             self.event_bus.publish(Event(
@@ -958,11 +1019,11 @@ class TaskManagementService:
             Optional[TaskStatus]: Task status if found
         """
         if task_id in self._completed_tasks:
-            return TaskStatus.COMPLETED
+            return TaskStatus.DONE
         elif task_id in self._blocked_tasks:
             return TaskStatus.PENDING
         else:
-            return self.thread_manager.get_task_status(task_id)
+            return None
     
     def get_task_metadata(self, task_id: str) -> Optional[TaskMetadata]:
         """Get task metadata.
@@ -1066,7 +1127,7 @@ class TaskManagementService:
             # Mark as in progress
             self.update_task(task_id, status=TaskStatus.IN_PROGRESS)
             # Submit to thread manager (simulate execution)
-            self.thread_manager.submit(lambda: self._execute_task(task_id), callback=lambda result: self._on_task_complete(task_id, result))
+            self.executor.submit(lambda: self._execute_task(task_id), callback=lambda result: self._on_task_complete(task_id, result))
             return task
 
     def _execute_task(self, task_id: int):

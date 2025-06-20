@@ -1,7 +1,7 @@
 """Task Management UI component for AI Coder Assistant."""
 
 from typing import Optional
-from PyQt6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QTextEdit, QHBoxLayout, QListWidget
+from PyQt6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QListWidget
 from PyQt6.QtCore import pyqtSlot
 
 from frontend.components.base_component import BaseComponent, ComponentState

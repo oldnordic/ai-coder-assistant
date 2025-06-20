@@ -201,14 +201,14 @@ def main():
         except Exception as e:
             print(f"✗ Error migrating {file_path}: {e}")
     
-    print(f"\n3. Migration complete!")
+    print("\n3. Migration complete!")
     print(f"   - Migrated {migrated_count} files")
     print(f"   - Backup available in {BACKUP_DIR}")
-    print(f"\n4. Next steps:")
-    print(f"   - Review the migrated files")
-    print(f"   - Implement actual backend logic in the placeholder functions")
-    print(f"   - Test the application thoroughly")
-    print(f"   - Remove the backup directory when satisfied")
+    print("\n4. Next steps:")
+    print("   - Review the migrated files")
+    print("   - Implement actual backend logic in the placeholder functions")
+    print("   - Test the application thoroughly")
+    print("   - Remove the backup directory when satisfied")
 
 if __name__ == "__main__":
     main() 

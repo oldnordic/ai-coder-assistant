@@ -24,7 +24,7 @@ notify_team.py - Send scan results to Slack or Discord
 import sys
 import json
 import requests
-from typing import Dict, Any, Optional
+from typing import Optional
 import os
 
 def notify_slack(message: str, webhook_url: Optional[str] = None):

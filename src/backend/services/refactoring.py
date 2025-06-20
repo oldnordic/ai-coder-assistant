@@ -20,17 +20,13 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 import os
 import ast
 import re
-import json
 import logging
-from typing import List, Dict, Any, Optional, Tuple, Set
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
 import difflib
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
 
 from ..utils.constants import MAX_FILE_SIZE_KB
-from .intelligent_analyzer import CodeIssue, IssueType
 
 logger = logging.getLogger(__name__)
 

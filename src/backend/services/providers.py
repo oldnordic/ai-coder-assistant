@@ -22,24 +22,28 @@ LLM Provider implementations for different AI services.
 Supports OpenAI, Google Gemini, Claude, and Ollama.
 """
 
-import json
 import time
-import asyncio
 from datetime import datetime
-from typing import Dict, List, Optional, Any, AsyncGenerator
+from typing import Dict, List, Optional
 from abc import ABC, abstractmethod
-import aiohttp
-import openai
 from openai import AsyncOpenAI
 import google.generativeai as genai
 from anthropic import AsyncAnthropic
 import httpx
+import json
+import logging
+import asyncio
+import aiohttp
+from dataclasses import dataclass, field
+from enum import Enum
+import os
+from pathlib import Path
 
 from .models import (
-    ProviderType, ModelConfig, ProviderConfig, ChatMessage, 
-    ChatCompletionRequest, ChatCompletionResponse, ModelUsage, ModelType
+    ProviderType, ModelConfig, ProviderConfig, ChatCompletionRequest, ChatCompletionResponse, ModelType
 )
 
+logger = logging.getLogger(__name__)
 
 class BaseProvider(ABC):
     """Base class for all LLM providers."""
@@ -613,7 +617,7 @@ class OllamaProvider(BaseProvider):
         """Delete an Ollama model."""
         try:
             # Use custom endpoint if specified
-            endpoint = self.custom_endpoints.get("delete_model", f"/api/delete")
+            endpoint = self.custom_endpoints.get("delete_model", "/api/delete")
             
             # Make request using the more general `request` method
             response = await self.client.request("DELETE", endpoint, json={"name": model_name})

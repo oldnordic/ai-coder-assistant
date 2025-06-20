@@ -23,9 +23,8 @@ import subprocess
 import re
 from typing import List, Tuple, Optional, Dict, Callable, Any, Set
 import pathspec
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, Future
 import threading
-import time
 import shlex
 from pathlib import Path
 from datetime import datetime
@@ -33,23 +32,27 @@ import uuid
 from core.config import Config
 from core.logging import LogManager
 from core.error import ErrorHandler, ErrorSeverity
-from core.events import EventBus, Event, EventType
-from core.threading import ThreadManager, TaskStatus
-
-# --- FIXED: Use absolute imports for modules within the same package ---
-from backend.utils import settings
+from core.events import Event, EventType
 from backend.services import ai_tools, ollama_client
-from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, CodeIssue, IssueType
+from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, CodeIssue
 from backend.services.scanner_persistence import (
     ScannerPersistenceService, ScanResult, CodeIssue as PersistenceCodeIssue, 
     FileAnalysis, ScanStatus, IssueSeverity
 )
 from backend.utils.constants import (
-    MAX_CONTENT_SIZE, MAX_DESCRIPTION_LENGTH, MAX_CODE_SNIPPET_LENGTH, 
+    MAX_DESCRIPTION_LENGTH, MAX_CODE_SNIPPET_LENGTH, 
     MAX_SUGGESTION_LENGTH, MAX_ERROR_MESSAGE_LENGTH, MAX_PROMPT_LENGTH,
-    MAX_FILE_SIZE_KB, MAX_FILE_SIZE, MAX_FILENAME_LENGTH,
-    MAX_CODE_CONTEXT_LENGTH
+    MAX_FILE_SIZE_KB, MAX_CODE_CONTEXT_LENGTH
 )
+import logging
+from enum import Enum
+import concurrent.futures
+
+# Constants
+MAX_ISSUES_PER_FILE = 100
+SCAN_TIMEOUT_SECONDS = 300  # 5 minutes
+
+logger = logging.getLogger(__name__)
 
 # File size conversion constant
 BYTES_PER_KB = 1024
@@ -181,6 +184,13 @@ SUPPORTED_LANGUAGES = {
 # Add thread lock for linter execution at the top of the file
 linter_lock = threading.Lock()
 
+class TaskStatus(Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
 def detect_language(file_path: str) -> str:
     """Detect programming language from file extension."""
     ext = Path(file_path).suffix.lower()
@@ -190,20 +200,29 @@ def detect_language(file_path: str) -> str:
     return 'unknown'
 
 class ScannerService:
-    """Code scanning and analysis service.
-    
-    Provides functionality for scanning and analyzing code using different models.
+    """
+    Comprehensive code scanning service with intelligent analysis and linter integration.
     Uses the core modules for configuration, logging, error handling, and threading.
-    Integrates with persistence service for data storage.
     """
     
     def __init__(self):
-        """Initialize the scanner service."""
         self.config = Config()
-        self.logger = LogManager().get_logger('scanner_service')
+        self.logger = LogManager().get_logger('scanner')
         self.error_handler = ErrorHandler()
-        self.event_bus = EventBus()
-        self.thread_manager = ThreadManager()
+        self.executor = ThreadPoolExecutor(max_workers=4)
+        
+        # Initialize analyzers
+        self.intelligent_analyzer = IntelligentCodeAnalyzer()
+        
+        # Thread-safe locks
+        self.linter_lock = threading.Lock()
+        
+        # Load configuration
+        self.max_file_size_kb = self.config.get('scanner.max_file_size_kb', MAX_FILE_SIZE_KB)
+        self.max_issues_per_file = self.config.get('scanner.max_issues_per_file', MAX_ISSUES_PER_FILE)
+        self.scan_timeout = self.config.get('scanner.timeout_seconds', SCAN_TIMEOUT_SECONDS)
+        
+        self.logger.info("Scanner service initialized")
         
         # Initialize persistence service
         self.persistence = ScannerPersistenceService()
@@ -239,16 +258,18 @@ class ScannerService:
     
     def _create_scan_result(self, scan_id: str, scan_type: str, target_path: str, 
                            model_used: str, status: ScanStatus = ScanStatus.PENDING) -> ScanResult:
-        """Create a scan result record."""
-        return ScanResult(
+        """Create a ScanResult object and save it to the database."""
+        scan_result = ScanResult(
             scan_id=scan_id,
             scan_type=scan_type,
             target_path=target_path,
             model_used=model_used,
             status=status,
             start_time=datetime.now(),
-            metadata={"scanner_version": "1.0.0"}
+            metadata={"include_patterns": [], "exclude_patterns": []}
         )
+        self.persistence.save_scan_result(scan_result)
+        return scan_result
     
     def _create_persistence_issue(self, issue: CodeIssue, scan_id: str, file_path: str) -> PersistenceCodeIssue:
         """Convert internal code issue to persistence code issue."""
@@ -291,67 +312,46 @@ class ScannerService:
         self,
         directory: str,
         model_name: Optional[str] = None,
-        callback: Optional[callable] = None
+        callback: Optional[Callable[..., Any]] = None
     ) -> str:
-        """Start a code scan operation with persistence integration.
-        
-        Args:
-            directory: Directory to scan
-            model_name: Name of the model to use (optional)
-            callback: Callback function for scan completion (optional)
-        
-        Returns:
-            str: Scan task ID
-        """
+        """Start a code scan operation with persistence integration."""
         if not os.path.isdir(directory):
-            raise ValueError(f"Invalid directory: {directory}")
-        
-        scan_id = f"scan_{directory.replace(os.path.sep, '_')}"
-        
-        # Create scan result in persistence
+            raise ValueError(f"Directory not found: {directory}")
+
+        if self._current_scan_id:
+            self.logger.warning("A scan is already in progress.")
+            raise Exception("Scan already in progress.")
+
+        scan_id = str(uuid.uuid4())
+        # Create and save the initial scan result with PENDING status
         scan_result = self._create_scan_result(
-            scan_id=scan_id,
-            scan_type="directory_scan",
-            target_path=directory,
-            model_used=model_name or self.config.get('scanner.default_model', 'default'),
-            status=ScanStatus.IN_PROGRESS
+            scan_id, "local_scan", directory, model_name or "default", ScanStatus.PENDING
         )
+        
+        # Update status to IN_PROGRESS and save again
+        scan_result.status = ScanStatus.IN_PROGRESS
         self.persistence.save_scan_result(scan_result)
         
-        # Create scan configuration
         scan_config = {
             'directory': directory,
             'model_name': model_name or self.config.get('scanner.default_model'),
             'excluded_dirs': self._excluded_dirs,
             'file_extensions': self._file_extensions,
-            'scan_id': scan_id  # Add scan_id to config for persistence
+            'scan_id': scan_id,
+            'callback': callback
         }
-        
-        # Submit scan task
-        self.thread_manager.submit_task(
-            scan_id,
-            self._run_scan,
-            args=(scan_config,),
-            callback=self._handle_scan_completion if callback is None else callback
-        )
-        
+
         self._current_scan_id = scan_id
-        self.event_bus.publish(Event(
-            EventType.SCAN_STARTED,
-            data={'scan_id': scan_id, 'config': scan_config}
-        ))
         
+        future = self.executor.submit(self._run_scan, scan_config)
+        future.add_done_callback(self._handle_scan_completion)
+        
+        self.logger.info(f"Scan {scan_id} started for directory: {directory}")
         return scan_id
-    
+
     def _run_scan(self, config: Dict[str, Any]) -> Dict[str, Any]:
-        """Run the actual scan operation.
-        
-        Args:
-            config: Scan configuration
-        
-        Returns:
-            Dict[str, Any]: Scan results
-        """
+        """Run the actual scan operation and handle persistence."""
+        scan_id = config['scan_id']
         try:
             directory = config['directory']
             files_to_scan = self._collect_files(directory, config)
@@ -360,73 +360,68 @@ class ScannerService:
             results = {}
             
             for file_path in files_to_scan:
+                if self._current_scan_id != scan_id:
+                    # Scan was cancelled
+                    break
                 try:
                     file_result = self._scan_file(file_path, config)
                     if file_result:
                         results[file_path] = file_result
-                    
                     processed_files += 1
-                    progress = (processed_files / total_files) * 100
-                    
-                    self.event_bus.publish(Event(
-                        EventType.SCAN_PROGRESS,
-                        data={
-                            'scan_id': self._current_scan_id,
-                            'progress': progress,
-                            'current_file': file_path
-                        }
-                    ))
-                    
                 except Exception as e:
                     self.error_handler.handle_error(
-                        e,
-                        'scanner_service',
-                        '_run_scan',
-                        ErrorSeverity.WARNING,
-                        {'file': file_path}
+                        e, 'scanner_service', '_run_scan_loop', ErrorSeverity.WARNING, {'file': file_path}
                     )
             
+            # Fetch the latest scan result to update it
+            scan_result = self.persistence.get_scan_result(scan_id)
+            if scan_result:
+                scan_result.status = ScanStatus.COMPLETED if self._current_scan_id == scan_id else ScanStatus.CANCELLED
+                scan_result.end_time = datetime.now()
+                scan_result.total_files = total_files
+                scan_result.processed_files = processed_files
+                scan_result.issues_found = sum(len(r.get('issues', [])) for r in results.values() if isinstance(r, dict))
+                self.persistence.save_scan_result(scan_result)
+
             return {
-                'total_files': total_files,
-                'processed_files': processed_files,
-                'results': results
+                'scan_id': scan_id,
+                'status': scan_result.status.value if scan_result else 'unknown',
+                'result': {
+                    'total_files': total_files,
+                    'processed_files': processed_files,
+                    'results': results
+                },
+                'callback': config.get('callback')
             }
             
         except Exception as e:
-            self.error_handler.handle_error(
-                e,
-                'scanner_service',
-                '_run_scan',
-                ErrorSeverity.ERROR
-            )
-            raise
-    
+            self.error_handler.handle_error(e, 'scanner_service', '_run_scan', ErrorSeverity.ERROR)
+            scan_result = self.persistence.get_scan_result(scan_id)
+            if scan_result:
+                scan_result.status = ScanStatus.FAILED
+                scan_result.end_time = datetime.now()
+                self.persistence.save_scan_result(scan_result)
+            return {
+                'scan_id': scan_id,
+                'status': 'failed',
+                'error': str(e),
+                'callback': config.get('callback')
+            }
+
     def _collect_files(
         self,
         directory: str,
         config: Dict[str, Any]
     ) -> List[str]:
-        """Collect files to scan based on configuration.
-        
-        Args:
-            directory: Root directory to scan
-            config: Scan configuration
-        
-        Returns:
-            List[str]: List of file paths to scan
-        """
-        files_to_scan = []
-        
-        for root, dirs, files in os.walk(directory):
-            # Remove excluded directories
-            dirs[:] = [d for d in dirs if d not in config['excluded_dirs']]
-            
-            for file in files:
-                if any(file.endswith(ext) for ext in config['file_extensions']):
-                    files_to_scan.append(os.path.join(root, file))
-        
-        return files_to_scan
-    
+        """Collect all files to be scanned."""
+        # This is a placeholder. A real implementation would use the config
+        # to filter files based on extensions, exclusions, etc.
+        all_files: List[str] = []
+        for root, _, files in os.walk(directory):
+            for name in files:
+                all_files.append(os.path.join(root, name))
+        return all_files
+
     def _scan_file(
         self,
         file_path: str,
@@ -464,49 +459,56 @@ class ScannerService:
             )
             return None
     
-    def _handle_scan_completion(self, task_result: Dict[str, Any]) -> None:
-        """Handle scan completion.
+    def _handle_scan_completion(self, future: Future[Dict[str, Any]]) -> None:
+        """Handle scan completion, invoking the callback."""
+        current_scan_id = self._current_scan_id
         
-        Args:
-            task_result: Result from the scan task
-        """
-        if task_result['status'] == TaskStatus.COMPLETED:
-            self.event_bus.publish(Event(
-                EventType.SCAN_COMPLETED,
-                data={
-                    'scan_id': self._current_scan_id,
-                    'results': task_result['result']
-                }
-            ))
-        else:
-            self.event_bus.publish(Event(
-                EventType.SCAN_FAILED,
-                data={
-                    'scan_id': self._current_scan_id,
-                    'error': task_result.get('error')
-                }
-            ))
-        
-        self._current_scan_id = None
-    
-    def cancel_scan(self) -> bool:
-        """Cancel the current scan operation.
-        
-        Returns:
-            bool: True if scan was cancelled, False otherwise
-        """
-        if self._current_scan_id:
-            cancelled = self.thread_manager.cancel_task(self._current_scan_id)
-            if cancelled:
-                self.event_bus.publish(Event(
-                    EventType.SCAN_FAILED,
-                    data={
-                        'scan_id': self._current_scan_id,
-                        'error': 'Scan cancelled by user'
-                    }
-                ))
+        try:
+            task_result = future.result()
+        except Exception as e:
+            self.error_handler.handle_error(e, 'scanner_service', '_handle_scan_completion', ErrorSeverity.CRITICAL)
+            if current_scan_id:
+                scan_result = self.persistence.get_scan_result(current_scan_id)
+                if scan_result:
+                    scan_result.status = ScanStatus.FAILED
+                    self.persistence.save_scan_result(scan_result)
+            # Cannot call callback here as we don't have it.
+            if self._current_scan_id == current_scan_id:
                 self._current_scan_id = None
-            return cancelled
+            return
+
+        scan_id = task_result.get('scan_id')
+        callback = task_result.get('callback')
+
+        if callback:
+            try:
+                if task_result.get('status') == 'completed':
+                    callback(task_result.get('result'))
+                else:
+                    callback(None, task_result.get('error'))
+            except TypeError:
+                # Callback may not accept error argument
+                callback(task_result.get('result'))
+            except Exception as e:
+                self.logger.error(f"Error in scan completion callback for scan {scan_id}: {e}")
+        
+        if self._current_scan_id == scan_id:
+            self._current_scan_id = None
+
+    def cancel_scan(self) -> bool:
+        """Cancel the current scan operation."""
+        if self._current_scan_id:
+            self.logger.info(f"Requesting cancellation for scan {self._current_scan_id}")
+            scan_id_to_cancel = self._current_scan_id
+            self._current_scan_id = None # Signal cancellation to the running loop
+            
+            # The running scan will update its own status to CANCELLED upon finishing.
+            # However, we can also do it here for immediate feedback if desired.
+            scan_result = self.persistence.get_scan_result(scan_id_to_cancel)
+            if scan_result:
+                scan_result.status = ScanStatus.CANCELLED
+                self.persistence.save_scan_result(scan_result)
+            return True
         return False
     
     def get_scan_status(self) -> Optional[TaskStatus]:
@@ -516,15 +518,25 @@ class ScannerService:
             Optional[TaskStatus]: Current scan status or None if no scan is running
         """
         if self._current_scan_id:
-            return self.thread_manager.get_task_status(self._current_scan_id)
+            scan_result = self.persistence.get_scan_result(self._current_scan_id)
+            if scan_result:
+                return TaskStatus(scan_result.status.value)
         return None
 
+    def _get_task_status(self) -> TaskStatus:
+        """Get the current task status for the running scan."""
+        if self._current_scan_id:
+            scan_result = self.persistence.get_scan_result(self._current_scan_id)
+            if scan_result:
+                return TaskStatus(scan_result.status.value)
+        return TaskStatus.PENDING
+
     def get_scan_result(self, scan_id: str) -> Optional[ScanResult]:
-        """Get scan result from persistence."""
+        """Get a scan result from persistence."""
         return self.persistence.get_scan_result(scan_id)
     
     def get_all_scan_results(self, status: Optional[ScanStatus] = None, limit: int = 100) -> List[ScanResult]:
-        """Get all scan results from persistence."""
+        """Get all scan results, optionally filtered by status."""
         return self.persistence.get_all_scan_results(status, limit)
     
     def get_code_issues(self, scan_id: str, severity: Optional[IssueSeverity] = None) -> List[PersistenceCodeIssue]:
@@ -545,8 +557,8 @@ class ScannerService:
 
 def _get_all_code_files(directory: str, log_message_callback: Optional[Callable[[str], None]] = None) -> Dict[str, List[str]]:
     """
-    Get all code files in the directory, organized by language.
-    Respects .gitignore patterns and file size limits.
+    Scans a directory and its subdirectories for code files of supported languages,
+    categorizing them by language.
     """
     def _log(message: str):
         if log_message_callback:
@@ -587,10 +599,15 @@ def _get_all_code_files(directory: str, log_message_callback: Optional[Callable[
         'Thumbs.db\n'
     ])
     
-    spec = pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+    try:
+        # Use GitWildMatchPattern for .gitignore style matching
+        spec = pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+    except Exception as e:
+        logger.error(f"Error creating pathspec from patterns={patterns}: {e}")
+        return {}
     
     # Initialize result dictionary
-    language_files = {lang: [] for lang in SUPPORTED_LANGUAGES.keys()}
+    language_files: Dict[str, List[str]] = {lang: [] for lang in SUPPORTED_LANGUAGES.keys()}
     
     # File size limit (1MB) to prevent memory issues
     # MAX_FILE_SIZE is now imported from constants
@@ -604,8 +621,15 @@ def _get_all_code_files(directory: str, log_message_callback: Optional[Callable[
         dir_paths_to_check = {os.path.join(relative_root, d).replace(os.sep, '/') for d in dirs}
         ignored_dir_paths = set(spec.match_files(dir_paths_to_check))
         ignored_dir_names = {os.path.basename(str(p).strip('/')) for p in ignored_dir_paths}
-        dirs[:] = [d for d in dirs if d not in ignored_dir_names]
-        
+        # Remove ignored dirs from os.walk traversal
+        dirnames = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+        for d in dirnames:
+            if d in ignored_dir_names:
+                try:
+                    os.listdir(os.path.join(root, d))  # Touch to trigger os.walk to skip
+                except Exception:
+                    pass
+        # Exclude ignored files
         for filename in files:
             file_ext = os.path.splitext(filename)[1].lower()
             relative_file_path = os.path.join(relative_root, filename).replace(os.sep, '/')
@@ -940,7 +964,7 @@ def process_file_parallel(filepath: str, language: str, model_mode: str, model_r
                     'severity': issue.severity,
                     'context': issue.context or {}
                 })
-            except Exception as e:
+            except Exception:
                 # Skip individual issues that cause errors
                 continue
         
@@ -1042,40 +1066,74 @@ def scan_code(
         _log(f"Error during scan: {e}")
         return []
 
-def get_files_to_scan(directory: str) -> List[str]:
-    """Get list of files to scan in the directory, respecting .ai_coder_ignore patterns."""
-    import pathspec
-    files = []
-    ignore_file = os.path.join(directory, '.ai_coder_ignore')
+def get_files_to_scan(
+    directory: str, 
+    include_patterns: Optional[List[str]] = None, 
+    exclude_patterns: Optional[List[str]] = None
+) -> List[str]:
+    """
+    Get a list of files to scan based on include and exclude patterns.
+    Uses .gitignore style matching. It handles include patterns by first
+    ignoring everything, then adding negated patterns for inclusion.
+    Automatically expands '*.ext' to both '*.ext' and '**/*.ext' for recursive matching.
+    """
+    if not os.path.isdir(directory):
+        logger.error(f"Directory not found: {directory}")
+        return []
+
+    # Preprocess include patterns to expand '*.ext' to both '*.ext' and '**/*.ext'
+    expanded_include_patterns = []
+    if include_patterns:
+        for pattern in include_patterns:
+            expanded_include_patterns.append(pattern)
+            # If it's a '*.ext' pattern, also add '**/*.ext' for recursive matching
+            if pattern.startswith('*.') and not pattern.startswith('**/'):
+                recursive_pattern = f'**/{pattern}'
+                if recursive_pattern not in expanded_include_patterns:
+                    expanded_include_patterns.append(recursive_pattern)
+
     patterns = []
-    if os.path.exists(ignore_file):
-        with open(ignore_file, 'r', encoding='utf-8') as f:
-            patterns = [line.strip() for line in f if line.strip() and not line.strip().startswith('#')]
-    spec = pathspec.PathSpec.from_lines('gitwildmatch', patterns)
-    for root, _, filenames in os.walk(directory):
+    
+    # Add exclude patterns first
+    if exclude_patterns:
+        patterns.extend(exclude_patterns)
+    
+    # If include_patterns are specified, only use the negated patterns for inclusion.
+    if expanded_include_patterns:
+        for p in expanded_include_patterns:
+            patterns.append(f'!{p}')
+
+    try:
+        # Use GitWildMatchPattern for .gitignore style matching
+        spec = pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+    except Exception as e:
+        logger.error(f"Error creating pathspec from patterns={patterns}: {e}")
+        return []
+
+    files_to_scan = []
+    for root, dirs, files in os.walk(directory, topdown=True):
+        # Prune directories to avoid traversing into ignored paths
+        # Note: This requires paths relative to the directory where spec is applied
         rel_root = os.path.relpath(root, directory)
         if rel_root == '.':
             rel_root = ''
-        # Exclude ignored directories
-        dirs_to_check = {os.path.join(rel_root, d).replace(os.sep, '/') for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))}
-        ignored_dirs = set(spec.match_files(dirs_to_check))
-        ignored_dir_names = {os.path.basename(str(p).strip('/')) for p in ignored_dirs}
-        # Remove ignored dirs from os.walk traversal
-        dirnames = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
-        for d in dirnames:
-            if d in ignored_dir_names:
-                try:
-                    os.listdir(os.path.join(root, d))  # Touch to trigger os.walk to skip
-                except Exception:
-                    pass
-        # Exclude ignored files
-        for filename in filenames:
-            rel_file_path = os.path.join(rel_root, filename).replace(os.sep, '/')
-            if spec.match_file(rel_file_path):
-                continue
-            if filename.endswith(('.py', '.js', '.ts', '.java', '.cpp', '.c', '.h', '.hpp')):
-                files.append(os.path.join(root, filename))
-    return files
+        
+        # Filter dirs in-place
+        dirs[:] = [d for d in dirs if not spec.match_file(os.path.join(rel_root, d).replace(os.sep, '/'))]
+        
+        for file in files:
+            file_path = os.path.join(root, file)
+            # Match against the path relative to the directory root
+            relative_path = os.path.relpath(file_path, directory).replace(os.sep, '/')
+            
+            # Check if the file should be included (not ignored/excluded)
+            if not spec.match_file(relative_path):
+                files_to_scan.append(file_path)
+
+    logger.info(f"Found {len(files_to_scan)} files to scan in '{directory}' "
+                f"with includes={include_patterns} and excludes={exclude_patterns}.")
+
+    return files_to_scan
 
 def process_file_ollama(file_path: str, model_ref: str) -> List[Dict[str, Any]]:
     """Process a file using Ollama model."""
@@ -1128,89 +1186,137 @@ def process_file_own_model(file_path: str, model_ref: Any, tokenizer_ref: Any) -
         return []
 
 def scan_code_local(
-    directory: str, 
+    directory: str,
+    include_patterns: Optional[List[str]] = None,
+    exclude_patterns: Optional[List[str]] = None,
+    enable_ai_powered: bool = False,
+    model_name: Optional[str] = None,
     progress_callback: Optional[Callable[[int, int, str], None]] = None,
     log_message_callback: Optional[Callable[[str], None]] = None,
     cancellation_callback: Optional[Callable[[], bool]] = None
 ) -> List[dict]:
     """
-    Performs a fast, local-only code scan using pattern matching.
-    Workflow:
-      1. File discovery (with .ai_coder_ignore support)
-      2. Language detection
-      3. Linter/static analysis (TODO)
-      4. AI analysis (TODO)
-      5. Aggregation and reporting
+    Performs a local code scan using available linters and optional AI analysis.
+    Respects include/exclude patterns.
     """
-    _log = log_message_callback if callable(log_message_callback) else print
-    _log(f"Starting local code scan in '{directory}'.")
+    def _log(message: str):
+        if log_message_callback:
+            log_message_callback(message)
 
-    try:
-        # 1. File discovery
+    _log(f"Starting local scan in: {directory}")
+    
+    files_to_scan = get_files_to_scan(directory, include_patterns, exclude_patterns)
+    total_files = len(files_to_scan)
+
+    if not files_to_scan:
+        _log("No files found to scan.")
         if progress_callback:
-            progress_callback(0, 100, "Initializing local scan...")
+            progress_callback(1, 1, "Scan complete: No files found.")
+        return []
 
-        files = get_files_to_scan(directory)
-        if not files:
-            _log("No files found to scan")
-            if progress_callback:
-                progress_callback(100, 100, "No files found.")
-            return []
+    if progress_callback:
+        progress_callback(0, total_files, f"Found {total_files} files to scan...")
 
-        total_files = len(files)
-        _log(f"Found {total_files} files to scan")
+    results = []
+    analyzer = IntelligentCodeAnalyzer()
+
+    for i, file_path in enumerate(files_to_scan):
+        if cancellation_callback and cancellation_callback():
+            _log("Scan cancelled by user.")
+            break
         
-        analyzer = IntelligentCodeAnalyzer()
-        all_issues = []
-        
-        for i, file_path in enumerate(files, 1):
-            if cancellation_callback and cancellation_callback():
-                _log("Scan cancelled by user")
-                break
-            
-            if progress_callback:
-                progress_callback(i, total_files, f"Scanning file {i}/{total_files}: {os.path.basename(file_path)}")
+        if progress_callback:
+            progress_callback(i, total_files, f"Scanning: {os.path.basename(file_path)}")
 
-            # 2. Language detection
+        try:
             language = detect_language(file_path)
             if language == 'unknown':
+                _log(f"Skipping unsupported file type: {file_path}")
                 continue
-
-            try:
-                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    content = f.read()
-                
-                # 3. Linter/static analysis (TODO: integrate linter here)
-                # linter_issues = run_linter(file_path, language)
-                # all_issues.extend(linter_issues)
-
-                # 4. AI analysis (current: intelligent analyzer)
-                issues = analyzer._analyze_content_intelligently(content, file_path, language)
-                
-                for issue in issues:
-                    all_issues.append({
-                        'file_path': issue.file_path,
-                        'line_number': issue.line_number,
-                        'description': issue.description,
-                        'code_snippet': issue.code_snippet,
-                        'suggested_improvement': '',
-                        'language': language,
-                        'issue_type': issue.issue_type.value,
-                        'severity': issue.severity,
-                        'context': issue.context or {}
+            
+            # Simple linting as a baseline
+            lint_issues, _ = run_linter(file_path, language)
+            
+            file_results = {
+                "file_path": file_path,
+                "language": language,
+                "issues": [],
+                "suggestions": []
+            }
+            
+            for issue_text in lint_issues:
+                parsed_issue = parse_linter_output(issue_text, language)
+                if parsed_issue:
+                    line_num, desc = parsed_issue
+                    file_results["issues"].append({
+                        "line": line_num,
+                        "description": desc,
+                        "severity": "medium" # Default severity
                     })
 
+            # If AI analysis is enabled, enhance the results
+            if enable_ai_powered and model_name:
+                try:
+                    ai_issues = process_file_ollama(file_path, model_name)
+                    for issue in ai_issues:
+                        # Avoid duplicates, simple check
+                        if not any(i['line'] == issue.get('line') and i['description'] == issue.get('description') for i in file_results['issues']):
+                            file_results['issues'].append(issue)
+                except Exception as e:
+                    _log(f"Error during AI analysis for {file_path}: {e}")
+
+            if file_results["issues"]:
+                results.append(file_results)
+
+        except Exception as e:
+            _log(f"Error processing file {file_path}: {e}")
+
+    _log(f"Local scan finished. Found {len(results)} files with issues.")
+    if progress_callback:
+        progress_callback(total_files, total_files, "Scan complete.")
+    
+    return results
+
+def enhance_issues_with_ai(
+    issues: List[Dict[str, Any]], 
+    model_name: str,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None
+) -> List[Dict[str, Any]]:
+    """
+    Enhances a list of issues with AI-powered suggestions.
+    """
+    total_issues = len(issues)
+    if progress_callback:
+        progress_callback(0, total_issues, "Starting AI enhancement...")
+
+    ollama_client_instance = ollama_client.OllamaClient()
+    
+    # Using a ThreadPoolExecutor to run suggestion generation in parallel
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        # Map each issue to a future
+        future_to_issue = {
+            executor.submit(
+                ollama_client.get_suggestion_for_issue_sync, 
+                ollama_client_instance, 
+                issue, 
+                model_name
+            ): issue 
+            for issue in issues
+        }
+
+        for i, future in enumerate(concurrent.futures.as_completed(future_to_issue)):
+            issue = future_to_issue[future]
+            try:
+                suggestion = future.result()
+                issue['suggestion'] = suggestion
             except Exception as e:
-                _log(f"Error processing file {file_path} locally: {e}")
-                continue
-
-        # 5. Aggregation and reporting
-        if progress_callback:
-            progress_callback(total_files, total_files, "Local scan complete")
-
-        _log(f"Local scan found {len(all_issues)} potential issues.")
-        return all_issues
-
-    except Exception as e:
-        _log(f"Error during local scan: {e}")
-        return []
+                logger.error(f"Error getting suggestion for issue in {issue.get('file_path')}: {e}")
+                issue['suggestion'] = "Error getting suggestion."
+            
+            if progress_callback:
+                progress_callback(i + 1, total_issues, f"Enhanced issue in {os.path.basename(issue.get('file_path', ''))}")
+    
+    if progress_callback:
+        progress_callback(total_issues, total_issues, "Enhancement complete.")
+        
+    return issues

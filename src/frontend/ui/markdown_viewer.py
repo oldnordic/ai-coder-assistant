@@ -17,31 +17,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
-from typing import Optional, List, Dict, Any, cast
+from typing import Optional
 import re
-import os
 import markdown
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
     QTextBrowser, QLabel, QLineEdit, QComboBox,
-    QDialogButtonBox, QProgressBar, QSplitter,
     QFileDialog, QMessageBox, QMenu
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QMarginsF, QUrl
+from PyQt6.QtCore import QMarginsF, QUrl
 from PyQt6.QtGui import (
-    QFont, QTextCursor, QTextCharFormat, QColor,
-    QPageSize, QPageLayout, QTextDocument,
-    QAction, QPainter, QAbstractTextDocumentLayout
+    QTextCursor, QTextCharFormat, QColor,
+    QPageSize, QPageLayout, QTextDocument
 )
-from PyQt6.QtPrintSupport import QPrinter, QPageSetupDialog
-from backend.utils.constants import (
-    WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
-    DIALOG_DEFAULT_WIDTH, DIALOG_DEFAULT_HEIGHT, 
-    LOG_CONSOLE_MAX_HEIGHT, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR, DEFAULT_BORDER_COLOR,
-    MARKDOWN_VIEWER_WIDTH, MARKDOWN_VIEWER_HEIGHT, MARKDOWN_VIEWER_FONT_SIZE,
-    MARKDOWN_VIEWER_FONT_FAMILY, MARKDOWN_VIEWER_BG_COLOR, MARKDOWN_VIEWER_FG_COLOR
-)
-from backend.utils.constants import DEFAULT_FONT_WEIGHT, DEFAULT_TEXT_COLOR
+from PyQt6.QtPrintSupport import QPrinter
+from backend.utils.constants import DEFAULT_FONT_WEIGHT
 
 class MarkdownRenderer:
     """Simple markdown to HTML renderer for the viewer."""

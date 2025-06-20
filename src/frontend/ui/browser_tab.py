@@ -18,7 +18,7 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
 # src/ui/browser_tab.py
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
+from PyQt6.QtWidgets import (QVBoxLayout, QHBoxLayout, QPushButton,
                              QLineEdit, QGroupBox, QTextEdit, QLabel)
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QUrl

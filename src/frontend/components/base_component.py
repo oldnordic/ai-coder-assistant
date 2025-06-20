@@ -1,9 +1,9 @@
 """Base UI component for AI Coder Assistant."""
 
 from enum import Enum, auto
-from typing import Any, Dict, Optional, Set
+from typing import Any, Optional, Set
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import pyqtSignal, QObject
+from PyQt6.QtCore import pyqtSignal
 
 from core.events import Event, EventBus, EventType
 from core.logging import LogManager

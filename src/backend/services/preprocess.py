@@ -20,7 +20,6 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 # src/processing/preprocess.py
 import os
 import json
-import re
 from bs4 import BeautifulSoup
 from pypdf import PdfReader
 import logging
@@ -30,8 +29,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 
 from backend.utils import settings
-from backend.services import scanner as ai_coder_scanner
-from backend.utils.constants import PROGRESS_COMPLETE
 
 logger = logging.getLogger(__name__)
 

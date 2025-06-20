@@ -10,10 +10,9 @@ This module provides core functionality used across the application:
 
 __version__ = '1.0.0'
 
-from core.config import Config
-from core.logging import LogManager
-from core.error import ErrorHandler
-from core.threading import ThreadManager
-from core.events import EventBus
+from .config import Config
+from .logging import LogManager
+from .error import ErrorHandler
+from .events import EventBus, Event, EventType
 
-__all__ = ['Config', 'LogManager', 'ErrorHandler', 'ThreadManager', 'EventBus'] 
+__all__ = ['Config', 'LogManager', 'ErrorHandler', 'EventBus', 'Event', 'EventType'] 

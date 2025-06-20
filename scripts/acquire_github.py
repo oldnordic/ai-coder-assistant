@@ -23,7 +23,6 @@ import time
 from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
-from typing import Optional, Callable
 
 def download_github_file(item, token, save_dir, log_message_callback=None):
     """
@@ -140,4 +139,4 @@ def search_and_download_github_code(query, token, save_dir, max_files=50, log_me
 
     except requests.exceptions.RequestException as e:
         _log(f"A network error occurred: {e}")
-        raise RuntimeError(f"Failed to connect to GitHub. Check your token and internet connection.") from e
+        raise RuntimeError("Failed to connect to GitHub. Check your token and internet connection.") from e

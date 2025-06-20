@@ -5,28 +5,24 @@ Provides UI for managing cloud AI providers, model selection,
 usage monitoring, and cost tracking.
 """
 
-import asyncio
-import json
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Callable
+import concurrent.futures
 
 from PyQt6.QtCore import (
-    QTimer, Qt, QSize
+    QTimer, Qt, pyqtSlot
 )
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QLineEdit, QComboBox, QPushButton, QTextEdit,
     QTableWidget, QTableWidgetItem, QTabWidget, QGroupBox,
     QSpinBox, QDoubleSpinBox, QCheckBox, QProgressBar,
-    QMessageBox, QSplitter, QFrame, QHeaderView
+    QMessageBox, QHeaderView
 )
-from PyQt6.QtGui import QFont, QIcon, QPixmap
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtGui import QFont
 
 from backend.services.llm_manager import LLMManager
-from backend.services.models import ProviderType
-from frontend.ui.worker_threads import get_thread_manager
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +146,6 @@ class ModelSelectionWidget(QWidget):
     
     def __init__(self):
         super().__init__()
-        self.thread_manager = get_thread_manager()
         self.init_ui()
     
     def init_ui(self):
@@ -275,17 +270,29 @@ class ModelSelectionWidget(QWidget):
         selected_provider = self.provider_filter.currentText()
         
         try:
-            self.thread_manager.start_worker(
-                'cloud_models',
+            future = self.executor.submit(
                 cloud_models_backend,
                 'load_models',
-                provider=selected_provider,
-                progress_callback=self.update_progress,
-                log_message_callback=self.handle_log_message
+                provider=selected_provider
             )
+            future.add_done_callback(self._on_filter_complete)
         except Exception as e:
             logger.error(f"Error filtering models: {e}")
-            QMessageBox.warning(self, "Error", f"Failed to filter models: {e}")
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", f"Failed to filter models: {e}"))
+
+    def _on_filter_complete(self, future):
+        """Handle filter completion."""
+        def update_ui():
+            try:
+                result = future.result()
+                if result and result.get('success'):
+                    models = result.get('models', [])
+                    self.populate_models_table(models)
+                else:
+                    QMessageBox.warning(self, "Error", "Failed to filter models.")
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to filter models: {e}")
+        QTimer.singleShot(0, update_ui)
 
     def test_completion(self):
         """Test a model completion."""
@@ -310,11 +317,24 @@ class ModelSelectionWidget(QWidget):
             time.sleep(2)
             return {"success": True, "result": f"This is a test completion for {model_name}."}
 
-        self.thread_manager.start_worker(
-            "test_completion",
-            mock_backend_completion,
-            callback=self.handle_operation_complete
-        )
+        future = self.executor.submit(mock_backend_completion)
+        future.add_done_callback(self._on_test_complete)
+
+    def _on_test_complete(self, future):
+        """Handle test completion."""
+        def update_ui():
+            try:
+                result = future.result()
+                if result and result.get('success'):
+                    self.test_result.setText(result.get('result', ''))
+                else:
+                    self.show_error("Test completion failed.")
+            except Exception as e:
+                self.show_error(f"Test completion failed: {e}")
+            finally:
+                self.progress_bar.setVisible(False)
+                self.status_label.setText("Ready")
+        QTimer.singleShot(0, update_ui)
 
     def handle_error(self, error):
         self.show_error(str(error))
@@ -324,62 +344,39 @@ class ModelSelectionWidget(QWidget):
         self.progress_bar.setVisible(True)
         self.status_label.setText("Loading models...")
         
-        self.thread_manager.start_worker(
-            'load_cloud_models',
-            cloud_models_backend,
-            operation='load_models',
-            callback=self.handle_operation_complete
-        )
+        future = self.executor.submit(cloud_models_backend, 'load_models')
+        future.add_done_callback(self._on_load_models_complete)
 
-    def _on_worker_progress(self, worker_id, current, total, message):
-        """Handle progress updates from worker."""
-        if hasattr(self, 'worker_id') and worker_id == self.worker_id:
-            self.update_progress(current, total, message)
-
-    def _on_worker_finished(self, worker_id):
-        if hasattr(self, 'worker_id') and worker_id == self.worker_id:
-            result = cloud_models_backend('mock_operation')
-            self.handle_operation_complete(result)
-            self.progress_bar.setVisible(False)
-
-    def _on_worker_error(self, worker_id, error):
-        if hasattr(self, 'worker_id') and worker_id == self.worker_id:
-            self.show_error(error)
-            self.progress_bar.setVisible(False)
-
-    def handle_log_message(self, message):
-        # Optionally handle log messages
-        pass
-
-    def handle_operation_complete(self, result):
-        """Handle operation completion."""
-        if result['success']:
-            if 'models' in result:
-                self.populate_models_table(result['models'])
-            elif 'model_name' in result:
-                if result.get('status') == 'downloaded':
-                    QMessageBox.information(self, "Success", f"Model {result['model_name']} downloaded successfully")
-                elif result.get('status') == 'deleted':
-                    QMessageBox.information(self, "Success", f"Model {result['model_name']} deleted successfully")
-        else:
-            QMessageBox.warning(self, "Error", "Operation failed")
+    def _on_load_models_complete(self, future):
+        """Handle load models completion."""
+        def update_ui():
+            try:
+                result = future.result()
+                if result and result.get('success'):
+                    models = result.get('models', [])
+                    self.populate_models_table(models)
+                    self.populate_provider_filter(models)
+                    self.populate_test_model_combo(models)
+                else:
+                    self.show_error("Failed to load models.")
+            except Exception as e:
+                self.show_error(f"Failed to load models: {e}")
+            finally:
+                self.progress_bar.setVisible(False)
+                self.status_label.setText("Ready")
+        QTimer.singleShot(0, update_ui)
 
     def show_error(self, error):
         """Handle operation error."""
-        QMessageBox.critical(self, "Error", f"Operation failed: {error}")
-    
-    def populate_models_table(self, models):
-        """Populate models table with data."""
-        # Implementation for populating models table
-        pass
+        QTimer.singleShot(0, lambda: QMessageBox.critical(self, "Error", f"Operation failed: {error}"))
 
 
 class UsageMonitoringWidget(QWidget):
-    """Widget for monitoring usage and costs."""
+    """Widget for monitoring usage statistics."""
     
     def __init__(self):
         super().__init__()
-        self.thread_manager = get_thread_manager()
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.init_ui()
         self.load_usage_stats()
         
@@ -464,12 +461,21 @@ class UsageMonitoringWidget(QWidget):
     def load_usage_stats(self):
         """Load usage statistics."""
         self.progress_bar.setVisible(True)
-        self.thread_manager.start_worker(
-            "get_usage_stats",
-            self.fetch_usage_stats,
-            callback=self.update_summary_stats
-        )
-    
+        future = self.executor.submit(self.fetch_usage_stats)
+        future.add_done_callback(self._on_usage_stats_complete)
+
+    def _on_usage_stats_complete(self, future):
+        """Handle usage stats completion."""
+        def update_ui():
+            try:
+                result = future.result()
+                self.update_summary_stats(result)
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to load usage stats: {e}")
+            finally:
+                self.progress_bar.setVisible(False)
+        QTimer.singleShot(0, update_ui)
+
     def update_summary_stats(self, stats: Dict[str, Any]):
         """Callback to update the summary statistics labels."""
         try:
@@ -535,13 +541,17 @@ class UsageMonitoringWidget(QWidget):
                 log_message_callback(f"Error fetching usage stats: {e}")
             return None
 
+    def show_error(self, error):
+        """Handle operation error."""
+        QTimer.singleShot(0, lambda: QMessageBox.critical(self, "Error", f"Operation failed: {error}"))
+
 
 class HealthCheckWidget(QWidget):
     """Widget for provider health monitoring."""
     
     def __init__(self):
         super().__init__()
-        self.thread_manager = get_thread_manager()
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.init_ui()
     
     def init_ui(self):
@@ -578,13 +588,21 @@ class HealthCheckWidget(QWidget):
         self.progress_bar.setVisible(True)
         
         # This would be more complex in a real app, checking all enabled providers
-        self.thread_manager.start_worker(
-            "check_provider_health",
-            check_provider_health,
-            provider='openai',
-            callback=self.update_health_status
-        )
-    
+        future = self.executor.submit(check_provider_health, 'openai')
+        future.add_done_callback(self._on_health_check_complete)
+
+    def _on_health_check_complete(self, future):
+        """Handle health check completion."""
+        def update_ui():
+            try:
+                result = future.result()
+                self.update_health_status(result)
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to check health: {e}")
+            finally:
+                self.progress_bar.setVisible(False)
+        QTimer.singleShot(0, update_ui)
+
     def update_health_status(self, results: Dict[str, bool]):
         """Update health status table."""
         self.health_table.setRowCount(len(results))
@@ -605,23 +623,21 @@ class HealthCheckWidget(QWidget):
                 status_item.setBackground(Qt.GlobalColor.red)
             self.health_table.setItem(row, 1, status_item)
 
+    def show_error(self, error):
+        """Handle operation error."""
+        QTimer.singleShot(0, lambda: QMessageBox.critical(self, "Error", f"Operation failed: {error}"))
+
 
 class CloudModelsTab(QWidget):
     """Main cloud models tab widget."""
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        from frontend.ui.worker_threads import get_thread_manager
-        self.thread_manager = get_thread_manager()
-        self.init_ui()
-        self.start_usage_stats_worker()
-        
-        # Connect to the application's aboutToQuit signal for cleanup
-        app = QApplication.instance()
-        if app:
-            app.aboutToQuit.connect(self.cleanup)
+        self.executor = concurrent.futures.ThreadPoolExecutor()
+        self.setup_ui()
+        self.load_sample_data()
 
-    def init_ui(self):
+    def setup_ui(self):
         """Initialize the UI components of the tab."""
         layout = QVBoxLayout()
         
@@ -646,90 +662,87 @@ class CloudModelsTab(QWidget):
         
         layout.addWidget(self.tab_widget)
         self.setLayout(layout)
-        self.start_usage_stats_worker()
 
-    def start_usage_stats_worker(self):
-        """Start the worker to fetch usage stats."""
-        self.thread_manager.start_worker(
-            "get_usage_stats",
-            self.fetch_usage_stats,
-            callback=self.update_summary_stats
+    def test_model(self):
+        """Test the selected model."""
+        model_name = self.model_selector.currentText()
+        if not model_name:
+            QMessageBox.warning(self, "Warning", "Please select a model to test.")
+            return
+        
+        self.test_btn.setEnabled(False)
+        self.test_result.setPlainText("Testing model...")
+        
+        # Start test using ThreadPoolExecutor
+        future = self.executor.submit(
+            test_cloud_model_backend,
+            model_name,
+            self.test_prompt.toPlainText(),
+            int(self.test_max_tokens.value()),
+            progress_callback=self.update_progress,
+            log_message_callback=self.handle_error
         )
+        future.add_done_callback(self._on_test_complete)
 
-    def cleanup(self):
-        """Stop any running workers to prevent memory leaks and crashes."""
-        self.thread_manager.cancel_worker("get_usage_stats")
+    def _on_test_complete(self, future):
+        """Handle test completion."""
+        def update_ui():
+            try:
+                result = future.result()
+                self.test_result.setPlainText(result)
+                self.test_btn.setEnabled(True)
+            except Exception as e:
+                self.handle_error(f"Test failed: {e}")
+                self.test_btn.setEnabled(True)
+        QTimer.singleShot(0, update_ui)
 
-    def __del__(self):
-        # Ensure cleanup is called when the widget is deleted
-        self.cleanup()
-
-    def refresh_data(self):
-        """Refresh all data in the tab."""
-        self.model_selection.load_models()
-        self.usage_monitoring.load_usage_stats()
-
-    def load_models(self):
-        """Load models from backend."""
-        self.progress_bar.setVisible(True)
-        self.thread_manager.start_worker(
-            'load_cloud_models',
-            cloud_models_backend,
-            operation='load_models',
-            callback=self.handle_operation_complete
+    def refresh_models(self):
+        """Refresh the model list."""
+        self.refresh_btn.setEnabled(False)
+        
+        # Start refresh using ThreadPoolExecutor
+        future = self.executor.submit(
+            refresh_cloud_models_backend,
+            progress_callback=self.update_progress,
+            log_message_callback=self.handle_error
         )
+        future.add_done_callback(self._on_refresh_complete)
 
-    def _on_worker_progress(self, worker_id, current, total, message):
-        """Handle progress updates from worker."""
-        if hasattr(self, 'worker_id') and worker_id == self.worker_id:
-            self.update_progress(current, total, message)
+    def _on_refresh_complete(self, future):
+        """Handle refresh completion."""
+        def update_ui():
+            try:
+                models = future.result()
+                self.populate_model_selector(models)
+                self.refresh_btn.setEnabled(True)
+            except Exception as e:
+                self.handle_error(f"Refresh failed: {e}")
+                self.refresh_btn.setEnabled(True)
+        QTimer.singleShot(0, update_ui)
 
-    def _on_worker_finished(self, worker_id):
-        if hasattr(self, 'worker_id') and worker_id == self.worker_id:
-            result = cloud_models_backend('mock_operation')
-            self.handle_operation_complete(result)
-            self.progress_bar.setVisible(False)
-
-    def _on_worker_error(self, worker_id, error):
-        if hasattr(self, 'worker_id') and worker_id == self.worker_id:
-            self.show_error(error)
-            self.progress_bar.setVisible(False)
-
-    def handle_log_message(self, message):
-        # Optionally handle log messages
+    def load_sample_data(self):
+        """Load sample data for the tab."""
+        # Implementation for loading sample data
         pass
 
-    def handle_operation_complete(self, result):
-        """Handle operation completion."""
-        if result['success']:
-            if 'models' in result:
-                self.populate_models_table(result['models'])
-            elif 'model_name' in result:
-                if result.get('status') == 'downloaded':
-                    QMessageBox.information(self, "Success", f"Model {result['model_name']} downloaded successfully")
-                elif result.get('status') == 'deleted':
-                    QMessageBox.information(self, "Success", f"Model {result['model_name']} deleted successfully")
-        else:
-            QMessageBox.warning(self, "Error", "Operation failed")
-
-    def show_error(self, error):
-        """Handle operation error."""
-        QMessageBox.critical(self, "Error", f"Operation failed: {error}")
-    
     def update_progress(self, current, total, message):
         """Update progress bar."""
         if hasattr(self, 'progress_bar'):
             self.progress_bar.setValue(int((current / total) * 100))
             self.progress_bar.setFormat(f"{message} ({current/total*100:.0f}%)")
 
-    def populate_models_table(self, models):
-        """Populate models table with data."""
-        self.model_selection.populate_models_table(models)
+    def handle_error(self, error):
+        """Handle operation error."""
+        QMessageBox.critical(self, "Error", f"Operation failed: {error}")
+
+    def populate_model_selector(self, models):
+        """Populate model selector with data."""
+        # Implementation for populating model selector
+        pass
 
     def populate_models_table(self, models):
         """Populate models table with data."""
-        # Implementation for populating models table
-        pass
+        self.model_selection.populate_models_table(models)
 
     def update_provider_usage(self, providers: Dict[str, int]):
         # This method needs to be implemented
@@ -792,4 +805,17 @@ class CloudModelsTab(QWidget):
         except Exception as e:
             if log_message_callback:
                 log_message_callback(f"Error fetching usage stats: {e}")
-            return None 
+            return None
+
+# Stub backend functions
+def test_cloud_model_backend(model_name: str, prompt: str, max_tokens: int, temperature: float):
+    """Stub function for testing cloud models."""
+    import time
+    time.sleep(1)
+    return {"success": True, "result": f"Test completion for {model_name}"}
+
+def refresh_cloud_models_backend(progress_callback=None, log_message_callback=None):
+    """Stub function for refreshing cloud models."""
+    import time
+    time.sleep(1)
+    return {"success": True, "models": []} 

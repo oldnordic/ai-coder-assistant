@@ -3,19 +3,18 @@ Collaboration Features Tab - Clean, modern interface for team collaboration.
 """
 
 import logging
-import json
 import os
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Union, Callable, Any
+from typing import Dict, List, Optional, Any
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QPushButton,
     QLabel, QTextEdit, QTableWidget, QTableWidgetItem, QHeaderView,
     QComboBox, QLineEdit, QFileDialog, QMessageBox, QTabWidget,
-    QListWidget, QListWidgetItem, QProgressBar, QCheckBox, QDialog,
-    QFormLayout, QDateEdit, QSpinBox, QDoubleSpinBox, QSplitter
+    QListWidget, QListWidgetItem, QCheckBox, QDialog,
+    QFormLayout, QDateEdit, QDoubleSpinBox
 )
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QObject, pyqtBoundSignal
-from PyQt6.QtGui import QFont, QColor, QIcon
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal
+from PyQt6.QtGui import QFont, QColor
 
 # Import backend task management service
 from backend.services.task_management import (
