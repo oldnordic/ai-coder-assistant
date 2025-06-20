@@ -1,10 +1,22 @@
-import unittest
-from unittest.mock import patch, MagicMock
-from PyQt6.QtWidgets import QWidget, QApplication, QComboBox, QLabel, QPushButton, QLineEdit, QTextEdit, QCheckBox, QProgressBar
-from frontend.ui.ai_tab_widgets import setup_ai_tab
 import sys
 import tempfile
-import os
+import unittest
+from unittest.mock import MagicMock, patch
+
+from PyQt6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QLabel,
+    QLineEdit,
+    QProgressBar,
+    QPushButton,
+    QTextEdit,
+    QWidget,
+)
+
+from frontend.ui.ai_tab_widgets import setup_ai_tab
+
 
 class TestAITabWidgetsBackend(unittest.TestCase):
     @classmethod
@@ -49,5 +61,6 @@ class TestAITabWidgetsBackend(unittest.TestCase):
                 setup_ai_tab(parent_widget, main_app_instance)
             self.assertIn("Widget error", str(context.exception))
 
+
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main()

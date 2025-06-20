@@ -21,18 +21,17 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 API Service - REST API endpoints for PR automation and external integrations.
 """
 
-import logging
 from typing import List, Optional
-
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
+import logging
+import uvicorn
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-import uvicorn
-
+from .code_standards import CodeRule, CodeStandard, Language, Severity
 from .llm_manager import LLMManager
-from .pr_automation import ServiceConfig, PRTemplate, PRRequest
 from .security_intelligence import SecurityFeed
-from .code_standards import CodeStandard, CodeRule, Language, Severity
+from .pr_automation import PRRequest, PRTemplate, ServiceConfig
+
 
 logger = logging.getLogger(__name__)
 
@@ -259,7 +258,7 @@ class CodeAnalysisResponse(BaseModel):
 app = FastAPI(
     title="AI Coder Assistant API",
     description="API for PR automation, security intelligence, and code standards",
-    version="2.4.0"
+    version="2.4.0",
 )
 
 # Add CORS middleware
@@ -289,6 +288,7 @@ async def health_check():
 
 # Service Configuration Endpoints
 
+
 @app.get("/api/services", response_model=List[ServiceConfigResponse])
 async def list_services(llm_manager: LLMManager = Depends(get_llm_manager)):
     """List all configured services."""
@@ -301,7 +301,7 @@ async def list_services(llm_manager: LLMManager = Depends(get_llm_manager)):
                 base_url=service.base_url,
                 username=service.username,
                 project_key=service.project_key,
-                is_enabled=service.is_enabled
+                is_enabled=service.is_enabled,
             )
             for service in services
         ]
@@ -313,7 +313,7 @@ async def list_services(llm_manager: LLMManager = Depends(get_llm_manager)):
 @app.post("/api/services", response_model=ServiceConfigResponse)
 async def add_service(
     service_config: ServiceConfigRequest,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    llm_manager: LLMManager = Depends(get_llm_manager),
 ):
     """Add a new service configuration."""
     try:
@@ -324,18 +324,18 @@ async def add_service(
             username=service_config.username,
             api_token=service_config.api_token,
             project_key=service_config.project_key,
-            is_enabled=service_config.is_enabled
+            is_enabled=service_config.is_enabled,
         )
-        
+
         llm_manager.add_service_config(config)
-        
+
         return ServiceConfigResponse(
             name=config.name,
             service_type=config.service_type,
             base_url=config.base_url,
             username=config.username,
             project_key=config.project_key,
-            is_enabled=config.is_enabled
+            is_enabled=config.is_enabled,
         )
     except Exception as e:
         logger.error(f"Error adding service: {e}")
@@ -344,8 +344,7 @@ async def add_service(
 
 @app.delete("/api/services/{service_name}")
 async def remove_service(
-    service_name: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    service_name: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Remove a service configuration."""
     try:
@@ -358,25 +357,22 @@ async def remove_service(
 
 @app.post("/api/services/{service_name}/test", response_model=ConnectionTestResponse)
 async def test_service_connection(
-    service_name: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    service_name: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Test connection to a specific service."""
     try:
         success = await llm_manager.test_service_connection(service_name)
         return ConnectionTestResponse(
             success=success,
-            message="Connection successful" if success else "Connection failed"
+            message="Connection successful" if success else "Connection failed",
         )
     except Exception as e:
         logger.error(f"Error testing service connection: {e}")
-        return ConnectionTestResponse(
-            success=False,
-            message=str(e)
-        )
+        return ConnectionTestResponse(success=False, message=str(e))
 
 
 # PR Template Endpoints
+
 
 @app.get("/api/templates", response_model=List[PRTemplateResponse])
 async def list_templates(llm_manager: LLMManager = Depends(get_llm_manager)):
@@ -392,7 +388,7 @@ async def list_templates(llm_manager: LLMManager = Depends(get_llm_manager)):
                 auto_assign=template.auto_assign,
                 labels=template.labels,
                 reviewers=template.reviewers,
-                is_default=template.is_default
+                is_default=template.is_default,
             )
             for template in templates
         ]
@@ -403,8 +399,7 @@ async def list_templates(llm_manager: LLMManager = Depends(get_llm_manager)):
 
 @app.post("/api/templates", response_model=PRTemplateResponse)
 async def add_template(
-    template: PRTemplateRequest,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    template: PRTemplateRequest, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Add a new PR template."""
     try:
@@ -416,11 +411,11 @@ async def add_template(
             auto_assign=template.auto_assign,
             labels=template.labels,
             reviewers=template.reviewers,
-            is_default=template.is_default
+            is_default=template.is_default,
         )
-        
+
         llm_manager.add_pr_template(pr_template)
-        
+
         return PRTemplateResponse(
             name=pr_template.name,
             title_template=pr_template.title_template,
@@ -429,7 +424,7 @@ async def add_template(
             auto_assign=pr_template.auto_assign,
             labels=pr_template.labels,
             reviewers=pr_template.reviewers,
-            is_default=pr_template.is_default
+            is_default=pr_template.is_default,
         )
     except Exception as e:
         logger.error(f"Error adding template: {e}")
@@ -438,8 +433,7 @@ async def add_template(
 
 @app.delete("/api/templates/{template_name}")
 async def remove_template(
-    template_name: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    template_name: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Remove a PR template."""
     try:
@@ -464,7 +458,7 @@ async def get_default_template(llm_manager: LLMManager = Depends(get_llm_manager
                 auto_assign=template.auto_assign,
                 labels=template.labels,
                 reviewers=template.reviewers,
-                is_default=template.is_default
+                is_default=template.is_default,
             )
         return None
     except Exception as e:
@@ -474,11 +468,12 @@ async def get_default_template(llm_manager: LLMManager = Depends(get_llm_manager
 
 # PR Creation Endpoints
 
+
 @app.post("/api/pr/create", response_model=PRCreationResponse)
 async def create_pr(
     request: PRCreationRequest,
     background_tasks: BackgroundTasks,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    llm_manager: LLMManager = Depends(get_llm_manager),
 ):
     """Create a PR with optional ticket creation."""
     try:
@@ -492,11 +487,11 @@ async def create_pr(
             servicenow_ticket=request.servicenow_ticket,
             labels=request.labels,
             reviewers=request.reviewers,
-            auto_create_tickets=request.auto_create_tickets
+            auto_create_tickets=request.auto_create_tickets,
         )
-        
+
         result = await llm_manager.create_pr(pr_request, request.repo_path)
-        
+
         return PRCreationResponse(
             success=result.success,
             pr_url=result.pr_url,
@@ -504,7 +499,7 @@ async def create_pr(
             branch_name=result.branch_name,
             jira_ticket=result.jira_ticket,
             servicenow_ticket=result.servicenow_ticket,
-            error_message=result.error_message
+            error_message=result.error_message,
         )
     except Exception as e:
         logger.error(f"Error creating PR: {e}")
@@ -513,12 +508,13 @@ async def create_pr(
 
 # Configuration Endpoints
 
+
 @app.get("/api/config", response_model=ConfigResponse)
 async def get_config(llm_manager: LLMManager = Depends(get_llm_manager)):
     """Get complete PR automation configuration."""
     try:
         config = llm_manager.get_pr_automation_config()
-        
+
         services = [
             ServiceConfigResponse(
                 name=service["name"],
@@ -526,11 +522,11 @@ async def get_config(llm_manager: LLMManager = Depends(get_llm_manager)):
                 base_url=service["base_url"],
                 username=service["username"],
                 project_key=service.get("project_key"),
-                is_enabled=service["is_enabled"]
+                is_enabled=service["is_enabled"],
             )
             for service in config["services"]
         ]
-        
+
         templates = [
             PRTemplateResponse(
                 name=template["name"],
@@ -540,11 +536,11 @@ async def get_config(llm_manager: LLMManager = Depends(get_llm_manager)):
                 auto_assign=template["auto_assign"],
                 labels=template["labels"],
                 reviewers=template["reviewers"],
-                is_default=template["is_default"]
+                is_default=template["is_default"],
             )
             for template in config["templates"]
         ]
-        
+
         return ConfigResponse(services=services, templates=templates)
     except Exception as e:
         logger.error(f"Error getting config: {e}")
@@ -553,20 +549,21 @@ async def get_config(llm_manager: LLMManager = Depends(get_llm_manager)):
 
 # JIRA Integration Endpoints
 
+
 @app.post("/api/jira/issues")
 async def create_jira_issue(
     summary: str,
     description: str,
     issue_type: str = "Task",
     service_name: Optional[str] = None,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    llm_manager: LLMManager = Depends(get_llm_manager),
 ):
     """Create a JIRA issue."""
     try:
         # Find JIRA service
         services = llm_manager.list_service_configs()
         jira_service = None
-        
+
         if service_name:
             # Find specific service
             for service in services:
@@ -579,24 +576,24 @@ async def create_jira_issue(
                 if service.service_type == "jira" and service.is_enabled:
                     jira_service = service
                     break
-        
+
         if not jira_service:
             raise HTTPException(status_code=404, detail="No JIRA service configured")
-        
+
         # Create issue using the PR automation service
         pr_automation = llm_manager.pr_automation
         jira_provider = pr_automation.services.get(jira_service.name)
-        
+
         if not jira_provider:
             raise HTTPException(status_code=404, detail="JIRA service not found")
-        
+
         issue_key = await jira_provider.create_issue(summary, description, issue_type)
-        
+
         if issue_key:
             return {"success": True, "issue_key": issue_key}
         else:
             raise HTTPException(status_code=500, detail="Failed to create JIRA issue")
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -606,23 +603,27 @@ async def create_jira_issue(
 
 # ServiceNow Integration Endpoints
 
+
 @app.post("/api/servicenow/change-requests")
 async def create_servicenow_change_request(
     short_description: str,
     description: str,
     service_name: Optional[str] = None,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    llm_manager: LLMManager = Depends(get_llm_manager),
 ):
     """Create a ServiceNow change request."""
     try:
         # Find ServiceNow service
         services = llm_manager.list_service_configs()
         servicenow_service = None
-        
+
         if service_name:
             # Find specific service
             for service in services:
-                if service.name == service_name and service.service_type == "servicenow":
+                if (
+                    service.name == service_name
+                    and service.service_type == "servicenow"
+                ):
                     servicenow_service = service
                     break
         else:
@@ -631,24 +632,30 @@ async def create_servicenow_change_request(
                 if service.service_type == "servicenow" and service.is_enabled:
                     servicenow_service = service
                     break
-        
+
         if not servicenow_service:
-            raise HTTPException(status_code=404, detail="No ServiceNow service configured")
-        
+            raise HTTPException(
+                status_code=404, detail="No ServiceNow service configured"
+            )
+
         # Create change request using the PR automation service
         pr_automation = llm_manager.pr_automation
         servicenow_provider = pr_automation.services.get(servicenow_service.name)
-        
+
         if not servicenow_provider:
             raise HTTPException(status_code=404, detail="ServiceNow service not found")
-        
-        ticket_number = await servicenow_provider.create_change_request(short_description, description)
-        
+
+        ticket_number = await servicenow_provider.create_change_request(
+            short_description, description
+        )
+
         if ticket_number:
             return {"success": True, "ticket_number": ticket_number}
         else:
-            raise HTTPException(status_code=500, detail="Failed to create ServiceNow change request")
-            
+            raise HTTPException(
+                status_code=500, detail="Failed to create ServiceNow change request"
+            )
+
     except HTTPException:
         raise
     except Exception as e:
@@ -657,6 +664,7 @@ async def create_servicenow_change_request(
 
 
 # Security Intelligence Endpoints
+
 
 @app.get("/api/security/feeds", response_model=List[SecurityFeedResponse])
 async def list_security_feeds(llm_manager: LLMManager = Depends(get_llm_manager)):
@@ -671,7 +679,7 @@ async def list_security_feeds(llm_manager: LLMManager = Depends(get_llm_manager)
                 enabled=feed.enabled,
                 last_fetch=feed.last_fetch.isoformat() if feed.last_fetch else None,
                 fetch_interval=feed.fetch_interval,
-                tags=feed.tags
+                tags=feed.tags,
             )
             for feed in feeds
         ]
@@ -682,8 +690,7 @@ async def list_security_feeds(llm_manager: LLMManager = Depends(get_llm_manager)
 
 @app.post("/api/security/feeds", response_model=SecurityFeedResponse)
 async def add_security_feed(
-    feed: SecurityFeedRequest,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    feed: SecurityFeedRequest, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Add a new security feed."""
     try:
@@ -693,11 +700,11 @@ async def add_security_feed(
             feed_type=feed.feed_type,
             enabled=feed.enabled,
             fetch_interval=feed.fetch_interval,
-            tags=feed.tags
+            tags=feed.tags,
         )
-        
+
         llm_manager.add_security_feed(security_feed)
-        
+
         return SecurityFeedResponse(
             name=security_feed.name,
             url=security_feed.url,
@@ -705,7 +712,7 @@ async def add_security_feed(
             enabled=security_feed.enabled,
             last_fetch=None,
             fetch_interval=security_feed.fetch_interval,
-            tags=security_feed.tags
+            tags=security_feed.tags,
         )
     except Exception as e:
         logger.error(f"Error adding security feed: {e}")
@@ -714,8 +721,7 @@ async def add_security_feed(
 
 @app.delete("/api/security/feeds/{feed_name}")
 async def remove_security_feed(
-    feed_name: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    feed_name: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Remove a security feed."""
     try:
@@ -737,11 +743,13 @@ async def fetch_security_feeds(llm_manager: LLMManager = Depends(get_llm_manager
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/security/vulnerabilities", response_model=List[SecurityVulnerabilityResponse])
+@app.get(
+    "/api/security/vulnerabilities", response_model=List[SecurityVulnerabilityResponse]
+)
 async def get_security_vulnerabilities(
     severity: Optional[str] = None,
     limit: int = 100,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    llm_manager: LLMManager = Depends(get_llm_manager),
 ):
     """Get security vulnerabilities with optional filtering."""
     try:
@@ -754,11 +762,13 @@ async def get_security_vulnerabilities(
                 severity=vuln.severity,
                 cvss_score=vuln.cvss_score,
                 affected_products=vuln.affected_products,
-                published_date=vuln.published_date.isoformat() if vuln.published_date else None,
+                published_date=(
+                    vuln.published_date.isoformat() if vuln.published_date else None
+                ),
                 source=vuln.source,
                 tags=vuln.tags,
                 is_patched=vuln.is_patched,
-                patch_available=vuln.patch_available
+                patch_available=vuln.patch_available,
             )
             for vuln in vulnerabilities
         ]
@@ -769,8 +779,7 @@ async def get_security_vulnerabilities(
 
 @app.get("/api/security/breaches", response_model=List[SecurityBreachResponse])
 async def get_security_breaches(
-    limit: int = 100,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    limit: int = 100, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Get security breaches."""
     try:
@@ -781,14 +790,16 @@ async def get_security_breaches(
                 title=breach.title,
                 description=breach.description,
                 company=breach.company,
-                breach_date=breach.breach_date.isoformat() if breach.breach_date else None,
+                breach_date=(
+                    breach.breach_date.isoformat() if breach.breach_date else None
+                ),
                 affected_users=breach.affected_users,
                 data_types=breach.data_types,
                 attack_vector=breach.attack_vector,
                 severity=breach.severity,
                 source=breach.source,
                 lessons_learned=breach.lessons_learned,
-                mitigation_strategies=breach.mitigation_strategies
+                mitigation_strategies=breach.mitigation_strategies,
             )
             for breach in breaches
         ]
@@ -799,8 +810,7 @@ async def get_security_breaches(
 
 @app.get("/api/security/patches", response_model=List[SecurityPatchResponse])
 async def get_security_patches(
-    limit: int = 100,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    limit: int = 100, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Get security patches."""
     try:
@@ -812,13 +822,15 @@ async def get_security_patches(
                 description=patch.description,
                 affected_products=patch.affected_products,
                 patch_version=patch.patch_version,
-                release_date=patch.release_date.isoformat() if patch.release_date else None,
+                release_date=(
+                    patch.release_date.isoformat() if patch.release_date else None
+                ),
                 severity=patch.severity,
                 source=patch.source,
                 download_url=patch.download_url,
                 installation_instructions=patch.installation_instructions,
                 tested=patch.tested,
-                applied=patch.applied
+                applied=patch.applied,
             )
             for patch in patches
         ]
@@ -829,8 +841,7 @@ async def get_security_patches(
 
 @app.get("/api/security/training-data")
 async def get_security_training_data(
-    limit: int = 1000,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    limit: int = 1000, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Get security training data for AI models."""
     try:
@@ -843,8 +854,7 @@ async def get_security_training_data(
 
 @app.post("/api/security/patches/{patch_id}/apply")
 async def apply_security_patch(
-    patch_id: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    patch_id: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Mark a security patch as applied."""
     try:
@@ -857,19 +867,22 @@ async def apply_security_patch(
 
 @app.post("/api/security/vulnerabilities/{vuln_id}/patch")
 async def mark_vulnerability_patched(
-    vuln_id: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    vuln_id: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Mark a vulnerability as patched."""
     try:
         llm_manager.mark_vulnerability_patched(vuln_id)
-        return {"success": True, "message": f"Vulnerability '{vuln_id}' marked as patched"}
+        return {
+            "success": True,
+            "message": f"Vulnerability '{vuln_id}' marked as patched",
+        }
     except Exception as e:
         logger.error(f"Error marking vulnerability as patched: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # Code Standards Endpoints
+
 
 @app.get("/api/code-standards", response_model=List[CodeStandardResponse])
 async def list_code_standards(llm_manager: LLMManager = Depends(get_llm_manager)):
@@ -896,13 +909,13 @@ async def list_code_standards(llm_manager: LLMManager = Depends(get_llm_manager)
                         enabled=rule.enabled,
                         auto_fix=rule.auto_fix,
                         fix_template=rule.fix_template,
-                        tags=rule.tags
+                        tags=rule.tags,
                     )
                     for rule in standard.rules
                 ],
                 created_date=standard.created_date.isoformat(),
                 last_updated=standard.last_updated.isoformat(),
-                enabled=standard.enabled
+                enabled=standard.enabled,
             )
             for standard in standards
         ]
@@ -913,14 +926,13 @@ async def list_code_standards(llm_manager: LLMManager = Depends(get_llm_manager)
 
 @app.post("/api/code-standards", response_model=CodeStandardResponse)
 async def add_code_standard(
-    standard: CodeStandardRequest,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    standard: CodeStandardRequest, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Add a new code standard."""
     try:
         # Convert language strings to Language enum
         languages = [Language(lang) for lang in standard.languages]
-        
+
         # Convert rules
         rules = []
         for rule_data in standard.rules:
@@ -936,10 +948,10 @@ async def add_code_standard(
                 enabled=rule_data.enabled,
                 auto_fix=rule_data.auto_fix,
                 fix_template=rule_data.fix_template,
-                tags=rule_data.tags
+                tags=rule_data.tags,
             )
             rules.append(rule)
-        
+
         code_standard = CodeStandard(
             name=standard.name,
             description=standard.description,
@@ -947,11 +959,11 @@ async def add_code_standard(
             version=standard.version,
             languages=languages,
             rules=rules,
-            enabled=standard.enabled
+            enabled=standard.enabled,
         )
-        
+
         llm_manager.add_code_standard(code_standard)
-        
+
         return CodeStandardResponse(
             name=code_standard.name,
             description=code_standard.description,
@@ -971,13 +983,13 @@ async def add_code_standard(
                     enabled=rule.enabled,
                     auto_fix=rule.auto_fix,
                     fix_template=rule.fix_template,
-                    tags=rule.tags
+                    tags=rule.tags,
                 )
                 for rule in code_standard.rules
             ],
             created_date=code_standard.created_date.isoformat(),
             last_updated=code_standard.last_updated.isoformat(),
-            enabled=code_standard.enabled
+            enabled=code_standard.enabled,
         )
     except Exception as e:
         logger.error(f"Error adding code standard: {e}")
@@ -986,8 +998,7 @@ async def add_code_standard(
 
 @app.delete("/api/code-standards/{standard_name}")
 async def remove_code_standard(
-    standard_name: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    standard_name: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Remove a code standard."""
     try:
@@ -1005,7 +1016,7 @@ async def get_current_code_standard(llm_manager: LLMManager = Depends(get_llm_ma
         standard = llm_manager.get_current_code_standard()
         if not standard:
             return None
-        
+
         return CodeStandardResponse(
             name=standard.name,
             description=standard.description,
@@ -1025,13 +1036,13 @@ async def get_current_code_standard(llm_manager: LLMManager = Depends(get_llm_ma
                     enabled=rule.enabled,
                     auto_fix=rule.auto_fix,
                     fix_template=rule.fix_template,
-                    tags=rule.tags
+                    tags=rule.tags,
                 )
                 for rule in standard.rules
             ],
             created_date=standard.created_date.isoformat(),
             last_updated=standard.last_updated.isoformat(),
-            enabled=standard.enabled
+            enabled=standard.enabled,
         )
     except Exception as e:
         logger.error(f"Error getting current code standard: {e}")
@@ -1040,13 +1051,15 @@ async def get_current_code_standard(llm_manager: LLMManager = Depends(get_llm_ma
 
 @app.post("/api/code-standards/{standard_name}/set-current")
 async def set_current_code_standard(
-    standard_name: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    standard_name: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Set the current active code standard."""
     try:
         llm_manager.set_current_code_standard(standard_name)
-        return {"success": True, "message": f"Code standard '{standard_name}' set as current"}
+        return {
+            "success": True,
+            "message": f"Code standard '{standard_name}' set as current",
+        }
     except Exception as e:
         logger.error(f"Error setting current code standard: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1054,8 +1067,7 @@ async def set_current_code_standard(
 
 @app.post("/api/code-standards/analyze-file", response_model=CodeAnalysisResponse)
 async def analyze_code_file(
-    file_path: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    file_path: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Analyze a single file for code standard violations."""
     try:
@@ -1075,7 +1087,7 @@ async def analyze_code_file(
                     file_path=violation.file_path,
                     category=violation.category,
                     auto_fixable=violation.auto_fixable,
-                    suggested_fix=violation.suggested_fix
+                    suggested_fix=violation.suggested_fix,
                 )
                 for violation in result.violations
             ],
@@ -1083,7 +1095,7 @@ async def analyze_code_file(
             error_count=result.error_count,
             warning_count=result.warning_count,
             info_count=result.info_count,
-            auto_fixable_count=result.auto_fixable_count
+            auto_fixable_count=result.auto_fixable_count,
         )
     except Exception as e:
         logger.error(f"Error analyzing code file: {e}")
@@ -1092,8 +1104,7 @@ async def analyze_code_file(
 
 @app.post("/api/code-standards/analyze-directory")
 async def analyze_code_directory(
-    directory_path: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    directory_path: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Analyze all files in a directory for code standard violations."""
     try:
@@ -1115,7 +1126,7 @@ async def analyze_code_directory(
                             file_path=violation.file_path,
                             category=violation.category,
                             auto_fixable=violation.auto_fixable,
-                            suggested_fix=violation.suggested_fix
+                            suggested_fix=violation.suggested_fix,
                         )
                         for violation in result.violations
                     ],
@@ -1123,7 +1134,7 @@ async def analyze_code_directory(
                     error_count=result.error_count,
                     warning_count=result.warning_count,
                     info_count=result.info_count,
-                    auto_fixable_count=result.auto_fixable_count
+                    auto_fixable_count=result.auto_fixable_count,
                 )
                 for result in results
             ]
@@ -1137,12 +1148,15 @@ async def analyze_code_directory(
 async def export_code_standard(
     standard_name: str,
     export_path: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    llm_manager: LLMManager = Depends(get_llm_manager),
 ):
     """Export a code standard to a file."""
     try:
         llm_manager.export_code_standard(standard_name, export_path)
-        return {"success": True, "message": f"Code standard '{standard_name}' exported to {export_path}"}
+        return {
+            "success": True,
+            "message": f"Code standard '{standard_name}' exported to {export_path}",
+        }
     except Exception as e:
         logger.error(f"Error exporting code standard: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1150,23 +1164,27 @@ async def export_code_standard(
 
 @app.post("/api/code-standards/import")
 async def import_code_standard(
-    import_path: str,
-    llm_manager: LLMManager = Depends(get_llm_manager)
+    import_path: str, llm_manager: LLMManager = Depends(get_llm_manager)
 ):
     """Import a code standard from a file."""
     try:
         llm_manager.import_code_standard(import_path)
-        return {"success": True, "message": f"Code standard imported from {import_path}"}
+        return {
+            "success": True,
+            "message": f"Code standard imported from {import_path}",
+        }
     except Exception as e:
         logger.error(f"Error importing code standard: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # Run the API server
-def run_api_server(host: str = "0.0.0.0", port: int = 8000):  # nosec B104 - Web server needs to bind to all interfaces
+def run_api_server(
+    host: str = "0.0.0.0", port: int = 8000
+):  # nosec B104 - Web server needs to bind to all interfaces
     """Run the API server."""
     uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
-    run_api_server() 
+    run_api_server()

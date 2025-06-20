@@ -1,25 +1,34 @@
 """Unit and integration tests for persistence services."""
 
-import pytest
-import tempfile
 import shutil
-import time
-from pathlib import Path
+import tempfile
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
+from pathlib import Path
+
+import pytest
 
 from backend.services.model_persistence import (
-    ModelPersistenceService, ModelConfig, ModelStateRecord,
-    ModelType, ModelState
+    ModelConfig,
+    ModelPersistenceService,
+    ModelState,
+    ModelStateRecord,
+    ModelType,
 )
 from backend.services.scanner_persistence import (
-    ScannerPersistenceService, ScanResult, CodeIssue, FileAnalysis,
-    ScanStatus, IssueSeverity
+    CodeIssue,
+    FileAnalysis,
+    IssueSeverity,
+    ScannerPersistenceService,
+    ScanResult,
+    ScanStatus,
 )
 from src.backend.utils.constants import (
-    TEST_MAX_TOKENS, TEST_FILE_SIZE, TEST_SCAN_DURATION, 
-    TEST_ITERATION_COUNT, TEST_BATCH_SIZE
+    TEST_FILE_SIZE,
+    TEST_ITERATION_COUNT,
+    TEST_MAX_TOKENS,
+    TEST_SCAN_DURATION,
 )
+
 
 @pytest.fixture
 def temp_data_dir():
@@ -27,6 +36,7 @@ def temp_data_dir():
     temp_dir = tempfile.mkdtemp()
     yield Path(temp_dir)
     shutil.rmtree(temp_dir)
+
 
 @pytest.fixture
 def model_persistence(temp_data_dir):
@@ -36,6 +46,7 @@ def model_persistence(temp_data_dir):
     if hasattr(service, 'connection_pool'):
         service.connection_pool.close_all()
 
+
 @pytest.fixture
 def scanner_persistence(temp_data_dir):
     """Create a ScannerPersistenceService instance for testing."""
@@ -43,6 +54,7 @@ def scanner_persistence(temp_data_dir):
     yield service
     if hasattr(service, 'connection_pool'):
         service.connection_pool.close_all()
+
 
 class TestModelPersistenceService:
     """Test ModelPersistenceService functionality."""
@@ -58,11 +70,11 @@ class TestModelPersistenceService:
             parameters={"temperature": 0.7, "max_tokens": TEST_MAX_TOKENS},
             metadata={"author": "Test Author"}
         )
-        
+
         # Save config
         success = model_persistence.save_model_config(config)
         assert success
-        
+
         # Retrieve config
         retrieved_config = model_persistence.get_model_config("test-model-1")
         assert retrieved_config is not None
@@ -76,18 +88,29 @@ class TestModelPersistenceService:
         """Test retrieving all model configurations."""
         # Create multiple configs
         configs = [
-            ModelConfig(model_id="model-1", model_type=ModelType.OLLAMA, name="Model 1", version="1.0"),
-            ModelConfig(model_id="model-2", model_type=ModelType.LOCAL, name="Model 2", version="2.0"),
-            ModelConfig(model_id="model-3", model_type=ModelType.CLOUD, name="Model 3", version="3.0")
-        ]
-        
+            ModelConfig(
+                model_id="model-1",
+                model_type=ModelType.OLLAMA,
+                name="Model 1",
+                version="1.0"),
+            ModelConfig(
+                model_id="model-2",
+                model_type=ModelType.LOCAL,
+                name="Model 2",
+                version="2.0"),
+            ModelConfig(
+                model_id="model-3",
+                model_type=ModelType.CLOUD,
+                name="Model 3",
+                version="3.0")]
+
         for config in configs:
             model_persistence.save_model_config(config)
-        
+
         # Get all configs
         all_configs = model_persistence.get_all_model_configs()
         assert len(all_configs) >= 3
-        
+
         # Filter by type
         ollama_configs = model_persistence.get_all_model_configs(ModelType.OLLAMA)
         assert len(ollama_configs) >= 1
@@ -103,7 +126,7 @@ class TestModelPersistenceService:
             version="1.0.0"
         )
         model_persistence.save_model_config(config)
-        
+
         # Save state records
         states = [
             ModelStateRecord(
@@ -123,11 +146,11 @@ class TestModelPersistenceService:
                 error_message="Test error"
             )
         ]
-        
+
         for state in states:
             success = model_persistence.save_model_state(state)
             assert success
-        
+
         # Get state history
         state_history = model_persistence.get_model_states("test-model")
         assert len(state_history) >= 3
@@ -141,16 +164,16 @@ class TestModelPersistenceService:
             name="Delete Test",
             version="1.0.0"
         )
-        
+
         # Save and verify
         model_persistence.save_model_config(config)
         retrieved = model_persistence.get_model_config("delete-test")
         assert retrieved is not None
-        
+
         # Delete and verify
         success = model_persistence.delete_model_config("delete-test")
         assert success
-        
+
         retrieved = model_persistence.get_model_config("delete-test")
         assert retrieved is None
 
@@ -158,14 +181,25 @@ class TestModelPersistenceService:
         """Test model analytics functionality."""
         # Create some test data
         configs = [
-            ModelConfig(model_id="model-1", model_type=ModelType.OLLAMA, name="Model 1", version="1.0"),
-            ModelConfig(model_id="model-2", model_type=ModelType.OLLAMA, name="Model 2", version="1.0"),
-            ModelConfig(model_id="model-3", model_type=ModelType.LOCAL, name="Model 3", version="1.0")
-        ]
-        
+            ModelConfig(
+                model_id="model-1",
+                model_type=ModelType.OLLAMA,
+                name="Model 1",
+                version="1.0"),
+            ModelConfig(
+                model_id="model-2",
+                model_type=ModelType.OLLAMA,
+                name="Model 2",
+                version="1.0"),
+            ModelConfig(
+                model_id="model-3",
+                model_type=ModelType.LOCAL,
+                name="Model 3",
+                version="1.0")]
+
         for config in configs:
             model_persistence.save_model_config(config)
-        
+
         # Get analytics
         analytics = model_persistence.get_model_analytics()
         assert analytics["total_models"] >= 3
@@ -177,10 +211,11 @@ class TestModelPersistenceService:
         # Test getting non-existent config
         config = model_persistence.get_model_config("non-existent")
         assert config is None
-        
+
         # Test getting states for non-existent model
         states = model_persistence.get_model_states("non-existent")
         assert states == []
+
 
 class TestScannerPersistenceService:
     """Test ScannerPersistenceService functionality."""
@@ -200,11 +235,11 @@ class TestScannerPersistenceService:
             issues_found=5,
             metadata={"scan_duration": TEST_SCAN_DURATION}
         )
-        
+
         # Save scan result
         success = scanner_persistence.save_scan_result(scan_result)
         assert success
-        
+
         # Retrieve scan result
         retrieved = scanner_persistence.get_scan_result("test-scan-1")
         assert retrieved is not None
@@ -243,14 +278,14 @@ class TestScannerPersistenceService:
                 start_time=datetime.now()
             )
         ]
-        
+
         for scan in scans:
             scanner_persistence.save_scan_result(scan)
-        
+
         # Get all scan results
         all_scans = scanner_persistence.get_all_scan_results()
         assert len(all_scans) >= 3
-        
+
         # Filter by status
         completed_scans = scanner_persistence.get_all_scan_results(ScanStatus.COMPLETED)
         assert len(completed_scans) >= 1
@@ -268,7 +303,7 @@ class TestScannerPersistenceService:
             start_time=datetime.now()
         )
         scanner_persistence.save_scan_result(scan_result)
-        
+
         # Save code issues
         issues = [
             CodeIssue(
@@ -292,17 +327,18 @@ class TestScannerPersistenceService:
                 suggestion="Remove unused variable"
             )
         ]
-        
+
         for issue in issues:
             success = scanner_persistence.save_code_issue(issue)
             assert success
-        
+
         # Get all issues for scan
         all_issues = scanner_persistence.get_code_issues("test-scan")
         assert len(all_issues) == 2
-        
+
         # Filter by severity
-        high_issues = scanner_persistence.get_code_issues("test-scan", IssueSeverity.HIGH)
+        high_issues = scanner_persistence.get_code_issues(
+            "test-scan", IssueSeverity.HIGH)
         assert len(high_issues) == 1
         assert high_issues[0].severity == IssueSeverity.HIGH
 
@@ -318,7 +354,7 @@ class TestScannerPersistenceService:
             start_time=datetime.now()
         )
         scanner_persistence.save_scan_result(scan_result)
-        
+
         # Save file analysis
         analysis = FileAnalysis(
             file_id="file-1",
@@ -331,10 +367,10 @@ class TestScannerPersistenceService:
             issues_count=2,
             analysis_data={"cyclomatic_complexity": 3, "maintainability_index": 85}
         )
-        
+
         success = scanner_persistence.save_file_analysis(analysis)
         assert success
-        
+
         # Get file analysis
         analyses = scanner_persistence.get_file_analysis("test-scan")
         assert len(analyses) == 1
@@ -356,7 +392,7 @@ class TestScannerPersistenceService:
             issues_found=3
         )
         scanner_persistence.save_scan_result(scan_result)
-        
+
         # Add some issues
         issues = [
             CodeIssue(
@@ -378,10 +414,10 @@ class TestScannerPersistenceService:
                 description="Test issue 2"
             )
         ]
-        
+
         for issue in issues:
             scanner_persistence.save_code_issue(issue)
-        
+
         # Get analytics
         analytics = scanner_persistence.get_scanner_analytics()
         assert analytics["total_scans"] >= 1
@@ -401,7 +437,7 @@ class TestScannerPersistenceService:
             start_time=datetime.now()
         )
         scanner_persistence.save_scan_result(scan_result)
-        
+
         # Add an issue
         issue = CodeIssue(
             issue_id="issue-1",
@@ -413,22 +449,22 @@ class TestScannerPersistenceService:
             description="Test issue"
         )
         scanner_persistence.save_code_issue(issue)
-        
+
         # Verify data exists
         retrieved_scan = scanner_persistence.get_scan_result("delete-test")
         assert retrieved_scan is not None
-        
+
         retrieved_issues = scanner_persistence.get_code_issues("delete-test")
         assert len(retrieved_issues) == 1
-        
+
         # Delete scan result
         success = scanner_persistence.delete_scan_result("delete-test")
         assert success
-        
+
         # Verify cascading delete
         retrieved_scan = scanner_persistence.get_scan_result("delete-test")
         assert retrieved_scan is None
-        
+
         retrieved_issues = scanner_persistence.get_code_issues("delete-test")
         assert len(retrieved_issues) == 0
 
@@ -437,14 +473,15 @@ class TestScannerPersistenceService:
         # Test getting non-existent scan result
         scan = scanner_persistence.get_scan_result("non-existent")
         assert scan is None
-        
+
         # Test getting issues for non-existent scan
         issues = scanner_persistence.get_code_issues("non-existent")
         assert issues == []
-        
+
         # Test getting file analysis for non-existent scan
         analyses = scanner_persistence.get_file_analysis("non-existent")
         assert analyses == []
+
 
 class TestPersistenceServicesIntegration:
     """Integration tests for persistence services."""
@@ -452,10 +489,9 @@ class TestPersistenceServicesIntegration:
     def test_concurrent_operations(self, model_persistence, scanner_persistence):
         """Test concurrent operations on persistence services."""
         import threading
-        import time
-        
+
         results = []
-        
+
         def model_operation(operation_id):
             config = ModelConfig(
                 model_id=f"concurrent-model-{operation_id}",
@@ -465,7 +501,7 @@ class TestPersistenceServicesIntegration:
             )
             success = model_persistence.save_model_config(config)
             results.append(("model", operation_id, success))
-        
+
         def scanner_operation(operation_id):
             scan_result = ScanResult(
                 scan_id=f"concurrent-scan-{operation_id}",
@@ -477,7 +513,7 @@ class TestPersistenceServicesIntegration:
             )
             success = scanner_persistence.save_scan_result(scan_result)
             results.append(("scanner", operation_id, success))
-        
+
         # Run operations concurrently
         threads = []
         for i in range(10):
@@ -485,13 +521,13 @@ class TestPersistenceServicesIntegration:
             threads.append(thread)
             thread = threading.Thread(target=scanner_operation, args=(i,))
             threads.append(thread)
-        
+
         for thread in threads:
             thread.start()
-        
+
         for thread in threads:
             thread.join()
-        
+
         # Verify all operations completed successfully
         assert len(results) == 20
         assert all(result[2] for result in results)  # All operations successful
@@ -507,7 +543,7 @@ class TestPersistenceServicesIntegration:
             parameters={"temperature": 0.7}
         )
         model_persistence.save_model_config(config)
-        
+
         # Create scan result using the model
         scan_result = ScanResult(
             scan_id="integrity-test-scan",
@@ -518,12 +554,12 @@ class TestPersistenceServicesIntegration:
             start_time=datetime.now()
         )
         scanner_persistence.save_scan_result(scan_result)
-        
+
         # Verify data integrity
         retrieved_config = model_persistence.get_model_config("integrity-test")
         retrieved_scan = scanner_persistence.get_scan_result("integrity-test-scan")
-        
+
         assert retrieved_config is not None
         assert retrieved_scan is not None
         assert retrieved_scan.model_used == retrieved_config.model_id
-        assert retrieved_config.parameters["temperature"] == 0.7 
+        assert retrieved_config.parameters["temperature"] == 0.7

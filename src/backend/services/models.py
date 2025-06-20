@@ -23,13 +23,14 @@ Defines structures for models, providers, and configurations.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class ProviderType(Enum):
     """Supported LLM providers."""
+
     OPENAI = "openai"
     GOOGLE = "google"
     GOOGLE_GEMINI = "google_gemini"
@@ -40,6 +41,7 @@ class ProviderType(Enum):
 
 class ModelType(Enum):
     """Model types/categories."""
+
     CHAT = "chat"
     COMPLETION = "completion"
     EMBEDDING = "embedding"
@@ -50,6 +52,7 @@ class ModelType(Enum):
 @dataclass
 class ModelConfig:
     """Configuration for a specific model."""
+
     name: str
     provider: ProviderType
     model_type: ModelType
@@ -71,6 +74,7 @@ class ModelConfig:
 @dataclass
 class ProviderConfig:
     """Configuration for an AI provider."""
+
     provider_type: ProviderType
     api_key: str
     base_url: Optional[str] = None
@@ -82,7 +86,7 @@ class ProviderConfig:
     is_enabled: bool = True
     priority: int = 0
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     # Ollama-specific fields
     verify_ssl: bool = True
     custom_endpoints: Optional[Dict[str, str]] = None
@@ -93,6 +97,7 @@ class ProviderConfig:
 @dataclass
 class LLMModel:
     """Complete LLM model information."""
+
     config: ModelConfig
     provider_config: ProviderConfig
     last_used: Optional[datetime] = None
@@ -103,6 +108,7 @@ class LLMModel:
 @dataclass
 class ChatMessage:
     """Chat message structure."""
+
     role: str  # "system", "user", "assistant", "function"
     content: str
     name: Optional[str] = None
@@ -113,6 +119,7 @@ class ChatMessage:
 @dataclass
 class ChatCompletionRequest:
     """Request for chat completion."""
+
     messages: List[ChatMessage]
     model: str
     temperature: Optional[float] = None
@@ -129,6 +136,7 @@ class ChatCompletionRequest:
 @dataclass
 class ChatCompletionResponse:
     """Response from chat completion."""
+
     id: str
     model: str
     created: datetime
@@ -143,6 +151,7 @@ class ChatCompletionResponse:
 @dataclass
 class ModelUsage:
     """Model usage statistics."""
+
     model_name: str
     provider: ProviderType
     tokens_used: int
@@ -156,6 +165,7 @@ class ModelUsage:
 @dataclass
 class LLMStudioConfig:
     """Global LLM Studio configuration."""
+
     providers: Dict[ProviderType, ProviderConfig] = field(default_factory=dict)
     models: Dict[str, ModelConfig] = field(default_factory=dict)
     default_provider: ProviderType = ProviderType.OPENAI
@@ -168,4 +178,4 @@ class LLMStudioConfig:
     enable_metrics: bool = True
     cost_tracking: bool = True
     auto_switch_on_error: bool = True
-    ollama_instances: List[ProviderConfig] = field(default_factory=list) 
+    ollama_instances: List[ProviderConfig] = field(default_factory=list)

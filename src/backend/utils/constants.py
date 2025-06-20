@@ -22,9 +22,9 @@ Constants for the AI Coder Assistant application.
 Centralizes magic numbers and configuration values.
 """
 
-import os
 
 # UI Layout Constants
+import os
 WINDOW_DEFAULT_X = 100
 WINDOW_DEFAULT_Y = 100
 WINDOW_DEFAULT_WIDTH = 1200
@@ -100,7 +100,7 @@ DEFAULT_FOREGROUND_COLOR = "#CCCCCC"
 DEFAULT_BORDER_COLOR = "#444444"
 
 # User Agent
-DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 
 # API Endpoints
 OLLAMA_API_BASE_URL = "http://localhost:11434/api"
@@ -131,7 +131,7 @@ MAX_PROMPT_LENGTH = 100
 MAX_FILE_SIZE_KB = 512  # 512KB limit for better performance
 
 # Default Values
-DEFAULT_SEVERITY_COLOR = '888888'
+DEFAULT_SEVERITY_COLOR = "888888"
 DEFAULT_PERCENTAGE_MULTIPLIER = 100
 
 # --- Added for continuous learning and backend modules ---
@@ -143,13 +143,22 @@ DEFAULT_BATCH_SIZE = 64
 DEFAULT_TIMEOUT = 30  # seconds
 MAX_RETRIES = 3
 RETRY_DELAY = 1  # seconds
-SUPPORTED_PROVIDERS = ["openai", "anthropic", "google", "azure", "aws_bedrock", "cohere"]
+SUPPORTED_PROVIDERS = [
+    "openai",
+    "anthropic",
+    "google",
+    "azure",
+    "aws_bedrock",
+    "cohere",
+]
 
 # Scanner Constants
 MAX_ISSUES_PER_FILE = 100
 SCAN_TIMEOUT_SECONDS = 300  # 5 minutes
 BYTES_PER_KB = 1024
 DEFAULT_SCAN_LIMIT = 100
+AI_SUGGESTION_TIMEOUT_SECONDS = 15  # Timeout for AI suggestion generation
+LINTER_TIMEOUT_SECONDS = 30  # Timeout for linter execution
 
 # Test Constants
 TEST_TIMEOUT_MS = 5000
@@ -178,10 +187,14 @@ TEST_DELAY_MS = 5
 LOG_ROTATION_MAX_BYTES = 10 * 1024 * 1024  # 10MB
 
 # Temporary directory for processing
-TMP_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "tmp")
+TMP_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "tmp"
+)
 
 # Data directory
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+DATA_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data"
+)
 
 # Continuous Learning
 CONTINUOUS_LEARNING_DB_PATH = os.path.join(DATA_DIR, "continuous_learning.db")
@@ -205,4 +218,4 @@ MARKDOWN_VIEWER_FG_COLOR = "#CCCCCC"
 DEFAULT_MAX_WORKERS = 4
 
 SSL_VERIFY_DEFAULT = True
-VERIFY_DEFAULT = True 
+VERIFY_DEFAULT = True

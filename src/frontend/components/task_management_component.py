@@ -1,16 +1,19 @@
 """Task Management UI component for AI Coder Assistant."""
 
 from typing import Optional
-from PyQt6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QListWidget
-from PyQt6.QtCore import pyqtSlot
 
-from frontend.components.base_component import BaseComponent, ComponentState
+from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QListWidget, QPushButton, QVBoxLayout
+
+from core.error import ErrorSeverity
 from core.events import Event, EventType
 from core.logging import LogManager
-from core.error import ErrorSeverity
+from frontend.components.base_component import BaseComponent, ComponentState
+
 
 class TaskManagementComponent(BaseComponent):
     """UI component for managing tasks (create/update/status/scheduling)."""
+
     def __init__(self, parent: Optional[object] = None):
         super().__init__(parent)
         self._logger = LogManager().get_logger("TaskManagementComponent")
@@ -41,13 +44,17 @@ class TaskManagementComponent(BaseComponent):
     def create_task(self):
         self.status_label.setText("Creating task...")
         self.state = ComponentState.ACTIVATING
-        self.publish_event(Event(type=EventType.TASK_STARTED, data={"action": "create"}))
+        self.publish_event(
+            Event(type=EventType.TASK_STARTED, data={"action": "create"})
+        )
 
     @pyqtSlot()
     def schedule_tasks(self):
         self.status_label.setText("Scheduling tasks...")
         self.state = ComponentState.ACTIVATING
-        self.publish_event(Event(type=EventType.TASK_STARTED, data={"action": "schedule"}))
+        self.publish_event(
+            Event(type=EventType.TASK_STARTED, data={"action": "schedule"})
+        )
 
     def on_task_started(self, event: Event):
         action = event.data.get("action", "unknown") if event.data else "unknown"
@@ -62,7 +69,9 @@ class TaskManagementComponent(BaseComponent):
         self._logger.info(f"Task {task_id} completed")
 
     def on_task_failed(self, event: Event):
-        error_msg = event.data.get("error", "Unknown error") if event.data else "Unknown error"
+        error_msg = (
+            event.data.get("error", "Unknown error") if event.data else "Unknown error"
+        )
         task_id = event.data.get("task_id", "?") if event.data else "?"
         self.status_label.setText(f"Task {task_id} failed: {error_msg}")
         self.state = ComponentState.ERROR
@@ -85,4 +94,4 @@ class TaskManagementComponent(BaseComponent):
 
     async def deactivate(self) -> bool:
         self.state = ComponentState.DEACTIVATED
-        return True 
+        return True

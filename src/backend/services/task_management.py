@@ -27,29 +27,32 @@ Provides persistent task management with advanced features including:
 - Task analytics and reporting
 """
 
-import json
-import logging
-import sqlite3
-import threading
-import time
-from datetime import datetime, timedelta
-from enum import Enum, auto
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple, Callable, Set, TypeVar, Generator
-from dataclasses import dataclass, asdict, field
-from contextlib import contextmanager
-from src.core.config import Config
 from src.core.logging import LogManager
+from src.core.events import Event, EventBus, EventType
 from src.core.error import ErrorHandler, ErrorSeverity
-from src.core.events import EventBus, Event, EventType
-import heapq
+from src.core.config import Config
+from typing import Any, Callable, Dict, Generator, List, Optional, Set, Tuple, TypeVar
+from pathlib import Path
+from enum import Enum, auto
+from datetime import datetime, timedelta
+from dataclasses import asdict, dataclass, field
+from contextlib import contextmanager
+import time
+import threading
+import sqlite3
 import queue
+import logging
+import json
 import concurrent.futures
+import heapq
+
 
 # Define our own TaskStatus enum since we removed the core.threading module
 
+
 class TaskStatus(Enum):
     """Canonical task status values."""
+
     TODO = "todo"
     IN_PROGRESS = "in_progress"
     REVIEW = "review"
@@ -58,26 +61,45 @@ class TaskStatus(Enum):
     FAILED = "failed"
     BLOCKED = "blocked"
 
+
 # Mapping from various string representations to the canonical enum value
 STATUS_MAP = {
     # Variants for 'todo'
-    "Pending": "todo", "pending": "todo", "PENDING": "todo",
-    "To Do": "todo", "to do": "todo", "TODO": "todo",
-
+    "Pending": "todo",
+    "pending": "todo",
+    "PENDING": "todo",
+    "To Do": "todo",
+    "to do": "todo",
+    "TODO": "todo",
     # Variants for 'in_progress'
-    "In Progress": "in_progress", "in progress": "in_progress", "IN_PROGRESS": "in_progress",
-    "Running": "in_progress", "running": "in_progress", "RUNNING": "in_progress",
-
+    "In Progress": "in_progress",
+    "in progress": "in_progress",
+    "IN_PROGRESS": "in_progress",
+    "Running": "in_progress",
+    "running": "in_progress",
+    "RUNNING": "in_progress",
     # Variants for 'done'
-    "Done": "done", "done": "done", "DONE": "done",
-    "Completed": "done", "completed": "done", "COMPLETED": "done",
-
+    "Done": "done",
+    "done": "done",
+    "DONE": "done",
+    "Completed": "done",
+    "completed": "done",
+    "COMPLETED": "done",
     # Variants for other statuses
-    "Cancelled": "cancelled", "cancelled": "cancelled", "CANCELLED": "cancelled",
-    "Failed": "failed", "failed": "failed", "FAILED": "failed",
-    "Blocked": "blocked", "blocked": "blocked", "BLOCKED": "blocked",
-    "Review": "review", "review": "review", "REVIEW": "review",
+    "Cancelled": "cancelled",
+    "cancelled": "cancelled",
+    "CANCELLED": "cancelled",
+    "Failed": "failed",
+    "failed": "failed",
+    "FAILED": "failed",
+    "Blocked": "blocked",
+    "blocked": "blocked",
+    "BLOCKED": "blocked",
+    "Review": "review",
+    "review": "review",
+    "REVIEW": "review",
 }
+
 
 def _normalize_status(status_str: str) -> TaskStatus:
     """Normalizes a status string and returns a TaskStatus enum member."""
@@ -92,11 +114,15 @@ def _normalize_status(status_str: str) -> TaskStatus:
     try:
         return TaskStatus(normalized_value)
     except ValueError:
-        logger.warning(f"'{status_str}' normalized to '{normalized_value}' which is not a valid TaskStatus. Defaulting to TODO.")
+        logger.warning(
+            f"'{status_str}' normalized to '{normalized_value}' which is not a valid TaskStatus. Defaulting to TODO."
+        )
         return TaskStatus.TODO
+
 
 class TaskResult:
     """Task result class."""
+
     def __init__(self, task_id: str, status: TaskStatus, result=None, error=None):
         self.task_id = task_id
         self.status = status
@@ -104,19 +130,24 @@ class TaskResult:
         self.error = error
         self.completed_at = datetime.now()
 
+
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class TaskPriority(Enum):
     """Task priority levels."""
+
     LOW = auto()
     MEDIUM = auto()
     HIGH = auto()
     CRITICAL = auto()
 
+
 class TaskCategory(Enum):
     """Task categories."""
+
     SCAN = auto()
     MODEL = auto()
     ANALYSIS = auto()
@@ -124,9 +155,11 @@ class TaskCategory(Enum):
     MAINTENANCE = auto()
     OTHER = auto()
 
+
 @dataclass
 class TaskMetadata:
     """Task metadata."""
+
     category: TaskCategory
     priority: TaskPriority
     description: str
@@ -134,9 +167,11 @@ class TaskMetadata:
     tags: Set[str]
     dependencies: Set[str]
 
+
 @dataclass
 class Task:
     """Task data structure."""
+
     id: int
     title: str
     description: str
@@ -154,24 +189,30 @@ class Task:
     project: str = "Default"
     created_by: str = "System"
     last_modified: Optional[datetime] = None
-    
+
     def __post_init__(self):
         if self.last_modified is None:
             self.last_modified = datetime.now()
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for storage."""
         data = asdict(self)
-        data['status'] = self.status.value
-        data['priority'] = self.priority.value
-        data['created_date'] = self.created_date.isoformat() if self.created_date else None
-        data['due_date'] = self.due_date.isoformat() if self.due_date else None
-        data['completed_date'] = self.completed_date.isoformat() if self.completed_date else None
-        data['last_modified'] = self.last_modified.isoformat() if self.last_modified else None
+        data["status"] = self.status.value
+        data["priority"] = self.priority.value
+        data["created_date"] = (
+            self.created_date.isoformat() if self.created_date else None
+        )
+        data["due_date"] = self.due_date.isoformat() if self.due_date else None
+        data["completed_date"] = (
+            self.completed_date.isoformat() if self.completed_date else None
+        )
+        data["last_modified"] = (
+            self.last_modified.isoformat() if self.last_modified else None
+        )
         return data
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Task':
+    def from_dict(cls, data: Dict[str, Any]) -> "Task":
         """Create Task from dictionary."""
         # Map legacy/alternate status values to enum
         status_map = {
@@ -206,7 +247,7 @@ class Task:
             "review": "Review",
             "REVIEW": "Review",
         }
-        
+
         # Map legacy/alternate priority values to enum
         priority_map = {
             "Low": TaskPriority.LOW,
@@ -222,33 +263,34 @@ class Task:
             "critical": TaskPriority.CRITICAL,
             "CRITICAL": TaskPriority.CRITICAL,
         }
-        
-        status_str = data['status']
+
+        status_str = data["status"]
         status_str = status_map.get(status_str, status_str)
-        data['status'] = _normalize_status(status_str)
-        
+        data["status"] = _normalize_status(status_str)
+
         # Handle priority conversion
-        priority_value = data['priority']
+        priority_value = data["priority"]
         if isinstance(priority_value, str):
-            data['priority'] = priority_map.get(priority_value, TaskPriority.MEDIUM)
+            data["priority"] = priority_map.get(priority_value, TaskPriority.MEDIUM)
         else:
-            data['priority'] = TaskPriority(priority_value)
-            
+            data["priority"] = TaskPriority(priority_value)
+
         # Convert ISO strings back to datetime objects
-        if isinstance(data['created_date'], str):
-            data['created_date'] = datetime.fromisoformat(data['created_date'])
-        if data.get('due_date') and isinstance(data['due_date'], str):
-            data['due_date'] = datetime.fromisoformat(data['due_date'])
-        if data.get('completed_date') and isinstance(data['completed_date'], str):
-            data['completed_date'] = datetime.fromisoformat(data['completed_date'])
-        if data.get('last_modified') and isinstance(data['last_modified'], str):
-            data['last_modified'] = datetime.fromisoformat(data['last_modified'])
+        if isinstance(data["created_date"], str):
+            data["created_date"] = datetime.fromisoformat(data["created_date"])
+        if data.get("due_date") and isinstance(data["due_date"], str):
+            data["due_date"] = datetime.fromisoformat(data["due_date"])
+        if data.get("completed_date") and isinstance(data["completed_date"], str):
+            data["completed_date"] = datetime.fromisoformat(data["completed_date"])
+        if data.get("last_modified") and isinstance(data["last_modified"], str):
+            data["last_modified"] = datetime.fromisoformat(data["last_modified"])
         return cls(**data)
 
 
 @dataclass
 class TaskAnalytics:
     """Task analytics data."""
+
     total_tasks: int
     completed_tasks: int
     in_progress_tasks: int
@@ -261,22 +303,28 @@ class TaskAnalytics:
 
 class DatabaseConnectionPool:
     """Thread-safe database connection pool for better concurrency."""
-    
+
     def __init__(self, db_path: Path, max_connections: int = 10):
         self.db_path = db_path
         self.max_connections = max_connections
-        self._connections: queue.Queue[sqlite3.Connection] = queue.Queue(maxsize=max_connections)
+        self._connections: queue.Queue[sqlite3.Connection] = queue.Queue(
+            maxsize=max_connections
+        )
         self._lock = threading.Lock()
-        
+
         # Initialize connections
         for _ in range(max_connections):
             conn = sqlite3.connect(str(db_path), check_same_thread=False)
-            conn.execute("PRAGMA journal_mode=WAL")  # Enable WAL mode for better concurrency
-            conn.execute("PRAGMA synchronous=NORMAL")  # Balance between safety and performance
+            conn.execute(
+                "PRAGMA journal_mode=WAL"
+            )  # Enable WAL mode for better concurrency
+            conn.execute(
+                "PRAGMA synchronous=NORMAL"
+            )  # Balance between safety and performance
             conn.execute("PRAGMA cache_size=10000")  # Increase cache size
             conn.execute("PRAGMA temp_store=MEMORY")  # Store temp tables in memory
             self._connections.put(conn)
-    
+
     @contextmanager
     def get_connection(self) -> Generator[sqlite3.Connection, None, None]:
         """Get a database connection from the pool."""
@@ -292,7 +340,7 @@ class DatabaseConnectionPool:
                     self._connections.put(conn, timeout=1.0)
                 except queue.Full:
                     conn.close()  # Close if pool is full
-    
+
     def close_all(self) -> None:
         """Close all connections in the pool."""
         while not self._connections.empty():
@@ -302,17 +350,18 @@ class DatabaseConnectionPool:
             except queue.Empty:
                 break
 
+
 class TaskManagementService:
     """
     Main task management service with persistence and advanced features.
     Now includes thread-safe priority scheduling and dependency resolution.
     Enhanced with connection pooling and better error handling.
     """
-    
+
     def __init__(self, data_dir: str = "data", db_name: str = "tasks.db"):
         """
         Initialize task management service.
-        
+
         Args:
             data_dir: Directory for storing task data
             db_name: SQLite database filename
@@ -320,50 +369,56 @@ class TaskManagementService:
         try:
             self.data_dir = Path(data_dir)
             self.data_dir.mkdir(parents=True, exist_ok=True)
-            
+
             self.db_path = self.data_dir / db_name
             self._lock = threading.Lock()
-            
+
             # Initialize connection pool
             self._init_database()
             self.connection_pool = DatabaseConnectionPool(self.db_path)
-            
+
             # Load initial data
             self._load_sample_tasks()
-            
+
             logger.info("Task Management Service initialized with connection pool")
-            
+
             # Try to import optional dependencies
             try:
                 from src.core.config import Config
+
                 self.config = Config()
             except ImportError:
-                logger.warning("Config module not available, using default configuration")
+                logger.warning(
+                    "Config module not available, using default configuration"
+                )
                 self.config = None
-            
+
             try:
                 from src.core.logging import LogManager
-                self.logger = LogManager().get_logger('task_service')
+
+                self.logger = LogManager().get_logger("task_service")
             except ImportError:
                 logger.warning("LogManager not available, using default logger")
                 self.logger = logger
-            
+
             try:
                 from src.core.error import ErrorHandler
+
                 self.error_handler = ErrorHandler()
             except ImportError:
                 logger.warning("ErrorHandler not available")
                 self.error_handler = None
-            
+
             try:
                 from src.core.events import EventBus
+
                 self.event_bus = EventBus()
             except ImportError:
                 logger.warning("EventBus not available")
                 self.event_bus = None
-            
+
             self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
-            
+
             self._tasks: Dict[str, TaskMetadata] = {}
             self._dependencies: Dict[str, Set[str]] = {}
             self._blocked_tasks: Set[str] = set()
@@ -371,7 +426,7 @@ class TaskManagementService:
             self._priority_queue = []  # (priority, created_date, task_id)
             self._queue_lock = threading.Lock()
             self._scheduled_tasks: Set[int] = set()
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize TaskManagementService: {e}")
             # Set minimal attributes to prevent further crashes
@@ -396,9 +451,10 @@ class TaskManagementService:
         with sqlite3.connect(self.db_path) as conn:
             # Enable foreign keys
             conn.execute("PRAGMA foreign_keys=ON")
-            
+
             # Create tasks table with indexes for better performance
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS tasks (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT NOT NULL,
@@ -418,16 +474,26 @@ class TaskManagementService:
                     created_by TEXT DEFAULT 'System',
                     last_modified TEXT NOT NULL
                 )
-            """)
-            
+            """
+            )
+
             # Create indexes for better query performance
             conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date)")
-            
-            conn.execute("""
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date)"
+            )
+
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS task_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     task_id INTEGER NOT NULL,
@@ -438,15 +504,22 @@ class TaskManagementService:
                     user TEXT NOT NULL,
                     FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE
                 )
-            """)
-            
+            """
+            )
+
             # Create index for task history
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_task_history_task_id ON task_history(task_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_task_history_timestamp ON task_history(timestamp)")
-            
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_task_history_task_id ON task_history(task_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_task_history_timestamp ON task_history(timestamp)"
+            )
+
             conn.commit()
 
-    def _execute_with_retry(self, operation: Callable[[sqlite3.Connection], Any], max_retries: int = 3) -> Any:
+    def _execute_with_retry(
+        self, operation: Callable[[sqlite3.Connection], Any], max_retries: int = 3
+    ) -> Any:
         """Execute database operation with retry logic."""
         last_exception: Optional[Exception] = None
         for attempt in range(max_retries):
@@ -455,14 +528,14 @@ class TaskManagementService:
                     return operation(conn)
             except sqlite3.OperationalError as e:
                 if "database is locked" in str(e).lower() and attempt < max_retries - 1:
-                    time.sleep(0.1 * (2 ** attempt))  # Exponential backoff
+                    time.sleep(0.1 * (2**attempt))  # Exponential backoff
                     last_exception = e
                     continue
                 raise
             except Exception as e:
                 last_exception = e
                 if attempt < max_retries - 1:
-                    time.sleep(0.1 * (2 ** attempt))
+                    time.sleep(0.1 * (2**attempt))
                     continue
                 raise
         if last_exception:
@@ -472,6 +545,7 @@ class TaskManagementService:
     def _load_sample_tasks(self) -> None:
         """Load sample tasks if database is empty."""
         try:
+
             def load_operation(conn: sqlite3.Connection) -> None:
                 cursor = conn.execute("SELECT COUNT(*) FROM tasks")
                 if cursor.fetchone()[0] == 0:
@@ -487,7 +561,7 @@ class TaskManagementService:
                             "estimated_hours": 16.0,
                             "tags": ["backend", "security", "authentication"],
                             "project": "User Management",
-                            "created_by": "Project Manager"
+                            "created_by": "Project Manager",
                         },
                         {
                             "title": "Fix database connection timeout issue",
@@ -501,19 +575,21 @@ class TaskManagementService:
                             "actual_hours": 3.5,
                             "tags": ["database", "bug-fix"],
                             "project": "Infrastructure",
-                            "created_by": "System Admin"
-                        }
+                            "created_by": "System Admin",
+                        },
                     ]
-                    
+
                     for task_data in sample_tasks:
                         try:
                             self._insert_task(task_data)
                         except Exception as e:
-                            logger.warning(f"Failed to insert sample task '{task_data['title']}': {e}")
+                            logger.warning(
+                                f"Failed to insert sample task '{task_data['title']}': {e}"
+                            )
                             continue
-                    
+
                     logger.info("Loaded sample tasks")
-            
+
             self._execute_with_retry(load_operation)
         except Exception as e:
             logger.warning(f"Failed to load sample tasks: {e}")
@@ -521,54 +597,75 @@ class TaskManagementService:
 
     def _insert_task(self, task_data: Dict[str, Any]) -> int:
         """Insert a task into the database with retry logic."""
+
         def insert_operation(conn: sqlite3.Connection) -> int:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 INSERT INTO tasks (
                     title, description, assignee, status, priority, created_date,
                     due_date, completed_date, estimated_hours, actual_hours,
                     tags, dependencies, parent_task_id, project, created_by, last_modified
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                task_data["title"],
-                task_data.get("description", ""),
-                task_data["assignee"],
-                task_data["status"].value,
-                task_data["priority"].value,
-                task_data["created_date"].isoformat() if task_data.get("created_date") else None,
-                task_data.get("due_date").isoformat() if task_data.get("due_date") else None,
-                task_data.get("completed_date").isoformat() if task_data.get("completed_date") else None,
-                task_data.get("estimated_hours"),
-                task_data.get("actual_hours"),
-                json.dumps(task_data.get("tags", [])),
-                json.dumps(task_data.get("dependencies", [])),
-                task_data.get("parent_task_id"),
-                task_data.get("project", "Default"),
-                task_data.get("created_by", "System"),
-                datetime.now().isoformat()
-            ))
+            """,
+                (
+                    task_data["title"],
+                    task_data.get("description", ""),
+                    task_data["assignee"],
+                    task_data["status"].value,
+                    task_data["priority"].value,
+                    (
+                        task_data["created_date"].isoformat()
+                        if task_data.get("created_date")
+                        else None
+                    ),
+                    (
+                        task_data.get("due_date").isoformat()
+                        if task_data.get("due_date")
+                        else None
+                    ),
+                    (
+                        task_data.get("completed_date").isoformat()
+                        if task_data.get("completed_date")
+                        else None
+                    ),
+                    task_data.get("estimated_hours"),
+                    task_data.get("actual_hours"),
+                    json.dumps(task_data.get("tags", [])),
+                    json.dumps(task_data.get("dependencies", [])),
+                    task_data.get("parent_task_id"),
+                    task_data.get("project", "Default"),
+                    task_data.get("created_by", "System"),
+                    datetime.now().isoformat(),
+                ),
+            )
             task_id = cursor.lastrowid
             return int(task_id) if task_id is not None else -1
-        
+
         return self._execute_with_retry(insert_operation)
 
     def get_task(self, task_id: int) -> Optional[Task]:
         """Get a task by ID with retry logic."""
+
         def get_operation(conn: sqlite3.Connection) -> Optional[Task]:
             cursor = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
             row = cursor.fetchone()
             return self._row_to_task(row) if row else None
-        
+
         return self._execute_with_retry(get_operation)
 
-    def get_all_tasks(self, project: Optional[str] = None, 
-                     assignee: Optional[str] = None,
-                     status: Optional[TaskStatus] = None,
-                     priority: Optional[TaskPriority] = None) -> List[Task]:
+    def get_all_tasks(
+        self,
+        project: Optional[str] = None,
+        assignee: Optional[str] = None,
+        status: Optional[TaskStatus] = None,
+        priority: Optional[TaskPriority] = None,
+    ) -> List[Task]:
         """Get all tasks with filtering and retry logic."""
+
         def get_all_operation(conn: sqlite3.Connection) -> List[Task]:
             query = "SELECT * FROM tasks WHERE 1=1"
             params = []
-            
+
             if project:
                 query += " AND project = ?"
                 params.append(project)
@@ -581,29 +678,34 @@ class TaskManagementService:
             if priority:
                 query += " AND priority = ?"
                 params.append(priority.value)
-            
+
             query += " ORDER BY priority DESC, created_date ASC"
-            
+
             cursor = conn.execute(query, params)
             return [self._row_to_task(row) for row in cursor.fetchall()]
-        
+
         return self._execute_with_retry(get_all_operation)
 
     def __del__(self):
         """Cleanup connection pool on destruction."""
-        if hasattr(self, 'connection_pool'):
+        if hasattr(self, "connection_pool"):
             self.connection_pool.close_all()
-    
-    def create_task(self, title: str, description: str, assignee: str, 
-                   priority: TaskPriority = TaskPriority.MEDIUM,
-                   due_date: Optional[datetime] = None,
-                   estimated_hours: Optional[float] = None,
-                   tags: Optional[List[str]] = None,
-                   project: str = "Default",
-                   created_by: str = "System") -> Task:
+
+    def create_task(
+        self,
+        title: str,
+        description: str,
+        assignee: str,
+        priority: TaskPriority = TaskPriority.MEDIUM,
+        due_date: Optional[datetime] = None,
+        estimated_hours: Optional[float] = None,
+        tags: Optional[List[str]] = None,
+        project: str = "Default",
+        created_by: str = "System",
+    ) -> Task:
         """
         Create a new task.
-        
+
         Args:
             title: Task title
             description: Task description
@@ -614,7 +716,7 @@ class TaskManagementService:
             tags: Task tags
             project: Project name
             created_by: User who created the task
-            
+
         Returns:
             Created Task object
         """
@@ -630,26 +732,26 @@ class TaskManagementService:
                 "estimated_hours": estimated_hours,
                 "tags": tags or [],
                 "project": project,
-                "created_by": created_by
+                "created_by": created_by,
             }
-            
+
             task_id = self._insert_task(task_data)
             task_data["id"] = task_id
-            
+
             # Log task creation
             self._log_task_action(task_id, "created", None, None, created_by)
-            
+
             logger.info(f"Created task: {title} (ID: {task_id})")
             return Task.from_dict(task_data)
-    
+
     def update_task(self, task_id: int, **kwargs) -> Optional[Task]:
         """
         Update a task.
-        
+
         Args:
             task_id: Task ID to update
             **kwargs: Fields to update
-            
+
         Returns:
             Updated Task object or None if not found
         """
@@ -657,61 +759,63 @@ class TaskManagementService:
             task = self.get_task(task_id)
             if not task:
                 return None
-            
+
             # Track changes for logging
             changes = {}
-            
+
             # Update fields
             for field, value in kwargs.items():
                 if hasattr(task, field) and getattr(task, field) != value:
                     old_value = getattr(task, field)
                     setattr(task, field, value)
                     changes[field] = (old_value, value)
-            
+
             if not changes:
                 return task
-            
+
             # Update database
             with sqlite3.connect(self.db_path) as conn:
                 # Build dynamic update query
                 set_clauses = []
                 params = []
-                
+
                 for field, value in kwargs.items():
-                    if field in ['status', 'priority']:
+                    if field in ["status", "priority"]:
                         set_clauses.append(f"{field} = ?")
-                        params.append(value.value if hasattr(value, 'value') else value)
-                    elif field in ['due_date', 'completed_date']:
+                        params.append(value.value if hasattr(value, "value") else value)
+                    elif field in ["due_date", "completed_date"]:
                         set_clauses.append(f"{field} = ?")
                         params.append(value.isoformat() if value else None)
-                    elif field in ['tags', 'dependencies']:
+                    elif field in ["tags", "dependencies"]:
                         set_clauses.append(f"{field} = ?")
-                        params.append(json.dumps(value) if value else '[]')
+                        params.append(json.dumps(value) if value else "[]")
                     else:
                         set_clauses.append(f"{field} = ?")
                         params.append(value)
-                
+
                 set_clauses.append("last_modified = ?")
                 params.append(datetime.now().isoformat())
                 params.append(task_id)
-                
+
                 query = f"UPDATE tasks SET {', '.join(set_clauses)} WHERE id = ?"
                 conn.execute(query, params)
-            
+
             # Log changes
             for field, (old_val, new_val) in changes.items():
-                self._log_task_action(task_id, f"updated_{field}", str(old_val), str(new_val), "System")
-            
+                self._log_task_action(
+                    task_id, f"updated_{field}", str(old_val), str(new_val), "System"
+                )
+
             logger.info(f"Updated task {task_id}: {list(changes.keys())}")
             return task
-    
+
     def delete_task(self, task_id: int) -> bool:
         """
         Delete a task.
-        
+
         Args:
             task_id: Task ID to delete
-            
+
         Returns:
             True if deleted, False if not found
         """
@@ -719,76 +823,92 @@ class TaskManagementService:
             task = self.get_task(task_id)
             if not task:
                 return False
-            
+
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
                 conn.execute("DELETE FROM task_history WHERE task_id = ?", (task_id,))
-            
+
             # Log deletion
             self._log_task_action(task_id, "deleted", None, None, "System")
-            
+
             logger.info(f"Deleted task {task_id}: {task.title}")
             return True
-    
-    def complete_task(self, task_id: int, actual_hours: Optional[float] = None) -> Optional[Task]:
+
+    def complete_task(
+        self, task_id: int, actual_hours: Optional[float] = None
+    ) -> Optional[Task]:
         """
         Mark a task as completed.
-        
+
         Args:
             task_id: Task ID to complete
             actual_hours: Actual hours spent on the task
-            
+
         Returns:
             Updated Task object or None if not found
         """
-        update_data = {
-            "status": TaskStatus.DONE,
-            "completed_date": datetime.now()
-        }
-        
+        update_data = {"status": TaskStatus.DONE, "completed_date": datetime.now()}
+
         if actual_hours is not None:
             update_data["actual_hours"] = actual_hours
-        
+
         return self.update_task(task_id, **update_data)
-    
+
     def get_analytics(self, project: Optional[str] = None) -> TaskAnalytics:
         """
         Get task analytics.
-        
+
         Args:
             project: Filter analytics by project
-            
+
         Returns:
             TaskAnalytics object
         """
         tasks = self.get_all_tasks(project=project)
-        
+
         total_tasks = len(tasks)
         completed_tasks = sum(1 for t in tasks if t.status == TaskStatus.DONE)
         in_progress_tasks = sum(1 for t in tasks if t.status == TaskStatus.IN_PROGRESS)
-        overdue_tasks = sum(1 for t in tasks if t.due_date and t.due_date < datetime.now() and t.status != TaskStatus.DONE)
-        
-        completion_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
-        
+        overdue_tasks = sum(
+            1
+            for t in tasks
+            if t.due_date
+            and t.due_date < datetime.now()
+            and t.status != TaskStatus.DONE
+        )
+
+        completion_rate = (
+            (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+        )
+
         # Calculate average completion time
-        completed_with_dates = [t for t in tasks if t.status == TaskStatus.DONE and t.completed_date and t.created_date]
+        completed_with_dates = [
+            t
+            for t in tasks
+            if t.status == TaskStatus.DONE and t.completed_date and t.created_date
+        ]
         if completed_with_dates:
-            completion_times = [(t.completed_date - t.created_date).total_seconds() / 3600 for t in completed_with_dates]
+            completion_times = [
+                (t.completed_date - t.created_date).total_seconds() / 3600
+                for t in completed_with_dates
+            ]
             average_completion_time = sum(completion_times) / len(completion_times)
         else:
             average_completion_time = None
-        
+
         # Tasks by priority
         tasks_by_priority = {}
         for priority in TaskPriority:
-            tasks_by_priority[priority.value] = sum(1 for t in tasks if t.priority == priority)
-        
+            tasks_by_priority[priority.value] = sum(
+                1 for t in tasks if t.priority == priority
+            )
+
         # Tasks by assignee
         tasks_by_assignee = {}
         for task in tasks:
             assignee = task.assignee
             tasks_by_assignee[assignee] = tasks_by_assignee.get(assignee, 0) + 1
-        
+
         return TaskAnalytics(
             total_tasks=total_tasks,
             completed_tasks=completed_tasks,
@@ -797,9 +917,9 @@ class TaskManagementService:
             completion_rate=completion_rate,
             average_completion_time=average_completion_time,
             tasks_by_priority=tasks_by_priority,
-            tasks_by_assignee=tasks_by_assignee
+            tasks_by_assignee=tasks_by_assignee,
         )
-    
+
     def _row_to_task(self, row: Tuple[Any, ...]) -> Task:
         """Convert database row to Task object."""
         # Map legacy/alternate priority values to enum
@@ -817,14 +937,14 @@ class TaskManagementService:
             "critical": TaskPriority.CRITICAL,
             "CRITICAL": TaskPriority.CRITICAL,
         }
-        
+
         # Handle priority conversion
         priority_value = row[5]
         if isinstance(priority_value, str):
             priority = priority_map.get(priority_value, TaskPriority.MEDIUM)
         else:
             priority = TaskPriority(priority_value)
-        
+
         return Task(
             id=row[0],
             title=row[1],
@@ -842,24 +962,33 @@ class TaskManagementService:
             parent_task_id=row[13],
             project=row[14],
             created_by=row[15],
-            last_modified=datetime.fromisoformat(row[16]) if row[16] else None
+            last_modified=datetime.fromisoformat(row[16]) if row[16] else None,
         )
-    
-    def _log_task_action(self, task_id: int, action: str, old_value: Optional[str], 
-                        new_value: Optional[str], user: str):
+
+    def _log_task_action(
+        self,
+        task_id: int,
+        action: str,
+        old_value: Optional[str],
+        new_value: Optional[str],
+        user: str,
+    ):
         """Log a task action to history."""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO task_history (task_id, action, old_value, new_value, timestamp, user)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                task_id,
-                action,
-                old_value,
-                new_value,
-                datetime.now().isoformat(),
-                user
-            ))
+            """,
+                (
+                    task_id,
+                    action,
+                    old_value,
+                    new_value,
+                    datetime.now().isoformat(),
+                    user,
+                ),
+            )
 
     def submit_task(
         self,
@@ -867,15 +996,15 @@ class TaskManagementService:
         func: Callable[..., T],
         category: TaskCategory,
         priority: TaskPriority = TaskPriority.MEDIUM,
-        description: str = '',
+        description: str = "",
         tags: Set[str] = None,
         dependencies: Set[str] = None,
         args: tuple = (),
         kwargs: dict = None,
-        callback: Optional[Callable[[Any], None]] = None
+        callback: Optional[Callable[[Any], None]] = None,
     ) -> bool:
         """Submit a task for execution.
-        
+
         Args:
             task_id: Unique task identifier
             func: Function to execute
@@ -887,14 +1016,14 @@ class TaskManagementService:
             args: Function arguments
             kwargs: Function keyword arguments
             callback: Completion callback
-        
+
         Returns:
             bool: True if task was submitted
         """
         try:
             if task_id in self._tasks:
                 return False
-            
+
             # Create task metadata
             metadata = TaskMetadata(
                 category=category,
@@ -902,66 +1031,62 @@ class TaskManagementService:
                 description=description,
                 created_at=time.time(),
                 tags=tags or set(),
-                dependencies=dependencies or set()
+                dependencies=dependencies or set(),
             )
-            
+
             # Check dependencies
             if metadata.dependencies:
                 for dep in metadata.dependencies:
                     if dep not in self._completed_tasks:
                         self._blocked_tasks.add(task_id)
                         break
-            
+
             # Store task metadata
             self._tasks[task_id] = metadata
-            
+
             # Update dependency tracking
             for dep in metadata.dependencies:
                 if dep not in self._dependencies:
                     self._dependencies[dep] = set()
                 self._dependencies[dep].add(task_id)
-            
+
             # Submit task if not blocked
             if task_id not in self._blocked_tasks:
-                self._submit_to_executor(
-                    task_id,
-                    func,
-                    args,
-                    kwargs,
-                    callback
+                self._submit_to_executor(task_id, func, args, kwargs, callback)
+
+            self.event_bus.publish(
+                Event(
+                    EventType.TASK_STARTED,
+                    data={
+                        "task_id": task_id,
+                        "category": category.name,
+                        "priority": priority.name,
+                    },
                 )
-            
-            self.event_bus.publish(Event(
-                EventType.TASK_STARTED,
-                data={
-                    'task_id': task_id,
-                    'category': category.name,
-                    'priority': priority.name
-                }
-            ))
-            
+            )
+
             return True
-            
+
         except Exception as e:
             self.error_handler.handle_error(
                 e,
-                'task_service',
-                'submit_task',
+                "task_service",
+                "submit_task",
                 ErrorSeverity.ERROR,
-                {'task_id': task_id}
+                {"task_id": task_id},
             )
             return False
-    
+
     def _submit_to_executor(
         self,
         task_id: str,
         func: Callable[..., T],
         args: tuple,
         kwargs: dict,
-        callback: Optional[Callable[[Any], None]]
+        callback: Optional[Callable[[Any], None]],
     ) -> None:
         """Submit task to thread executor.
-        
+
         Args:
             task_id: Task identifier
             func: Function to execute
@@ -970,11 +1095,18 @@ class TaskManagementService:
             callback: Completion callback
         """
         future = self.executor.submit(func, *args, **kwargs)
-        future.add_done_callback(lambda f: self._handle_task_completion(task_id, f, callback))
+        future.add_done_callback(
+            lambda f: self._handle_task_completion(task_id, f, callback)
+        )
 
-    def _handle_task_completion(self, task_id: str, future: concurrent.futures.Future, callback: Optional[Callable[[Any], None]]):
+    def _handle_task_completion(
+        self,
+        task_id: str,
+        future: concurrent.futures.Future,
+        callback: Optional[Callable[[Any], None]],
+    ):
         """Handle task completion.
-        
+
         Args:
             task_id: Task identifier
             future: Future object containing the result
@@ -982,92 +1114,88 @@ class TaskManagementService:
         """
         try:
             result = future.result()
-            task_result = {'task_id': task_id, 'status': TaskStatus.COMPLETED, 'result': result}
+            task_result = {
+                "task_id": task_id,
+                "status": TaskStatus.COMPLETED,
+                "result": result,
+            }
         except Exception as e:
-            task_result = {'task_id': task_id, 'status': TaskStatus.FAILED, 'error': e}
-        
-        if task_result['status'] == TaskStatus.COMPLETED:
+            task_result = {"task_id": task_id, "status": TaskStatus.FAILED, "error": e}
+
+        if task_result["status"] == TaskStatus.COMPLETED:
             # Mark task as completed
             self._completed_tasks.add(task_id)
-            
+
             # Check dependent tasks
             self._check_dependent_tasks(task_id)
-            
-            self.event_bus.publish(Event(
-                EventType.TASK_COMPLETED,
-                data={
-                    'task_id': task_id,
-                    'result': task_result['result']
-                }
-            ))
+
+            self.event_bus.publish(
+                Event(
+                    EventType.TASK_COMPLETED,
+                    data={"task_id": task_id, "result": task_result["result"]},
+                )
+            )
         else:
-            self.event_bus.publish(Event(
-                EventType.TASK_FAILED,
-                data={
-                    'task_id': task_id,
-                    'error': task_result.get('error')
-                }
-            ))
-        
+            self.event_bus.publish(
+                Event(
+                    EventType.TASK_FAILED,
+                    data={"task_id": task_id, "error": task_result.get("error")},
+                )
+            )
+
         if callback:
             callback(task_result)
-    
+
     def _check_dependent_tasks(self, completed_task_id: str) -> None:
         """Check and potentially unblock dependent tasks.
-        
+
         Args:
             completed_task_id: ID of completed task
         """
         if completed_task_id in self._dependencies:
             for dependent_id in self._dependencies[completed_task_id]:
                 metadata = self._tasks[dependent_id]
-                
+
                 # Check if all dependencies are completed
-                if all(dep in self._completed_tasks
-                      for dep in metadata.dependencies):
+                if all(dep in self._completed_tasks for dep in metadata.dependencies):
                     self._blocked_tasks.discard(dependent_id)
-                    
+
                     # Submit now-unblocked task
                     self._submit_to_executor(
-                        dependent_id,
-                        lambda: None,  # Placeholder
-                        (),
-                        {},
-                        None
+                        dependent_id, lambda: None, (), {}, None  # Placeholder
                     )
-    
+
     def cancel_task(self, task_id: str) -> bool:
         """Cancel a task.
-        
+
         Args:
             task_id: Task identifier
-        
+
         Returns:
             bool: True if task was cancelled
         """
         if task_id not in self._tasks:
             return False
-        
+
         # Remove from blocked tasks if present
         self._blocked_tasks.discard(task_id)
-        
+
         # Cancel in thread manager if running
         cancelled = self.executor.submit(lambda: None).cancel()
-        
+
         if cancelled:
-            self.event_bus.publish(Event(
-                EventType.TASK_CANCELLED,
-                data={'task_id': task_id}
-            ))
-        
+            self.event_bus.publish(
+                Event(EventType.TASK_CANCELLED, data={"task_id": task_id})
+            )
+
         return cancelled
-    
+
     def get_task_status(self, task_id: str) -> Optional[TaskStatus]:
         """Get task status.
-        
+
         Args:
             task_id: Task identifier
-        
+
         Returns:
             Optional[TaskStatus]: Task status if found
         """
@@ -1077,71 +1205,72 @@ class TaskManagementService:
             return TaskStatus.PENDING
         else:
             return None
-    
+
     def get_task_metadata(self, task_id: str) -> Optional[TaskMetadata]:
         """Get task metadata.
-        
+
         Args:
             task_id: Task identifier
-        
+
         Returns:
             Optional[TaskMetadata]: Task metadata if found
         """
         return self._tasks.get(task_id)
-    
+
     def get_tasks_by_category(self, category: TaskCategory) -> List[str]:
         """Get tasks by category.
-        
+
         Args:
             category: Task category
-        
+
         Returns:
             List[str]: List of task IDs
         """
         return [
-            task_id for task_id, metadata in self._tasks.items()
+            task_id
+            for task_id, metadata in self._tasks.items()
             if metadata.category == category
         ]
-    
+
     def get_tasks_by_priority(self, priority: TaskPriority) -> List[str]:
         """Get tasks by priority.
-        
+
         Args:
             priority: Task priority
-        
+
         Returns:
             List[str]: List of task IDs
         """
         return [
-            task_id for task_id, metadata in self._tasks.items()
+            task_id
+            for task_id, metadata in self._tasks.items()
             if metadata.priority == priority
         ]
-    
+
     def get_tasks_by_tag(self, tag: str) -> List[str]:
         """Get tasks by tag.
-        
+
         Args:
             tag: Task tag
-        
+
         Returns:
             List[str]: List of task IDs
         """
         return [
-            task_id for task_id, metadata in self._tasks.items()
-            if tag in metadata.tags
+            task_id for task_id, metadata in self._tasks.items() if tag in metadata.tags
         ]
-    
+
     def get_blocked_tasks(self) -> List[str]:
         """Get blocked tasks.
-        
+
         Returns:
             List[str]: List of blocked task IDs
         """
         return list(self._blocked_tasks)
-    
+
     def get_completed_tasks(self) -> List[str]:
         """Get completed tasks.
-        
+
         Returns:
             List[str]: List of completed task IDs
         """
@@ -1155,7 +1284,10 @@ class TaskManagementService:
                 if task.id in self._scheduled_tasks:
                     continue
                 if self._can_schedule(task):
-                    heapq.heappush(self._priority_queue, (task.priority.value, task.created_date.timestamp(), task.id))
+                    heapq.heappush(
+                        self._priority_queue,
+                        (task.priority.value, task.created_date.timestamp(), task.id),
+                    )
                     self._scheduled_tasks.add(task.id)
 
     def _can_schedule(self, task: Task) -> bool:
@@ -1180,12 +1312,16 @@ class TaskManagementService:
             # Mark as in progress
             self.update_task(task_id, status=TaskStatus.IN_PROGRESS)
             # Submit to thread manager (simulate execution)
-            self.executor.submit(lambda: self._execute_task(task_id), callback=lambda result: self._on_task_complete(task_id, result))
+            self.executor.submit(
+                lambda: self._execute_task(task_id),
+                callback=lambda result: self._on_task_complete(task_id, result),
+            )
             return task
 
     def _execute_task(self, task_id: int):
         """Simulate task execution (replace with real logic)."""
         import time
+
         time.sleep(1)  # Simulate work
         return True
 
@@ -1213,4 +1349,4 @@ def get_task_management_service() -> TaskManagementService:
     global _task_management_service
     if _task_management_service is None:
         _task_management_service = TaskManagementService()
-    return _task_management_service 
+    return _task_management_service

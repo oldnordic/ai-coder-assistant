@@ -1,10 +1,20 @@
-import unittest
-from PyQt6.QtWidgets import (
-    QWidget, QApplication, QPushButton, QTextEdit, QComboBox, QSpinBox, QCheckBox, QLabel
-)
 import sys
-from frontend.ui.main_window import AICoderAssistant
+import unittest
+
+from PyQt6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QLabel,
+    QPushButton,
+    QSpinBox,
+    QTextEdit,
+    QWidget,
+)
+
 from frontend.ui.data_tab_widgets import setup_data_tab
+from frontend.ui.main_window import AICoderAssistant
+
 
 class TestDataTabWidgetsBackend(unittest.TestCase):
     @classmethod
@@ -43,5 +53,6 @@ class TestDataTabWidgetsBackend(unittest.TestCase):
         self.assertIsInstance(main_app_instance.acquire_github_button, QPushButton)
         print("[TEST] End of test")
 
+
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main()

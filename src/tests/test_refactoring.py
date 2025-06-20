@@ -18,23 +18,22 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
 import os
-import tempfile
 import shutil
-import unittest
-from unittest.mock import Mock, patch, MagicMock
-from typing import List, Dict, Any
-from collections import namedtuple
 import signal
+import tempfile
+import unittest
+from collections import namedtuple
 from functools import wraps
+from unittest.mock import patch
 
 from backend.services.refactoring import (
-    AdvancedRefactoringEngine, PythonRefactoringParser, JavaScriptRefactoringParser,
-    refactoring_engine, RefactoringSuggestion, RefactoringOperation
+    AdvancedRefactoringEngine,
+    JavaScriptRefactoringParser,
+    PythonRefactoringParser,
+    RefactoringOperation,
+    RefactoringSuggestion,
 )
-from src.backend.utils.constants import (
-    TEST_LARGE_ITERATION_COUNT, TEST_MEDIUM_ITERATION_COUNT, 
-    TEST_SMALL_ITERATION_COUNT, TEST_ITERATION_COUNT
-)
+
 
 def timeout(seconds=10):
     def decorator(func):
@@ -55,21 +54,22 @@ def timeout(seconds=10):
         return wrapper
     return decorator
 
+
 class TestRefactoringEngine(unittest.TestCase):
     """Test cases for the AdvancedRefactoringEngine."""
-    
+
     def setUp(self):
         """Set up test fixtures."""
         self.engine = AdvancedRefactoringEngine()
         self.temp_dir = tempfile.mkdtemp()
-        
+
         # Create test files
         self.create_test_files()
-    
+
     def tearDown(self):
         """Clean up test fixtures."""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
-    
+
     def create_test_files(self):
         """Create test files for refactoring analysis."""
         # Python file with refactoring opportunities
@@ -82,7 +82,7 @@ def very_long_function_with_many_lines():
             result += i
         else:
             result -= i
-    
+
     # More complex logic
     for j in range(TEST_MEDIUM_ITERATION_COUNT):  # Another magic number
         if j % 3 == 0:
@@ -91,7 +91,7 @@ def very_long_function_with_many_lines():
             result /= 2
         else:
             result += 1
-    
+
     # Even more logic
     for k in range(TEST_SMALL_ITERATION_COUNT):  # Yet another magic number
         if k % 7 == 0:
@@ -100,12 +100,12 @@ def very_long_function_with_many_lines():
             result = result ** 0.5
         else:
             result += k
-    
+
     return result
 
 class VeryLargeClass:
     """This class is too large and should be split."""
-    
+
     def __init__(self):
         self.data = []
         self.config = {}
@@ -118,7 +118,7 @@ class VeryLargeClass:
         self.exporter = None
         self.importer = None
         self.transformer = None
-    
+
     def method1(self):
         """First method with complex logic."""
         result = 0
@@ -128,7 +128,7 @@ class VeryLargeClass:
             else:
                 result -= i
         return result
-    
+
     def method2(self):
         """Second method with complex logic."""
         result = 1
@@ -138,7 +138,7 @@ class VeryLargeClass:
             else:
                 result /= (i + 1)
         return result
-    
+
     def method3(self):
         """Third method with complex logic."""
         result = []
@@ -150,7 +150,7 @@ class VeryLargeClass:
             else:
                 result.append(i)
         return result
-    
+
     def method4(self):
         """Fourth method with complex logic."""
         result = {}
@@ -160,7 +160,7 @@ class VeryLargeClass:
             else:
                 result[f"key_{i}"] = i / 2
         return result
-    
+
     def method5(self):
         """Fifth method with complex logic."""
         result = set()
@@ -192,16 +192,16 @@ def main():
 if __name__ == "__main__":
     main()
 '''
-        
+
         with open(os.path.join(self.temp_dir, 'test_file.py'), 'w') as f:
             f.write(python_code)
-        
+
         # JavaScript file with refactoring opportunities
         javascript_code = '''
 // Long function that should be refactored
 function veryLongFunctionWithManyLines() {
     let result = 0;
-    
+
     // First loop
     for (let i = 0; i < TEST_LARGE_ITERATION_COUNT; i++) {  // Magic number
         if (i % 2 === 0) {
@@ -210,7 +210,7 @@ function veryLongFunctionWithManyLines() {
             result -= i;
         }
     }
-    
+
     // Second loop
     for (let j = 0; j < TEST_MEDIUM_ITERATION_COUNT; j++) {  // Another magic number
         if (j % 3 === 0) {
@@ -221,7 +221,7 @@ function veryLongFunctionWithManyLines() {
             result += 1;
         }
     }
-    
+
     // Third loop
     for (let k = 0; k < TEST_SMALL_ITERATION_COUNT; k++) {  // Yet another magic number
         if (k % 7 === 0) {
@@ -232,7 +232,7 @@ function veryLongFunctionWithManyLines() {
             result += k;
         }
     }
-    
+
     return result;
 }
 
@@ -251,7 +251,7 @@ class VeryLargeClass {
         this.importer = null;
         this.transformer = null;
     }
-    
+
     method1() {
         let result = 0;
         for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
@@ -263,7 +263,7 @@ class VeryLargeClass {
         }
         return result;
     }
-    
+
     method2() {
         let result = 1;
         for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
@@ -275,7 +275,7 @@ class VeryLargeClass {
         }
         return result;
     }
-    
+
     method3() {
         let result = [];
         for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
@@ -289,7 +289,7 @@ class VeryLargeClass {
         }
         return result;
     }
-    
+
     method4() {
         let result = {};
         for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
@@ -301,7 +301,7 @@ class VeryLargeClass {
         }
         return result;
     }
-    
+
     method5() {
         let result = new Set();
         for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
@@ -328,10 +328,10 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = { VeryLargeClass, veryLongFunctionWithManyLines, main };
 }
 '''
-        
+
         with open(os.path.join(self.temp_dir, 'test_file.js'), 'w') as f:
             f.write(javascript_code)
-    
+
     @timeout(20)
     def test_engine_initialization(self):
         """Test that the refactoring engine initializes correctly."""
@@ -342,20 +342,20 @@ if (typeof module !== 'undefined' && module.exports) {
         self.assertIn('typescript', self.engine.language_parsers)
         self.assertIn('java', self.engine.language_parsers)
         self.assertIn('cpp', self.engine.language_parsers)
-    
+
     @timeout(20)
     def test_find_source_files(self):
         """Test finding source files in a project."""
         files = self.engine._find_source_files(self.temp_dir, ['python', 'javascript'])
-        
+
         self.assertIsInstance(files, list)
         self.assertGreater(len(files), 0)
-        
+
         # Check that we found our test files
         file_paths = [os.path.basename(f) for f in files]
         self.assertIn('test_file.py', file_paths)
         self.assertIn('test_file.js', file_paths)
-    
+
     @timeout(20)
     def test_detect_language(self):
         """Test language detection for different file types."""
@@ -370,37 +370,45 @@ if (typeof module !== 'undefined' && module.exports) {
             ('test.h', 'cpp'),
             ('test.txt', 'unknown')
         ]
-        
+
         for filename, expected_language in test_cases:
             detected = self.engine._detect_language(filename)
             self.assertEqual(detected, expected_language, f"Failed for {filename}")
-    
+
     @timeout(20)
     def test_analyze_refactoring_opportunities(self):
         """Test analyzing refactoring opportunities in a project."""
         suggestions = self.engine.analyze_refactoring_opportunities(
             self.temp_dir, ['python', 'javascript']
         )
-        
+
         self.assertIsInstance(suggestions, list)
         self.assertGreater(len(suggestions), 0)
-        
+
         # Check that we have suggestions for both Python and JavaScript
-        python_suggestions = [s for s in suggestions if any('test_file.py' in op.file_path for op in s.operations)]
-        javascript_suggestions = [s for s in suggestions if any('test_file.js' in op.file_path for op in s.operations)]
-        
-        self.assertGreater(len(python_suggestions), 0, "Should find Python refactoring opportunities")
-        self.assertGreater(len(javascript_suggestions), 0, "Should find JavaScript refactoring opportunities")
-    
+        python_suggestions = [s for s in suggestions if any(
+            'test_file.py' in op.file_path for op in s.operations)]
+        javascript_suggestions = [s for s in suggestions if any(
+            'test_file.js' in op.file_path for op in s.operations)]
+
+        self.assertGreater(
+            len(python_suggestions),
+            0,
+            "Should find Python refactoring opportunities")
+        self.assertGreater(
+            len(javascript_suggestions),
+            0,
+            "Should find JavaScript refactoring opportunities")
+
     @timeout(20)
     def test_priority_scoring(self):
         """Test priority scoring functionality."""
         priorities = ['high', 'medium', 'low']
         scores = [self.engine._priority_score(p) for p in priorities]
-        
+
         self.assertEqual(scores, [3, 2, 1])
         self.assertEqual(self.engine._priority_score('unknown'), 1)
-    
+
     @timeout(20)
     def test_group_related_suggestions(self):
         """Test grouping related suggestions."""
@@ -415,7 +423,7 @@ if (typeof module !== 'undefined' && module.exports) {
             estimated_time="10 minutes",
             category="maintainability"
         )
-        
+
         suggestion2 = RefactoringSuggestion(
             id="test2",
             title="Test 2",
@@ -426,13 +434,14 @@ if (typeof module !== 'undefined' && module.exports) {
             estimated_time="5 minutes",
             category="maintainability"
         )
-        
+
         suggestions = [suggestion1, suggestion2]
         grouped = self.engine._group_related_suggestions(suggestions)
-        
+
         self.assertIsInstance(grouped, list)
-        self.assertEqual(len(grouped), len(suggestions))  # Should not group unrelated suggestions
-    
+        # Should not group unrelated suggestions
+        self.assertEqual(len(grouped), len(suggestions))
+
     @timeout(20)
     def test_preview_refactoring(self):
         """Test previewing refactoring changes."""
@@ -447,7 +456,7 @@ if (typeof module !== 'undefined' && module.exports) {
             original_code="def test():\n    pass",
             refactored_code="def extracted():\n    pass\ndef test():\n    extracted()"
         )
-        
+
         suggestion = RefactoringSuggestion(
             id="test_preview",
             title="Test Preview",
@@ -458,15 +467,15 @@ if (typeof module !== 'undefined' && module.exports) {
             estimated_time="5 minutes",
             category="maintainability"
         )
-        
+
         preview = self.engine.preview_refactoring(suggestion)
-        
+
         self.assertIsInstance(preview, dict)
         self.assertIn('suggestion_id', preview)
         self.assertIn('files', preview)
         self.assertIn('summary', preview)
         self.assertEqual(preview['suggestion_id'], suggestion.id)
-    
+
     @timeout(20)
     def test_apply_refactoring(self):
         """Test applying refactoring changes."""
@@ -481,7 +490,7 @@ if (typeof module !== 'undefined' && module.exports) {
             original_code="def test():\n    pass",
             refactored_code="def extracted():\n    pass\ndef test():\n    extracted()"
         )
-        
+
         suggestion = RefactoringSuggestion(
             id="test_apply",
             title="Test Apply",
@@ -492,38 +501,46 @@ if (typeof module !== 'undefined' && module.exports) {
             estimated_time="5 minutes",
             category="maintainability"
         )
-        
+
         # Mock the parser to avoid actual file modifications
         with patch.object(self.engine.language_parsers['python'], 'apply_operation') as mock_apply:
             result = self.engine.apply_refactoring(suggestion, backup=False)
-            
+
             self.assertIsInstance(result, dict)
             self.assertIn('success', result)
             self.assertIn('applied_operations', result)
             self.assertIn('errors', result)
-            
+
             # Check that the operation was called
             mock_apply.assert_called_once_with(operation)
 
+
 class TestPythonRefactoringParser(unittest.TestCase):
     """Test cases for the PythonRefactoringParser."""
-    
+
     def setUp(self):
         """Set up test fixtures."""
         self.parser = PythonRefactoringParser()
         self.temp_dir = tempfile.mkdtemp()
         Suggestion = namedtuple('Suggestion', ['title'])
         self.suggestion_obj = Suggestion(title='VeryLargeClass')
-        self.patcher_analyze_python = patch('backend.services.refactoring.PythonRefactoringParser.analyze_file', return_value=[self.suggestion_obj])
+        self.patcher_analyze_python = patch(
+            'backend.services.refactoring.PythonRefactoringParser.analyze_file',
+            return_value=[
+                self.suggestion_obj])
         self.mock_analyze_python = self.patcher_analyze_python.start()
-        self.patcher_analyze_js = patch('backend.services.refactoring.JavaScriptRefactoringParser.analyze_file', return_value=[self.suggestion_obj])
+        self.patcher_analyze_js = patch(
+            'backend.services.refactoring.JavaScriptRefactoringParser.analyze_file',
+            return_value=[
+                self.suggestion_obj])
         self.mock_analyze_js = self.patcher_analyze_js.start()
+
     def tearDown(self):
         """Clean up test fixtures."""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
         self.patcher_analyze_python.stop()
         self.patcher_analyze_js.stop()
-    
+
     @timeout(20)
     def test_analyze_file_long_function(self):
         Suggestion = namedtuple('Suggestion', ['title'])
@@ -539,38 +556,38 @@ def very_long_function():
             result += i
         else:
             result -= i
-    
+
     for j in range(TEST_ITERATION_COUNT):
         if j % 3 == 0:
             result *= 2
         else:
             result /= 2
-    
+
     for k in range(TEST_ITERATION_COUNT):
         if k % 5 == 0:
             result **= 2
         else:
             result = result ** 0.5
-    
+
     return result
 '''
-            
+
             file_path = os.path.join(self.temp_dir, 'test_long_function.py')
             with open(file_path, 'w') as f:
                 f.write(code)
-            
+
             suggestions = self.parser.analyze_file(file_path)
-            
+
             self.assertIsInstance(suggestions, list)
             self.assertGreater(len(suggestions), 0)
-            
+
             # Check that we found a suggestion for the long function
             long_function_suggestions = [
-                s for s in suggestions 
+                s for s in suggestions
                 if 'very_long_function' in s.title or 'long' in s.title.lower()
             ]
             self.assertGreater(len(long_function_suggestions), 0)
-    
+
     @timeout(20)
     def test_analyze_file_large_class(self):
         Suggestion = namedtuple('Suggestion', ['title'])
@@ -580,93 +597,93 @@ def very_long_function():
             code = '''
 class VeryLargeClass:
     """This class is too large."""
-    
+
     def __init__(self):
         self.data = []
         self.config = {}
         self.cache = {}
-    
+
     def method1(self):
         """First method."""
         return 1
-    
+
     def method2(self):
         """Second method."""
         return 2
-    
+
     def method3(self):
         """Third method."""
         return 3
-    
+
     def method4(self):
         """Fourth method."""
         return 4
-    
+
     def method5(self):
         """Fifth method."""
         return 5
-    
+
     def method6(self):
         """Sixth method."""
         return 6
-    
+
     def method7(self):
         """Seventh method."""
         return 7
-    
+
     def method8(self):
         """Eighth method."""
         return 8
-    
+
     def method9(self):
         """Ninth method."""
         return 9
-    
+
     def method10(self):
         """Tenth method."""
         return 10
-    
+
     def method11(self):
         """Eleventh method."""
         return 11
-    
+
     def method12(self):
         """Twelfth method."""
         return 12
-    
+
     def method13(self):
         """Thirteenth method."""
         return 13
-    
+
     def method14(self):
         """Fourteenth method."""
         return 14
-    
+
     def method15(self):
         """Fifteenth method."""
         return 15
-    
+
     def method16(self):
         """Sixteenth method."""
         return 16
 '''
-        
+
         file_path = os.path.join(self.temp_dir, 'test_large_class.py')
         with open(file_path, 'w') as f:
             f.write(code)
-        
+
         suggestions = self.parser.analyze_file(file_path)
-        
+
         self.assertIsInstance(suggestions, list)
         self.assertGreater(len(suggestions), 0)
-        
+
         # Check that we found a suggestion for the large class
         large_class_suggestions = [
-            s for s in suggestions 
+            s for s in suggestions
             if 'VeryLargeClass' in s.title or 'large' in s.title.lower()
         ]
         self.assertGreater(len(large_class_suggestions), 0)
-    
+
     @timeout(20)
     def test_analyze_file_magic_numbers(self):
         Suggestion = namedtuple('Suggestion', ['title'])
@@ -682,29 +699,29 @@ def calculate_something():
             result += i
         else:
             result -= i
-    
+
     threshold = 5000  # Another magic number
     if result > threshold:
         return result * 2  # Yet another magic number
     else:
         return result / 2  # And another magic number
 '''
-            
+
             file_path = os.path.join(self.temp_dir, 'test_magic_numbers.py')
             with open(file_path, 'w') as f:
                 f.write(code)
-            
+
             suggestions = self.parser.analyze_file(file_path)
-            
+
             self.assertIsInstance(suggestions, list)
-            
+
             # Check that we found suggestions for magic numbers
             magic_number_suggestions = [
-                s for s in suggestions 
+                s for s in suggestions
                 if 'magic' in s.title.lower() or 'constant' in s.title.lower()
             ]
             self.assertGreater(len(magic_number_suggestions), 0)
-    
+
     @timeout(20)
     def test_analyze_file_unused_imports(self):
         Suggestion = namedtuple('Suggestion', ['title'])
@@ -723,22 +740,22 @@ def main():
     pattern = re.compile(r"test")
     return path, pattern
 '''
-            
+
             file_path = os.path.join(self.temp_dir, 'test_unused_imports.py')
             with open(file_path, 'w') as f:
                 f.write(code)
-            
+
             suggestions = self.parser.analyze_file(file_path)
-            
+
             self.assertIsInstance(suggestions, list)
-            
+
             # Check that we found suggestions for unused imports
             import_suggestions = [
-                s for s in suggestions 
+                s for s in suggestions
                 if 'import' in s.title.lower() or 'unused' in s.title.lower()
             ]
             self.assertGreater(len(import_suggestions), 0)
-    
+
     @timeout(20)
     def test_calculate_complexity(self):
         Suggestion = namedtuple('Suggestion', ['title'])
@@ -749,7 +766,7 @@ def main():
 def complex_function(x, y, z):
     """Function with high cyclomatic complexity."""
     result = 0
-    
+
     if x > 0:
         if y > 0:
             if z > 0:
@@ -772,37 +789,37 @@ def complex_function(x, y, z):
                 result = -x - y + z
             else:
                 result = -x - y - z
-    
+
     for i in range(TEST_ITERATION_COUNT):
         if i % 2 == 0:
             result += i
         else:
             result -= i
-    
+
     while result > TEST_ITERATION_COUNT:
         if result % 2 == 0:
             result /= 2
         else:
             result = result * 3 + 1
-    
+
     return result
 '''
-            
+
             file_path = os.path.join(self.temp_dir, 'test_complexity.py')
             with open(file_path, 'w') as f:
                 f.write(code)
-            
+
             suggestions = self.parser.analyze_file(file_path)
-            
+
             self.assertIsInstance(suggestions, list)
-            
+
             # Check that we found suggestions for complex functions
             complexity_suggestions = [
-                s for s in suggestions 
+                s for s in suggestions
                 if 'complex' in s.title.lower() or 'complexity' in s.title.lower()
             ]
             self.assertGreater(len(complexity_suggestions), 0)
-    
+
     @timeout(20)
     def test_apply_operation(self):
         """Test applying a refactoring operation."""
@@ -816,22 +833,28 @@ def complex_function(x, y, z):
             original_code="def test():\n    pass",
             refactored_code="def extracted():\n    pass\ndef test():\n    extracted()"
         )
-        
+
         # This should not raise an exception
         self.parser.apply_operation(operation)
 
+
 class TestJavaScriptRefactoringParser(unittest.TestCase):
     """Test cases for the JavaScriptRefactoringParser."""
-    
+
     def setUp(self):
         """Set up test fixtures."""
         self.parser = JavaScriptRefactoringParser()
         self.temp_dir = tempfile.mkdtemp()
-        self.patcher_analyze_js = patch('backend.services.refactoring.JavaScriptRefactoringParser.analyze_file', return_value=[{'suggestion': 'Refactor this large class.'}])
+        self.patcher_analyze_js = patch(
+            'backend.services.refactoring.JavaScriptRefactoringParser.analyze_file',
+            return_value=[
+                {
+                    'suggestion': 'Refactor this large class.'}])
         self.mock_analyze_js = self.patcher_analyze_js.start()
+
     def tearDown(self):
         self.patcher_analyze_js.stop()
-    
+
     @timeout(20)
     def test_analyze_file_long_function(self):
         """Test analyzing a file with a long function."""
@@ -839,7 +862,7 @@ class TestJavaScriptRefactoringParser(unittest.TestCase):
         code = '''
 function veryLongFunction() {
     let result = 0;
-    
+
     for (let i = 0; i < TEST_ITERATION_COUNT; i++) {
         if (i % 2 === 0) {
             result += i;
@@ -847,7 +870,7 @@ function veryLongFunction() {
             result -= i;
         }
     }
-    
+
     for (let j = 0; j < TEST_ITERATION_COUNT; j++) {
         if (j % 3 === 0) {
             result *= 2;
@@ -855,7 +878,7 @@ function veryLongFunction() {
             result /= 2;
         }
     }
-    
+
     for (let k = 0; k < TEST_ITERATION_COUNT; k++) {
         if (k % 5 === 0) {
             result = Math.pow(result, 2);
@@ -863,27 +886,27 @@ function veryLongFunction() {
             result = Math.sqrt(result);
         }
     }
-    
+
     return result;
 }
 '''
-        
+
         file_path = os.path.join(self.temp_dir, 'test_long_function.js')
         with open(file_path, 'w') as f:
             f.write(code)
-        
+
         suggestions = self.parser.analyze_file(file_path)
-        
+
         self.assertIsInstance(suggestions, list)
         self.assertGreater(len(suggestions), 0)
-        
+
         # Check that we found a suggestion for the long function
         long_function_suggestions = [
-            s for s in suggestions 
+            s for s in suggestions
             if 'veryLongFunction' in s.title or 'long' in s.title.lower()
         ]
         self.assertGreater(len(long_function_suggestions), 0)
-    
+
     @timeout(20)
     def test_analyze_file_large_class(self):
         """Test analyzing a file with a large class."""
@@ -895,7 +918,7 @@ class VeryLargeClass {
         this.config = {};
         this.cache = {};
     }
-    
+
     method1() { return 1; }
     method2() { return 2; }
     method3() { return 3; }
@@ -914,23 +937,23 @@ class VeryLargeClass {
     method16() { return 16; }
 }
 '''
-        
+
         file_path = os.path.join(self.temp_dir, 'test_large_class.js')
         with open(file_path, 'w') as f:
             f.write(code)
-        
+
         suggestions = self.parser.analyze_file(file_path)
-        
+
         self.assertIsInstance(suggestions, list)
         self.assertGreater(len(suggestions), 0)
-        
+
         # Check that we found a suggestion for the large class
         large_class_suggestions = [
-            s for s in suggestions 
+            s for s in suggestions
             if 'VeryLargeClass' in s.title or 'large' in s.title.lower()
         ]
         self.assertGreater(len(large_class_suggestions), 0)
-    
+
     @timeout(20)
     def test_apply_operation(self):
         """Test applying a refactoring operation."""
@@ -944,56 +967,57 @@ class VeryLargeClass {
             original_code="function test() {\n    return 1;\n}",
             refactored_code="function extracted() {\n    return 1;\n}\nfunction test() {\n    return extracted();\n}"
         )
-        
+
         # This should not raise an exception
         self.parser.apply_operation(operation)
 
+
 class TestRefactoringIntegration(unittest.TestCase):
     """Integration tests for the refactoring system."""
-    
+
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
         self.engine = AdvancedRefactoringEngine()
-    
+
     def tearDown(self):
         """Clean up test fixtures."""
         shutil.rmtree(self.temp_dir, ignore_errors=True)
-    
+
     @timeout(20)
     def test_end_to_end_refactoring_workflow(self):
         """Test the complete refactoring workflow."""
         # Create a test project with multiple files
         self.create_test_project()
-        
+
         # Step 1: Analyze the project
         suggestions = self.engine.analyze_refactoring_opportunities(
             self.temp_dir, ['python', 'javascript']
         )
-        
+
         self.assertIsInstance(suggestions, list)
         self.assertGreater(len(suggestions), 0)
-        
+
         # Step 2: Preview a suggestion
         if suggestions:
             suggestion = suggestions[0]
             preview = self.engine.preview_refactoring(suggestion)
-            
+
             self.assertIsInstance(preview, dict)
             self.assertIn('suggestion_id', preview)
             self.assertIn('files', preview)
             self.assertIn('summary', preview)
-        
+
         # Step 3: Apply a suggestion (with backup)
         if suggestions:
             suggestion = suggestions[0]
             result = self.engine.apply_refactoring(suggestion, backup=True)
-            
+
             self.assertIsInstance(result, dict)
             self.assertIn('success', result)
             self.assertIn('applied_operations', result)
             self.assertIn('errors', result)
-    
+
     def create_test_project(self):
         """Create a test project with multiple files."""
         # Python file
@@ -1010,10 +1034,10 @@ def long_function():
 
 class LargeClass:
     """A class that should be refactored."""
-    
+
     def __init__(self):
         self.data = []
-    
+
     def method1(self): return 1
     def method2(self): return 2
     def method3(self): return 3
@@ -1031,10 +1055,10 @@ class LargeClass:
     def method15(self): return 15
     def method16(self): return 16
 '''
-        
+
         with open(os.path.join(self.temp_dir, 'main.py'), 'w') as f:
             f.write(python_code)
-        
+
         # JavaScript file
         javascript_code = '''
 function longFunction() {
@@ -1053,7 +1077,7 @@ class LargeClass {
     constructor() {
         this.data = [];
     }
-    
+
     method1() { return 1; }
     method2() { return 2; }
     method3() { return 3; }
@@ -1072,15 +1096,16 @@ class LargeClass {
     method16() { return 16; }
 }
 '''
-        
+
         with open(os.path.join(self.temp_dir, 'main.js'), 'w') as f:
             f.write(javascript_code)
+
 
 def run_refactoring_tests():
     """Run all refactoring tests."""
     # Create test suite
     test_suite = unittest.TestSuite()
-    
+
     # Add test classes
     test_classes = [
         TestRefactoringEngine,
@@ -1088,17 +1113,18 @@ def run_refactoring_tests():
         TestJavaScriptRefactoringParser,
         TestRefactoringIntegration
     ]
-    
+
     for test_class in test_classes:
         tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
         test_suite.addTests(tests)
-    
+
     # Run tests
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(test_suite)
-    
+
     return result.wasSuccessful()
+
 
 if __name__ == '__main__':
     success = run_refactoring_tests()
-    exit(0 if success else 1) 
+    exit(0 if success else 1)

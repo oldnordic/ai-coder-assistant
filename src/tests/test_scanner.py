@@ -17,32 +17,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
-import unittest
-import tempfile
-import os
-import sys
-from unittest.mock import Mock, patch, MagicMock
-import signal
-from functools import wraps
-from src.backend.utils.constants import (
-    TEST_LARGE_ITERATION_COUNT, TEST_ITERATION_COUNT
+from src.backend.services.scanner import (
+    _get_all_code_files,
+    enhance_code,
+    get_code_context,
+    parse_linter_output,
+    process_file_parallel,
+    scan_code,
 )
+from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, IssueType
+import os
+import signal
+import sys
+import tempfile
+import unittest
+from functools import wraps
+from unittest.mock import Mock, patch
+
+from src.backend.utils.constants import TEST_LARGE_ITERATION_COUNT
 
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from src.backend.services.scanner import (
-    scan_code,
-    process_file_parallel,
-    _get_all_code_files,
-    run_linter,
-    parse_linter_output,
-    get_code_context,
-    enhance_code,
-    get_files_to_scan,
-    ScannerService
-)
-from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, IssueType
 
 
 def timeout(seconds=10):
@@ -67,7 +62,7 @@ def timeout(seconds=10):
 
 class TestScanner(unittest.TestCase):
     """Test scanner functionality."""
-    
+
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
@@ -92,14 +87,14 @@ class TestScanner(unittest.TestCase):
             {'issue_type': 'compliance_tag', 'description': 'Compliance tag found.'}
         ], True))
         self.mock_process_file = self.patcher_process_file.start()
-    
+
     def tearDown(self):
         """Clean up test fixtures."""
         import shutil
         shutil.rmtree(self.temp_dir, ignore_errors=True)
         self.patcher_scan.stop()
         self.patcher_process_file.stop()
-    
+
     @timeout(20)
     def test_get_all_code_files(self):
         """Test getting all code files from directory."""
@@ -111,26 +106,26 @@ class TestScanner(unittest.TestCase):
             "test.txt",  # Should be ignored
             "test.md"    # Should be ignored
         ]
-        
+
         for filename in test_files:
             filepath = os.path.join(self.temp_dir, filename)
             with open(filepath, 'w') as f:
                 f.write("test content")
-        
+
         language_files = _get_all_code_files(self.temp_dir)  # type: ignore
-        
+
         self.assertIn('python', language_files)
         self.assertIn('javascript', language_files)
         self.assertIn('java', language_files)
-        
+
         # Check that text and markdown files are not included
         all_files = []
         for files in language_files.values():
             all_files.extend(files)
-        
+
         self.assertNotIn(os.path.join(self.temp_dir, "test.txt"), all_files)
         self.assertNotIn(os.path.join(self.temp_dir, "test.md"), all_files)
-    
+
     @timeout(20)
     def test_parse_linter_output_python(self):
         """Test parsing Python linter output."""
@@ -141,7 +136,7 @@ class TestScanner(unittest.TestCase):
         line_num, message = result
         self.assertEqual(line_num, 10)
         self.assertIn("Test error message", message)
-    
+
     @timeout(20)
     def test_parse_linter_output_javascript(self):
         """Test parsing JavaScript linter output."""
@@ -152,7 +147,7 @@ class TestScanner(unittest.TestCase):
         line_num, message = result
         self.assertEqual(line_num, 15)
         self.assertIn("undefined_var", message)
-    
+
     @timeout(20)
     def test_get_code_context(self):
         """Test getting code context around a line."""
@@ -170,19 +165,19 @@ def function2():
 """
         with open(test_file, 'w') as f:
             f.write(content)
-        
+
         # Get context around line 3
         context = get_code_context(test_file, 3, context_lines=2)
         self.assertIn("x = 1", context)
         self.assertIn("y = 2", context)
-    
+
     @timeout(20)
     def test_enhance_code(self):
         """Test code enhancement functionality."""
         # Mock the model and tokenizer
         mock_model = Mock()
         mock_tokenizer = Mock()
-        
+
         # Test enhancement
         result = enhance_code(
             "/test/file.py",
@@ -192,9 +187,9 @@ def function2():
             mock_model,
             mock_tokenizer
         )
-        
+
         self.assertIsInstance(result, str)
-    
+
     @timeout(20)
     def test_process_file_parallel(self):
         """Test parallel file processing."""
@@ -207,11 +202,11 @@ def test_function():
     y = 2
     return x + y
 """)
-        
+
         # Mock model and tokenizer
         mock_model = Mock()
         mock_tokenizer = Mock()
-        
+
         # Test processing
         issues, linter_available = process_file_parallel(
             test_file,
@@ -221,11 +216,11 @@ def test_function():
             mock_tokenizer,
             self.analyzer
         )
-        
+
         self.assertIsInstance(issues, list)
         self.assertIsInstance(linter_available, bool)
         self.assertIn('SSRF', [issue['issue_type'] for issue in issues])  # type: ignore
-    
+
     @timeout(20)
     def test_scan_code_basic(self):
         """Test basic code scanning functionality."""
@@ -243,16 +238,16 @@ function function2() {
 }
 """)
         ]
-        
+
         for filename, content in test_files:
             filepath = os.path.join(self.temp_dir, filename)
             with open(filepath, 'w') as f:
                 f.write(content)
-        
+
         # Mock model and tokenizer
         mock_model = Mock()
         mock_tokenizer = Mock()
-        
+
         # Test scanning
         results = scan_code(
             self.temp_dir,
@@ -260,9 +255,9 @@ function function2() {
             mock_model,
             mock_tokenizer
         )
-        
+
         self.assertIsInstance(results, list)
-    
+
     @timeout(20)
     def test_scan_code_with_progress_callback(self):
         """Test code scanning with progress callback."""
@@ -270,16 +265,17 @@ function function2() {
         test_file = os.path.join(self.temp_dir, "test.py")
         with open(test_file, 'w') as f:
             f.write("def test(): pass")
-        
+
         # Mock model and tokenizer
         mock_model = Mock()
         mock_tokenizer = Mock()
-        
+
         # Track progress calls
         progress_calls = []
+
         def progress_callback(current, total, message):
             progress_calls.append((current, total, message))
-        
+
         # Test scanning with progress
         results = scan_code(
             self.temp_dir,
@@ -288,11 +284,11 @@ function function2() {
             mock_tokenizer,
             progress_callback=progress_callback
         )
-        
+
         self.assertIsInstance(results, list)
         # Should have at least one progress call
         self.assertGreater(len(progress_calls), 0)
-    
+
     @timeout(20)
     def test_scan_code_with_log_callback(self):
         """Test code scanning with log callback."""
@@ -300,16 +296,17 @@ function function2() {
         test_file = os.path.join(self.temp_dir, "test.py")
         with open(test_file, 'w') as f:
             f.write("def test(): pass")
-        
+
         # Mock model and tokenizer
         mock_model = Mock()
         mock_tokenizer = Mock()
-        
+
         # Track log calls
         log_calls = []
+
         def log_callback(message):
             log_calls.append(message)
-        
+
         # Test scanning with logging
         results = scan_code(
             self.temp_dir,
@@ -318,11 +315,11 @@ function function2() {
             mock_tokenizer,
             log_message_callback=log_callback
         )
-        
+
         self.assertIsInstance(results, list)
         # Should have some log messages
         self.assertGreater(len(log_calls), 0)
-    
+
     @timeout(20)
     def test_scan_code_with_cancellation(self):
         """Test code scanning with cancellation callback."""
@@ -330,15 +327,15 @@ function function2() {
         test_file = os.path.join(self.temp_dir, "test.py")
         with open(test_file, 'w') as f:
             f.write("def test(): pass")
-        
+
         # Mock model and tokenizer
         mock_model = Mock()
         mock_tokenizer = Mock()
-        
+
         # Cancellation callback that always returns True (cancel)
         def cancellation_callback():
             return True
-        
+
         # Test scanning with cancellation
         results = scan_code(
             self.temp_dir,
@@ -347,24 +344,25 @@ function function2() {
             mock_tokenizer,
             cancellation_callback=cancellation_callback
         )
-        
+
         # Should return empty results due to cancellation
         self.assertEqual(results, [])
-    
+
     @timeout(20)
     def test_scan_code_large_file_handling(self):
         """Test handling of large files."""
         # Create a large test file
         test_file = os.path.join(self.temp_dir, "large_test.py")
-        large_content = "def test():\n" + "\n".join(["    pass"] * TEST_LARGE_ITERATION_COUNT)  # Large file
-        
+        large_content = "def test():\n" + \
+            "\n".join(["    pass"] * TEST_LARGE_ITERATION_COUNT)  # Large file
+
         with open(test_file, 'w') as f:
             f.write(large_content)
-        
+
         # Mock model and tokenizer
         mock_model = Mock()
         mock_tokenizer = Mock()
-        
+
         # Test scanning large file
         results = scan_code(
             self.temp_dir,
@@ -372,16 +370,16 @@ function function2() {
             mock_model,
             mock_tokenizer
         )
-        
+
         self.assertIsInstance(results, list)
-    
+
     @timeout(20)
     def test_scan_code_error_handling(self):
         """Test error handling in code scanning."""
         # Mock model and tokenizer
         mock_model = Mock()
         mock_tokenizer = Mock()
-        
+
         # Test scanning non-existent directory
         results = scan_code(
             "/nonexistent/directory",
@@ -389,10 +387,10 @@ function function2() {
             mock_model,
             mock_tokenizer
         )
-        
+
         # Should return empty results for non-existent directory
         self.assertEqual(results, [])
-    
+
     @timeout(20)
     def test_issue_type_conversion(self):
         """Test IssueType conversion in scanner."""
@@ -405,11 +403,11 @@ def test_function():
     for i in range(TEST_LARGE_ITERATION_COUNT):  # Should trigger performance issue
         print(i)
 """)
-        
+
         # Mock model and tokenizer
         mock_model = Mock()
         mock_tokenizer = Mock()
-        
+
         # Test scanning
         results = scan_code(
             self.temp_dir,
@@ -417,9 +415,9 @@ def test_function():
             mock_model,
             mock_tokenizer
         )
-        
+
         self.assertIsInstance(results, list)
-        
+
         # Check that results have proper issue_type values
         for result in results:
             self.assertIn('issue_type', result)
@@ -427,7 +425,7 @@ def test_function():
             self.assertIsInstance(issue_type, str)
             # Should be a valid IssueType value
             self.assertIn(issue_type, [it.value for it in IssueType])
-    
+
     @timeout(20)
     def test_advanced_security_vulnerabilities(self):
         """Test detection of SSRF, insecure deserialization, weak cryptography, unsafe package usage, and compliance tagging."""
@@ -454,13 +452,36 @@ def test_func(url):
         # Debug: print all descriptions for security vulnerabilities
         print("[DEBUG] Security vulnerability descriptions:")
         for i in results:
-            if 'security' in i.get('issue_type', '').lower() or 'vulnerability' in i.get('issue_type', '').lower():
+            if 'security' in i.get(
+                    'issue_type',
+                    '').lower() or 'vulnerability' in i.get(
+                    'issue_type',
+                    '').lower():
                 print(i.get('description', ''))
         found_ssrf = any('ssrf' in (i.get('description', '').lower()) for i in results)
-        found_deserialization = any('deserialization' in (i.get('description', '').lower()) for i in results)
-        found_weak_crypto = any('md5' in (i.get('description', '').lower()) or 'cryptography' in (i.get('description', '').lower()) for i in results)
-        found_unsafe = any('unsafe' in (i.get('description', '').lower()) or 'os.system' in (i.get('code_snippet', '').lower()) for i in results)
-        found_compliance = any('PCI' in (str(i.get('compliance_standards', ''))) or 'HIPAA' in (str(i.get('compliance_standards', ''))) or 'GDPR' in (str(i.get('compliance_standards', ''))) for i in results)
+        found_deserialization = any(
+            'deserialization' in (
+                i.get(
+                    'description',
+                    '').lower()) for i in results)
+        found_weak_crypto = any(
+            'md5' in (
+                i.get(
+                    'description',
+                    '').lower()) or 'cryptography' in (
+                i.get(
+                    'description',
+                    '').lower()) for i in results)
+        found_unsafe = any(
+            'unsafe' in (
+                i.get(
+                    'description',
+                    '').lower()) or 'os.system' in (
+                i.get(
+                    'code_snippet',
+                    '').lower()) for i in results)
+        found_compliance = any('PCI' in (str(i.get('compliance_standards', ''))) or 'HIPAA' in (str(i.get(
+            'compliance_standards', ''))) or 'GDPR' in (str(i.get('compliance_standards', ''))) for i in results)
         self.assertTrue(found_ssrf)
         self.assertTrue(found_deserialization)
         self.assertTrue(found_weak_crypto)
@@ -469,4 +490,4 @@ def test_func(url):
 
 
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main()

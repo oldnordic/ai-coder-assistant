@@ -22,15 +22,8 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 Script to run the PR automation API server.
 """
 
-import sys
 import argparse
 import logging
-from pathlib import Path
-
-# Add src to Python path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-
-from src.backend.services.api import run_api_server
 
 def setup_logging():
     """Setup logging configuration."""

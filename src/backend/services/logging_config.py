@@ -20,7 +20,9 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 # src/core/logging_config.py
 import logging
 import os
-from backend.utils import settings
+
+from src.backend.utils import settings
+
 
 def setup_logging():
     """
@@ -33,7 +35,7 @@ def setup_logging():
 
     # Get the root logger
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO) # Set the lowest level to capture all messages
+    logger.setLevel(logging.INFO)  # Set the lowest level to capture all messages
 
     # Clear existing handlers to avoid duplicate logs from previous runs
     if logger.hasHandlers():
@@ -41,7 +43,7 @@ def setup_logging():
 
     # Create file handler which logs even debug messages
     # Use 'a' for append mode to keep logs between sessions
-    file_handler = logging.FileHandler(log_filepath, mode='a', encoding='utf-8')
+    file_handler = logging.FileHandler(log_filepath, mode="a", encoding="utf-8")
     file_handler.setLevel(logging.INFO)
 
     # Create console handler with a higher log level
@@ -49,7 +51,9 @@ def setup_logging():
     console_handler.setLevel(logging.INFO)
 
     # Create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
 

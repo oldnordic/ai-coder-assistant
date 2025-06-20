@@ -1,16 +1,19 @@
 """Model Management UI component for AI Coder Assistant."""
 
 from typing import Optional
-from PyQt6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QComboBox, QHBoxLayout
-from PyQt6.QtCore import pyqtSlot
 
-from frontend.components.base_component import BaseComponent, ComponentState
+from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
+
+from core.error import ErrorSeverity
 from core.events import Event, EventType
 from core.logging import LogManager
-from core.error import ErrorSeverity
+from frontend.components.base_component import BaseComponent, ComponentState
+
 
 class ModelManagementComponent(BaseComponent):
     """UI component for managing AI models (load/unload/status)."""
+
     def __init__(self, parent: Optional[object] = None):
         super().__init__(parent)
         self._logger = LogManager().get_logger("ModelManagementComponent")
@@ -44,14 +47,18 @@ class ModelManagementComponent(BaseComponent):
         model_id = self.model_selector.currentText()
         self.status_label.setText(f"Loading model: {model_id}...")
         self.state = ComponentState.ACTIVATING
-        self.publish_event(Event(type=EventType.MODEL_LOADING, data={"model_id": model_id}))
+        self.publish_event(
+            Event(type=EventType.MODEL_LOADING, data={"model_id": model_id})
+        )
 
     @pyqtSlot()
     def unload_model(self):
         model_id = self.model_selector.currentText()
         self.status_label.setText(f"Unloading model: {model_id}...")
         self.state = ComponentState.ACTIVATING
-        self.publish_event(Event(type=EventType.MODEL_UNLOADED, data={"model_id": model_id}))
+        self.publish_event(
+            Event(type=EventType.MODEL_UNLOADED, data={"model_id": model_id})
+        )
 
     def on_model_loading(self, event: Event):
         model_id = event.data.get("model_id", "?") if event.data else "?"
@@ -74,7 +81,9 @@ class ModelManagementComponent(BaseComponent):
         self._logger.info(f"Model unloaded: {model_id}")
 
     def on_model_error(self, event: Event):
-        error_msg = event.data.get("error", "Unknown error") if event.data else "Unknown error"
+        error_msg = (
+            event.data.get("error", "Unknown error") if event.data else "Unknown error"
+        )
         model_id = event.data.get("model_id", "?") if event.data else "?"
         self.status_label.setText(f"Model error ({model_id}): {error_msg}")
         self.state = ComponentState.ERROR
@@ -91,4 +100,4 @@ class ModelManagementComponent(BaseComponent):
 
     async def deactivate(self) -> bool:
         self.state = ComponentState.DEACTIVATED
-        return True 
+        return True

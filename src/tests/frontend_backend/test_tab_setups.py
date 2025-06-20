@@ -1,24 +1,36 @@
-from PyQt6.QtCore import Qt, QCoreApplication
-QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
-
-import unittest
-from unittest.mock import patch, MagicMock
-from PyQt6.QtWidgets import (
-    QApplication, QWidget, QPushButton, QLabel, QComboBox, QTextEdit, QLineEdit, QCheckBox, QSpinBox, QProgressBar
-)
-import sys
+from frontend.ui.suggestion_dialog import SuggestionDialog
 from frontend.ui.refactoring_tab import RefactoringTab
-from frontend.ui.continuous_learning_tab import ContinuousLearningTab
-from frontend.ui.cloud_models_tab import CloudModelsTab
 from frontend.ui.pr_tab_widgets import PRCreationTab
 from frontend.ui.markdown_viewer import MarkdownViewerDialog
-from frontend.ui.suggestion_dialog import SuggestionDialog
+from frontend.ui.continuous_learning_tab import ContinuousLearningTab
+from frontend.ui.cloud_models_tab import CloudModelsTab
+from PyQt6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QLabel,
+    QLineEdit,
+    QProgressBar,
+    QPushButton,
+    QSpinBox,
+    QTextEdit,
+    QWidget,
+)
+from unittest.mock import MagicMock, patch
+import unittest
+import sys
 import signal
+from PyQt6.QtCore import QCoreApplication, Qt
+
+QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
+
 
 def timeout(seconds=30):
     def decorator(func):
         def _handle_timeout(signum, frame):
-            raise TimeoutError(f"Test timed out after {seconds} seconds: {func.__name__}")
+            raise TimeoutError(
+                f"Test timed out after {seconds} seconds: {func.__name__}")
+
         def wrapper(*args, **kwargs):
             signal.signal(signal.SIGALRM, _handle_timeout)
             signal.alarm(seconds)
@@ -29,11 +41,14 @@ def timeout(seconds=30):
         return wrapper
     return decorator
 
+
 class DebugTestCase(unittest.TestCase):
     def setUp(self):
         print(f"[DEBUG] Starting test: {self.id()}")
+
     def tearDown(self):
         print(f"[DEBUG] Finished test: {self.id()}")
+
 
 class TestTabSetups(DebugTestCase):
     @classmethod
@@ -43,10 +58,16 @@ class TestTabSetups(DebugTestCase):
         else:
             cls.app = QApplication.instance()
 
-    def _assert_widget_types(self, instance: object, expected_types: dict[str, type]) -> None:
+    def _assert_widget_types(self, instance: object,
+                             expected_types: dict[str, type]) -> None:
         for attr, expected_type in expected_types.items():
             self.assertTrue(hasattr(instance, attr), f"Missing attribute: {attr}")
-            self.assertIsInstance(getattr(instance, attr), expected_type, f"{attr} is not {expected_type}")
+            self.assertIsInstance(
+                getattr(
+                    instance,
+                    attr),
+                expected_type,
+                f"{attr} is not {expected_type}")
 
     @timeout(30)
     @patch('requests.get')
@@ -170,6 +191,7 @@ class TestTabSetups(DebugTestCase):
                 setup_ollama_export_tab(parent_widget, main_app_instance)
             self.assertIn("Widget error", str(context.exception))
 
+
 class TestTabSetupsExtended(TestTabSetups):
     @timeout(30)
     def test_refactoring_tab(self):
@@ -235,5 +257,6 @@ class TestTabSetupsExtended(TestTabSetups):
         self.assertIsInstance(dialog.button_box, object)
         self.assertIsInstance(dialog.cancel_all_button, QPushButton)
 
+
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main()

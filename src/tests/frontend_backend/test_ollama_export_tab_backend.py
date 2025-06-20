@@ -1,9 +1,11 @@
-import unittest
 import tempfile
-import os
-from unittest.mock import patch, MagicMock
-from PyQt6.QtWidgets import QWidget, QApplication
+import unittest
+from unittest.mock import MagicMock, patch
+
+from PyQt6.QtWidgets import QApplication, QWidget
+
 from frontend.ui.ollama_export_tab import setup_ollama_export_tab
+
 
 class TestOllamaExportTabBackend(unittest.TestCase):
     @classmethod
@@ -20,5 +22,6 @@ class TestOllamaExportTabBackend(unittest.TestCase):
         # Should not raise
         setup_ollama_export_tab(parent_widget, main_app_instance)
 
+
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main()

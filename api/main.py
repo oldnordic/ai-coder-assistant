@@ -5,7 +5,6 @@ Provides programmatic access to code analysis and security scanning features
 """
 
 import os
-import sys
 import asyncio
 from pathlib import Path
 from typing import List, Optional, Dict, Any
@@ -15,26 +14,6 @@ import secrets
 import sqlite3
 import hashlib
 import uuid
-
-# Add the project root to the path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, Field
-import uvicorn
-
-# Import our modules
-from src.core.scanner import CodeScanner
-from src.core.intelligent_analyzer import IntelligentAnalyzer
-from src.core.ai_tools import AITools
-from src.config.settings import Settings
-from src.core import scanner, ai_tools
-from src.config import settings
-from src.llm_studio import LLMManager
-from src.llm_studio.models import ProviderConfig, ProviderType, ChatMessage
 
 # Initialize FastAPI app
 app = FastAPI(

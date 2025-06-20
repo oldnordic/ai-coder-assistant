@@ -1,6 +1,9 @@
 import unittest
+
 from PyQt6.QtWidgets import QApplication
+
 from frontend.ui.markdown_viewer import MarkdownViewerDialog
+
 
 class TestMarkdownViewerBackend(unittest.TestCase):
     @classmethod
@@ -12,5 +15,6 @@ class TestMarkdownViewerBackend(unittest.TestCase):
         dialog = MarkdownViewerDialog("# Test Report\nSome content.")
         self.assertIsNotNone(dialog)
 
+
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main()

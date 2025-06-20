@@ -8,11 +8,11 @@ This module provides core functionality used across the application:
 - Event system
 """
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"
 
 from .config import Config
-from .logging import LogManager
 from .error import ErrorHandler
-from .events import EventBus, Event, EventType
+from .events import Event, EventBus, EventType
+from .logging import LogManager
 
-__all__ = ['Config', 'LogManager', 'ErrorHandler', 'EventBus', 'Event', 'EventType'] 
+__all__ = ["Config", "LogManager", "ErrorHandler", "EventBus", "Event", "EventType"]

@@ -17,11 +17,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
-# src/ui/browser_tab.py
-from PyQt6.QtWidgets import (QVBoxLayout, QHBoxLayout, QPushButton,
-                             QLineEdit, QGroupBox, QTextEdit, QLabel)
-from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QUrl
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+
+# src/ui/browser_tab.py
+from PyQt6.QtWidgets import (
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+)
+
 
 def setup_browser_tab(parent_widget, main_app_instance):
     """
@@ -36,13 +45,13 @@ def setup_browser_tab(parent_widget, main_app_instance):
     url_layout = QHBoxLayout()
     main_app_instance.url_bar = QLineEdit()
     main_app_instance.url_bar.setPlaceholderText("https://www.google.com")
-    
+
     # --- FIXED: Correctly assign the button to the main app instance ---
     main_app_instance.go_button = QPushButton("Go")
-    
+
     url_layout.addWidget(main_app_instance.url_bar)
     url_layout.addWidget(main_app_instance.go_button)
-    
+
     main_app_instance.browser = QWebEngineView()
     main_app_instance.browser.setUrl(QUrl("https://www.google.com"))
 
@@ -58,12 +67,14 @@ def setup_browser_tab(parent_widget, main_app_instance):
     yt_url_layout.addWidget(QLabel("YouTube URL:"))
     main_app_instance.youtube_url_entry = QLineEdit()
     yt_url_layout.addWidget(main_app_instance.youtube_url_entry)
-    
+
     main_app_instance.transcribe_button = QPushButton("Transcribe Video Audio")
-    
+
     main_app_instance.transcription_results_text = QTextEdit()
     main_app_instance.transcription_results_text.setReadOnly(True)
-    main_app_instance.transcription_results_text.setPlaceholderText("Transcription will appear here...")
+    main_app_instance.transcription_results_text.setPlaceholderText(
+        "Transcription will appear here..."
+    )
 
     yt_layout.addLayout(yt_url_layout)
     yt_layout.addWidget(main_app_instance.transcribe_button)

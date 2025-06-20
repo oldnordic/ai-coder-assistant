@@ -1,6 +1,8 @@
-import pytest
 import sys
+
+import pytest
 from PyQt6.QtWidgets import QApplication
+
 
 @pytest.fixture(scope="session")
 def app():
@@ -8,4 +10,4 @@ def app():
     app = QApplication.instance()
     if app is None:
         app = QApplication(sys.argv)
-    yield app 
+    yield app

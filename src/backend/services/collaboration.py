@@ -3,6 +3,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+
 class PlatformConfig:
     def __init__(self):
         self.teams_enabled = False
@@ -11,6 +12,7 @@ class PlatformConfig:
         self.slack_token = ""
         self.github_enabled = False
         self.github_token = ""
+
 
 class TeamsIntegration:
     def __init__(self, config: PlatformConfig):
@@ -25,6 +27,7 @@ class TeamsIntegration:
         # TODO: Send message to Teams channel
         logger.info(f"[Teams] Message to {channel_id}: {message}")
 
+
 class SlackIntegration:
     def __init__(self, config: PlatformConfig):
         self.config = config
@@ -38,6 +41,7 @@ class SlackIntegration:
         # TODO: Send message to Slack channel
         logger.info(f"[Slack] Message to {channel}: {message}")
 
+
 class GitHubIntegration:
     def __init__(self, config: PlatformConfig):
         self.config = config
@@ -50,6 +54,7 @@ class GitHubIntegration:
     async def share_code(self, repo: str, path: str, content: str, message: str):
         # TODO: Share code to GitHub repo
         logger.info(f"[GitHub] Share code to {repo}/{path}: {message}")
+
 
 class CollaborationService:
     def __init__(self, config: PlatformConfig):
@@ -81,4 +86,4 @@ class CollaborationService:
         if self.github:
             await self.github.share_code(repo, path, content, message)
         else:
-            logger.warning("GitHub integration not enabled.") 
+            logger.warning("GitHub integration not enabled.")

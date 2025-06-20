@@ -17,25 +17,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
-import os
-from PyQt6.QtWidgets import (QVBoxLayout, QLabel, QPushButton, QTextEdit, QMessageBox, QWidget, QComboBox, QProgressDialog)
-import requests
-from typing import Any
-from PyQt6.QtWidgets import QApplication
 import concurrent.futures
+import os
+from typing import Any
 
-from backend.utils.constants import HTTP_TIMEOUT_SHORT, HTTP_TIMEOUT_LONG, HTTP_OK, STATUS_BOX_MIN_HEIGHT
-from backend.utils.constants import OLLAMA_BASE_URL
+import requests
+from PyQt6.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QLabel,
+    QMessageBox,
+    QProgressDialog,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
+from src.backend.utils.constants import (
+    HTTP_OK,
+    HTTP_TIMEOUT_LONG,
+    HTTP_TIMEOUT_SHORT,
+    OLLAMA_BASE_URL,
+    STATUS_BOX_MIN_HEIGHT,
+)
+
 
 def is_ollama_running() -> bool:
     try:
-        response = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=HTTP_TIMEOUT_SHORT)
+        response = requests.get(
+            f"{OLLAMA_BASE_URL}/api/tags", timeout=HTTP_TIMEOUT_SHORT
+        )
         return response.status_code == HTTP_OK
     except requests.exceptions.ConnectionError:
         return False
     except Exception as e:
         print(f"Error checking Ollama status: {e}")
         return False
+
 
 def find_llama_cpp() -> str | None:
     """Finds the llama.cpp directory containing convert_hf_to_gguf.py, prioritizing stability."""
@@ -69,109 +88,137 @@ def find_llama_cpp() -> str | None:
     # If not found in any of the above safe locations, return None
     return None
 
+
 def get_ollama_models() -> list[str]:
     """Fetch the list of models from the local Ollama instance."""
     try:
         resp = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=HTTP_TIMEOUT_LONG)
         if resp.status_code == HTTP_OK:
             data = resp.json()
-            return [m['name'] for m in data.get('models', [])]
+            return [m["name"] for m in data.get("models", [])]
         else:
             return []
     except Exception:
         return []
 
-def setup_ollama_export_tab(parent_widget: QWidget, main_app_instance: Any):
-    layout = QVBoxLayout(parent_widget)
-    title = QLabel("Export Local Model to Ollama")
-    title.setStyleSheet("font-weight: bold; font-size: 16px;")
-    layout.addWidget(title)
 
-    info = QLabel("""
+def setup_ollama_export_tab(parent_widget: QWidget, main_app_instance: Any):
+    """Set up the Ollama export tab with widget dictionary organization."""
+    # Initialize widget dictionary for Ollama export tab
+    main_app_instance.widgets["ollama_export_tab"] = {}
+    w = main_app_instance.widgets["ollama_export_tab"]
+
+    layout = QVBoxLayout(parent_widget)
+
+    # Title
+    w["title"] = QLabel("Export Local Model to Ollama")
+    w["title"].setStyleSheet("font-weight: bold; font-size: 16px;")
+    layout.addWidget(w["title"])
+
+    # Info text
+    w["info"] = QLabel(
+        """
 This tool will export your locally trained model (HuggingFace format) to GGUF and create an enhanced Ollama model.
 - The GGUF export requires llama.cpp's conversion script (convert_hf_to_gguf.py).
 - An enhanced Ollama model will be created that extends your selected base model with custom parameters and system prompts.
 - The enhanced model can be used for improved code suggestions in the AI Agent tab.
-    """)
-    info.setWordWrap(True)
-    layout.addWidget(info)
+    """
+    )
+    w["info"].setWordWrap(True)
+    layout.addWidget(w["info"])
 
     # Model selection
-    model_label = QLabel("Select Ollama Model to Feed Knowledge:")
-    layout.addWidget(model_label)
-    model_selector = QComboBox()
-    model_selector.addItem("(Click 'Refresh Models' to load)")
-    layout.addWidget(model_selector)
+    w["model_label"] = QLabel("Select Ollama Model to Feed Knowledge:")
+    layout.addWidget(w["model_label"])
 
-    # Add a refresh button
-    refresh_button = QPushButton("Refresh Models")
-    layout.addWidget(refresh_button)
+    w["model_selector"] = QComboBox()
+    w["model_selector"].addItem("(Click 'Refresh Models' to load)")
+    layout.addWidget(w["model_selector"])
 
-    status_box = QTextEdit()
-    status_box.setReadOnly(True)
-    status_box.setMinimumHeight(STATUS_BOX_MIN_HEIGHT)
-    layout.addWidget(status_box)
+    # Refresh button
+    w["refresh_button"] = QPushButton("Refresh Models")
+    layout.addWidget(w["refresh_button"])
 
-    export_button = QPushButton("Export & Send to Ollama")
-    layout.addWidget(export_button)
+    # Status box
+    w["status_box"] = QTextEdit()
+    w["status_box"].setReadOnly(True)
+    w["status_box"].setMinimumHeight(STATUS_BOX_MIN_HEIGHT)
+    layout.addWidget(w["status_box"])
+
+    # Export button
+    w["export_button"] = QPushButton("Export & Send to Ollama")
+    layout.addWidget(w["export_button"])
 
     def log(msg: str):
-        status_box.append(msg)
+        w["status_box"].append(msg)
 
     def refresh_models():
-        model_selector.clear()
+        w["model_selector"].clear()
         log("Fetching available models from Ollama...")
         models = get_ollama_models()
         if not models:
-            model_selector.addItem("(No models found)")
+            w["model_selector"].addItem("(No models found)")
             log("No models found on Ollama or Ollama is not running.")
         else:
             for m in models:
-                model_selector.addItem(m)
+                w["model_selector"].addItem(m)
             log(f"Found {len(models)} model(s) on Ollama.")
 
-    # Connect the refresh button instead of auto-refreshing
-    refresh_button.clicked.connect(refresh_models)
+    # Connect the refresh button
+    w["refresh_button"].clicked.connect(refresh_models)
 
     def start_export():
-        progress_dialog = QProgressDialog("Exporting model to Ollama...", "Cancel", 0, 0, parent_widget)
+        progress_dialog = QProgressDialog(
+            "Exporting model to Ollama...", "Cancel", 0, 0, parent_widget
+        )
         progress_dialog.setWindowTitle("Ollama Export Progress")
         progress_dialog.setAutoClose(False)
         progress_dialog.setAutoReset(False)
         progress_dialog.show()
+
         # Keep a reference to the worker to prevent GC
-        parent_widget.ollama_export_worker = OllamaExportWorker(parent_widget, model_selector, status_box)
+        parent_widget.ollama_export_worker = OllamaExportWorker(
+            parent_widget, w["model_selector"], w["status_box"]
+        )
         worker = parent_widget.ollama_export_worker
+
         def on_progress(msg):
-            status_box.append(msg)
+            w["status_box"].append(msg)
             QApplication.processEvents()
+
         def on_finished(msg):
             progress_dialog.close()
-            status_box.append(msg)
+            w["status_box"].append(msg)
             QMessageBox.information(parent_widget, "Export Complete", msg)
             parent_widget.ollama_export_worker = None
+
         def on_error(msg):
             progress_dialog.close()
-            status_box.append(msg)
+            w["status_box"].append(msg)
             QMessageBox.critical(parent_widget, "Export Failed", msg)
             parent_widget.ollama_export_worker = None
+
         worker.progress.connect(on_progress)
         worker.finished.connect(on_finished)
         worker.error.connect(on_error)
         progress_dialog.canceled.connect(worker.cancel)
         worker.start()
-    export_button.clicked.connect(start_export)
+
+    w["export_button"].clicked.connect(start_export)
+
 
 # Stub class for OllamaExportWorker
 class OllamaExportWorker:
     """Stub class for Ollama export worker."""
+
     def __init__(self, parent_widget, model_selector, status_box):
         self.parent_widget = parent_widget
         self.model_selector = model_selector
         self.status_box = status_box
 
+
 class OllamaExportTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.executor = concurrent.futures.ThreadPoolExecutor()
-        self.setup_ui() 
+        self.setup_ui()

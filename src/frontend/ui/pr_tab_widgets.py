@@ -22,30 +22,46 @@ PR Creation Tab Widgets
 Provides GUI components for AI-powered PR creation and review.
 """
 
-from typing import List, Dict, Any, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
 import concurrent.futures
-
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-    QTextEdit, QComboBox, QLineEdit, QFileDialog, QMessageBox,
-    QGroupBox, QCheckBox, QListWidget, QProgressBar, QTabWidget, QSplitter
-)
-from PyQt6.QtCore import Qt, pyqtSlot, QTimer
 from PyQt6.QtGui import QFont
+from PyQt6.QtCore import Qt, QTimer, pyqtSlot
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QPushButton,
+    QSplitter,
+    QTabWidget,
+    QTableWidget,
+    QTableWidgetItem,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+    QProgressBar,
+)
 
 
 # Constants for splitter sizes
 SPLITTER_LEFT_SIZE = 400
 SPLITTER_RIGHT_SIZE = 600
 
+
 def pr_creation_backend(
-    scan_files: List[str], 
-    config: Dict[str, Any], 
+    scan_files: List[str],
+    config: Dict[str, Any],
     progress_callback: Optional[Callable[[int, int, str], None]] = None,
     log_message_callback: Optional[Callable[[str], None]] = None,
-    cancellation_callback: Optional[Callable[[], bool]] = None
+    cancellation_callback: Optional[Callable[[], bool]] = None,
 ) -> Optional[Dict[str, Any]]:
     import time
+
     steps = [
         ("Loading scan results...", 1),
         ("Integrating scan results...", 2),
@@ -64,68 +80,69 @@ def pr_creation_backend(
         if log_message_callback:
             log_message_callback(msg)
         time.sleep(0.5)  # Simulate work
-        
+
     result = {
-        'success': True,
-        'title': 'AI-Powered Code Quality Improvements',
-        'description': 'This PR addresses code quality issues identified by AI analysis.',
-        'branch_name': 'ai-code-quality-fix',
-        'commit_hash': 'abc123',
-        'pr_url': 'https://github.com/example/pull/123',
-        'files_changed': ['src/main.py', 'src/core/analyzer.py'],
-        'status': 'ready',
-        'issues': [
-            {'issue_type': 'code_smell', 'severity': 'medium'},
-            {'issue_type': 'security_vulnerability', 'severity': 'high'}
+        "success": True,
+        "title": "AI-Powered Code Quality Improvements",
+        "description": "This PR addresses code quality issues identified by AI analysis.",
+        "branch_name": "ai-code-quality-fix",
+        "commit_hash": "abc123",
+        "pr_url": "https://github.com/example/pull/123",
+        "files_changed": ["src/main.py", "src/core/analyzer.py"],
+        "status": "ready",
+        "issues": [
+            {"issue_type": "code_smell", "severity": "medium"},
+            {"issue_type": "security_vulnerability", "severity": "high"},
         ],
-        'priority_order': ['security_vulnerability', 'code_smell'],
-        'estimated_time': '2 hours',
-        'risk_impact': 'Low risk, improves code quality',
-        'review_notes': 'Please review the AI-generated fixes for accuracy.'
+        "priority_order": ["security_vulnerability", "code_smell"],
+        "estimated_time": "2 hours",
+        "risk_impact": "Low risk, improves code quality",
+        "review_notes": "Please review the AI-generated fixes for accuracy.",
     }
     return result
 
+
 class PRCreationTab(QWidget):
     """Main PR creation tab widget."""
-    
+
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.scan_files: List[str] = []
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
         self.setup_connections()
-    
+
     def setup_ui(self):
         """Setup the PR creation UI."""
         main_layout = QVBoxLayout(self)
-        
+
         title = QLabel("AI-Powered PR Creation and Review")
         title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
         main_layout.addWidget(title)
-        
+
         splitter = QSplitter(Qt.Orientation.Horizontal)
         main_layout.addWidget(splitter)
-        
+
         left_panel = self.create_configuration_panel()
         splitter.addWidget(left_panel)
-        
+
         right_panel = self.create_preview_panel()
         splitter.addWidget(right_panel)
-        
+
         splitter.setSizes([SPLITTER_LEFT_SIZE, SPLITTER_RIGHT_SIZE])
-        
+
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         main_layout.addWidget(self.progress_bar)
-        
+
         bottom_panel = self.create_actions_panel()
         main_layout.addWidget(bottom_panel)
-    
+
     def create_configuration_panel(self) -> QWidget:
         """Create the configuration panel."""
         panel = QWidget()
         layout = QVBoxLayout(panel)
-        
+
         scan_group = QGroupBox("Scan Results")
         scan_layout = QVBoxLayout(scan_group)
         self.scan_files_list = QListWidget()
@@ -137,10 +154,10 @@ class PRCreationTab(QWidget):
         scan_buttons_layout.addWidget(self.clear_scan_files_btn)
         scan_layout.addLayout(scan_buttons_layout)
         layout.addWidget(scan_group)
-        
+
         config_group = QGroupBox("PR Configuration")
         config_layout = QVBoxLayout(config_group)
-        
+
         # Repository path
         repo_layout = QHBoxLayout()
         repo_layout.addWidget(QLabel("Repository Path:"))
@@ -149,72 +166,78 @@ class PRCreationTab(QWidget):
         repo_layout.addWidget(self.repo_path_edit)
         repo_layout.addWidget(self.browse_repo_btn)
         config_layout.addLayout(repo_layout)
-        
+
         # Base branch
         branch_layout = QHBoxLayout()
         branch_layout.addWidget(QLabel("Base Branch:"))
         self.base_branch_edit = QLineEdit("main")
         branch_layout.addWidget(self.base_branch_edit)
         config_layout.addLayout(branch_layout)
-        
+
         # PR Type
         pr_type_layout = QHBoxLayout()
         pr_type_layout.addWidget(QLabel("PR Type:"))
         self.pr_type_combo = QComboBox()
-        self.pr_type_combo.addItems([
-            "security_fix", "code_quality", "performance", 
-            "compliance", "refactoring", "bug_fix"
-        ])
+        self.pr_type_combo.addItems(
+            [
+                "security_fix",
+                "code_quality",
+                "performance",
+                "compliance",
+                "refactoring",
+                "bug_fix",
+            ]
+        )
         pr_type_layout.addWidget(self.pr_type_combo)
         config_layout.addLayout(pr_type_layout)
-        
+
         # Priority Strategy
         priority_layout = QHBoxLayout()
         priority_layout.addWidget(QLabel("Priority Strategy:"))
         self.priority_strategy_combo = QComboBox()
-        self.priority_strategy_combo.addItems([
-            "severity_first", "easy_win_first", "balanced", "impact_first"
-        ])
+        self.priority_strategy_combo.addItems(
+            ["severity_first", "easy_win_first", "balanced", "impact_first"]
+        )
         priority_layout.addWidget(self.priority_strategy_combo)
         config_layout.addLayout(priority_layout)
-        
+
         # Template Standard
         template_layout = QHBoxLayout()
         template_layout.addWidget(QLabel("Template Standard:"))
         self.template_standard_combo = QComboBox()
-        self.template_standard_combo.addItems([
-            "conventional_commits", "github_standard", "enterprise", "open_source"
-        ])
+        self.template_standard_combo.addItems(
+            ["conventional_commits", "github_standard", "enterprise", "open_source"]
+        )
         template_layout.addWidget(self.template_standard_combo)
         config_layout.addLayout(template_layout)
-        
+
         layout.addWidget(config_group)
-        
+
         # Options
         options_group = QGroupBox("Options")
         options_layout = QVBoxLayout(options_group)
-        
+
         self.deduplicate_check = QCheckBox("Deduplicate Issues")
         self.deduplicate_check.setChecked(True)
         options_layout.addWidget(self.deduplicate_check)
-        
+
         self.auto_commit_check = QCheckBox("Auto Commit Changes")
         self.auto_commit_check.setChecked(True)
         options_layout.addWidget(self.auto_commit_check)
-        
+
         self.auto_push_check = QCheckBox("Auto Push Branch")
         options_layout.addWidget(self.auto_push_check)
-        
+
         self.create_pr_check = QCheckBox("Create GitHub PR")
         options_layout.addWidget(self.create_pr_check)
-        
+
         self.dry_run_check = QCheckBox("Dry Run (Preview Only)")
         options_layout.addWidget(self.dry_run_check)
-        
+
         layout.addWidget(options_group)
-        
+
         return panel
-    
+
     def create_preview_panel(self) -> QWidget:
         """Create the preview panel."""
         panel = QWidget()
@@ -228,7 +251,7 @@ class PRCreationTab(QWidget):
         self.preview_tabs.addTab(self.log_output_edit, "Log Output")
         layout.addWidget(self.preview_tabs)
         return panel
-    
+
     def create_actions_panel(self) -> QWidget:
         """Create the actions panel."""
         panel = QWidget()
@@ -240,7 +263,7 @@ class PRCreationTab(QWidget):
         layout.addWidget(self.create_pr_btn)
         layout.addStretch()
         return panel
-    
+
     def setup_connections(self):
         """Setup signal-slot connections."""
         self.add_scan_files_btn.clicked.connect(self.add_scan_files)
@@ -250,7 +273,9 @@ class PRCreationTab(QWidget):
 
     def add_scan_files(self):
         """Add scan result files."""
-        files, _ = QFileDialog.getOpenFileNames(self, "Select Scan Files", "", "JSON Files (*.json)")
+        files, _ = QFileDialog.getOpenFileNames(
+            self, "Select Scan Files", "", "JSON Files (*.json)"
+        )
         if files:
             self.scan_files_list.addItems(files)
 
@@ -266,18 +291,18 @@ class PRCreationTab(QWidget):
         if not self.get_scan_files():
             QMessageBox.warning(self, "No Scan Files", "Please add scan files first.")
             return
-        
+
         config = self.get_config()
-        config['dry_run'] = True
+        config["dry_run"] = True
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
-        
+
         future = self.executor.submit(
             pr_creation_backend,
             self.get_scan_files(),
             config,
             callback=self.show_preview,
-            error_callback=self.show_error
+            error_callback=self.show_error,
         )
         future.add_done_callback(self._on_preview_complete)
 
@@ -295,7 +320,7 @@ class PRCreationTab(QWidget):
             self.get_scan_files(),
             config,
             callback=self.show_pr_result,
-            error_callback=self.show_error
+            error_callback=self.show_error,
         )
         future.add_done_callback(self._on_pr_creation_complete)
 
@@ -306,6 +331,7 @@ class PRCreationTab(QWidget):
                 self.show_preview(result)
             except Exception as e:
                 self.show_error(f"Preview failed: {e}")
+
         QTimer.singleShot(0, update_ui)
 
     def _on_pr_creation_complete(self, future):
@@ -315,23 +341,32 @@ class PRCreationTab(QWidget):
                 self.show_pr_result(result)
             except Exception as e:
                 self.show_error(f"PR creation failed: {e}")
+
         QTimer.singleShot(0, update_ui)
 
     def show_preview(self, result: Optional[Dict[str, Any]]):
         self.progress_bar.setVisible(False)
-        if result and result.get('success'):
-            self.pr_preview_edit.setText(result.get('description', 'Preview not available.'))
+        if result and result.get("success"):
+            self.pr_preview_edit.setText(
+                result.get("description", "Preview not available.")
+            )
             self.log_output_edit.append("PR preview generated successfully.")
         else:
             self.show_error("Failed to generate PR preview.")
 
     def show_pr_result(self, result: Optional[Dict[str, Any]]):
         self.progress_bar.setVisible(False)
-        if result and result.get('success'):
-            QMessageBox.information(self, "PR Created", f"PR created successfully!\nURL: {result.get('pr_url', 'N/A')}")
-            self.pr_preview_edit.setText(result.get('description', ''))
+        if result and result.get("success"):
+            QMessageBox.information(
+                self,
+                "PR Created",
+                f"PR created successfully!\nURL: {result.get('pr_url', 'N/A')}",
+            )
+            self.pr_preview_edit.setText(result.get("description", ""))
         else:
-            self.show_error(f"Failed to create PR: {result.get('error', 'Unknown error') if result else 'Worker cancelled or failed'}")
+            self.show_error(
+                f"Failed to create PR: {result.get('error', 'Unknown error') if result else 'Worker cancelled or failed'}"
+            )
 
     def show_error(self, error: str):
         self.progress_bar.setVisible(False)
@@ -339,7 +374,10 @@ class PRCreationTab(QWidget):
         self.log_output_edit.append(f"ERROR: {error}")
 
     def get_scan_files(self) -> List[str]:
-        return [self.scan_files_list.item(i).text() for i in range(self.scan_files_list.count())]
+        return [
+            self.scan_files_list.item(i).text()
+            for i in range(self.scan_files_list.count())
+        ]
 
     @pyqtSlot(str, int, int, str)
     def update_progress(self, worker_id: str, current: int, total: int, message: str):
@@ -352,7 +390,7 @@ class PRCreationTab(QWidget):
         try:
             _ = self.isVisible()
         except RuntimeError:
-            return # Widget is deleted
+            return  # Widget is deleted
 
         self.progress_bar.hide()
         if pr_data:
@@ -365,16 +403,177 @@ class PRCreationTab(QWidget):
         try:
             _ = self.isVisible()
         except RuntimeError:
-            return # Widget is deleted
-            
+            return  # Widget is deleted
+
         self.progress_bar.hide()
         if summary_data and "summary" in summary_data:
             self.summary_text.setPlainText(summary_data["summary"])
         else:
             QMessageBox.warning(self, "Error", "Failed to generate summary.")
 
+
 def setup_pr_tab(parent_widget: QWidget, main_window: QWidget) -> QWidget:
-    """Setup the PR creation tab."""
-    tab = PRCreationTab(parent_widget)
-    # Global signal connections are now managed within the tab itself.
-    return tab 
+    """Set up the PR management tab with widget dictionary organization."""
+    # Initialize widget dictionary for PR tab
+    main_window.widgets["pr_tab"] = {}
+    w = main_window.widgets["pr_tab"]
+
+    layout = QVBoxLayout(parent_widget)
+
+    # Title
+    title = QLabel("AI-Powered PR Creation and Review")
+    title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+    layout.addWidget(title)
+
+    # Create splitter for left/right panels
+    splitter = QSplitter(Qt.Orientation.Horizontal)
+    layout.addWidget(splitter)
+
+    # Left panel - Configuration
+    left_panel = QWidget()
+    left_layout = QVBoxLayout(left_panel)
+
+    # Scan Results Group
+    scan_group = QGroupBox("Scan Results")
+    scan_layout = QVBoxLayout(scan_group)
+    w["scan_files_list"] = QListWidget()
+    scan_layout.addWidget(w["scan_files_list"])
+
+    scan_buttons_layout = QHBoxLayout()
+    w["add_scan_files_btn"] = QPushButton("Add Scan Files")
+    w["clear_scan_files_btn"] = QPushButton("Clear All")
+    scan_buttons_layout.addWidget(w["add_scan_files_btn"])
+    scan_buttons_layout.addWidget(w["clear_scan_files_btn"])
+    scan_layout.addLayout(scan_buttons_layout)
+    left_layout.addWidget(scan_group)
+
+    # PR Configuration Group
+    config_group = QGroupBox("PR Configuration")
+    config_layout = QVBoxLayout(config_group)
+
+    # Repository path
+    repo_layout = QHBoxLayout()
+    repo_layout.addWidget(QLabel("Repository Path:"))
+    w["repo_path_edit"] = QLineEdit(".")
+    w["browse_repo_btn"] = QPushButton("Browse")
+    repo_layout.addWidget(w["repo_path_edit"])
+    repo_layout.addWidget(w["browse_repo_btn"])
+    config_layout.addLayout(repo_layout)
+
+    # Base branch
+    branch_layout = QHBoxLayout()
+    branch_layout.addWidget(QLabel("Base Branch:"))
+    w["base_branch_edit"] = QLineEdit("main")
+    branch_layout.addWidget(w["base_branch_edit"])
+    config_layout.addLayout(branch_layout)
+
+    # PR Type
+    pr_type_layout = QHBoxLayout()
+    pr_type_layout.addWidget(QLabel("PR Type:"))
+    w["pr_type_combo"] = QComboBox()
+    w["pr_type_combo"].addItems(
+        [
+            "security_fix",
+            "code_quality",
+            "performance",
+            "compliance",
+            "refactoring",
+            "bug_fix",
+        ]
+    )
+    pr_type_layout.addWidget(w["pr_type_combo"])
+    config_layout.addLayout(pr_type_layout)
+
+    # Priority Strategy
+    priority_layout = QHBoxLayout()
+    priority_layout.addWidget(QLabel("Priority Strategy:"))
+    w["priority_strategy_combo"] = QComboBox()
+    w["priority_strategy_combo"].addItems(
+        ["severity_first", "easy_win_first", "balanced", "impact_first"]
+    )
+    priority_layout.addWidget(w["priority_strategy_combo"])
+    config_layout.addLayout(priority_layout)
+
+    # Template Standard
+    template_layout = QHBoxLayout()
+    template_layout.addWidget(QLabel("Template Standard:"))
+    w["template_standard_combo"] = QComboBox()
+    w["template_standard_combo"].addItems(
+        ["conventional_commits", "github_standard", "enterprise", "open_source"]
+    )
+    template_layout.addWidget(w["template_standard_combo"])
+    config_layout.addLayout(template_layout)
+
+    left_layout.addWidget(config_group)
+
+    # Options Group
+    options_group = QGroupBox("Options")
+    options_layout = QVBoxLayout(options_group)
+
+    w["deduplicate_check"] = QCheckBox("Deduplicate Issues")
+    w["deduplicate_check"].setChecked(True)
+    options_layout.addWidget(w["deduplicate_check"])
+
+    w["auto_commit_check"] = QCheckBox("Auto-commit Changes")
+    w["auto_commit_check"].setChecked(False)
+    options_layout.addWidget(w["auto_commit_check"])
+
+    w["include_tests_check"] = QCheckBox("Include Test Generation")
+    w["include_tests_check"].setChecked(True)
+    options_layout.addWidget(w["include_tests_check"])
+
+    left_layout.addWidget(options_group)
+    splitter.addWidget(left_panel)
+
+    # Right panel - Preview
+    right_panel = QWidget()
+    right_layout = QVBoxLayout(right_panel)
+
+    preview_group = QGroupBox("PR Preview")
+    preview_layout = QVBoxLayout(preview_group)
+
+    w["pr_title_edit"] = QLineEdit()
+    w["pr_title_edit"].setPlaceholderText("PR Title will be generated here...")
+    preview_layout.addWidget(QLabel("Title:"))
+    preview_layout.addWidget(w["pr_title_edit"])
+
+    w["pr_description_edit"] = QTextEdit()
+    w["pr_description_edit"].setPlaceholderText(
+        "PR Description will be generated here..."
+    )
+    w["pr_description_edit"].setMinimumHeight(200)
+    preview_layout.addWidget(QLabel("Description:"))
+    preview_layout.addWidget(w["pr_description_edit"])
+
+    w["files_changed_list"] = QListWidget()
+    w["files_changed_list"].setMaximumHeight(100)
+    preview_layout.addWidget(QLabel("Files Changed:"))
+    preview_layout.addWidget(w["files_changed_list"])
+
+    right_layout.addWidget(preview_group)
+    splitter.addWidget(right_panel)
+
+    # Set splitter sizes
+    splitter.setSizes([SPLITTER_LEFT_SIZE, SPLITTER_RIGHT_SIZE])
+
+    # Progress bar
+    w["progress_bar"] = QProgressBar()
+    w["progress_bar"].setVisible(False)
+    layout.addWidget(w["progress_bar"])
+
+    # Actions panel
+    actions_layout = QHBoxLayout()
+
+    w["preview_pr_btn"] = QPushButton("Preview PR")
+    w["create_pr_btn"] = QPushButton("Create PR")
+    w["export_config_btn"] = QPushButton("Export Config")
+    w["import_config_btn"] = QPushButton("Import Config")
+
+    actions_layout.addWidget(w["preview_pr_btn"])
+    actions_layout.addWidget(w["create_pr_btn"])
+    actions_layout.addWidget(w["export_config_btn"])
+    actions_layout.addWidget(w["import_config_btn"])
+
+    layout.addLayout(actions_layout)
+
+    return parent_widget

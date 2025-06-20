@@ -18,102 +18,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
-import sys
-import os
-import faulthandler
-import signal
-import atexit
-from typing import Any
-from PyQt6.QtWidgets import QApplication
-from PyQt6.QtCore import QCoreApplication
+"""
+This is the main entry point for the AI Coder Assistant application.
+It delegates to the src.main module to follow Python best practices.
 
-# --- Add the project root to the Python path ---
-project_root = os.path.dirname(os.path.abspath(__file__))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+To run the application, use one of these methods:
 
-# --- Add the src directory to the Python path for src-layout ---
-src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "src")
-if src_path not in sys.path:
-    sys.path.insert(0, src_path)
+1. From the project root:
+   python -m src.main
 
-# --- Import necessary components from the new frontend/backend structure ---
-from frontend.ui.main_window import AICoderAssistant
-from backend.services.logging_config import setup_logging
+2. Or simply:
+   python main.py
 
-def signal_handler(signum: int, frame: Any) -> None:
-    """Handle shutdown signals gracefully."""
-    print(f"\nReceived signal {signum}, shutting down gracefully...")
-    if 'app' in globals() and app:
-        app.quit()
-    sys.exit(0)
+Both methods will work, but the module approach (-m src.main) is preferred
+as it follows Python best practices for package imports.
+"""
 
-def cleanup_on_exit():
-    """Cleanup function called on exit."""
-    print("Cleaning up on exit...")
-    # The main window's closeEvent will handle thread cleanup
-
-def create_project_directories():
-    """
-    Checks for and creates the necessary directories for the application to function.
-    """
-    print("Checking for necessary project directories...")
-    # Get the project root from this script's location
-    root_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # List of directories that the application needs
-    required_dirs = [
-        os.path.join(root_dir, "logs"),
-        os.path.join(root_dir, "data"),
-        os.path.join(root_dir, "data", "docs"),
-        os.path.join(root_dir, "data", "learning_data"),
-        os.path.join(root_dir, "data", "processed_data"),
-        os.path.join(root_dir, "scripts"),
-        os.path.join(root_dir, "tmp"),
-        # Also create src subdirectories if they don't exist
-        os.path.join(root_dir, "src", "logs"),
-        os.path.join(root_dir, "src", "data"),
-        os.path.join(root_dir, "src", "data", "docs"),
-        os.path.join(root_dir, "src", "data", "learning_data"),
-        os.path.join(root_dir, "src", "data", "processed_data")
-    ]
-    
-    for dir_path in required_dirs:
-        try:
-            if not os.path.exists(dir_path):
-                os.makedirs(dir_path)
-                print(f"Created directory: {dir_path}")
-        except OSError as e:
-            print(f"Error creating directory {dir_path}: {e}")
-            # Depending on the severity, you might want to exit or raise the exception
-            # For this app, we'll just print the error and continue.
-            
-    print("Directory check complete.")
-
+def main():
+    """Main entry point that delegates to the src.main module."""
+    # Import and run the main function from src.main
+    from src.main import main as src_main
+    src_main()
 
 if __name__ == '__main__':
-    # --- Set up signal handlers for graceful shutdown ---
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-    atexit.register(cleanup_on_exit)
-    
-    # --- Create directories as the very first step ---
-    create_project_directories()
-
-    # Setup logging as the next application action
-    setup_logging()
-    
-    # Enable the fault handler for better crash reports
-    faulthandler.enable()
-    
-    app = QApplication(sys.argv)
-    
-    # Set application info for QSettings to work correctly
-    QCoreApplication.setOrganizationName("AICoderOrg")
-    QCoreApplication.setApplicationName("AICoderAssistant")
-
-    # Create and show the main window
-    window = AICoderAssistant()
-    window.show()
-    
-    sys.exit(app.exec())
+    main()

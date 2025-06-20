@@ -21,15 +21,28 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 LLM Studio GUI for provider/model management and chat playground (PyQt6 version).
 """
 
+
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 import sys
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
-    QTabWidget, QComboBox, QTextEdit, QListWidget, QListWidgetItem, QMessageBox, QFormLayout, QInputDialog
+    QApplication,
+    QComboBox,
+    QFormLayout,
+    QHBoxLayout,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QPushButton,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
-
+from .models import ChatMessage, ModelConfig, ProviderConfig, ProviderType
 from .llm_manager import LLMManager
-from .models import ProviderType, ModelConfig, ProviderConfig, ChatMessage
 
 
 class LLMStudioUI(QWidget):
@@ -73,16 +86,26 @@ class LLMStudioUI(QWidget):
     def refresh_provider_list(self):
         self.provider_list.clear()
         for pt, pc in self.manager.config.providers.items():
-            item = QListWidgetItem(f"{pt.value} | {pc.api_key[:6]}... | Enabled: {pc.is_enabled}")
+            item = QListWidgetItem(
+                f"{pt.value} | {pc.api_key[:6]}... | Enabled: {pc.is_enabled}"
+            )
             item.setData(Qt.ItemDataRole.UserRole, pt)
             self.provider_list.addItem(item)
 
     def add_provider_dialog(self):
-        provider, ok = QInputDialog.getItem(self, "Select Provider", "Provider:",
-                                            [pt.value for pt in ProviderType], 0, False)
+        provider, ok = QInputDialog.getItem(
+            self,
+            "Select Provider",
+            "Provider:",
+            [pt.value for pt in ProviderType],
+            0,
+            False,
+        )
         if not ok:
             return
-        api_key, ok = QInputDialog.getText(self, "API Key", f"Enter API key for {provider}:")
+        api_key, ok = QInputDialog.getText(
+            self, "API Key", f"Enter API key for {provider}:"
+        )
         if not ok or not api_key:
             return
         pt = ProviderType(provider)
@@ -108,14 +131,22 @@ class LLMStudioUI(QWidget):
             return
         pt = item.data(Qt.ItemDataRole.UserRole)
         pc = self.manager.config.providers[pt]
+
         class TestThread(QThread):
             result = pyqtSignal(bool)
+
             def run(self_):
                 import asyncio
+
                 ok = asyncio.run(self.manager.test_provider(pt, pc.api_key))
                 self_.result.emit(ok)
+
         thread = TestThread()
-        thread.result.connect(lambda ok: QMessageBox.information(self, "Test Result", f"Provider {pt.value}: {'OK' if ok else 'Failed'}"))
+        thread.result.connect(
+            lambda ok: QMessageBox.information(
+                self, "Test Result", f"Provider {pt.value}: {'OK' if ok else 'Failed'}"
+            )
+        )
         thread.start()
 
     def model_tab_ui(self):
@@ -139,7 +170,9 @@ class LLMStudioUI(QWidget):
     def refresh_model_list(self):
         self.model_list.clear()
         for name, mc in self.manager.config.models.items():
-            item = QListWidgetItem(f"{name} | {mc.provider.value} | {mc.model_type.value}")
+            item = QListWidgetItem(
+                f"{name} | {mc.provider.value} | {mc.model_type.value}"
+            )
             item.setData(Qt.ItemDataRole.UserRole, name)
             self.model_list.addItem(item)
 
@@ -147,17 +180,22 @@ class LLMStudioUI(QWidget):
         name, ok = QInputDialog.getText(self, "Model Name", "Enter model name:")
         if not ok or not name:
             return
-        provider, ok = QInputDialog.getItem(self, "Provider", "Provider:",
-                                            [pt.value for pt in ProviderType], 0, False)
+        provider, ok = QInputDialog.getItem(
+            self, "Provider", "Provider:", [pt.value for pt in ProviderType], 0, False
+        )
         if not ok:
             return
         # For model_type, use the ModelType enum
         from .models import ModelType
-        model_type, ok = QInputDialog.getItem(self, "Model Type", "Type:",
-                                              [mt.value for mt in ModelType], 0, False)
+
+        model_type, ok = QInputDialog.getItem(
+            self, "Model Type", "Type:", [mt.value for mt in ModelType], 0, False
+        )
         if not ok:
             return
-        mc = ModelConfig(name=name, provider=ProviderType(provider), model_type=ModelType(model_type))
+        mc = ModelConfig(
+            name=name, provider=ProviderType(provider), model_type=ModelType(model_type)
+        )
         self.manager.add_model(mc)
         self.refresh_model_list()
 
@@ -199,27 +237,36 @@ class LLMStudioUI(QWidget):
         model = self.model_combo.currentText()
         self.chat_history.append(f"<b>You:</b> {user_msg}")
         self.user_input.clear()
+
         class ChatThread(QThread):
             result = pyqtSignal(str)
+
             def run(self_):
                 import asyncio
+
                 try:
                     messages = []
                     system_prompt = self.manager.config.models[model].system_prompt
                     if system_prompt and system_prompt.strip():
-                        messages.append(ChatMessage(role="system", content=system_prompt.strip()))
+                        messages.append(
+                            ChatMessage(role="system", content=system_prompt.strip())
+                        )
                     messages.append(ChatMessage(role="user", content=user_msg))
                     resp = asyncio.run(self.manager.chat_completion(messages))
                     text = resp.choices[0]["message"]["content"]
                 except Exception as e:
                     text = f"Error: {e}"
                 self_.result.emit(text)
+
         thread = ChatThread()
-        thread.result.connect(lambda text: self.chat_history.append(f"<b>AI:</b> {text}"))
+        thread.result.connect(
+            lambda text: self.chat_history.append(f"<b>AI:</b> {text}")
+        )
         thread.start()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = LLMStudioUI()
     win.show()
-    sys.exit(app.exec()) 
+    sys.exit(app.exec())

@@ -21,68 +21,85 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 Code Standards Tab - Enforce company-specific coding standards.
 """
 
-import os
-import logging
-from typing import Dict, List, Optional, Any, Callable
 import concurrent.futures
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QTableWidget, 
-    QTableWidgetItem, QPushButton, QLabel, QComboBox, QLineEdit,
-    QTextEdit, QGroupBox, QFormLayout, QCheckBox,
-    QMessageBox, QProgressBar, QHeaderView, QFileDialog, QTreeWidget, QTreeWidgetItem, QDialog, QDialogButtonBox
-)
+import logging
+import os
+from typing import Any, Callable, Dict, List, Optional
 from PyQt6.QtCore import pyqtSlot
-from frontend.controllers import BackendController
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QTabWidget,
+    QTableWidget,
+    QTableWidgetItem,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
+from src.frontend.controllers import BackendController
+
 
 logger = logging.getLogger(__name__)
 
+
 # Backend functions for ThreadManager
 def analyze_code_file_backend(
-    backend_controller: BackendController, 
-    file_path: str, 
-    progress_callback: Optional[Callable[[int, int, str], None]] = None, 
-    log_message_callback: Optional[Callable[[str], None]] = None, 
-    cancellation_callback: Optional[Callable[[], bool]] = None
+    backend_controller: BackendController,
+    file_path: str,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    log_message_callback: Optional[Callable[[str], None]] = None,
+    cancellation_callback: Optional[Callable[[], bool]] = None,
 ) -> Optional[Dict[str, Any]]:
     """Backend function for code file analysis."""
     try:
         if progress_callback:
             progress_callback(25, 100, f"Analyzing file: {os.path.basename(file_path)}")
-        
+
         if cancellation_callback and cancellation_callback():
             return None
-            
+
         result = backend_controller.analyze_code_file(file_path)
-        
+
         if progress_callback:
             progress_callback(100, 100, "Analysis completed")
-            
+
         return result
     except Exception as e:
         if log_message_callback:
             log_message_callback(f"Error analyzing code: {e}")
         raise
 
+
 def analyze_code_directory_backend(
-    backend_controller: BackendController, 
+    backend_controller: BackendController,
     directory_path: str,
-    progress_callback: Optional[Callable[[int, int, str], None]] = None, 
-    log_message_callback: Optional[Callable[[str], None]] = None, 
-    cancellation_callback: Optional[Callable[[], bool]] = None
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    log_message_callback: Optional[Callable[[str], None]] = None,
+    cancellation_callback: Optional[Callable[[], bool]] = None,
 ) -> Optional[List[Dict[str, Any]]]:
     """Backend function for code directory analysis."""
     try:
         if progress_callback:
-            progress_callback(25, 100, f"Analyzing directory: {os.path.basename(directory_path)}")
-        
+            progress_callback(
+                25, 100, f"Analyzing directory: {os.path.basename(directory_path)}"
+            )
+
         if cancellation_callback and cancellation_callback():
             return None
-            
+
         results = backend_controller.analyze_code_directory(directory_path)
-        
+
         if progress_callback:
             progress_callback(100, 100, "Analysis completed")
-            
+
         return results
     except Exception as e:
         if log_message_callback:
@@ -92,41 +109,63 @@ def analyze_code_directory_backend(
 
 class AddRuleDialog(QDialog):
     """Dialog for adding code rules."""
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Add Code Rule")
         self.setModal(True)
         self.setup_ui()
-    
+
     def setup_ui(self):
         """Setup the dialog UI."""
         layout = QVBoxLayout()
-        
+
         form_layout = QFormLayout()
-        
+
         self.rule_id = QLineEdit()
         self.rule_name = QLineEdit()
         self.rule_description = QTextEdit()
         self.rule_description.setMaximumHeight(100)
-        
+
         self.rule_language = QComboBox()
-        self.rule_language.addItems(["python", "javascript", "typescript", "java", "cpp", "csharp", "go", "rust", "php", "ruby"])
-        
+        self.rule_language.addItems(
+            [
+                "python",
+                "javascript",
+                "typescript",
+                "java",
+                "cpp",
+                "csharp",
+                "go",
+                "rust",
+                "php",
+                "ruby",
+            ]
+        )
+
         self.rule_severity = QComboBox()
         self.rule_severity.addItems(["error", "warning", "info"])
-        
+
         self.rule_pattern = QLineEdit()
         self.rule_message = QLineEdit()
         self.rule_category = QComboBox()
-        self.rule_category.addItems(["naming", "style", "security", "performance", "complexity", "documentation"])
-        
+        self.rule_category.addItems(
+            [
+                "naming",
+                "style",
+                "security",
+                "performance",
+                "complexity",
+                "documentation",
+            ]
+        )
+
         self.rule_enabled = QCheckBox("Enabled")
         self.rule_enabled.setChecked(True)
-        
+
         self.rule_auto_fix = QCheckBox("Auto-fixable")
         self.rule_fix_template = QLineEdit()
-        
+
         form_layout.addRow("ID:", self.rule_id)
         form_layout.addRow("Name:", self.rule_name)
         form_layout.addRow("Description:", self.rule_description)
@@ -138,17 +177,19 @@ class AddRuleDialog(QDialog):
         form_layout.addRow("Enabled:", self.rule_enabled)
         form_layout.addRow("Auto-fix:", self.rule_auto_fix)
         form_layout.addRow("Fix Template:", self.rule_fix_template)
-        
+
         layout.addLayout(form_layout)
-        
+
         # Buttons
-        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
         layout.addWidget(button_box)
-        
+
         self.setLayout(layout)
-    
+
     def get_rule_data(self) -> Dict:
         """Get the rule data from the dialog."""
         return {
@@ -163,78 +204,80 @@ class AddRuleDialog(QDialog):
             "enabled": self.rule_enabled.isChecked(),
             "auto_fix": self.rule_auto_fix.isChecked(),
             "fix_template": self.rule_fix_template.text(),
-            "tags": []
+            "tags": [],
         }
 
 
 class CodeStandardsTab(QWidget):
     """Code Standards Tab Widget."""
-    
-    def __init__(self, backend_controller: BackendController, parent: Optional[QWidget] = None):
+
+    def __init__(
+        self, backend_controller: BackendController, parent: Optional[QWidget] = None
+    ):
         super().__init__(parent)
         self.backend_controller = backend_controller
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
         self.load_data()
-    
+
     def setup_ui(self):
         """Setup the user interface."""
         layout = QVBoxLayout(self)
         self.tab_widget = QTabWidget()
-        
+
         # Create tabs
         self.standards_tab = self.create_standards_tab()
         self.analysis_tab = self.create_analysis_tab()
-        
+
         self.tab_widget.addTab(self.standards_tab, "Standards Management")
         self.tab_widget.addTab(self.analysis_tab, "Code Analysis")
-        
+
         layout.addWidget(self.tab_widget)
         self.setLayout(layout)
-    
+
     def create_standards_tab(self) -> QWidget:
         """Create the standards management tab."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        
+
         # Current standard section
         current_group = QGroupBox("Current Standard")
         current_layout = QHBoxLayout()
-        
+
         self.current_standard_label = QLabel("No standard selected")
         current_layout.addWidget(self.current_standard_label)
-        
+
         set_current_btn = QPushButton("Set Current")
         set_current_btn.clicked.connect(self.set_current_standard)
         current_layout.addWidget(set_current_btn)
-        
+
         current_group.setLayout(current_layout)
         layout.addWidget(current_group)
-        
+
         # Standards table section
         standards_group = QGroupBox("Available Standards")
         standards_layout = QVBoxLayout()
-        
+
         # Buttons
         buttons_layout = QHBoxLayout()
         add_btn = QPushButton("Add Standard")
         add_btn.clicked.connect(self.add_code_standard)
         buttons_layout.addWidget(add_btn)
-        
+
         import_btn = QPushButton("Import")
         import_btn.clicked.connect(self.import_code_standard)
         buttons_layout.addWidget(import_btn)
-        
+
         buttons_layout.addStretch()
         standards_layout.addLayout(buttons_layout)
-        
+
         # Standards table
         self.standards_table = QTableWidget()
         self.standards_table.setColumnCount(6)
-        self.standards_table.setHorizontalHeaderLabels([
-            "Name", "Company", "Version", "Languages", "Rules", "Actions"
-        ])
-        
+        self.standards_table.setHorizontalHeaderLabels(
+            ["Name", "Company", "Version", "Languages", "Rules", "Actions"]
+        )
+
         header = self.standards_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
@@ -242,22 +285,22 @@ class CodeStandardsTab(QWidget):
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
-        
+
         standards_layout.addWidget(self.standards_table)
         standards_group.setLayout(standards_layout)
         layout.addWidget(standards_group)
-        
+
         return widget
 
     def create_analysis_tab(self) -> QWidget:
         """Create the code analysis tab."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        
+
         self.analyze_file_btn = QPushButton("Analyze File")
         self.analyze_file_btn.clicked.connect(self.analyze_file)
         layout.addWidget(self.analyze_file_btn)
-        
+
         self.analyze_dir_btn = QPushButton("Analyze Directory")
         self.analyze_dir_btn.clicked.connect(self.analyze_directory)
         layout.addWidget(self.analyze_dir_btn)
@@ -278,8 +321,10 @@ class CodeStandardsTab(QWidget):
             self.load_current_standard()
         except Exception as e:
             logger.error(f"Error loading code standards data: {e}")
-            QMessageBox.warning(self, "Error", f"Failed to load code standards data: {e}")
-    
+            QMessageBox.warning(
+                self, "Error", f"Failed to load code standards data: {e}"
+            )
+
     def load_standards(self):
         """Load code standards."""
         try:
@@ -287,49 +332,61 @@ class CodeStandardsTab(QWidget):
             self.populate_standards_table(standards)
         except Exception as e:
             logger.error(f"Error loading standards: {e}")
-    
+
     def load_current_standard(self):
         """Load current standard."""
         try:
             current_standard = self.backend_controller.get_current_code_standard()
             if current_standard:
-                self.current_standard_label.setText(current_standard.get("name", "Unknown"))
+                self.current_standard_label.setText(
+                    current_standard.get("name", "Unknown")
+                )
             else:
                 self.current_standard_label.setText("No standard selected")
         except Exception as e:
             logger.error(f"Error loading current standard: {e}")
-    
+
     def populate_standards_table(self, standards: List[Dict]):
         """Populate standards table."""
         self.standards_table.setRowCount(len(standards))
-        
+
         for row, standard in enumerate(standards):
-            self.standards_table.setItem(row, 0, QTableWidgetItem(standard.get("name", "")))
-            self.standards_table.setItem(row, 1, QTableWidgetItem(standard.get("company", "")))
-            self.standards_table.setItem(row, 2, QTableWidgetItem(standard.get("version", "")))
-            
+            self.standards_table.setItem(
+                row, 0, QTableWidgetItem(standard.get("name", ""))
+            )
+            self.standards_table.setItem(
+                row, 1, QTableWidgetItem(standard.get("company", ""))
+            )
+            self.standards_table.setItem(
+                row, 2, QTableWidgetItem(standard.get("version", ""))
+            )
+
             languages = ", ".join(standard.get("languages", []))
             self.standards_table.setItem(row, 3, QTableWidgetItem(languages))
-            
+
             rules_count = len(standard.get("rules", []))
             self.standards_table.setItem(row, 4, QTableWidgetItem(str(rules_count)))
-            
+
             # Actions
             actions_widget = QWidget()
             actions_layout = QHBoxLayout()
             actions_layout.setContentsMargins(0, 0, 0, 0)
-            
+
             export_btn = QPushButton("Export")
-            export_btn.clicked.connect(lambda checked, s=standard: self.export_standard(s))
+            export_btn.clicked.connect(
+                lambda checked, s=standard: self.export_standard(s)
+            )
             actions_layout.addWidget(export_btn)
-            
+
             remove_btn = QPushButton("Remove")
-            remove_btn.clicked.connect(lambda checked, s=standard: self.remove_standard(s))
+            remove_btn.clicked.connect(
+                lambda checked, s=standard: self.remove_standard(s)
+            )
             actions_layout.addWidget(remove_btn)
-            
+
             actions_widget.setLayout(actions_layout)
             self.standards_table.setCellWidget(row, 5, actions_widget)
-    
+
     def add_code_standard(self):
         """Add a new code standard."""
         try:
@@ -337,15 +394,15 @@ class CodeStandardsTab(QWidget):
             name, ok = QLineEdit.getText(self, "Add Standard", "Standard Name:")
             if not ok or not name:
                 return
-            
+
             company, ok = QLineEdit.getText(self, "Add Standard", "Company:")
             if not ok:
                 return
-            
+
             version, ok = QLineEdit.getText(self, "Add Standard", "Version:")
             if not ok:
                 return
-            
+
             standard_data = {
                 "name": name,
                 "description": f"Code standard for {company}",
@@ -353,36 +410,39 @@ class CodeStandardsTab(QWidget):
                 "version": version,
                 "languages": ["python"],
                 "rules": [],
-                "enabled": True
+                "enabled": True,
             }
-            
+
             self.backend_controller.add_code_standard(standard_data)
             self.load_standards()
             QMessageBox.information(self, "Success", "Code standard added successfully")
-            
+
         except Exception as e:
             logger.error(f"Error adding code standard: {e}")
             QMessageBox.warning(self, "Error", f"Failed to add code standard: {e}")
-    
+
     def remove_standard(self, standard: Dict):
         """Remove a code standard."""
         try:
             name = standard.get("name", "")
             reply = QMessageBox.question(
-                self, "Confirm Removal", 
-                f"Are you sure you want to remove the code standard '{name}'?"
+                self,
+                "Confirm Removal",
+                f"Are you sure you want to remove the code standard '{name}'?",
             )
-            
+
             if reply == QMessageBox.StandardButton.Yes:
                 self.backend_controller.remove_code_standard(name)
                 self.load_standards()
                 self.load_current_standard()
-                QMessageBox.information(self, "Success", f"Code standard '{name}' removed")
-                
+                QMessageBox.information(
+                    self, "Success", f"Code standard '{name}' removed"
+                )
+
         except Exception as e:
             logger.error(f"Error removing code standard: {e}")
             QMessageBox.warning(self, "Error", f"Failed to remove code standard: {e}")
-    
+
     def set_current_standard(self):
         """Set the current standard."""
         try:
@@ -390,19 +450,28 @@ class CodeStandardsTab(QWidget):
             if not standards:
                 QMessageBox.warning(self, "Error", "No code standards available")
                 return
-            
+
             standard_names = [s.get("name", "") for s in standards]
-            name, ok = QComboBox.getItem(self, "Set Current Standard", "Select Standard:", standard_names, 0, False)
-            
+            name, ok = QComboBox.getItem(
+                self,
+                "Set Current Standard",
+                "Select Standard:",
+                standard_names,
+                0,
+                False,
+            )
+
             if ok and name:
                 self.backend_controller.set_current_code_standard(name)
                 self.load_current_standard()
-                QMessageBox.information(self, "Success", f"Code standard '{name}' set as current")
-                
+                QMessageBox.information(
+                    self, "Success", f"Code standard '{name}' set as current"
+                )
+
         except Exception as e:
             logger.error(f"Error setting current standard: {e}")
             QMessageBox.warning(self, "Error", f"Failed to set current standard: {e}")
-    
+
     def export_standard(self, standard: Dict):
         """Export a code standard."""
         try:
@@ -410,31 +479,35 @@ class CodeStandardsTab(QWidget):
             file_path, _ = QFileDialog.getSaveFileName(
                 self, f"Export {name}", f"{name}.json", "JSON Files (*.json)"
             )
-            
+
             if file_path:
                 self.backend_controller.export_code_standard(name, file_path)
-                QMessageBox.information(self, "Success", f"Code standard exported to {file_path}")
-                
+                QMessageBox.information(
+                    self, "Success", f"Code standard exported to {file_path}"
+                )
+
         except Exception as e:
             logger.error(f"Error exporting code standard: {e}")
             QMessageBox.warning(self, "Error", f"Failed to export code standard: {e}")
-    
+
     def import_code_standard(self):
         """Import a code standard."""
         try:
             file_path, _ = QFileDialog.getOpenFileName(
                 self, "Import Code Standard", "", "JSON Files (*.json)"
             )
-            
+
             if file_path:
                 self.backend_controller.import_code_standard(file_path)
                 self.load_standards()
-                QMessageBox.information(self, "Success", "Code standard imported successfully")
-                
+                QMessageBox.information(
+                    self, "Success", "Code standard imported successfully"
+                )
+
         except Exception as e:
             logger.error(f"Error importing code standard: {e}")
             QMessageBox.warning(self, "Error", f"Failed to import code standard: {e}")
-    
+
     def analyze_file(self):
         """Analyze a single code file."""
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Code File")
@@ -448,7 +521,7 @@ class CodeStandardsTab(QWidget):
             self.backend_controller,
             file_path,
             self.update_progress,
-            self.handle_error
+            self.handle_error,
         )
         if worker:
             worker.result().connect(self.on_analysis_finished)
@@ -466,7 +539,7 @@ class CodeStandardsTab(QWidget):
             self.backend_controller,
             dir_path,
             self.update_progress,
-            self.handle_error
+            self.handle_error,
         )
         if worker:
             worker.result().connect(self.on_directory_analysis_finished)
@@ -485,7 +558,9 @@ class CodeStandardsTab(QWidget):
         if result:
             self.display_analysis_results(result)
         else:
-            QMessageBox.warning(self, "Analysis Failed", "File analysis failed or was cancelled.")
+            QMessageBox.warning(
+                self, "Analysis Failed", "File analysis failed or was cancelled."
+            )
 
     @pyqtSlot(object)
     def on_directory_analysis_finished(self, results: Optional[List[Dict[str, Any]]]):
@@ -494,21 +569,25 @@ class CodeStandardsTab(QWidget):
         if results:
             self.display_directory_results(results)
         else:
-            QMessageBox.warning(self, "Analysis Failed", "Directory analysis failed or was cancelled.")
+            QMessageBox.warning(
+                self, "Analysis Failed", "Directory analysis failed or was cancelled."
+            )
 
     def display_analysis_results(self, result: Dict[str, Any]):
         """Display analysis results for a single file."""
         self.results_tree.clear()
         self.results_tree.setHeaderLabels(["File", "Line", "Severity", "Message"])
-        file_item = QTreeWidgetItem([result.get('file_path', 'Unknown File')])
+        file_item = QTreeWidgetItem([result.get("file_path", "Unknown File")])
         self.results_tree.addTopLevelItem(file_item)
-        for violation in result.get('violations', []):
-            violation_item = QTreeWidgetItem([
-                "",
-                str(violation.get('line', '')),
-                violation.get('severity', ''),
-                violation.get('message', '')
-            ])
+        for violation in result.get("violations", []):
+            violation_item = QTreeWidgetItem(
+                [
+                    "",
+                    str(violation.get("line", "")),
+                    violation.get("severity", ""),
+                    violation.get("message", ""),
+                ]
+            )
             file_item.addChild(violation_item)
 
     def display_directory_results(self, results: List[Dict[str, Any]]):
@@ -516,15 +595,17 @@ class CodeStandardsTab(QWidget):
         self.results_tree.clear()
         self.results_tree.setHeaderLabels(["File", "Line", "Severity", "Message"])
         for result in results:
-            file_item = QTreeWidgetItem([result.get('file_path', 'Unknown File')])
+            file_item = QTreeWidgetItem([result.get("file_path", "Unknown File")])
             self.results_tree.addTopLevelItem(file_item)
-            for violation in result.get('violations', []):
-                violation_item = QTreeWidgetItem([
-                    "",
-                    str(violation.get('line', '')),
-                    violation.get('severity', ''),
-                    violation.get('message', '')
-                ])
+            for violation in result.get("violations", []):
+                violation_item = QTreeWidgetItem(
+                    [
+                        "",
+                        str(violation.get("line", "")),
+                        violation.get("severity", ""),
+                        violation.get("message", ""),
+                    ]
+                )
                 file_item.addChild(violation_item)
 
     @pyqtSlot(str)
@@ -539,7 +620,7 @@ class CodeStandardsTab(QWidget):
         try:
             _ = self.isVisible()
         except RuntimeError:
-            return # Widget is deleted
+            return  # Widget is deleted
 
         self.progress_bar.setVisible(False)
         if standards:
@@ -553,10 +634,12 @@ class CodeStandardsTab(QWidget):
         try:
             _ = self.isVisible()
         except RuntimeError:
-            return # Widget is deleted
+            return  # Widget is deleted
 
         self.progress_bar.setVisible(False)
         if analysis_results:
             self.display_analysis_results(analysis_results)
         else:
-            QMessageBox.warning(self, "Analysis Failed", "Code analysis returned no results.") 
+            QMessageBox.warning(
+                self, "Analysis Failed", "Code analysis returned no results."
+            )
