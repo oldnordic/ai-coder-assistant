@@ -225,6 +225,12 @@ class LLMManager:
                     self.providers[provider_type] = GoogleGeminiProvider(provider_config)
                 elif provider_type == ProviderType.CLAUDE:
                     self.providers[provider_type] = ClaudeProvider(provider_config)
+                elif provider_type == ProviderType.ANTHROPIC:
+                    # ANTHROPIC is the same as CLAUDE (Anthropic's Claude)
+                    self.providers[provider_type] = ClaudeProvider(provider_config)
+                elif provider_type == ProviderType.GOOGLE:
+                    # GOOGLE is the same as GOOGLE_GEMINI
+                    self.providers[provider_type] = GoogleGeminiProvider(provider_config)
                 elif provider_type == ProviderType.OLLAMA:
                     # General Ollama provider. Specific instances are handled elsewhere.
                     if provider_type not in self.providers:
@@ -394,6 +400,12 @@ class LLMManager:
                 provider = GoogleGeminiProvider(provider_config)
             elif provider_config.provider_type == ProviderType.CLAUDE:
                 provider = ClaudeProvider(provider_config)
+            elif provider_config.provider_type == ProviderType.ANTHROPIC:
+                # ANTHROPIC is the same as CLAUDE (Anthropic's Claude)
+                provider = ClaudeProvider(provider_config)
+            elif provider_config.provider_type == ProviderType.GOOGLE:
+                # GOOGLE is the same as GOOGLE_GEMINI
+                provider = GoogleGeminiProvider(provider_config)
             elif provider_config.provider_type == ProviderType.OLLAMA:
                 provider = OllamaProvider(provider_config)
             else:
@@ -500,6 +512,12 @@ class LLMManager:
                 provider = GoogleGeminiProvider(temp_config)
             elif provider_type == ProviderType.CLAUDE:
                 provider = ClaudeProvider(temp_config)
+            elif provider_type == ProviderType.ANTHROPIC:
+                # ANTHROPIC is the same as CLAUDE (Anthropic's Claude)
+                provider = ClaudeProvider(temp_config)
+            elif provider_type == ProviderType.GOOGLE:
+                # GOOGLE is the same as GOOGLE_GEMINI
+                provider = GoogleGeminiProvider(temp_config)
             elif provider_type == ProviderType.OLLAMA:
                 provider = OllamaProvider(temp_config)
             else:

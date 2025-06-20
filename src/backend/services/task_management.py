@@ -317,34 +317,79 @@ class TaskManagementService:
             data_dir: Directory for storing task data
             db_name: SQLite database filename
         """
-        self.data_dir = Path(data_dir)
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        
-        self.db_path = self.data_dir / db_name
-        self._lock = threading.Lock()
-        
-        # Initialize connection pool
-        self._init_database()
-        self.connection_pool = DatabaseConnectionPool(self.db_path)
-        
-        # Load initial data
-        self._load_sample_tasks()
-        
-        logger.info("Task Management Service initialized with connection pool")
-        
-        self.config = Config()
-        self.logger = LogManager().get_logger('task_service')
-        self.error_handler = ErrorHandler()
-        self.event_bus = EventBus()
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
-        
-        self._tasks: Dict[str, TaskMetadata] = {}
-        self._dependencies: Dict[str, Set[str]] = {}
-        self._blocked_tasks: Set[str] = set()
-        self._completed_tasks: Set[str] = set()
-        self._priority_queue = []  # (priority, created_date, task_id)
-        self._queue_lock = threading.Lock()
-        self._scheduled_tasks: Set[int] = set()
+        try:
+            self.data_dir = Path(data_dir)
+            self.data_dir.mkdir(parents=True, exist_ok=True)
+            
+            self.db_path = self.data_dir / db_name
+            self._lock = threading.Lock()
+            
+            # Initialize connection pool
+            self._init_database()
+            self.connection_pool = DatabaseConnectionPool(self.db_path)
+            
+            # Load initial data
+            self._load_sample_tasks()
+            
+            logger.info("Task Management Service initialized with connection pool")
+            
+            # Try to import optional dependencies
+            try:
+                from src.core.config import Config
+                self.config = Config()
+            except ImportError:
+                logger.warning("Config module not available, using default configuration")
+                self.config = None
+            
+            try:
+                from src.core.logging import LogManager
+                self.logger = LogManager().get_logger('task_service')
+            except ImportError:
+                logger.warning("LogManager not available, using default logger")
+                self.logger = logger
+            
+            try:
+                from src.core.error import ErrorHandler
+                self.error_handler = ErrorHandler()
+            except ImportError:
+                logger.warning("ErrorHandler not available")
+                self.error_handler = None
+            
+            try:
+                from src.core.events import EventBus
+                self.event_bus = EventBus()
+            except ImportError:
+                logger.warning("EventBus not available")
+                self.event_bus = None
+            
+            self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+            
+            self._tasks: Dict[str, TaskMetadata] = {}
+            self._dependencies: Dict[str, Set[str]] = {}
+            self._blocked_tasks: Set[str] = set()
+            self._completed_tasks: Set[str] = set()
+            self._priority_queue = []  # (priority, created_date, task_id)
+            self._queue_lock = threading.Lock()
+            self._scheduled_tasks: Set[int] = set()
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize TaskManagementService: {e}")
+            # Set minimal attributes to prevent further crashes
+            self.data_dir = Path(data_dir)
+            self.db_path = self.data_dir / db_name
+            self._lock = threading.Lock()
+            self.config = None
+            self.logger = logger
+            self.error_handler = None
+            self.event_bus = None
+            self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+            self._tasks = {}
+            self._dependencies = {}
+            self._blocked_tasks = set()
+            self._completed_tasks = set()
+            self._priority_queue = []
+            self._queue_lock = threading.Lock()
+            self._scheduled_tasks = set()
 
     def _init_database(self):
         """Initialize database with enhanced schema and indexes."""
@@ -426,45 +471,53 @@ class TaskManagementService:
 
     def _load_sample_tasks(self) -> None:
         """Load sample tasks if database is empty."""
-        def load_operation(conn: sqlite3.Connection) -> None:
-            cursor = conn.execute("SELECT COUNT(*) FROM tasks")
-            if cursor.fetchone()[0] == 0:
-                sample_tasks = [
-                    {
-                        "title": "Implement user authentication system",
-                        "description": "Create a secure user authentication system with JWT tokens",
-                        "assignee": "Alice",
-                        "status": TaskStatus.IN_PROGRESS,
-                        "priority": TaskPriority.HIGH,
-                        "created_date": datetime.now() - timedelta(days=2),
-                        "due_date": datetime.now() + timedelta(days=5),
-                        "estimated_hours": 16.0,
-                        "tags": ["backend", "security", "authentication"],
-                        "project": "User Management",
-                        "created_by": "Project Manager"
-                    },
-                    {
-                        "title": "Fix database connection timeout issue",
-                        "description": "Resolve intermittent database connection timeouts",
-                        "assignee": "Bob",
-                        "status": TaskStatus.DONE,
-                        "priority": TaskPriority.MEDIUM,
-                        "created_date": datetime.now() - timedelta(days=3),
-                        "completed_date": datetime.now() - timedelta(days=1),
-                        "estimated_hours": 4.0,
-                        "actual_hours": 3.5,
-                        "tags": ["database", "bug-fix"],
-                        "project": "Infrastructure",
-                        "created_by": "System Admin"
-                    }
-                ]
-                
-                for task_data in sample_tasks:
-                    self._insert_task(task_data)
-                
-                logger.info("Loaded sample tasks")
-        
-        self._execute_with_retry(load_operation)
+        try:
+            def load_operation(conn: sqlite3.Connection) -> None:
+                cursor = conn.execute("SELECT COUNT(*) FROM tasks")
+                if cursor.fetchone()[0] == 0:
+                    sample_tasks = [
+                        {
+                            "title": "Implement user authentication system",
+                            "description": "Create a secure user authentication system with JWT tokens",
+                            "assignee": "Alice",
+                            "status": TaskStatus.IN_PROGRESS,
+                            "priority": TaskPriority.HIGH,
+                            "created_date": datetime.now() - timedelta(days=2),
+                            "due_date": datetime.now() + timedelta(days=5),
+                            "estimated_hours": 16.0,
+                            "tags": ["backend", "security", "authentication"],
+                            "project": "User Management",
+                            "created_by": "Project Manager"
+                        },
+                        {
+                            "title": "Fix database connection timeout issue",
+                            "description": "Resolve intermittent database connection timeouts",
+                            "assignee": "Bob",
+                            "status": TaskStatus.DONE,
+                            "priority": TaskPriority.MEDIUM,
+                            "created_date": datetime.now() - timedelta(days=3),
+                            "completed_date": datetime.now() - timedelta(days=1),
+                            "estimated_hours": 4.0,
+                            "actual_hours": 3.5,
+                            "tags": ["database", "bug-fix"],
+                            "project": "Infrastructure",
+                            "created_by": "System Admin"
+                        }
+                    ]
+                    
+                    for task_data in sample_tasks:
+                        try:
+                            self._insert_task(task_data)
+                        except Exception as e:
+                            logger.warning(f"Failed to insert sample task '{task_data['title']}': {e}")
+                            continue
+                    
+                    logger.info("Loaded sample tasks")
+            
+            self._execute_with_retry(load_operation)
+        except Exception as e:
+            logger.warning(f"Failed to load sample tasks: {e}")
+            # Don't raise the exception - continue without sample tasks
 
     def _insert_task(self, task_data: Dict[str, Any]) -> int:
         """Insert a task into the database with retry logic."""

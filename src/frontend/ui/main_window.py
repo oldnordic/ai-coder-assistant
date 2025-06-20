@@ -80,15 +80,18 @@ class AICoderAssistant(QMainWindow):
         self.current_tokenizer_ref = None  # Initialize tokenizer reference
         self.scan_directory = None
         self.executor = concurrent.futures.ThreadPoolExecutor()
-        # Create backend controller
-        self.backend_controller = BackendController()
-        # Remove thread_manager and related logic
+        
         # Initialize thread-safe logging
         self._log_mutex = QMutex()
         self._log_queue = []
         self._log_timer = QTimer()
         self._log_timer.timeout.connect(self._process_log_queue)
         self._log_timer.start(LOG_QUEUE_PROCESS_INTERVAL_MS)  # Process log queue every 50ms
+        
+        # Create backend controller lazily to avoid blocking startup
+        self.backend_controller = None
+        
+        # Setup UI first to ensure GUI appears
         self.setup_ui()
         self.setup_menu()
         self.setup_ai_tab()
@@ -104,14 +107,28 @@ class AICoderAssistant(QMainWindow):
         self.setup_advanced_analytics_tab()
         self.setup_web_server_tab()
         self.setup_collaboration_tab()
+        
         # Connect all UI signals after setup is complete
         self._connect_signals()
-        self.log_message("Main Window Initialized Successfully.")
-
+        
+        # Initialize backend controller in background
+        QTimer.singleShot(100, self._initialize_backend_controller)
+        
         # Connect signals to their slots for thread-safe UI updates
         self.scan_progress_updated.connect(self._update_scan_progress_safe)
         self.scan_completed.connect(self._handle_scan_complete_ui)
+        
+        self.log_message("Main Window Initialized Successfully.")
     
+    def _initialize_backend_controller(self):
+        """Initialize backend controller in background to avoid blocking GUI startup."""
+        try:
+            self.backend_controller = BackendController()
+            self.log_message("Backend Controller Initialized Successfully.")
+        except Exception as e:
+            self.log_message(f"Warning: Backend Controller initialization failed: {e}", "warning")
+            # Continue without backend controller - user can retry later
+
     def start_doc_acquisition(self):
         """Start document acquisition from URLs."""
         urls = self.doc_urls_input.toPlainText().strip().split('\n')
@@ -512,13 +529,53 @@ class AICoderAssistant(QMainWindow):
     
     def setup_code_standards_tab(self):
         """Set up the code standards tab."""
-        code_standards_tab = CodeStandardsTab(self.backend_controller)
-        self.tab_widget.addTab(code_standards_tab, "Code Standards")
+        try:
+            if self.backend_controller is not None:
+                code_standards_tab = CodeStandardsTab(self.backend_controller)
+            else:
+                # Create a placeholder tab if backend controller is not ready
+                code_standards_tab = QWidget()
+                layout = QVBoxLayout()
+                label = QLabel("Code Standards\n(Backend not ready - please wait)")
+                label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                layout.addWidget(label)
+                code_standards_tab.setLayout(layout)
+            self.tab_widget.addTab(code_standards_tab, "Code Standards")
+        except Exception as e:
+            self.log_message(f"Error setting up code standards tab: {e}", "error")
+            # Create a fallback tab
+            fallback_tab = QWidget()
+            layout = QVBoxLayout()
+            label = QLabel(f"Code Standards\n(Error: {e})")
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(label)
+            fallback_tab.setLayout(layout)
+            self.tab_widget.addTab(fallback_tab, "Code Standards")
     
     def setup_security_intelligence_tab(self):
         """Set up the security intelligence tab."""
-        security_intelligence_tab = SecurityIntelligenceTab(self.backend_controller)
-        self.tab_widget.addTab(security_intelligence_tab, "Security Intelligence")
+        try:
+            if self.backend_controller is not None:
+                security_intelligence_tab = SecurityIntelligenceTab(self.backend_controller)
+            else:
+                # Create a placeholder tab if backend controller is not ready
+                security_intelligence_tab = QWidget()
+                layout = QVBoxLayout()
+                label = QLabel("Security Intelligence\n(Backend not ready - please wait)")
+                label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                layout.addWidget(label)
+                security_intelligence_tab.setLayout(layout)
+            self.tab_widget.addTab(security_intelligence_tab, "Security Intelligence")
+        except Exception as e:
+            self.log_message(f"Error setting up security intelligence tab: {e}", "error")
+            # Create a fallback tab
+            fallback_tab = QWidget()
+            layout = QVBoxLayout()
+            label = QLabel(f"Security Intelligence\n(Error: {e})")
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(label)
+            fallback_tab.setLayout(layout)
+            self.tab_widget.addTab(fallback_tab, "Security Intelligence")
     
     def setup_performance_optimization_tab(self):
         """Set up the performance optimization tab."""
