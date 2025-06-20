@@ -42,6 +42,18 @@ from ...backend.services.task_management import (
     get_task_management_service,
 )
 
+from src.utils.constants import (
+    CHAT_AREA_MAX_HEIGHT,
+    DEFAULT_FONT_SIZE,
+    LARGE_FONT_SIZE,
+    BOLD_FONT_WEIGHT,
+    NORMAL_FONT_WEIGHT,
+    DEFAULT_DIALOG_WIDTH,
+    DEFAULT_DIALOG_HEIGHT,
+    CONFIG_DIALOG_WIDTH,
+    CONFIG_DIALOG_HEIGHT,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -72,6 +84,7 @@ class ConfigDialog(QDialog):
     def setup_ui(self) -> None:
         """Setup the configuration dialog UI."""
         self.setWindowTitle("Configure Collaboration Platforms")
+        self.resize(CONFIG_DIALOG_WIDTH, CONFIG_DIALOG_HEIGHT)
         layout = QFormLayout(self)
 
         # Microsoft Teams
@@ -154,16 +167,31 @@ class TeamChatWidget(QWidget):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.messages: List[ChatMessage] = []
-        self.team_members = [
+        # Load team members from configuration instead of hardcoding
+        self.team_members = self._load_team_members()
+        self.current_user = "You"
+        self.setup_ui()
+        self.load_chat_history()
+
+    def _load_team_members(self) -> List[TeamMember]:
+        """Load team members from configuration file."""
+        # Default team members - in a real application, this would be loaded from a config file or database
+        default_members = [
             TeamMember("Alice", "Senior Developer", "online"),
             TeamMember("Bob", "QA Engineer", "online"),
             TeamMember("Charlie", "DevOps Engineer", "away"),
             TeamMember("David", "Product Manager", "online"),
             TeamMember("Eva", "UI/UX Designer", "offline"),
         ]
-        self.current_user = "You"
-        self.setup_ui()
-        self.load_chat_history()
+        
+        # TODO: Load from configuration file or database
+        # config_path = os.path.join(os.path.dirname(__file__), "team_config.json")
+        # if os.path.exists(config_path):
+        #     with open(config_path, 'r') as f:
+        #         config = json.load(f)
+        #         return [TeamMember(**member) for member in config.get("team_members", [])]
+        
+        return default_members
 
     def setup_ui(self) -> None:
         """Setup the chat UI."""
@@ -177,7 +205,7 @@ class TeamChatWidget(QWidget):
             1 for member in self.team_members if member.status == "online"
         )
         status_label = QLabel(f"Team Chat ({online_count} online)")
-        status_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        status_label.setFont(QFont("Arial", LARGE_FONT_SIZE, QFont.Weight.Bold))
         header_layout.addWidget(status_label)
 
         # Team members dropdown
@@ -193,7 +221,7 @@ class TeamChatWidget(QWidget):
         # Chat area
         self.chat_area = QTextEdit()
         self.chat_area.setReadOnly(True)
-        self.chat_area.setMaximumHeight(300)
+        self.chat_area.setMaximumHeight(CHAT_AREA_MAX_HEIGHT)
         self.chat_area.setStyleSheet(
             """
             QTextEdit {
@@ -203,21 +231,14 @@ class TeamChatWidget(QWidget):
                 border-radius: 4px;
                 padding: 8px;
                 font-family: 'Consolas', 'Monaco', monospace;
-                font-size: 11px;
+                font-size: 12px;
             }
-        """
+            """
         )
         layout.addWidget(self.chat_area)
 
         # Message input
         input_layout = QHBoxLayout()
-
-        # Message type selector
-        self.message_type_combo = QComboBox()
-        self.message_type_combo.addItems(["Text", "Code Snippet", "File Share"])
-        input_layout.addWidget(QLabel("Type:"))
-        input_layout.addWidget(self.message_type_combo)
-
         self.message_input = QLineEdit()
         self.message_input.setPlaceholderText("Type your message...")
         self.message_input.returnPressed.connect(self.send_message)
@@ -229,91 +250,92 @@ class TeamChatWidget(QWidget):
 
         layout.addLayout(input_layout)
 
-        # Add some sample messages
-        self.add_sample_messages()
-
     def change_user(self, user_name: str):
         """Change the current user."""
         self.current_user = user_name
-        self.log_message(f"Now acting as {user_name}")
 
     def send_message(self):
         """Send a message."""
-        message = self.message_input.text().strip()
-        if not message:
+        content = self.message_input.text().strip()
+        if not content:
             return
 
-        message_type = self.message_type_combo.currentText().lower()
+        # Create message
+        message = ChatMessage(self.current_user, content)
+        self.messages.append(message)
 
-        if message_type == "file share":
-            file_path, _ = QFileDialog.getOpenFileName(
-                self, "Select File to Share", "", "All Files (*)"
-            )
-            if file_path:
-                message = f"📁 Shared file: {os.path.basename(file_path)}"
+        # Add to chat area
+        timestamp = message.timestamp.strftime("%H:%M")
+        self.chat_area.append(
+            f'<span style="color: #007bff; font-weight: bold;">[{timestamp}] {self.current_user}:</span> {content}'
+        )
 
-        timestamp = datetime.now().strftime("%H:%M")
-        formatted_message = f"[{timestamp}] {self.current_user}: {message}"
-        self.chat_area.append(formatted_message)
+        # Clear input
         self.message_input.clear()
 
-        # Emit signal for other components
-        self.message_sent.emit(self.current_user, message)
+        # Emit signal
+        self.message_sent.emit(self.current_user, content)
 
-        # Simulate response
+        # Simulate response after a short delay
         QTimer.singleShot(1000, self.simulate_response)
 
     def simulate_response(self):
-        """Simulate a team member response."""
-        responses = [
-            "Thanks for the update! I'll review that shortly.",
-            "Great work! The implementation looks solid.",
-            "I have some questions about the approach. Can we discuss?",
-            "This looks good to me. Ready for testing.",
-            "I'll help with the testing phase.",
-            "Can you share the test results when ready?",
-            "I'm working on a similar feature. Let's coordinate.",
-            "The code review is complete. Minor suggestions in comments.",
-            "Deployment looks successful. Monitoring in progress.",
-            "I found a potential issue. Can you check line 45?",
-        ]
-
+        """Simulate a response from another team member."""
         import random
 
-        response = random.choice(responses)
-        responder = random.choice(
-            [m for m in self.team_members if m.name != self.current_user]
-        )
-
-        timestamp = datetime.now().strftime("%H:%M")
-        formatted_response = f"[{timestamp}] {responder.name}: {response}"
-        self.chat_area.append(formatted_response)
-
-    def add_sample_messages(self):
-        """Add sample messages to the chat."""
-        sample_messages = [
-            "[09:15] Alice: Good morning team! How's everyone doing?",
-            "[09:16] Bob: Morning! I'm ready to start testing the new authentication system.",
-            "[09:17] Charlie: DevOps here. The staging environment is ready for deployment.",
-            "[09:18] David: Great! Let's aim to have the feature ready for demo by Friday.",
-            "[09:20] Alice: Perfect! I'm almost done with the implementation. Should be ready for review by EOD.",
-            "[09:22] Eva: I've updated the UI mockups based on the feedback. Check the Figma link I shared.",
-            "[09:25] Bob: I'll start writing test cases for the new API endpoints.",
-            "[09:30] Charlie: Database migration scripts are ready. I'll run them in staging first.",
+        # Get online team members (excluding current user)
+        online_members = [
+            member for member in self.team_members
+            if member.status == "online" and member.name != self.current_user
         ]
 
-        for message in sample_messages:
-            self.chat_area.append(message)
+        if not online_members:
+            return
+
+        # Select random member
+        responder = random.choice(online_members)
+
+        # Generate response
+        responses = [
+            "Thanks for the update!",
+            "I'll look into that.",
+            "Good point, let me check.",
+            "Can you share more details?",
+            "I'm working on it now.",
+        ]
+        response = random.choice(responses)
+
+        # Create and add message
+        message = ChatMessage(responder.name, response)
+        self.messages.append(message)
+
+        # Add to chat area
+        timestamp = message.timestamp.strftime("%H:%M")
+        self.chat_area.append(
+            f'<span style="color: #28a745; font-weight: bold;">[{timestamp}] {responder.name}:</span> {response}'
+        )
+
+    def add_sample_messages(self):
+        """Add sample messages for demonstration."""
+        sample_messages = [
+            ("Alice", "Has anyone reviewed the latest PR?"),
+            ("Bob", "I'm looking at it now. Found a few issues."),
+            ("Charlie", "The deployment pipeline is ready."),
+            ("David", "Great work everyone!"),
+        ]
+
+        for sender, content in sample_messages:
+            message = ChatMessage(sender, content)
+            self.messages.append(message)
 
     def load_chat_history(self):
-        """Load chat history from file (simulated)."""
-        # In a real implementation, this would load from a database or file
-        pass
+        """Load chat history from storage."""
+        # TODO: Load from database or file
+        self.add_sample_messages()
 
     def log_message(self, message: str):
-        """Log a system message."""
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        self.chat_area.append(f"[{timestamp}] System: {message}")
+        """Log a message."""
+        logger.info(f"Team Chat: {message}")
 
 
 class CodeSharingWidget(QWidget):

@@ -51,12 +51,90 @@ from src.backend.services.models import (
 logger = logging.getLogger(__name__)
 
 
+class PricingConfig:
+    """Configuration for provider pricing."""
+    
+    def __init__(self, config_path: Optional[str] = None):
+        self.config_path = config_path or os.path.join(
+            os.path.dirname(__file__), "pricing_config.json"
+        )
+        self.pricing_data = self._load_pricing_config()
+    
+    def _load_pricing_config(self) -> Dict[str, Any]:
+        """Load pricing configuration from file."""
+        default_pricing = {
+            "openai": {
+                "gpt-4": {"input": 0.03, "output": 0.06},
+                "gpt-4-turbo": {"input": 0.01, "output": 0.03},
+                "gpt-3.5-turbo": {"input": 0.0015, "output": 0.002},
+                "gpt-3.5-turbo-16k": {"input": 0.003, "output": 0.004},
+            },
+            "google_gemini": {
+                "gemini-pro": {"input": 0.0005, "output": 0.0015},
+                "gemini-pro-vision": {"input": 0.0005, "output": 0.0015},
+                "gemini-1.5-pro": {"input": 0.0025, "output": 0.0075},
+                "gemini-1.5-flash": {"input": 0.00075, "output": 0.00225},
+            },
+            "claude": {
+                "claude-3-opus-20240229": {"input": 0.015, "output": 0.075},
+                "claude-3-sonnet-20240229": {"input": 0.003, "output": 0.015},
+                "claude-3-haiku-20240307": {"input": 0.00025, "output": 0.00125},
+            },
+            "ollama": {
+                "default": {"input": 0.0, "output": 0.0},  # Free for local models
+            }
+        }
+        
+        try:
+            if os.path.exists(self.config_path):
+                with open(self.config_path, 'r') as f:
+                    return json.load(f)
+            else:
+                # Create default config file
+                self._save_pricing_config(default_pricing)
+                return default_pricing
+        except Exception as e:
+            logger.warning(f"Failed to load pricing config: {e}, using defaults")
+            return default_pricing
+    
+    def _save_pricing_config(self, config: Dict[str, Any]) -> None:
+        """Save pricing configuration to file."""
+        try:
+            os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+            with open(self.config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+        except Exception as e:
+            logger.error(f"Failed to save pricing config: {e}")
+    
+    def get_pricing(self, provider: str, model: str) -> Dict[str, float]:
+        """Get pricing for a specific provider and model."""
+        provider_pricing = self.pricing_data.get(provider, {})
+        return provider_pricing.get(model, provider_pricing.get("default", {"input": 0.0, "output": 0.0}))
+    
+    def update_pricing(self, provider: str, model: str, input_cost: float, output_cost: float) -> None:
+        """Update pricing for a specific provider and model."""
+        if provider not in self.pricing_data:
+            self.pricing_data[provider] = {}
+        
+        self.pricing_data[provider][model] = {
+            "input": input_cost,
+            "output": output_cost
+        }
+        
+        self._save_pricing_config(self.pricing_data)
+
+
+# Global pricing configuration instance
+_pricing_config = PricingConfig()
+
+
 class BaseProvider(ABC):
     """Base class for all LLM providers."""
 
     def __init__(self, config: ProviderConfig):
         self.config = config
         self.client = None
+        self.pricing_config = _pricing_config
         self._setup_client()
 
     @abstractmethod
@@ -76,10 +154,21 @@ class BaseProvider(ABC):
         """List available models."""
         pass
 
-    @abstractmethod
     def calculate_cost(self, usage: Dict[str, int], model: str) -> float:
-        """Calculate cost for token usage."""
-        pass
+        """Calculate cost for token usage using configuration-based pricing."""
+        if not usage:
+            return 0.0
+
+        provider_name = self.config.provider_type.value.lower()
+        pricing = self.pricing_config.get_pricing(provider_name, model)
+        
+        input_tokens = usage.get("prompt_tokens", 0)
+        output_tokens = usage.get("completion_tokens", 0)
+        
+        input_cost = (input_tokens / 1000) * pricing["input"]
+        output_cost = (output_tokens / 1000) * pricing["output"]
+        
+        return input_cost + output_cost
 
     async def health_check(self) -> bool:
         """Check if the provider is healthy."""
@@ -193,28 +282,6 @@ class OpenAIProvider(BaseProvider):
         except Exception as e:
             raise Exception(f"Error listing OpenAI models: {str(e)}")
 
-    def calculate_cost(self, usage: Dict[str, int], model: str) -> float:
-        """Calculate cost for OpenAI token usage."""
-        if not usage:
-            return 0.0
-
-        # OpenAI pricing (as of 2024)
-        pricing = {
-            "gpt-4": {"input": 0.03, "output": 0.06},
-            "gpt-4-turbo": {"input": 0.01, "output": 0.03},
-            "gpt-3.5-turbo": {"input": 0.0015, "output": 0.002},
-            "gpt-3.5-turbo-16k": {"input": 0.003, "output": 0.004},
-        }
-
-        model_pricing = pricing.get(model, {"input": 0.002, "output": 0.002})
-
-        input_cost = (usage.get("prompt_tokens", 0) / 1000) * model_pricing["input"]
-        output_cost = (usage.get("completion_tokens", 0) / 1000) * model_pricing[
-            "output"
-        ]
-
-        return input_cost + output_cost
-
     def _get_context_length(self, model: str) -> Optional[int]:
         """Get context length for model."""
         context_lengths = {
@@ -226,14 +293,10 @@ class OpenAIProvider(BaseProvider):
         return context_lengths.get(model)
 
     def _get_cost_per_1k_tokens(self, model: str) -> Optional[float]:
-        """Get cost per 1k tokens for model."""
-        costs = {
-            "gpt-4": 0.03,
-            "gpt-4-turbo": 0.01,
-            "gpt-3.5-turbo": 0.0015,
-            "gpt-3.5-turbo-16k": 0.003,
-        }
-        return costs.get(model)
+        """Get cost per 1k tokens for model using configuration."""
+        provider_name = self.config.provider_type.value.lower()
+        pricing = self.pricing_config.get_pricing(provider_name, model)
+        return pricing["input"]  # Return input cost as reference
 
     def _get_capabilities(self, model: str) -> List[str]:
         """Get capabilities for model."""

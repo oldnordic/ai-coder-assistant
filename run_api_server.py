@@ -24,6 +24,9 @@ Script to run the PR automation API server.
 
 import argparse
 import logging
+import sys
+
+from src.backend.services.api import run_api_server
 
 def setup_logging():
     """Setup logging configuration."""
