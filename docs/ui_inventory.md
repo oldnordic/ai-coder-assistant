@@ -1,224 +1,224 @@
-# AI Coder Assistant UI Inventory
+# UI Inventory
 
-## Main Window Components
+This document provides a comprehensive inventory of all UI components, tabs, and features in the AI Coder Assistant application.
 
-### 1. AI Agent Tab
-- Model Source Selector (Ollama/Own Model)
-- Scan Directory Selection
-- Include/Exclude Patterns
-- Start/Stop Scan Buttons
-- Progress Indicators
-- Log Messages Area
+## Main Application Tabs
 
-### 2. LLM Studio Tab
-- Model Management
-- Training Controls
-- Model Performance Metrics
-- Data Processing Status
+### 1. AI Analysis Tab
+**Purpose**: Core AI-powered code analysis and enhancement
+**Features**:
+- Quick scan (local analysis)
+- AI enhancement (intelligent suggestions)
+- Model selection (local/cloud models)
+- Analysis results display
+**Documentation**: [User Manual](user_manual.md#intelligent-code-analysis)
 
-### 3. Cloud Models Tab
-- Provider Selection
-- API Key Management
-- Model Selection
-- Cost Tracking
-- Usage Statistics
+### 2. Scanner Tab
+**Purpose**: Comprehensive code scanning and analysis
+**Features**:
+- Directory selection and scanning
+- File type filtering
+- Scan configuration options
+- Results display and export
+**Documentation**: [User Manual](user_manual.md#code-scanning)
 
-### 4. Ollama Manager
-- Model List
-- Pull/Delete Controls
-- Export Options
-- Instance Management
-- Health Status
+### 3. Security Intelligence Tab
+**Purpose**: Security vulnerability detection and threat intelligence
+**Features**:
+- Vulnerability scanning
+- Security feeds management
+- Breach monitoring
+- Security compliance checking
+**Documentation**: [Security Intelligence Guide](security_intelligence_guide.md)
 
-### 5. Data Training Tab
-- Dataset Management
-- Training Configuration
-- Progress Monitoring
-- Model Evaluation
+### 4. Code Standards Tab
+**Purpose**: Code standards enforcement and compliance
+**Features**:
+- Standards configuration
+- Code analysis
+- Rule management
+- Auto-fix capabilities
+**Documentation**: [Code Standards Guide](code_standards_guide.md)
 
-### 6. Continuous Learning
-- Feedback Collection
-- Model Improvement
-- Performance Tracking
-- Data Quality Metrics
+### 5. Performance Optimization Tab
+**Purpose**: Performance analysis and optimization
+**Features**:
+- Real-time system monitoring
+- Code performance analysis
+- Profiling tools
+- Optimization recommendations
+**Documentation**: [Performance Optimization Guide](performance_optimization_guide.md)
 
-### 7. Export to Ollama
-- Model Export Settings
-- Format Selection
-- Progress Tracking
-- Status Updates
+### 6. Continuous Learning Tab
+**Purpose**: Adaptive model improvement through feedback
+**Features**:
+- Feedback collection and validation
+- Model update management
+- Performance monitoring
+- Analytics and reporting
+**Documentation**: [Continuous Learning Guide](continuous_learning_guide.md)
 
-### 8. Advanced Refactoring
-- Code Analysis
-- Refactoring Rules
-- Preview Changes
-- Apply Controls
+### 7. PR Management Tab
+**Purpose**: Automated pull request creation and management
+**Features**:
+- Service integration (JIRA, ServiceNow)
+- PR template management
+- Repository management
+- Automated ticket creation
+**Documentation**: [PR Automation Guide](pr_automation_guide.md)
 
-### 9. Performance Optimization
-- Code Profiling
-- Bottleneck Detection
-- Optimization Suggestions
-- Metrics Display
+### 8. Refactoring Tab
+**Purpose**: Advanced code refactoring and optimization
+**Features**:
+- Multi-language refactoring
+- Pattern detection
+- Safety checks and preview
+- Batch refactoring operations
+**Documentation**: [Advanced Refactoring Guide](advanced_refactoring_guide.md)
 
-### 10. Code Standards
-- Standard Selection
-- Rule Configuration
-- Violation Reports
-- Auto-fix Controls
+### 9. Collaboration Tab
+**Purpose**: Team collaboration and project management
+**Features**:
+- Real-time team chat
+- Code sharing and snippets
+- Project task management
+- Platform integration (Teams, Slack, GitHub)
+**Documentation**: [Collaboration Guide](collaboration_guide.md)
 
-### 11. PR Management
-- PR Creation
-- Template Selection
-- Review Status
-- Integration Settings
+### 10. Data Tab
+**Purpose**: Data acquisition, processing, and model training
+**Features**:
+- Documentation acquisition
+- Data preprocessing
+- Model training and fine-tuning
+- Knowledge base management
+**Documentation**: [Training Workflow](training_workflow.md)
 
-### 12. Security Intelligence
-- Vulnerability Scanning
-- Security Reports
-- Patch Management
-- CVE Monitoring
+### 11. Settings Tab
+**Purpose**: Application configuration and preferences
+**Features**:
+- General settings
+- Model configuration
+- Security settings
+- Advanced options
+**Documentation**: [Setup and Configuration Guide](setup_and_configuration_guide.md)
 
-### 13. Web Server
-- Server Controls
-- API Documentation
-- Request Monitoring
-- Performance Stats
+### 12. Model Manager Tab
+**Purpose**: AI model management and configuration
+**Features**:
+- Model installation and configuration
+- Performance monitoring
+- Model updates
+- Local model management
+**Documentation**: [Provider System Guide](provider_system_guide.md)
 
-## Dialogs and Popups
+### 13. Cloud Models Tab
+**Purpose**: Cloud-based AI model integration
+**Features**:
+- Multi-provider support (OpenAI, Anthropic, Google)
+- Usage monitoring and cost tracking
+- Health checking
+- Provider failover
+**Documentation**: [Cloud Model Integration Guide](cloud_model_integration_guide.md)
 
-### 1. Suggestion Dialog
-- Issue Description
-- Original Code
-- Suggested Fix
-- AI Explanation
-- Action Buttons (Apply/Skip/Cancel)
+### 14. Web Server Tab
+**Purpose**: Web-based interface and API server
+**Features**:
+- Web server configuration
+- API management
+- Access control
+- Server monitoring
+**Documentation**: [Setup and Configuration Guide](setup_and_configuration_guide.md#web-server-mode)
 
-### 2. Report Viewer
-- Report Content
-- Export Options (MD/HTML/TXT/PDF)
-- Search Functionality
-- Navigation Controls
+### 15. Advanced Analytics Tab
+**Purpose**: Comprehensive analytics and insights
+**Features**:
+- Key developer metrics
+- Trends and analytics
+- Custom report generation
+- Performance insights
+**Documentation**: [Advanced Analytics Guide](advanced_analytics_guide.md)
 
-### 3. Settings Dialog
-- General Settings
-- Model Configuration
-- Integration Settings
-- UI Preferences
+## Supporting Components
 
-### 4. Progress Dialogs
-- Operation Progress
-- Cancel Option
-- Status Messages
-- Time Estimates
+### Progress Dialogs
+**Purpose**: Show operation progress and status
+**Features**:
+- Progress bars
+- Status messages
+- Cancellation support
+- Error handling
 
-## Data Flow
+### Markdown Viewer
+**Purpose**: Display formatted documentation and reports
+**Features**:
+- Markdown rendering
+- Syntax highlighting
+- Export capabilities
+- Print support
 
-### 1. Code Analysis Flow
-```mermaid
-graph TD
-    A[Code Scanner] --> B[Language Detection]
-    B --> C[Linter Analysis]
-    C --> D[AI Analysis]
-    D --> E[Issue Collection]
-    E --> F[Report Generation]
-```
+### Browser Tab
+**Purpose**: Web scraping and content display
+**Features**:
+- Web content scraping
+- Content analysis
+- Link following
+- Result display
 
-### 2. Model Integration Flow
-```mermaid
-graph TD
-    A[Model Selection] --> B[Service Validation]
-    B --> C[API Integration]
-    C --> D[Response Processing]
-    D --> E[Result Display]
-```
+### Suggestion Dialog
+**Purpose**: Display AI suggestions and recommendations
+**Features**:
+- Suggestion display
+- Accept/reject actions
+- Feedback collection
+- Context preservation
 
-### 3. Suggestion Flow
-```mermaid
-graph TD
-    A[Issue Detection] --> B[AI Enhancement]
-    B --> C[Suggestion Generation]
-    C --> D[User Review]
-    D --> E[Code Update]
-```
+## Configuration and Integration
 
-## Button Inventory
+### Platform Integrations
+- **Microsoft Teams**: Team communication integration
+- **Slack**: Workspace communication integration
+- **GitHub**: Repository and issue management
+- **JIRA**: Issue tracking and project management
+- **ServiceNow**: Change management integration
 
-### AI Agent Tab
-- Select Directory
-- Start Scan
-- Stop Scan
-- Generate Report
-- Review Suggestions
-- Clear Results
+### External Services
+- **OpenAI**: GPT models and API
+- **Anthropic**: Claude models and API
+- **Google AI**: PaLM and Gemini models
+- **Ollama**: Local model management
+- **Prometheus**: Performance monitoring
 
-### Model Management
-- Refresh Models
-- Pull Model
-- Delete Model
-- Export Model
-- Create Model
-- Update Model
+## Documentation References
 
-### Report Generation
-- Generate Report
-- Export as Markdown
-- Export as HTML
-- Export as TXT
-- Export as PDF
-- Save Report
+### Core Documentation
+- [User Manual](user_manual.md) - Complete user guide
+- [Installation Guide](installation_guide.md) - Setup and installation
+- [Architecture](ARCHITECTURE.md) - System architecture
+- [Setup and Configuration](setup_and_configuration_guide.md) - Configuration guide
 
-### PR Management
-- Create PR
-- Update PR
-- Close PR
-- Sync Status
-- Apply Template
+### Feature-Specific Guides
+- [Security Intelligence](security_intelligence_guide.md) - Security features
+- [Code Standards](code_standards_guide.md) - Code standards enforcement
+- [Performance Optimization](performance_optimization_guide.md) - Performance analysis
+- [Continuous Learning](continuous_learning_guide.md) - Model improvement
+- [PR Automation](pr_automation_guide.md) - Pull request automation
+- [Advanced Refactoring](advanced_refactoring_guide.md) - Code refactoring
+- [Collaboration](collaboration_guide.md) - Team collaboration
+- [Advanced Analytics](advanced_analytics_guide.md) - Analytics and insights
 
-## Settings and Configuration
+### Integration Guides
+- [Cloud Model Integration](cloud_model_integration_guide.md) - Cloud AI providers
+- [Provider System](provider_system_guide.md) - AI provider management
+- [Ollama Remote](ollama_remote_guide.md) - Remote Ollama management
+- [Web Scraping](web_scraping_guide.md) - Web content acquisition
 
-### General Settings
-- Theme Selection
-- Language Preferences
-- Auto-save Options
-- Update Preferences
+### Specialized Guides
+- [Training Workflow](training_workflow.md) - Model training process
+- [Multi-language Support](multi_language_support.md) - Language support
+- [Test Suite](test_suite_guide.md) - Testing framework
+- [Build System](BUILD_README.md) - Build and deployment
 
-### Model Settings
-- Default Model
-- API Configuration
-- Cache Settings
-- Performance Tuning
+---
 
-### Integration Settings
-- Git Configuration
-- JIRA Settings
-- ServiceNow Setup
-- CI/CD Integration
-
-### Security Settings
-- API Key Management
-- Access Control
-- Audit Logging
-- Security Policies
-
-## Keyboard Shortcuts
-
-### Global Shortcuts
-- Ctrl+S: Start Scan
-- Ctrl+R: Generate Report
-- Ctrl+P: Create PR
-- Ctrl+F: Find in Results
-- Esc: Cancel Operation
-
-### Navigation Shortcuts
-- Alt+1: AI Agent Tab
-- Alt+2: LLM Studio
-- Alt+3: Cloud Models
-- Alt+4: Ollama Manager
-- Alt+5: Data Training
-
-### Action Shortcuts
-- Ctrl+A: Apply Suggestion
-- Ctrl+K: Skip Suggestion
-- Ctrl+D: Delete Model
-- Ctrl+E: Export Report
-- Ctrl+M: Model Management 
+*This inventory covers all UI components and features in the AI Coder Assistant application. For detailed information about each feature, refer to the corresponding documentation guides.* 

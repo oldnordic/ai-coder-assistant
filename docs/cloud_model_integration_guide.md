@@ -4,35 +4,30 @@
 
 The Cloud Model Integration feature provides a unified interface for multiple AI providers, including automatic failover, cost tracking, and comprehensive monitoring. This guide covers setup, configuration, and usage of the multi-provider LLM system. Configuration files are now organized in the `config/` directory for better maintainability.
 
-## Project Structure
+---
 
-The cloud model integration uses the organized file structure:
+## UI Navigation
 
-```
-ai_coder_assistant/
-├── config/                     # Configuration files
-│   ├── llm_studio_config.json  # LLM provider configurations
-│   └── ...                     # Other configuration files
-├── data/                       # Data storage files
-├── src/                        # Source code
-│   ├── backend/services/
-│   │   ├── cloud_models.py     # Cloud model management
-│   │   ├── providers.py        # Provider implementations
-│   │   └── llm_manager.py      # LLM manager
-│   └── ...
-└── ...
-```
+- **Cloud Models Tab**: Configure and monitor all cloud-based LLM providers ([see UI Inventory](ui_inventory.md))
+- **Model Manager Tab**: Manage, install, and update all models (cloud and local)
+- **Ollama Manager Tab**: Manage local and remote Ollama instances and models ([see Ollama Guide](ollama_remote_guide.md))
+- **Usage Monitoring/Analytics**: Real-time usage, cost, and health dashboards in the UI
+
+---
 
 ## Features
 
-- **Multi-Provider Support**: OpenAI, Anthropic, Google AI, and more
+- **Multi-Provider Support**: OpenAI, Anthropic, Google AI, Ollama (local/remote), and more
 - **Automatic Failover**: Seamless switching between providers
 - **Cost Tracking**: Real-time usage monitoring and cost analysis
 - **Health Monitoring**: Automated provider health checks
 - **Unified API**: Single interface for all LLM operations
-- **PyQt6 UI**: Complete management interface
+- **PyQt6 UI**: Complete management interface (see tabs above)
 - **CLI Support**: Command-line provider management
 - **Organized Configuration**: All settings stored in `config/llm_studio_config.json`
+- **Remote Ollama Support**: Manage multiple local/remote Ollama instances, with authentication and health checks
+
+---
 
 ## Quick Start
 
@@ -79,12 +74,10 @@ vim config/llm_studio_config.json
 
 ### 3. Using the PyQt6 UI
 
-1. Launch the AI Coder Assistant
-2. Navigate to the "Cloud Models" tab
-3. Configure providers in the "Provider Configuration" tab
-4. Select models in the "Model Selection" tab
-5. Monitor usage in the "Usage Monitoring" tab
-6. Check health in the "Health Check" tab
+- **Cloud Models Tab**: Add/edit/remove cloud providers, set priorities, test connections, monitor usage/cost/health
+- **Model Manager Tab**: Install, update, and configure models
+- **Ollama Manager Tab**: Add/remove/manage local and remote Ollama instances, pull models, check health, set priorities
+- **Analytics/Monitoring**: View real-time usage, cost, and health dashboards
 
 ### 4. Using the CLI
 
@@ -101,6 +94,23 @@ python -m src.cli.main llm-studio list-providers
 # Test provider
 python -m src.cli.main llm-studio test-provider --provider openai
 ```
+
+---
+
+## Ollama & Remote Model Management
+
+The system supports both local and remote Ollama instances for running LLMs on your own hardware or on remote servers.
+
+- **Add Ollama Instance**: In the Ollama Manager tab, add a new instance by specifying the URL, authentication (if needed), and priority.
+- **Model Discovery**: Automatically lists all models available on each Ollama instance.
+- **Health Checks**: Monitors the status of each instance and model.
+- **Remote Management**: Supports secure connections, bearer tokens, and SSL configuration for remote Ollama.
+- **Priority/Failover**: Ollama instances participate in the same priority/failover system as cloud providers.
+- **Model Usage**: Use local models for privacy/cost, cloud for scale/availability.
+
+For more, see the [Ollama Remote Guide](ollama_remote_guide.md).
+
+---
 
 ## Configuration File Structure
 
@@ -144,6 +154,8 @@ The `config/llm_studio_config.json` file contains all provider configurations:
   }
 }
 ```
+
+---
 
 ## Provider Configuration
 
@@ -200,6 +212,8 @@ config = ProviderConfig(
     timeout=30
 )
 ```
+
+---
 
 ## API Usage
 
@@ -270,6 +284,8 @@ response = await cloud_model_manager.chat_completion(
 )
 ```
 
+---
+
 ## Cost Management
 
 ### Monitoring Usage
@@ -307,6 +323,8 @@ configs = [
 ]
 ```
 
+---
+
 ## Health Monitoring
 
 ### Check Provider Health
@@ -328,6 +346,8 @@ The system automatically handles failover:
 2. **Fallback**: If primary fails, tries next provider
 3. **Error Handling**: Graceful degradation with detailed error reporting
 4. **Metrics**: Tracks which provider was used and why
+
+---
 
 ## Advanced Configuration
 
@@ -368,6 +388,8 @@ openai_config = ProviderConfig(
     cost_multiplier=1.0
 )
 ```
+
+---
 
 ## Troubleshooting
 
@@ -423,6 +445,8 @@ async def test_provider(provider_type):
         return False
 ```
 
+---
+
 ## Best Practices
 
 ### 1. **Provider Selection**
@@ -449,6 +473,8 @@ async def test_provider(provider_type):
 - Store API keys securely
 - Use environment variables
 - Implement proper access controls
+
+---
 
 ## Integration Examples
 
@@ -498,6 +524,8 @@ async def process_documents(documents):
     return results
 ```
 
+---
+
 ## Monitoring and Analytics
 
 ### Usage Dashboard
@@ -526,8 +554,17 @@ def analyze_usage_patterns():
         print(f"{model}: {count} requests")
 ```
 
-## Conclusion
+---
 
-The Cloud Model Integration provides a powerful, flexible, and cost-effective way to use multiple AI providers. With automatic failover, comprehensive monitoring, and a unified interface, it enables robust AI-powered applications while maintaining cost control and reliability.
+## Related Documentation
 
-For more information, see the main user manual and API documentation. 
+- [User Manual: Cloud Models](user_manual.md#cloud-models-tab)
+- [Ollama Remote Guide](ollama_remote_guide.md)
+- [UI Inventory](ui_inventory.md)
+- [Architecture](ARCHITECTURE.md)
+- [Provider System Guide](provider_system_guide.md)
+- [Test Suite Guide](test_suite_guide.md)
+
+---
+
+_Last updated: January 2025_ 

@@ -47,6 +47,9 @@ from PyQt6.QtWidgets import (
     QTreeWidgetItem,
     QVBoxLayout,
     QWidget,
+    QInputDialog,
+    QMessageBox,
+    QFileDialog,
 )
 from src.frontend.controllers import BackendController
 
@@ -395,15 +398,15 @@ class CodeStandardsTab(QWidget):
         """Add a new code standard."""
         try:
             # Simple dialog for adding standards
-            name, ok = QLineEdit.getText(self, "Add Standard", "Standard Name:")
+            name, ok = QInputDialog.getText(self, "Add Standard", "Standard Name:")
             if not ok or not name:
                 return
 
-            company, ok = QLineEdit.getText(self, "Add Standard", "Company:")
+            company, ok = QInputDialog.getText(self, "Add Standard", "Company:")
             if not ok:
                 return
 
-            version, ok = QLineEdit.getText(self, "Add Standard", "Version:")
+            version, ok = QInputDialog.getText(self, "Add Standard", "Version:")
             if not ok:
                 return
 
@@ -456,7 +459,7 @@ class CodeStandardsTab(QWidget):
                 return
 
             standard_names = [s.get("name", "") for s in standards]
-            name, ok = QComboBox.getItem(
+            name, ok = QInputDialog.getItem(
                 self,
                 "Set Current Standard",
                 "Select Standard:",

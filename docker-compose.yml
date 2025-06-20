@@ -1,52 +1,229 @@
 version: '3.8'
 
 services:
-  build-env:
-    build: .
-    volumes:
-      - ./dist:/app/dist
-      - ./logs:/app/logs
-    command: python build_all.py
+  # Main application
+  ai-coder-assistant:
+    build:
+      context: .
+      target: production
+    container_name: ai-coder-assistant
+    ports:
+      - "8000:8000"
+      - "8080:8080"
     environment:
-      - PYTHONUNBUFFERED=1
-    profiles:
-      - build
-
-  test-binary:
-    image: alpine:latest
+      - APP_MODE=production
+      - HOST=0.0.0.0
+      - PORT=8000
+      - PYTHONPATH=/app/src
     volumes:
-      - ./dist:/app
-    working_dir: /app
-    command: ./ai-coder-launcher core
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Development environment
+  ai-coder-dev:
+    build:
+      context: .
+      target: development
+    container_name: ai-coder-dev
+    ports:
+      - "5000:5000"
+      - "8001:8000"
+      - "8081:8080"
+    environment:
+      - APP_MODE=development
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - HOST=0.0.0.0
+      - PORT=8000
+      - PYTHONPATH=/app/src
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  # API server
+  ai-coder-api:
+    build:
+      context: .
+      target: api-server
+    container_name: ai-coder-api
+    ports:
+      - "8002:8000"
+    environment:
+      - APP_MODE=api
+      - HOST=0.0.0.0
+      - PORT=8000
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - api
+
+  # CLI tool
+  ai-coder-cli:
+    build:
+      context: .
+      target: cli
+    container_name: ai-coder-cli
+    environment:
+      - APP_MODE=cli
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./logs:/app/logs
+    profiles:
+      - cli
+
+  # Scanner tool
+  ai-coder-scanner:
+    build:
+      context: .
+      target: scanner
+    container_name: ai-coder-scanner
+    environment:
+      - APP_MODE=scanner
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - ./src:/app/src:ro
+    profiles:
+      - scanner
+
+  # Trainer tool (with GPU support)
+  ai-coder-trainer:
+    build:
+      context: .
+      target: trainer
+    container_name: ai-coder-trainer
+    environment:
+      - APP_MODE=trainer
+      - PYTHONPATH=/app/src
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - ./models:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles:
+      - trainer
+
+  # Testing environment
+  ai-coder-test:
+    build:
+      context: .
+      target: testing
+    container_name: ai-coder-test
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTEST_ADDOPTS=--cov=src --cov-report=html --cov-report=term-missing
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./logs:/app/logs
     profiles:
       - test
 
-  build-windows:
-    build: .
-    volumes:
-      - ./dist:/app/dist
-    command: python build_all.py
+  # Database (optional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: ai-coder-postgres
     environment:
-      - PLATFORM=windows
+      - POSTGRES_DB=ai_coder
+      - POSTGRES_USER=ai_coder
+      - POSTGRES_PASSWORD=ai_coder_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
     profiles:
-      - build-windows
+      - database
 
-  build-linux:
-    build: .
+  # Redis (optional, for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: ai-coder-redis
+    ports:
+      - "6379:6379"
     volumes:
-      - ./dist:/app/dist
-    command: python build_all.py
-    environment:
-      - PLATFORM=linux
+      - redis_data:/data
+    restart: unless-stopped
     profiles:
-      - build-linux
+      - cache
 
-  build-macos:
-    build: .
+  # Monitoring stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ai-coder-prometheus
+    ports:
+      - "9090:9090"
     volumes:
-      - ./dist:/app/dist
-    command: python build_all.py
-    environment:
-      - PLATFORM=macos
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
     profiles:
-      - build-macos 
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ai-coder-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: ai-coder-network 

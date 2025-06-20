@@ -17,6 +17,25 @@ run_api_tests.py
 /logs/
 *.log
 
+# --- Poetry Dependency Management ---
+# Poetry lock file (keep this for reproducible builds)
+# poetry.lock
+
+# Poetry virtual environment
+.venv/
+venv/
+env/
+
+# Poetry build artifacts
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Poetry cache
+.poetry/
+poetry.toml
+
 # --- Database and Persistence Files ---
 # Ignore SQLite database files
 *.db
@@ -506,3 +525,51 @@ THREAD_SAFETY_AUDIT_REPORT.md
 TASKMASTER.md
 GITHUB_SERVICES_DISABLED.md
 check_github_status.sh
+
+# --- Additional Files to Ignore ---
+# Ignore snapshots directory (contains generated content)
+.snapshots/
+
+# Ignore specific documentation files that are duplicates or temporary
+docs/ARCHITECTURE_old.md
+docs/user_manual_old.md
+docs/BUILD_IMPROVEMENTS_SUMMARY.md
+docs/CRITICAL_BUGFIX_SESSION_2025_06_21.md
+docs/DEPENDENCY_MANAGEMENT_IMPROVEMENTS.md
+docs/ENHANCED_BUILD_SYSTEM_SUMMARY.md
+docs/QUICK_REFERENCE_BUGFIXES.md
+
+# Ignore specific data files that should not be in repository
+data/transcription.txt
+data/transcription2.txt
+data/docs/
+data/processed_data/
+data/learning_data/
+
+# Ignore backend data files
+src/backend/data/docs/
+src/backend/logs/
+src/backend/reports/
+
+# Ignore specific configuration files that might contain sensitive data
+config/local_code_reviewer_config.json
+
+# Ignore build configuration files that are not needed in repository
+build_config/
+build_enhanced.py
+
+# Ignore monitoring configuration (may contain sensitive data)
+monitoring/
+
+# Ignore specific script files that are not part of the main application
+scripts/migrate_to_poetry.py
+
+# Ignore specific service files that might be temporary
+src/backend/services/performance_monitor.py
+
+# Ignore GitHub workflow files that might be disabled or temporary
+.github/workflows/
+
+# Ignore specific shell scripts that might be temporary
+poetry-install.sh
+poetry-run.sh

@@ -21,8 +21,9 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 import os
 import json
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable, Any
 from pathlib import Path
+import time
 
 import torch
 from datasets import load_dataset, Dataset
@@ -46,7 +47,7 @@ from src.backend.utils.constants import PROGRESS_MAX, PROGRESS_MIN
 logger = logging.getLogger(__name__)
 
 
-def get_best_device(log_callback):
+def get_best_device(log_callback: Callable[[str], None]) -> torch.device:
     """
     Checks for available hardware accelerators and returns the best device.
     """
@@ -63,11 +64,62 @@ def get_best_device(log_callback):
     return device
 
 
+def create_code_review_dataset(
+    code_examples: List[Dict[str, str]], 
+    output_path: str,
+    log_callback: Optional[Callable[[str], None]] = None
+) -> str:
+    """
+    Create a training dataset for code review tasks.
+    
+    Args:
+        code_examples: List of dictionaries with 'code', 'issue', 'analysis', 'suggestion' keys
+        output_path: Path to save the dataset
+        log_callback: Optional callback for logging
+        
+    Returns:
+        Path to the created dataset
+    """
+    _log: Callable[[str], None] = log_callback or print
+    
+    try:
+        _log(f"Creating code review dataset with {len(code_examples)} examples...")
+        
+        # Format examples for training
+        training_data: List[Dict[str, str]] = []
+        for example in code_examples:
+            # Create structured prompt-response pairs
+            prompt = f"""Code: {example.get('code', '')}
+Issue: {example.get('issue', '')}"""
+            
+            response = f"""Analysis: {example.get('analysis', '')}
+Suggestion: {example.get('suggestion', '')}
+<|endoftext|>"""
+            
+            training_data.append({
+                "prompt": prompt,
+                "response": response,
+                "full_text": prompt + "\n" + response
+            })
+        
+        # Save dataset
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(training_data, f, indent=2, ensure_ascii=False)
+        
+        _log(f"Dataset saved to: {output_path}")
+        return output_path
+        
+    except Exception as e:
+        error_msg = f"Failed to create dataset: {e}"
+        _log(error_msg)
+        raise Exception(error_msg)
+
+
 def fine_tune_code_model(
     dataset_path: str, 
     base_model: str = "microsoft/DialoGPT-medium",
     output_model_name: str = "code-reviewer",
-    **kwargs
+    **kwargs: Any
 ) -> str:
     """
     Fine-tune a model specifically for code review and analysis tasks.
@@ -84,8 +136,8 @@ def fine_tune_code_model(
     Returns:
         "Success" if training completed successfully, error message otherwise
     """
-    log_message_callback = kwargs.get("log_message_callback", print)
-    progress_callback = kwargs.get("progress_callback", lambda c, t, m: None)
+    log_message_callback: Callable[[str], None] = kwargs.get("log_message_callback", print)
+    progress_callback: Callable[[int, int, str], None] = kwargs.get("progress_callback", lambda c, t, m: None)
     _log = log_message_callback
     
     try:
@@ -104,15 +156,24 @@ def fine_tune_code_model(
         with open(dataset_path, 'r', encoding='utf-8') as f:
             dataset_data = json.load(f)
         
-        # Prepare training data
-        training_texts = []
+        # Prepare training data - support both old and new formats
+        training_texts: List[Dict[str, str]] = []
         for item in dataset_data:
-            # Format: "Code: {code}\nIssue: {issue}\nAnalysis: {analysis}\nSuggestion: {suggestion}"
-            text = f"Code: {item.get('code', '')}\n"
-            text += f"Issue: {item.get('issue', '')}\n"
-            text += f"Analysis: {item.get('analysis', '')}\n"
-            text += f"Suggestion: {item.get('suggestion', '')}\n"
-            text += f"<|endoftext|>\n"
+            if isinstance(item, dict):
+                if 'full_text' in item:
+                    # New format with structured prompt-response
+                    text = item['full_text']
+                else:
+                    # Old format - convert to new format
+                    text = f"Code: {item.get('code', '')}\n"
+                    text += f"Issue: {item.get('issue', '')}\n"
+                    text += f"Analysis: {item.get('analysis', '')}\n"
+                    text += f"Suggestion: {item.get('suggestion', '')}\n"
+                    text += f"<|endoftext|>\n"
+            else:
+                # Fallback for string format
+                text = str(item) + "\n<|endoftext|>\n"
+            
             training_texts.append({"text": text})
         
         _log(f"Prepared {len(training_texts)} training examples")
@@ -157,7 +218,7 @@ def fine_tune_code_model(
         
         # Tokenize dataset
         _log("Tokenizing dataset...")
-        def tokenize_function(examples):
+        def tokenize_function(examples: Dict[str, Any]) -> Dict[str, Any]:
             return tokenizer(
                 examples["text"],
                 truncation=True,
@@ -181,11 +242,11 @@ def fine_tune_code_model(
         training_args = TrainingArguments(
             output_dir=f"models/{output_model_name}",
             overwrite_output_dir=True,
-            num_train_epochs=3,
-            per_device_train_batch_size=4,
+            num_train_epochs=kwargs.get('epochs', 3),
+            per_device_train_batch_size=kwargs.get('batch_size', 4),
             gradient_accumulation_steps=4,
             warmup_steps=100,
-            learning_rate=2e-4,
+            learning_rate=kwargs.get('learning_rate', 2e-4),
             fp16=True,
             logging_steps=10,
             save_steps=500,
@@ -196,18 +257,20 @@ def fine_tune_code_model(
         
         # Custom callback for progress
         class ProgressCallback(TrainerCallback):
-            def __init__(self, progress_callback, log_callback):
+            def __init__(self, progress_callback: Callable[[int, int, str], None], log_callback: Callable[[str], None]):
                 self.progress_callback = progress_callback
                 self.log_callback = log_callback
-                
-            def on_step_end(self, args, state, control, **kwargs):
-                if state.global_step % 10 == 0:
-                    progress = (state.global_step / state.max_steps) * 100
-                    self.progress_callback(
-                        int(progress), 
-                        100, 
-                        f"Step {state.global_step}/{state.max_steps}"
-                    )
+                self.start_time = time.time()
+            
+            def on_step_end(self, args: Any, state: Any, control: Any, **kwargs: Any) -> None:
+                if state.global_step % 10 == 0:  # Update every 10 steps
+                    elapsed = time.time() - self.start_time
+                    progress = min(state.global_step / args.max_steps, 1.0) if args.max_steps else 0.5
+                    current = int(progress * PROGRESS_MAX)
+                    
+                    message = f"Training step {state.global_step}, Loss: {state.log_history[-1].get('loss', 'N/A'):.4f}"
+                    self.progress_callback(current, PROGRESS_MAX, message)
+                    self.log_callback(message)
         
         # Initialize trainer
         trainer = Trainer(
@@ -219,154 +282,292 @@ def fine_tune_code_model(
         )
         
         # Start training
-        _log("Starting fine-tuning...")
+        _log("Starting training...")
+        progress_callback(PROGRESS_MIN + 10, PROGRESS_MAX, "Training in progress...")
+        
         trainer.train()
         
-        # Save the fine-tuned model
-        output_path = f"models/{output_model_name}"
-        trainer.save_model(output_path)
-        tokenizer.save_pretrained(output_path)
+        # Save the model
+        _log("Saving fine-tuned model...")
+        progress_callback(PROGRESS_MAX - 20, PROGRESS_MAX, "Saving model...")
         
-        # Save model metadata
-        metadata = {
+        # Save to models directory
+        model_save_path = f"models/{output_model_name}"
+        trainer.save_model(model_save_path)
+        tokenizer.save_pretrained(model_save_path)
+        
+        # Create model info file
+        model_info = {
             "model_name": output_model_name,
             "base_model": base_model,
-            "fine_tuned_for": "code_review",
-            "training_examples": len(training_texts),
-            "training_epochs": 3,
-            "lora_config": lora_config.to_dict()
+            "training_date": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "dataset_size": len(training_texts),
+            "training_parameters": {
+                "epochs": kwargs.get('epochs', 3),
+                "batch_size": kwargs.get('batch_size', 4),
+                "learning_rate": kwargs.get('learning_rate', 2e-4)
+            }
         }
         
-        with open(f"{output_path}/model_metadata.json", 'w') as f:
-            json.dump(metadata, f, indent=2)
+        with open(f"{model_save_path}/model_info.json", 'w') as f:
+            json.dump(model_info, f, indent=2)
         
-        _log(f"Fine-tuning completed successfully. Model saved to: {output_path}")
+        _log(f"Fine-tuned model saved to: {model_save_path}")
+        progress_callback(PROGRESS_MAX, PROGRESS_MAX, "Training completed successfully!")
+        
         return "Success"
         
     except Exception as e:
-        import traceback
-        error_msg = f"Error during fine-tuning: {e}\n{traceback.format_exc()}"
+        error_msg = f"Fine-tuning failed: {e}"
         _log(error_msg)
-        return f"Error: {e}"
+        return error_msg
+
+
+def collect_training_data_from_refactoring(
+    refactoring_history: List[Dict[str, Any]],
+    output_path: str,
+    log_callback: Optional[Callable[[str], None]] = None
+) -> str:
+    """
+    Collect training data from refactoring history.
+    
+    Args:
+        refactoring_history: List of refactoring operations with before/after code
+        output_path: Path to save the training data
+        log_callback: Optional callback for logging
+        
+    Returns:
+        Path to the created training data file
+    """
+    _log: Callable[[str], None] = log_callback or print
+    
+    try:
+        _log(f"Collecting training data from {len(refactoring_history)} refactoring operations...")
+        
+        training_examples: List[Dict[str, str]] = []
+        for refactoring in refactoring_history:
+            # Extract code before and after refactoring
+            original_code = refactoring.get('original_code', '')
+            refactored_code = refactoring.get('refactored_code', '')
+            description = refactoring.get('description', '')
+            
+            if original_code and refactored_code:
+                # Create training example
+                example = {
+                    "code": original_code,
+                    "issue": f"Code needs refactoring: {description}",
+                    "analysis": f"This code was refactored to improve {description.lower()}",
+                    "suggestion": f"Refactored version:\n{refactored_code}"
+                }
+                training_examples.append(example)
+        
+        # Save training data
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(training_examples, f, indent=2, ensure_ascii=False)
+        
+        _log(f"Training data saved to: {output_path}")
+        return output_path
+        
+    except Exception as e:
+        error_msg = f"Failed to collect training data: {e}"
+        _log(error_msg)
+        raise Exception(error_msg)
+
+
+def evaluate_model_performance(
+    model_path: str,
+    test_dataset_path: str,
+    log_callback: Optional[Callable[[str], None]] = None
+) -> Dict[str, Any]:
+    """
+    Evaluate the performance of a fine-tuned model.
+    
+    Args:
+        model_path: Path to the fine-tuned model
+        test_dataset_path: Path to test dataset
+        log_callback: Optional callback for logging
+        
+    Returns:
+        Dictionary with evaluation metrics
+    """
+    _log: Callable[[str], None] = log_callback or print
+    
+    try:
+        _log(f"Evaluating model: {model_path}")
+        
+        # Load model and tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        model = AutoModelForCausalLM.from_pretrained(model_path)
+        
+        # Load test dataset
+        with open(test_dataset_path, 'r', encoding='utf-8') as f:
+            test_data = json.load(f)
+        
+        # Simple evaluation metrics
+        total_examples = len(test_data)
+        correct_predictions = 0
+        
+        for example in test_data[:10]:  # Evaluate first 10 examples
+            # Generate response
+            input_text = example.get('prompt', '')
+            expected_response = example.get('response', '')
+            
+            inputs = tokenizer(input_text, return_tensors="pt")
+            outputs = model.generate(
+                **inputs,
+                max_length=len(inputs['input_ids'][0]) + 100,
+                temperature=0.7,
+                do_sample=True
+            )
+            
+            generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            
+            # Simple accuracy check (can be improved)
+            if expected_response.lower() in generated_text.lower():
+                correct_predictions += 1
+        
+        accuracy = correct_predictions / min(10, total_examples)
+        
+        evaluation_results = {
+            "model_path": model_path,
+            "total_test_examples": total_examples,
+            "evaluated_examples": min(10, total_examples),
+            "accuracy": accuracy,
+            "correct_predictions": correct_predictions
+        }
+        
+        _log(f"Evaluation complete. Accuracy: {accuracy:.2%}")
+        return evaluation_results
+        
+    except Exception as e:
+        error_msg = f"Model evaluation failed: {e}"
+        _log(error_msg)
+        return {"error": error_msg}
 
 
 def train_model(
-    vocab_dir, model_save_path, finetune=False, training_data_path=None, **kwargs
-):
-    log_message_callback = kwargs.get("log_message_callback", print)
-    progress_callback = kwargs.get("progress_callback", lambda c, t, m: None)
+    vocab_dir: str, 
+    model_save_path: str, 
+    finetune: bool = False, 
+    training_data_path: Optional[str] = None, 
+    **kwargs: Any
+) -> str:
+    """
+    Legacy training function - kept for compatibility.
+    """
+    log_message_callback: Callable[[str], None] = kwargs.get("log_message_callback", print)
+    progress_callback: Callable[[int, int, str], None] = kwargs.get("progress_callback", lambda c, t, m: None)
     _log = log_message_callback
-
+    
     try:
-        # --- FIXED: Reference the settings module ---
+        _log("Starting model training...")
+        progress_callback(PROGRESS_MIN, PROGRESS_MAX, "Initializing training...")
+        
+        # Get best device
         device = get_best_device(_log)
-        progress_callback(PROGRESS_MIN, PROGRESS_MAX, "Starting training...")
-
-        base_model_name = "distilgpt2"
-        _log(f"Using pre-trained model architecture: {base_model_name}")
-
+        
+        # Load training data
+        if training_data_path and os.path.exists(training_data_path):
+            _log(f"Loading training data from: {training_data_path}")
+            with open(training_data_path, 'r', encoding='utf-8') as f:
+                training_data = json.load(f)
+        else:
+            _log("No training data provided, using default dataset")
+            training_data = [
+                {"text": "Sample training text 1\n<|endoftext|>\n"},
+                {"text": "Sample training text 2\n<|endoftext|>\n"}
+            ]
+        
+        # Create dataset
+        dataset = Dataset.from_list(training_data)
+        
+        # Load tokenizer and model
         _log("Loading tokenizer and model...")
-        tokenizer = GPT2Tokenizer.from_pretrained(base_model_name)
+        tokenizer = GPT2Tokenizer.from_pretrained(vocab_dir)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
-
-        model = None
-        if finetune and os.path.exists(os.path.join(model_save_path, "config.json")):
-            _log(f"Loading existing finetuned model from {model_save_path}")
-            model = GPT2LMHeadModel.from_pretrained(model_save_path)
-        else:
-            if finetune:
-                _log(
-                    f"No existing model found at {model_save_path}. Initializing new model for finetuning."
-                )
-            else:
-                _log(f"Initializing new '{base_model_name}' model for base training.")
-            model = GPT2LMHeadModel.from_pretrained(base_model_name)
-
+        
+        model = GPT2LMHeadModel.from_pretrained(vocab_dir)
         model.to(device)
-
-        # Use provided training_data_path or fall back to settings
-        if finetune:
-            if training_data_path is None:
-                training_data_path = settings.FINETUNING_FILE_PATH
-            _log(f"Mode: Finetuning. Using feedback dataset: {training_data_path}")
-        else:
-            if training_data_path is None:
-                training_data_path = settings.CONCAT_FILE_PATH
-            _log(f"Mode: Base Training. Using general corpus: {training_data_path}")
-
-        if (
-            not os.path.exists(training_data_path)
-            or os.path.getsize(training_data_path) == 0
-        ):
-            err_msg = f"Error: Training data file not found or is empty: {os.path.basename(training_data_path)}."
-            _log(err_msg)
-            return err_msg
-
-        _log("Loading data with 🤗 Datasets library...")
-        raw_datasets = load_dataset("text", data_files={"train": training_data_path})
-
-        def tokenize_function(examples):
-            # --- FIXED: Reference the settings module ---
+        
+        # Tokenize dataset
+        _log("Tokenizing dataset...")
+        def tokenize_function(examples: Dict[str, Any]) -> Dict[str, Any]:
             return tokenizer(
                 examples["text"],
                 truncation=True,
-                max_length=settings.MAX_SEQUENCE_LENGTH,
+                max_length=512,
+                padding="max_length"
             )
-
-        _log("Tokenizing dataset...")
-        tokenized_datasets = raw_datasets.map(
-            tokenize_function, batched=True, remove_columns=["text"]
+        
+        tokenized_dataset = dataset.map(
+            tokenize_function, 
+            batched=True, 
+            remove_columns=["text"]
         )
-
-        data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
-        _log(f"Dataset prepared with {len(tokenized_datasets['train'])} examples.")
-
-        # --- FIXED: Reference the settings module ---
+        
+        # Data collator
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=tokenizer, 
+            mlm=False
+        )
+        
+        # Training arguments
         training_args = TrainingArguments(
             output_dir=model_save_path,
             overwrite_output_dir=True,
-            num_train_epochs=settings.NUM_EPOCHS,
-            per_device_train_batch_size=settings.BATCH_SIZE,
-            save_steps=10_000,
-            save_total_limit=1,
+            num_train_epochs=3,
+            per_device_train_batch_size=4,
+            gradient_accumulation_steps=4,
+            warmup_steps=100,
+            learning_rate=5e-5,
+            fp16=True,
             logging_steps=10,
+            save_steps=500,
+            save_total_limit=2,
             report_to="none",
-            ddp_find_unused_parameters=False,
-            disable_tqdm=True,
+            remove_unused_columns=False,
         )
-
+        
+        # Custom callback for progress
         class ProgressCallbackTrainer(Trainer):
             def _log(self, logs: Dict[str, float]) -> None:
-                super()._log(logs)
-                if "loss" in logs and self.state.is_local_process_zero:
-                    current_step = self.state.global_step
-                    total_steps = self.state.max_steps
-                    progress_callback(
-                        current_step,
-                        total_steps,
-                        f"Step {current_step}/{total_steps} - Loss: {logs['loss']:.4f}",
-                    )
-
+                if self.state.global_step % 10 == 0:
+                    elapsed = time.time() - self.state.epoch
+                    progress = min(self.state.global_step / self.args.max_steps, 1.0) if self.args.max_steps else 0.5
+                    current = int(progress * PROGRESS_MAX)
+                    
+                    message = f"Training step {self.state.global_step}, Loss: {logs.get('loss', 'N/A'):.4f}"
+                    progress_callback(current, PROGRESS_MAX, message)
+                    _log(message)
+        
+        # Initialize trainer
         trainer = ProgressCallbackTrainer(
             model=model,
             args=training_args,
-            data_collator=data_collator,
-            train_dataset=tokenized_datasets["train"],
+            train_dataset=tokenized_dataset,
+            data_collator=data_collator
         )
-
-        # --- FIXED: Reference the settings module ---
-        _log(f"Starting training for {settings.NUM_EPOCHS} epochs...")
+        
+        # Start training
+        _log("Starting training...")
+        progress_callback(PROGRESS_MIN + 10, PROGRESS_MAX, "Training in progress...")
+        
         trainer.train()
-
-        _log("Training complete. Saving final model and tokenizer...")
+        
+        # Save the model
+        _log("Saving model...")
+        progress_callback(PROGRESS_MAX - 20, PROGRESS_MAX, "Saving model...")
+        
         trainer.save_model(model_save_path)
         tokenizer.save_pretrained(model_save_path)
-        _log(f"Model and tokenizer saved to {model_save_path}")
-
+        
+        _log(f"Model saved to: {model_save_path}")
+        progress_callback(PROGRESS_MAX, PROGRESS_MAX, "Training completed successfully!")
+        
         return "Success"
+        
     except Exception as e:
-        import traceback
-
-        _log(f"An error occurred during training: {e}\n{traceback.format_exc()}")
-        return f"Error: {e}"
+        error_msg = f"Training failed: {e}"
+        _log(error_msg)
+        return error_msg

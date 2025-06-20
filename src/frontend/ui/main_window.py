@@ -1046,14 +1046,10 @@ class AICoderAssistant(QMainWindow):
 
             # Start worker to generate report
             self.log_message(f"Starting report generation for {len(issues)} issues...")
-            w["create_report_button"].setEnabled(False)  # Disable button during generation
 
             def report_completion_callback(result):
                 """Handle report generation completion."""
                 try:
-                    # Re-enable the report button
-                    w["create_report_button"].setEnabled(True)
-                    
                     # Close progress dialog
                     if hasattr(self, "report_progress_dialog") and self.report_progress_dialog:
                         self.report_progress_dialog.close()
@@ -1149,7 +1145,6 @@ Report Generation Complete!
                         "Report Error",
                         f"Error processing report results: {e}"
                     )
-                    w["create_report_button"].setEnabled(True)
 
             self.start_worker(
                 "generate_report",
@@ -1170,7 +1165,6 @@ Report Generation Complete!
                 "Report Generation Error",
                 f"Failed to start report generation:\n{str(e)}\n\nPlease check the logs for more details.",
             )
-            w["create_report_button"].setEnabled(True)
 
     def update_report_progress(self, current: int, total: int, message: str):
         """Update report generation progress."""
@@ -1214,7 +1208,7 @@ Report Generation Complete!
 
             # Reset UI state
             w = self.widgets["ai_tab"]
-            w["start_scan_button"].setEnabled(True)
+            w["start_quick_scan_button"].setEnabled(True)
             w["stop_scan_button"].setEnabled(False)
 
             # Close progress dialog if open
@@ -1247,12 +1241,11 @@ Report Generation Complete!
     def start_quick_scan(self):
         """Start a quick, local scan without AI enhancement."""
         w = self.widgets["ai_tab"]
-        w["scan_results_text"].setPlainText("Starting quick scan...")
-        w["create_report_button"].setEnabled(False)
+        w["scan_status_label"].setText("Starting quick scan...")
         w["enhance_all_button"].setEnabled(False)
 
         # Clear previous results
-        w["scan_results_table"].setRowCount(0)
+        w["results_table"].setRowCount(0)
 
         # Disable start button and enable stop button
         w["start_quick_scan_button"].setEnabled(False)
@@ -1328,7 +1321,7 @@ Report Generation Complete!
         
         if result and result.get("success", False):
             issues = result.get("issues", [])
-            self._handle_quick_scan_results({"issues": issues})
+            self._handle_quick_scan_results(result)
         else:
             error_msg = result.get("error", "Unknown error") if result else "No result received"
             self.log_message(f"Quick scan failed: {error_msg}", "error")
@@ -1397,178 +1390,80 @@ Report Generation Complete!
 
     def enhance_all_issues(self):
         """Enhance all issues with AI analysis."""
-        w = self.widgets["ai_tab"]
-        
-        # Get all issues from the table
-        issues = []
-        for row in range(w["scan_results_table"].rowCount()):
-            file_item = w["scan_results_table"].item(row, 0)
-            line_item = w["scan_results_table"].item(row, 1)
-            issue_item = w["scan_results_table"].item(row, 2)
-            severity_item = w["scan_results_table"].item(row, 3)
-            type_item = w["scan_results_table"].item(row, 4)
-            
-            if file_item and line_item and issue_item:
-                issues.append({
-                    "file": file_item.text(),
-                    "line": int(line_item.text()),
-                    "issue": issue_item.text(),
-                    "severity": severity_item.text() if severity_item else "medium",
-                    "type": type_item.text() if type_item else "unknown",
-                    "language": self._get_language_from_file_path(file_item.text())
-                })
-        
-        if not issues:
-            QMessageBox.information(self, "No Issues", "No issues to enhance.")
-            return
-        
-        # Get enhancement type
-        enhancement_type_map = {
-            "Code Improvement": "code_improvement",
-            "Security Analysis": "security_analysis",
-            "Performance Optimization": "performance_optimization", 
-            "Best Practices": "best_practices",
-            "Documentation": "documentation",
-            "Architectural Review": "architectural_review"
-        }
-        
-        enhancement_type = w["enhancement_type_selector"].currentText()
-        enhancement_type_key = enhancement_type_map.get(enhancement_type, "code_improvement")
-        
-        # Start worker to enhance all issues
-        worker_id = f"enhance_all_{time.time()}"
-        self.start_worker(
-            worker_id,
-            self._enhance_all_issues_worker,
-            issues=issues,
-            enhancement_type=enhancement_type_key,
-            progress_callback=self.update_enhancement_progress,
-            log_message_callback=self.log_message,
-        )
-
-    def _enhance_all_issues_worker(self, issues: List[Dict[str, Any]], 
-                                  enhancement_type: str = "code_improvement",
-                                  progress_callback=None, log_message_callback=None):
-        """Worker function to enhance all issues with AI."""
         try:
-            if self.backend_controller:
-                enhancements = []
+            w = self.widgets["ai_tab"]
+            table = w["results_table"]
+            
+            if table.rowCount() == 0:
+                QMessageBox.information(self, "No Issues", "No issues to enhance.")
+                return
+            
+            reply = QMessageBox.question(
+                self, "Enhance All Issues", 
+                f"Enhance all {table.rowCount()} issues with AI analysis? This may take some time.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                w["scan_status_label"].setText("Enhancing all issues with AI...")
                 
-                for i, issue in enumerate(issues):
-                    if progress_callback:
-                        progress_callback(i, len(issues), f"Enhancing issue {i+1}/{len(issues)}")
+                # Collect all issues
+                issues = []
+                for row in range(table.rowCount()):
+                    file_item = table.item(row, 0)
+                    if file_item:
+                        issue_data = file_item.data(Qt.ItemDataRole.UserRole)
+                        if issue_data:
+                            issues.append(issue_data)
+                
+                # Start enhancement for each issue
+                for i, issue_data in enumerate(issues):
+                    self.current_issue_data = issue_data  # Store for callback
+                    self.enhance_issue_with_ai(issue_data)
                     
-                    if log_message_callback:
-                        log_message_callback(f"Enhancing issue: {issue.get('issue', 'Unknown')}")
-                    
-                    # Use the new BackendController for AI enhancement
-                    enhancement_result = self.backend_controller.get_ai_enhancement(
-                        issue, enhancement_type
-                    )
-                    
-                    enhancements.append({
-                        "issue": issue,
-                        "enhancement": enhancement_result
-                    })
-                
-                if progress_callback:
-                    progress_callback(len(issues), len(issues), "AI enhancement completed")
-                
-                return {
-                    "success": True,
-                    "enhancements": enhancements
-                }
-            else:
-                # Fallback to legacy method
-                return self._enhance_all_issues_worker_legacy(issues, progress_callback, log_message_callback)
-                
         except Exception as e:
-            if log_message_callback:
-                log_message_callback(f"Error during AI enhancement: {e}")
-            return {"success": False, "error": str(e)}
+            self.log_message(f"Error enhancing all issues: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to enhance all issues: {e}")
 
-    def _enhance_all_issues_worker_legacy(self, issues: List[Dict[str, Any]], 
-                                        progress_callback=None, log_message_callback=None):
-        """Legacy worker function to enhance all issues with AI."""
-        try:
-            from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
-            
-            analyzer = IntelligentCodeAnalyzer()
-            enhancements = []
-            
-            for i, issue in enumerate(issues):
-                if progress_callback:
-                    progress_callback(i, len(issues), f"Enhancing issue {i+1}/{len(issues)}")
-                
-                if log_message_callback:
-                    log_message_callback(f"Enhancing issue: {issue.get('issue', 'Unknown')}")
-                
-                # Use the legacy AI enhancement method
-                enhancement = analyzer.get_ai_enhancement(
-                    issue.get("issue", ""),
-                    issue.get("file_path", ""),
-                    issue.get("line", 0),
-                    issue.get("language", "unknown")
-                )
-                
-                enhancements.append({
-                    "issue": issue,
-                    "enhancement": enhancement
-                })
-            
-            if progress_callback:
-                progress_callback(len(issues), len(issues), "AI enhancement completed")
-            
-            return {
-                "success": True,
-                "enhancements": enhancements
-            }
-            
-        except Exception as e:
-            if log_message_callback:
-                log_message_callback(f"Error during AI enhancement: {e}")
-            return {"success": False, "error": str(e)}
-
-    def enhance_issue_with_ai(self, issue_data: Dict[str, Any], enhancement_type: str = "code_improvement"):
+    def enhance_issue_with_ai(self, issue_data: Dict[str, Any]):
         """Enhance a single issue with AI analysis."""
         try:
-            if self.backend_controller:
-                # Use the new BackendController for AI enhancement
-                enhancement_result = self.backend_controller.get_ai_enhancement(
-                    issue_data, enhancement_type
-                )
-                
-                # Show the enhancement dialog
-                self.show_ai_enhancement_dialog(issue_data, enhancement_result)
-            else:
-                # Fallback to legacy method
-                from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
-                analyzer = IntelligentCodeAnalyzer()
-                
-                enhancement = analyzer.get_ai_enhancement(
-                    issue_data.get("issue", ""),
-                    issue_data.get("file", ""),
-                    issue_data.get("line", 0),
-                    issue_data.get("language", "unknown")
-                )
-                
-                self.show_ai_enhancement_dialog(issue_data, enhancement)
-                
-        except Exception as e:
-            self.log_message(f"Error enhancing issue with AI: {e}", "error")
-            QMessageBox.warning(self, "Enhancement Error", f"Failed to enhance issue: {e}")
-
-    def show_ai_enhancement_dialog(self, issue_data: Dict[str, Any], enhancement_result: Any):
-        """Show the AI enhancement dialog."""
-        try:
-            from src.frontend.ui.ai_tab_widgets import AIEnhancementDialog
+            w = self.widgets["ai_tab"]
+            w["scan_status_label"].setText(f"Enhancing issue on line {issue_data.get('line', 0)}...")
             
-            dialog = AIEnhancementDialog(issue_data, enhancement_result, self)
+            # Get enhancement type (default to code improvement)
+            enhancement_type = "code_improvement"
+            
+            # Start AI enhancement
+            self.thread_manager.start_worker(
+                self.backend_controller.get_ai_enhancement,
+                on_success=self.on_enhancement_complete,
+                on_error=self.on_enhancement_error,
+                issue_data=issue_data,
+                enhancement_type=enhancement_type
+            )
+            
+        except Exception as e:
+            self.log_message(f"Error starting AI enhancement: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to start AI enhancement: {e}")
+
+    def on_enhancement_complete(self, result):
+        """Handle AI enhancement completion."""
+        try:
+            w = self.widgets["ai_tab"]
+            w["scan_status_label"].setText("AI enhancement complete")
+            
+            # Show the enhancement dialog
+            dialog = AIEnhancementDialog(self.current_issue_data, result, self)
             dialog.exec()
             
         except Exception as e:
-            self.log_message(f"Error showing enhancement dialog: {e}", "error")
-            QMessageBox.warning(self, "Dialog Error", f"Failed to show enhancement dialog: {e}")
+            self.log_message(f"Error handling enhancement completion: {e}")
+
+    def on_enhancement_error(self, error):
+        """Handle AI enhancement error."""
+        self.log_message(f"AI enhancement error: {error}")
+        QMessageBox.warning(self, "Enhancement Error", f"AI enhancement failed: {error}")
 
     def _handle_quick_scan_results(self, result: Dict[str, Any]):
         """Handle quick scan results and update UI."""
@@ -1577,7 +1472,6 @@ Report Generation Complete!
         issues = result.get("issues", [])
         
         if not issues:
-            w["scan_results_text"].setPlainText("No issues found in the quick scan.")
             w["scan_status_label"].setText("Status: Quick scan completed - No issues found")
             return
         
@@ -1645,7 +1539,7 @@ Report Generation Complete!
         finally:
             # Reset scan button states
             w = self.widgets["ai_tab"]
-            w["start_scan_button"].setEnabled(True)
+            w["start_quick_scan_button"].setEnabled(True)
             w["stop_scan_button"].setEnabled(False)
 
             if self.progress_dialog is not None:
@@ -1665,39 +1559,27 @@ Report Generation Complete!
     def _handle_legacy_scan_results(self, result: List[Dict[str, Any]]):
         """Handle results from legacy scan format."""
         w = self.widgets["ai_tab"]
-        formatted_text = self.format_issues_for_display(result)
-        w["scan_results_text"].setText(formatted_text)
-        self.log_message(f"Scan finished. Displaying {len(result)} files with issues.")
+        # Update the results table instead of using scan_results_text
+        from src.frontend.ui.ai_tab_widgets import populate_scan_results_table, update_scan_summary
+        
+        # Convert legacy format to new format
+        issues = []
+        for file_result in result:
+            file_path = file_result.get("file_path", "N/A")
+            file_issues = file_result.get("issues", [])
+            for issue in file_issues:
+                issue["file"] = file_path
+                issues.append(issue)
+        
+        populate_scan_results_table(w, issues)
+        update_scan_summary(w, issues)
+        self.log_message(f"Scan finished. Displaying {len(issues)} issues.")
 
     def _enable_post_scan_buttons(self, enabled: bool):
         """Enable or disable buttons that require scan results."""
-        self.widgets["ai_tab"]["create_report_button"].setEnabled(enabled)
-        self.widgets["ai_tab"]["enhance_all_button"].setEnabled(enabled)
-
-    def format_issues_for_display(self, result: List[Dict[str, Any]]) -> str:
-        """Formats the scan results for display in the QTextEdit."""
-        if not result:
-            return "No issues found."
-
-        output_lines = []
-        for file_result in result:
-            file_path = file_result.get("file_path", "N/A")
-            issues = file_result.get("issues", [])
-            if not issues:
-                continue
-
-            output_lines.append(f"--- {file_path} ({len(issues)} issues) ---")
-            for issue in issues:
-                line = issue.get("line", "N/A")
-                desc = issue.get("description", "No description.")
-                suggestion = issue.get("suggestion")
-
-                output_lines.append(f"  Line {line}: {desc}")
-                if suggestion:
-                    output_lines.append(f"    └ Suggestion: {suggestion}")
-            output_lines.append("")
-
-        return "\n".join(output_lines)
+        w = self.widgets["ai_tab"]
+        w["enhance_all_button"].setEnabled(enabled)
+        w["export_results_button"].setEnabled(enabled)
 
     def start_base_training(self):
         """Start base model training from corpus."""
@@ -1874,3 +1756,127 @@ Report Generation Complete!
                 "success": False,
                 "error": str(e)
             }
+
+    def on_model_source_changed(self, source: str):
+        """Handle model source selection change."""
+        w = self.widgets["ai_tab"]
+        
+        if source == "Ollama":
+            w["ollama_model_label"].setVisible(True)
+            w["ollama_model_selector"].setVisible(True)
+            w["refresh_models_button"].setVisible(True)
+            w["load_model_button"].setVisible(False)
+            w["model_status_label"].setText("Status: Using Ollama")
+            self.populate_ollama_models()
+        else:  # Fine-tuned Local Model
+            w["ollama_model_label"].setVisible(False)
+            w["ollama_model_selector"].setVisible(False)
+            w["refresh_models_button"].setVisible(False)
+            w["load_model_button"].setVisible(True)
+            w["model_status_label"].setText("Status: Ready to load fine-tuned model")
+            self.update_model_info()
+
+    def load_fine_tuned_model(self):
+        """Load a fine-tuned local model."""
+        try:
+            w = self.widgets["ai_tab"]
+            w["model_status_label"].setText("Status: Loading fine-tuned model...")
+            
+            # Get the local code reviewer
+            reviewer = self.backend_controller.get_local_code_reviewer()
+            model_info = reviewer.get_model_info()
+            
+            if model_info["is_fine_tuned"]:
+                w["model_status_label"].setText(f"Status: Using {model_info['current_model']}")
+                self.update_model_info()
+                QMessageBox.information(self, "Success", f"Loaded fine-tuned model: {model_info['current_model']}")
+            else:
+                w["model_status_label"].setText("Status: No fine-tuned model available")
+                QMessageBox.warning(self, "Warning", "No fine-tuned model found. Using default model.")
+                
+        except Exception as e:
+            self.log_message(f"Error loading fine-tuned model: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to load fine-tuned model: {e}")
+
+    def update_model_info(self):
+        """Update the model information display."""
+        try:
+            w = self.widgets["ai_tab"]
+            reviewer = self.backend_controller.get_local_code_reviewer()
+            model_info = reviewer.get_model_info()
+            
+            info_text = f"Current: {model_info['current_model']}"
+            if model_info["is_fine_tuned"]:
+                info_text += " (Fine-tuned)"
+            else:
+                info_text += " (Base model)"
+            
+            w["model_info_label"].setText(info_text)
+            
+        except Exception as e:
+            self.log_message(f"Error updating model info: {e}")
+
+    def on_issue_double_clicked(self, row: int, column: int):
+        """Handle double-click on an issue in the results table."""
+        try:
+            w = self.widgets["ai_tab"]
+            table = w["results_table"]
+            
+            # Get the issue data from the first column
+            file_item = table.item(row, 0)
+            if file_item:
+                issue_data = file_item.data(Qt.ItemDataRole.UserRole)
+                if issue_data:
+                    self.enhance_issue_with_ai(issue_data)
+                    
+        except Exception as e:
+            self.log_message(f"Error handling issue double-click: {e}")
+
+    def export_scan_results(self):
+        """Export scan results to a file."""
+        try:
+            w = self.widgets["ai_tab"]
+            table = w["results_table"]
+            
+            if table.rowCount() == 0:
+                QMessageBox.information(self, "No Results", "No results to export.")
+                return
+            
+            # Get save file path
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Export Scan Results", "", "JSON Files (*.json);;CSV Files (*.csv)"
+            )
+            
+            if file_path:
+                # Collect all issues
+                issues = []
+                for row in range(table.rowCount()):
+                    file_item = table.item(row, 0)
+                    if file_item:
+                        issue_data = file_item.data(Qt.ItemDataRole.UserRole)
+                        if issue_data:
+                            issues.append(issue_data)
+                
+                # Export based on file extension
+                if file_path.endswith('.json'):
+                    with open(file_path, 'w') as f:
+                        json.dump(issues, f, indent=2)
+                elif file_path.endswith('.csv'):
+                    import csv
+                    with open(file_path, 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(['File', 'Line', 'Type', 'Severity', 'Issue'])
+                        for issue in issues:
+                            writer.writerow([
+                                issue.get('file', ''),
+                                issue.get('line', ''),
+                                issue.get('type', ''),
+                                issue.get('severity', ''),
+                                issue.get('issue', '')
+                            ])
+                
+                QMessageBox.information(self, "Success", f"Results exported to: {file_path}")
+                
+        except Exception as e:
+            self.log_message(f"Error exporting results: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to export results: {e}")

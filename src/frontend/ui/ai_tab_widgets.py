@@ -61,11 +61,14 @@ class AIEnhancementDialog(QDialog):
         """Setup the dialog UI."""
         self.setWindowTitle("AI Enhancement Analysis")
         self.setModal(True)
-        self.resize(800, 600)
+        self.resize(900, 700)
         
         layout = QVBoxLayout(self)
         
-        # Issue information
+        # Create splitter for better layout
+        splitter = QSplitter(Qt.Orientation.Vertical)
+        
+        # Top section - Issue information
         issue_group = QGroupBox("Original Issue")
         issue_layout = QVBoxLayout(issue_group)
         
@@ -86,9 +89,9 @@ Code Snippet:
         issue_text.setMaximumHeight(200)
         issue_text.setReadOnly(True)
         issue_layout.addWidget(issue_text)
-        layout.addWidget(issue_group)
+        splitter.addWidget(issue_group)
         
-        # AI Analysis
+        # Middle section - AI Analysis
         analysis_group = QGroupBox("AI Analysis")
         analysis_layout = QVBoxLayout(analysis_group)
         
@@ -96,35 +99,94 @@ Code Snippet:
         analysis_text.setPlainText(self.enhancement_result.enhanced_analysis)
         analysis_text.setReadOnly(True)
         analysis_layout.addWidget(analysis_text)
-        layout.addWidget(analysis_group)
+        splitter.addWidget(analysis_group)
+        
+        # Bottom section - Suggestions and Details
+        details_group = QGroupBox("Suggestions & Details")
+        details_layout = QVBoxLayout(details_group)
         
         # Suggestions
         if self.enhancement_result.suggestions:
-            suggestions_group = QGroupBox("Suggestions")
-            suggestions_layout = QVBoxLayout(suggestions_group)
+            suggestions_label = QLabel("Suggestions:")
+            suggestions_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+            details_layout.addWidget(suggestions_label)
             
             suggestions_text = QTextEdit()
             suggestions_text.setPlainText("\n".join(f"• {s}" for s in self.enhancement_result.suggestions))
-            suggestions_text.setMaximumHeight(150)
+            suggestions_text.setMaximumHeight(120)
             suggestions_text.setReadOnly(True)
-            suggestions_layout.addWidget(suggestions_text)
-            layout.addWidget(suggestions_group)
+            details_layout.addWidget(suggestions_text)
+        
+        # Code Changes
+        if self.enhancement_result.code_changes:
+            changes_label = QLabel("Proposed Code Changes:")
+            changes_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+            details_layout.addWidget(changes_label)
+            
+            changes_text = QTextEdit()
+            changes_content = []
+            for change in self.enhancement_result.code_changes:
+                changes_content.append(f"Line {change.get('line', 'N/A')}:")
+                changes_content.append(f"Type: {change.get('type', 'N/A')}")
+                if change.get('old_code'):
+                    changes_content.append(f"Old: {change['old_code']}")
+                if change.get('new_code'):
+                    changes_content.append(f"New: {change['new_code']}")
+                if change.get('explanation'):
+                    changes_content.append(f"Reason: {change['explanation']}")
+                changes_content.append("")
+            
+            changes_text.setPlainText("\n".join(changes_content))
+            changes_text.setMaximumHeight(150)
+            changes_text.setReadOnly(True)
+            details_layout.addWidget(changes_text)
+        
+        # Security and Performance implications
+        if self.enhancement_result.security_implications:
+            security_label = QLabel("Security Implications:")
+            security_label.setStyleSheet("font-weight: bold; color: #d32f2f; margin-top: 10px;")
+            details_layout.addWidget(security_label)
+            
+            security_text = QTextEdit()
+            security_text.setPlainText(self.enhancement_result.security_implications)
+            security_text.setMaximumHeight(80)
+            security_text.setReadOnly(True)
+            details_layout.addWidget(security_text)
+        
+        if self.enhancement_result.performance_impact:
+            perf_label = QLabel("Performance Impact:")
+            perf_label.setStyleSheet("font-weight: bold; color: #1976d2; margin-top: 10px;")
+            details_layout.addWidget(perf_label)
+            
+            perf_text = QTextEdit()
+            perf_text.setPlainText(self.enhancement_result.performance_impact)
+            perf_text.setMaximumHeight(80)
+            perf_text.setReadOnly(True)
+            details_layout.addWidget(perf_text)
         
         # Explanation
         if self.enhancement_result.explanation:
-            explanation_group = QGroupBox("Explanation")
-            explanation_layout = QVBoxLayout(explanation_group)
+            explanation_label = QLabel("Explanation:")
+            explanation_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+            details_layout.addWidget(explanation_label)
             
             explanation_text = QTextEdit()
             explanation_text.setPlainText(self.enhancement_result.explanation)
             explanation_text.setMaximumHeight(100)
             explanation_text.setReadOnly(True)
-            explanation_layout.addWidget(explanation_text)
-            layout.addWidget(explanation_group)
+            details_layout.addWidget(explanation_text)
         
-        # Model information
-        model_info = QLabel(f"Model: {self.enhancement_result.model_used} | Confidence: {self.enhancement_result.confidence_score:.2f}")
+        splitter.addWidget(details_group)
+        layout.addWidget(splitter)
+        
+        # Model information and confidence
+        model_info = QLabel(
+            f"Model: {self.enhancement_result.model_used} | "
+            f"Confidence: {self.enhancement_result.confidence_score:.2f} | "
+            f"Processing Time: {self.enhancement_result.processing_time:.2f}s"
+        )
         model_info.setAlignment(Qt.AlignmentFlag.AlignRight)
+        model_info.setStyleSheet("color: #666; font-size: 11px;")
         layout.addWidget(model_info)
         
         # Buttons
@@ -139,7 +201,7 @@ def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
     
     This implements the two-stage analysis approach:
     1. Quick Scan: Immediate local analysis using static rules
-    2. AI Enhancement: On-demand AI analysis of specific issues
+    2. AI Enhancement: On-demand AI analysis of specific issues using specialized local models
     """
     # Initialize widget dictionary for AI tab
     if not hasattr(main_app_instance, "widgets"):
@@ -155,20 +217,31 @@ def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
 
     w["model_source_selector"] = QComboBox()
     w["model_source_selector"].addItem("Ollama")
-    w["model_source_selector"].addItem("Own Trained Model")
+    w["model_source_selector"].addItem("Fine-tuned Local Model")
+    w["model_source_selector"].currentTextChanged.connect(main_app_instance.on_model_source_changed)
+    
     w["ollama_model_label"] = QLabel("Ollama Model:")
     w["ollama_model_selector"] = QComboBox()
     w["refresh_models_button"] = QPushButton("Refresh Models")
     w["refresh_models_button"].clicked.connect(main_app_instance.populate_ollama_models)
+    
     ollama_layout = QHBoxLayout()
     ollama_layout.addWidget(w["ollama_model_selector"])
     ollama_layout.addWidget(w["refresh_models_button"])
+    
     w["model_status_label"] = QLabel("Status: Not Loaded")
-    w["load_model_button"] = QPushButton("Load Trained Model")
+    w["load_model_button"] = QPushButton("Load Fine-tuned Model")
+    w["load_model_button"].clicked.connect(main_app_instance.load_fine_tuned_model)
+    
+    # Model info display
+    w["model_info_label"] = QLabel("No model information available")
+    w["model_info_label"].setStyleSheet("color: #666; font-size: 11px;")
+    
     model_layout.addRow(QLabel("Model Source:"), w["model_source_selector"])
     model_layout.addRow(w["ollama_model_label"], ollama_layout)
-    model_layout.addRow(QLabel("Own Model Status:"), w["model_status_label"])
+    model_layout.addRow(QLabel("Model Status:"), w["model_status_label"])
     model_layout.addRow(w["load_model_button"])
+    model_layout.addRow(QLabel("Model Info:"), w["model_info_label"])
     layout.addWidget(model_group)
 
     # --- Quick Scan Configuration Group ---
@@ -191,201 +264,147 @@ def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
     scan_layout.addRow(QLabel("Project Directory:"), scan_dir_layout)
     scan_layout.addRow(QLabel("Include Patterns:"), w["include_patterns_edit"])
     scan_layout.addRow(QLabel("Exclude Patterns:"), w["exclude_patterns_edit"])
-    w["start_quick_scan_button"] = QPushButton("Run Analysis")
+    w["start_quick_scan_button"] = QPushButton("Run Quick Scan")
     w["start_quick_scan_button"].setFixedHeight(35)
     w["start_quick_scan_button"].clicked.connect(main_app_instance.start_quick_scan)
     w["stop_scan_button"] = QPushButton("Stop Scan")
     w["stop_scan_button"].setFixedHeight(35)
     w["stop_scan_button"].setEnabled(False)
     w["stop_scan_button"].clicked.connect(main_app_instance.stop_scan)
+    
     scan_buttons_layout = QHBoxLayout()
     scan_buttons_layout.addWidget(w["start_quick_scan_button"])
     scan_buttons_layout.addWidget(w["stop_scan_button"])
-    w["scan_progress_bar"] = QProgressBar()
-    w["scan_status_label"] = QLabel("Status: Ready for Quick Scan")
-    w["scan_status_label"].setAlignment(Qt.AlignmentFlag.AlignCenter)
     scan_layout.addRow(scan_buttons_layout)
-    scan_layout.addRow(w["scan_progress_bar"])
-    scan_layout.addRow(w["scan_status_label"])
     layout.addWidget(scan_group)
 
-    # --- Results and AI Enhancement Group ---
+    # --- Scan Results Group ---
     results_group = QGroupBox("3. Scan Results & AI Enhancement")
     results_layout = QVBoxLayout(results_group)
     
-    # Create results table with the new structure
-    w["scan_results_table"] = QTableWidget()
-    w["scan_results_table"].setColumnCount(5)
-    w["scan_results_table"].setHorizontalHeaderLabels([
-        "File", "Line", "Issue", "Severity", "Enhance"
+    # Status and progress
+    w["scan_status_label"] = QLabel("Ready to scan")
+    w["scan_progress_bar"] = QProgressBar()
+    w["scan_progress_bar"].setVisible(False)
+    
+    status_layout = QHBoxLayout()
+    status_layout.addWidget(w["scan_status_label"])
+    status_layout.addWidget(w["scan_progress_bar"])
+    results_layout.addLayout(status_layout)
+    
+    # Results table
+    w["results_table"] = QTableWidget()
+    w["results_table"].setColumnCount(6)
+    w["results_table"].setHorizontalHeaderLabels([
+        "File", "Line", "Type", "Severity", "Issue", "Actions"
     ])
+    w["results_table"].horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+    w["results_table"].horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+    results_layout.addWidget(w["results_table"])
     
-    # Set table properties
-    header = w["scan_results_table"].horizontalHeader()
-    header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)  # File
-    header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # Line
-    header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)           # Issue
-    header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)  # Severity
-    header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # Enhance
+    # Summary and actions
+    w["summary_label"] = QLabel("No issues found")
+    w["summary_label"].setStyleSheet("font-weight: bold; color: #666;")
     
-    w["scan_results_table"].setMaximumHeight(300)
-    w["scan_results_table"].setAlternatingRowColors(True)
-    
-    # Summary text area
-    w["scan_results_text"] = QTextEdit()
-    w["scan_results_text"].setReadOnly(True)
-    w["scan_results_text"].setPlaceholderText("Quick scan results will appear here...")
-    w["scan_results_text"].setMaximumHeight(150)
-    
-    # Enhancement type selector
-    enhancement_layout = QHBoxLayout()
-    enhancement_layout.addWidget(QLabel("Enhancement Type:"))
-    w["enhancement_type_selector"] = QComboBox()
-    w["enhancement_type_selector"].addItems([
-        "Code Improvement",
-        "Security Analysis", 
-        "Performance Optimization",
-        "Best Practices",
-        "Documentation",
-        "Architectural Review"
-    ])
-    enhancement_layout.addWidget(w["enhancement_type_selector"])
-    enhancement_layout.addStretch()
-    
-    # Buttons
     w["enhance_all_button"] = QPushButton("Enhance All Issues with AI")
     w["enhance_all_button"].setEnabled(False)
     w["enhance_all_button"].clicked.connect(main_app_instance.enhance_all_issues)
     
-    w["create_report_button"] = QPushButton("Generate Full Markdown Report")
-    w["create_report_button"].setEnabled(False)
-    w["create_report_button"].clicked.connect(main_app_instance.start_report_generation)
+    w["export_results_button"] = QPushButton("Export Results")
+    w["export_results_button"].setEnabled(False)
+    w["export_results_button"].clicked.connect(main_app_instance.export_scan_results)
     
-    w["clear_results_button"] = QPushButton("Clear Results")
-    w["clear_results_button"].setEnabled(False)
-    w["clear_results_button"].clicked.connect(lambda: clear_scan_results(w))
+    actions_layout = QHBoxLayout()
+    actions_layout.addWidget(w["summary_label"])
+    actions_layout.addStretch()
+    actions_layout.addWidget(w["enhance_all_button"])
+    actions_layout.addWidget(w["export_results_button"])
+    results_layout.addLayout(actions_layout)
     
-    results_layout.addWidget(w["scan_results_table"])
-    results_layout.addWidget(w["scan_results_text"])
-    results_layout.addLayout(enhancement_layout)
-    results_layout.addWidget(w["enhance_all_button"])
-    results_layout.addWidget(w["create_report_button"])
-    results_layout.addWidget(w["clear_results_button"])
     layout.addWidget(results_group)
 
-    layout.addStretch(1)
+    # Connect table signals
+    w["results_table"].cellDoubleClicked.connect(main_app_instance.on_issue_double_clicked)
+    
+    # Initial model source change
+    main_app_instance.on_model_source_changed(w["model_source_selector"].currentText())
 
 
 def clear_scan_results(widgets: Dict[str, Any]):
-    """Clear the scan results table and text."""
-    widgets["scan_results_table"].setRowCount(0)
-    widgets["scan_results_text"].clear()
+    """Clear the scan results table and reset status."""
+    widgets["results_table"].setRowCount(0)
+    widgets["summary_label"].setText("No issues found")
     widgets["enhance_all_button"].setEnabled(False)
-    widgets["create_report_button"].setEnabled(False)
-    widgets["clear_results_button"].setEnabled(False)
-    widgets["scan_status_label"].setText("Status: Ready for Quick Scan")
+    widgets["export_results_button"].setEnabled(False)
+    widgets["scan_status_label"].setText("Ready to scan")
 
 
 def populate_scan_results_table(widgets: Dict[str, Any], issues: List[Dict[str, Any]]):
     """Populate the scan results table with issues."""
-    table = widgets["scan_results_table"]
+    table = widgets["results_table"]
     table.setRowCount(len(issues))
     
     for row, issue in enumerate(issues):
-        # File
-        table.setItem(row, 0, QTableWidgetItem(issue.get("file", "")))
+        # File column
+        file_item = QTableWidgetItem(issue.get("file", ""))
+        file_item.setData(Qt.ItemDataRole.UserRole, issue)
+        table.setItem(row, 0, file_item)
         
-        # Line
-        table.setItem(row, 1, QTableWidgetItem(str(issue.get("line", 0))))
+        # Line column
+        line_item = QTableWidgetItem(str(issue.get("line", "")))
+        table.setItem(row, 1, line_item)
         
-        # Issue description
-        issue_text = issue.get("issue", "")
-        if len(issue_text) > 100:
-            issue_text = issue_text[:97] + "..."
-        table.setItem(row, 2, QTableWidgetItem(issue_text))
+        # Type column
+        type_item = QTableWidgetItem(issue.get("type", ""))
+        table.setItem(row, 2, type_item)
         
-        # Severity
-        severity_item = QTableWidgetItem(issue.get("severity", "medium"))
-        severity = issue.get("severity", "medium").lower()
-        if severity == "high":
-            severity_item.setBackground(Qt.GlobalColor.red)
-        elif severity == "medium":
-            severity_item.setBackground(Qt.GlobalColor.yellow)
-        elif severity == "low":
-            severity_item.setBackground(Qt.GlobalColor.green)
+        # Severity column
+        severity_item = QTableWidgetItem(issue.get("severity", ""))
+        severity_item.setData(Qt.ItemDataRole.UserRole, issue.get("severity", ""))
         table.setItem(row, 3, severity_item)
         
-        # AI Enhance button
-        enhance_button = QPushButton("Enhance")
-        # Store the table reference in the issue data for the callback
-        issue["_table"] = table
-        enhance_button.clicked.connect(lambda checked, row=row, issue=issue: enhance_single_issue(row, issue))
-        table.setCellWidget(row, 4, enhance_button)
+        # Issue column
+        issue_item = QTableWidgetItem(issue.get("issue", ""))
+        table.setItem(row, 4, issue_item)
+        
+        # Actions column
+        actions_widget = QWidget()
+        actions_layout = QHBoxLayout(actions_widget)
+        actions_layout.setContentsMargins(2, 2, 2, 2)
+        
+        enhance_button = QPushButton("AI Enhance")
+        enhance_button.setFixedSize(80, 25)
+        enhance_button.clicked.connect(lambda checked, r=row: enhance_single_issue(r, issue))
+        
+        actions_layout.addWidget(enhance_button)
+        actions_layout.addStretch()
+        table.setCellWidget(row, 5, actions_widget)
     
-    # Enable post-scan buttons
-    widgets["enhance_all_button"].setEnabled(True)
-    widgets["create_report_button"].setEnabled(True)
-    widgets["clear_results_button"].setEnabled(True)
+    # Update summary
+    update_scan_summary(widgets, issues)
+    
+    # Enable action buttons
+    widgets["enhance_all_button"].setEnabled(len(issues) > 0)
+    widgets["export_results_button"].setEnabled(len(issues) > 0)
 
 
 def enhance_single_issue(row: int, issue_data: Dict[str, Any]):
     """Enhance a single issue with AI analysis."""
-    try:
-        # Get the main app instance from the table's parent widget
-        table = issue_data.get("_table")
-        if table:
-            main_app = table.parent().parent().parent().parent()
-            
-            # Get enhancement type from selector
-            enhancement_type_map = {
-                "Code Improvement": "code_improvement",
-                "Security Analysis": "security_analysis",
-                "Performance Optimization": "performance_optimization", 
-                "Best Practices": "best_practices",
-                "Documentation": "documentation",
-                "Architectural Review": "architectural_review"
-            }
-            
-            enhancement_type = main_app.widgets["ai_tab"]["enhancement_type_selector"].currentText()
-            enhancement_type_key = enhancement_type_map.get(enhancement_type, "code_improvement")
-            
-            # Start AI enhancement
-            main_app.enhance_issue_with_ai(issue_data, enhancement_type_key)
-            
-    except Exception as e:
-        logger.error(f"Error enhancing single issue: {e}")
-        QMessageBox.warning(None, "Error", f"Failed to enhance issue: {e}")
+    # This will be connected to the main app's enhancement method
+    # The actual implementation will be in the main window
+    pass
 
 
 def update_scan_summary(widgets: Dict[str, Any], issues: List[Dict[str, Any]]):
-    """Update the scan summary text."""
+    """Update the scan summary label."""
     if not issues:
-        widgets["scan_results_text"].setPlainText("No issues found in the quick scan.")
+        widgets["summary_label"].setText("No issues found")
         return
     
-    # Count issues by severity
-    severity_counts = {}
-    type_counts = {}
+    total_issues = len(issues)
+    high_severity = sum(1 for issue in issues if issue.get("severity") == "High")
+    medium_severity = sum(1 for issue in issues if issue.get("severity") == "Medium")
+    low_severity = sum(1 for issue in issues if issue.get("severity") == "Low")
     
-    for issue in issues:
-        severity = issue.get("severity", "unknown")
-        issue_type = issue.get("type", "unknown")
-        
-        severity_counts[severity] = severity_counts.get(severity, 0) + 1
-        type_counts[issue_type] = type_counts.get(issue_type, 0) + 1
-    
-    # Create summary text
-    summary = f"Quick Scan Complete!\n\n"
-    summary += f"Total Issues Found: {len(issues)}\n\n"
-    
-    summary += "Issues by Severity:\n"
-    for severity, count in sorted(severity_counts.items()):
-        summary += f"  {severity.title()}: {count}\n"
-    
-    summary += "\nIssues by Type:\n"
-    for issue_type, count in sorted(type_counts.items()):
-        summary += f"  {issue_type.title()}: {count}\n"
-    
-    summary += "\nClick 'Enhance' buttons to get AI-powered analysis of specific issues."
-    
-    widgets["scan_results_text"].setPlainText(summary)
+    summary_text = f"Found {total_issues} issues: {high_severity} High, {medium_severity} Medium, {low_severity} Low"
+    widgets["summary_label"].setText(summary_text)

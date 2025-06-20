@@ -1,324 +1,737 @@
-# AI Coder Assistant v3.0.0 - Architecture Documentation
+# AI Coder Assistant - Architecture Documentation
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [System Architecture](#system-architecture)
+3. [Core Components](#core-components)
+4. [Backend Services](#backend-services)
+5. [Frontend Architecture](#frontend-architecture)
+6. [Data Flow](#data-flow)
+7. [Security Architecture](#security-architecture)
+8. [Performance Architecture](#performance-architecture)
+9. [Deployment Architecture](#deployment-architecture)
+10. [Development Architecture](#development-architecture)
 
 ## Overview
 
-The AI Coder Assistant v3.0.0 has been completely redesigned with a modern, event-driven architecture that provides robust separation of concerns, enhanced performance, and improved maintainability. The new architecture follows industry best practices for enterprise applications.
+AI Coder Assistant is built with a modern, modular architecture that separates concerns and provides scalability, maintainability, and extensibility. The application follows a layered architecture pattern with clear boundaries between different components.
 
-## Project Structure
+### Architecture Principles
+
+- **Separation of Concerns**: Clear separation between UI, business logic, and data layers
+- **Modularity**: Independent, reusable components
+- **Scalability**: Horizontal and vertical scaling capabilities
+- **Maintainability**: Clean code structure and comprehensive documentation
+- **Extensibility**: Plugin-based architecture for new features
+- **Security**: Defense in depth with multiple security layers
+- **Performance**: Optimized for speed and resource efficiency
+
+## System Architecture
+
+### High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Presentation Layer                       │
+├─────────────────────────────────────────────────────────────┤
+│  GUI (PyQt6)  │  CLI  │  Web API  │  IDE Plugins  │  Mobile │
+├─────────────────────────────────────────────────────────────┤
+│                    Application Layer                        │
+├─────────────────────────────────────────────────────────────┤
+│  Controllers  │  Event Bus  │  Task Management  │  Security │
+├─────────────────────────────────────────────────────────────┤
+│                    Business Logic Layer                     │
+├─────────────────────────────────────────────────────────────┤
+│  Code Analysis  │  AI Services  │  Security  │  Standards  │
+├─────────────────────────────────────────────────────────────┤
+│                    Data Access Layer                        │
+├─────────────────────────────────────────────────────────────┤
+│  Database  │  File System  │  External APIs  │  Cache  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Component Architecture
 
 ```
 ai_coder_assistant/
-├── config/                     # Configuration files
-│   ├── code_standards_config.json
-│   ├── llm_studio_config.json
-│   ├── pr_automation_config.json
-│   └── security_intelligence_config.json
-├── data/                       # Data storage files
-│   ├── security_breaches.json
-│   ├── security_patches.json
-│   ├── security_training_data.json
-│   └── security_vulnerabilities.json
-├── src/                        # Source code
-│   ├── core/                   # Core infrastructure modules
-│   │   ├── config/             # Configuration management (singleton pattern)
-│   │   ├── error/              # Centralized error handling with severity levels
-│   │   ├── events/             # Event-driven communication system
-│   │   ├── logging/            # Rotating file handlers and log levels
-│   │   └── threading/          # Task queuing and status tracking
-│   ├── backend/                # Backend services and business logic
-│   │   ├── services/           # Business logic services
-│   │   │   ├── scanner.py      # Code scanning with progress reporting
-│   │   │   ├── model_manager.py # Model loading/unloading with event integration
-│   │   │   ├── task_management.py # Priority-based task scheduling
-│   │   │   ├── model_persistence.py # Model data persistence with SQLite
-│   │   │   ├── scanner_persistence.py # Scan results persistence
-│   │   │   ├── llm_manager.py  # LLM management and provider integration
-│   │   │   ├── ollama_client.py # Ollama integration
-│   │   │   ├── web_server.py   # REST API server
-│   │   │   ├── logging_config.py # Logging configuration
-│   │   │   └── ...             # Other business services
-│   │   ├── data/               # Data storage and management
-│   │   ├── models/             # Data models and schemas
-│   │   └── utils/              # Utility functions
-│   │       ├── settings.py     # Application settings
-│   │       └── constants.py    # Application constants
-│   ├── frontend/               # Frontend components and UI
-│   │   ├── components/         # Reusable UI components
-│   │   │   ├── base_component.py # Base component with lifecycle management
-│   │   │   ├── scanner_component.py # Scanner UI with event handling
-│   │   │   ├── model_management_component.py # Model management UI
-│   │   │   └── task_management_component.py # Task management UI
-│   │   ├── controllers/        # Frontend controllers
-│   │   │   └── backend_controller.py # Backend communication layer
-│   │   └── ui/                 # PyQt6 UI components
-│   │       ├── main_window.py  # Main application window
-│   │       ├── worker_threads.py # Background worker threads
-│   │       └── ...             # Other UI components
-│   ├── cli/                    # Command-line interface
-│   │   └── main.py             # CLI entry point
-│   └── tests/                  # Comprehensive test suite
-│       ├── core/               # Core module tests
-│       ├── backend/            # Backend service tests
-│       ├── frontend/           # Frontend component tests
-│       └── frontend_backend/   # Integration tests
-├── docs/                       # Documentation
-├── api/                        # API server
-├── scripts/                    # Utility scripts
-├── logs/                       # Application logs
-├── tmp/                        # Temporary files
-├── requirements.txt            # Python dependencies
-├── main.py                     # Main application entry point
-└── README.md                   # Project overview
+├── src/                          # Main source code
+│   ├── main.py                   # Application entry point
+│   ├── __init__.py               # Package initialization
+│   ├── core/                     # Core infrastructure
+│   │   ├── config/               # Configuration management
+│   │   ├── error/                # Error handling
+│   │   ├── events/               # Event system
+│   │   └── logging/              # Logging system
+│   ├── backend/                  # Backend services
+│   │   ├── services/             # Business logic services
+│   │   ├── data/                 # Data models and persistence
+│   │   ├── models/               # AI models and training
+│   │   └── utils/                # Utility functions
+│   ├── frontend/                 # Frontend components
+│   │   ├── ui/                   # PyQt6 UI components
+│   │   ├── components/           # Reusable UI components
+│   │   └── controllers/          # Frontend controllers
+│   ├── cli/                      # Command-line interface
+│   └── tests/                    # Test suite
+├── config/                       # Configuration files
+├── docs/                         # Documentation
+├── scripts/                      # Utility scripts
+├── api/                          # API server
+├── docker-compose.yml            # Docker configuration
+├── Dockerfile                    # Docker image
+├── pyproject.toml                # Poetry configuration
+├── poetry.lock                   # Poetry lock file
+└── README.md                     # Project overview
 ```
 
-## Configuration and Data Management
+## Core Components
 
-### Configuration Files (`config/` directory)
-All configuration files are now organized in the `config/` directory for better maintainability:
+### 1. Configuration Management (`src/core/config/`)
 
-- **`config/code_standards_config.json`**: Code standards and rules configuration
-- **`config/llm_studio_config.json`**: LLM provider configurations and settings
-- **`config/pr_automation_config.json`**: Pull request automation settings
-- **`config/security_intelligence_config.json`**: Security intelligence feed configurations
+The configuration system provides centralized configuration management with support for multiple configuration sources.
 
-### Data Files (`data/` directory)
-All data storage files are organized in the `data/` directory:
-
-- **`data/security_breaches.json`**: Security breach information
-- **`data/security_patches.json`**: Security patch data
-- **`data/security_training_data.json`**: Security training datasets
-- **`data/security_vulnerabilities.json`**: Security vulnerability data
-
-### Benefits of Organized File Structure
-- **Clean Root Directory**: Main project directory is no longer cluttered
-- **Logical Separation**: Configuration and data are clearly separated
-- **Easier Maintenance**: Related files are grouped together
-- **Better Security**: Sensitive configuration can be managed separately
-- **Scalability**: Easy to add new configuration or data files
-
-## Key Architectural Improvements
-
-### 1. Event-Driven Design
-
-The application now uses a centralized event system for inter-module communication:
-
-```python
-# Event emission
-from core.events import EventBus
-EventBus.emit('model_loaded', {'model_name': 'gpt-4', 'status': 'ready'})
-
-# Event subscription
-EventBus.subscribe('model_loaded', self.on_model_loaded)
-```
-
-### 2. Core Infrastructure Modules
-
-#### Configuration Management
+#### Features
 - **Singleton Pattern**: Ensures consistent configuration across the application
-- **JSON Persistence**: Automatic saving and loading of configuration from `config/` directory
+- **JSON Persistence**: Automatic saving and loading of configuration
 - **Validation**: Type checking and validation of configuration values
 - **Path Management**: Centralized path resolution for configuration files
+- **Environment Variables**: Support for environment variable overrides
 
-#### Error Handling
+#### Configuration Files
+- `config/llm_studio_config.json`: LLM provider configuration
+- `config/code_standards_config.json`: Code standards configuration
+- `config/security_intelligence_config.json`: Security configuration
+- `config/pr_automation_config.json`: PR automation configuration
+- `config/local_code_reviewer_config.json`: Local code reviewer configuration
+
+#### Usage Example
+```python
+from src.core.config import Config
+
+config = Config()
+api_key = config.get("providers.openai.api_key")
+model_name = config.get("models.default", "gpt-4")
+```
+
+### 2. Error Handling (`src/core/error/`)
+
+The error handling system provides centralized error management with severity levels and standardized responses.
+
+#### Features
 - **Centralized System**: All errors go through a single error handler
 - **Severity Levels**: Error, Warning, Info categorization
 - **Standardized Responses**: Consistent error format across all modules
+- **Logging Integration**: Automatic error logging
+- **User-Friendly Messages**: Human-readable error messages
 
-#### Logging System
-- **Rotating Handlers**: Automatic log rotation to prevent disk space issues
-- **Configurable Levels**: Different log levels for different environments
-- **Structured Logging**: JSON format for better parsing and analysis
+#### Error Types
+- `ConfigurationError`: Configuration-related errors
+- `NetworkError`: Network and API communication errors
+- `ModelError`: AI model-related errors
+- `ValidationError`: Data validation errors
+- `SecurityError`: Security-related errors
 
-#### Thread Management
-- **Task Queuing**: Priority-based task execution
-- **Status Tracking**: Real-time status updates for long-running operations
-- **Resource Management**: Proper cleanup and resource allocation
-
-### 3. Backend Services Architecture
-
-#### Service Pattern
-All backend services follow a consistent pattern with updated configuration paths:
-
+#### Usage Example
 ```python
-class ScannerService:
-    def __init__(self):
-        self.event_bus = EventBus()
-        self.error_handler = ErrorHandler()
-        self.logger = Logger()
-        self.config_path = "config/llm_studio_config.json"
-    
-    def scan_directory(self, path: str) -> List[ScanResult]:
-        try:
-            # Service logic here
-            self.event_bus.emit('scan_progress', {'current': 50, 'total': 100})
-            return results
-        except Exception as e:
-            self.error_handler.handle_error(e, severity=ErrorSeverity.ERROR)
-            raise
+from src.core.error import ErrorHandler, ErrorSeverity
+
+error_handler = ErrorHandler()
+try:
+    # Some operation
+    pass
+except Exception as e:
+    error_handler.handle_error(e, severity=ErrorSeverity.ERROR)
 ```
 
-#### Database Persistence
-- **SQLite with Connection Pooling**: Efficient database operations
-- **Retry Logic**: Automatic retry for transient database errors
-- **Performance Monitoring**: Integrated performance tracking
+### 3. Event System (`src/core/events/`)
 
-### 4. Frontend Component System
+The event system provides a publish-subscribe pattern for loose coupling between components.
 
-#### Base Component
-All UI components inherit from a base component with:
+#### Features
+- **Thread-Safe**: Thread-safe event publishing and subscription
+- **Type Safety**: Type hints for event data
+- **Async Support**: Support for asynchronous event handling
+- **Event Filtering**: Filter events by type and data
+- **Performance Optimized**: Efficient event routing
 
-- **Lifecycle Management**: Proper initialization and cleanup
-- **Event Handling**: Automatic event subscription and unsubscription
-- **Error Management**: Consistent error handling and user feedback
+#### Event Types
+- `APP_STARTUP`: Application startup event
+- `SCAN_STARTED`: Code scan started event
+- `SCAN_COMPLETED`: Code scan completed event
+- `MODEL_LOADED`: AI model loaded event
+- `ERROR_OCCURRED`: Error occurred event
 
-#### Event-Driven UI Updates
-UI components automatically update based on backend events:
-
+#### Usage Example
 ```python
-class ScannerComponent(BaseComponent):
-    def __init__(self):
-        super().__init__()
-        self.event_bus.subscribe('scan_progress', self.update_progress)
-        self.event_bus.subscribe('scan_complete', self.show_results)
+from src.core.events import EventBus, EventType
+
+# Subscribe to events
+EventBus.subscribe(EventType.SCAN_COMPLETED, self.on_scan_completed)
+
+# Publish events
+EventBus.emit(EventType.SCAN_STARTED, {'directory': '/path/to/code'})
 ```
 
-### 5. Import System Overhaul
+### 4. Logging System (`src/core/logging/`)
 
-All imports now use absolute paths from the `src/` root:
+The logging system provides comprehensive logging capabilities with multiple output formats and levels.
 
+#### Features
+- **Multiple Handlers**: File, console, and network logging
+- **Rotating Logs**: Automatic log rotation to prevent disk space issues
+- **Structured Logging**: JSON format for better parsing
+- **Performance Monitoring**: Built-in performance logging
+- **Security Logging**: Dedicated security event logging
+
+#### Log Levels
+- `DEBUG`: Detailed debugging information
+- `INFO`: General information messages
+- `WARNING`: Warning messages
+- `ERROR`: Error messages
+- `CRITICAL`: Critical error messages
+
+#### Usage Example
 ```python
-# Old relative imports
-from ..utils import settings
-from .scanner import ScannerService
+from src.core.logging import LogManager
 
-# New absolute imports
-from backend.utils import settings
-from backend.services.scanner import ScannerService
+logger = LogManager().get_logger("my_module")
+logger.info("Application started")
+logger.error("An error occurred", exc_info=True)
 ```
 
-## Performance Improvements
+## Backend Services
 
-### 1. Database Optimization
-- **Connection Pooling**: Reuses database connections for better performance
-- **Query Optimization**: Efficient SQL queries with proper indexing
-- **Transaction Management**: Proper transaction handling for data consistency
+### 1. Scanner Service (`src/backend/services/scanner.py`)
 
-### 2. Memory Management
-- **Resource Cleanup**: Automatic cleanup of resources and connections
-- **Garbage Collection**: Enhanced garbage collection for better memory usage
-- **Connection Limits**: Prevents memory leaks from excessive connections
+The scanner service provides comprehensive code analysis capabilities.
 
-### 3. Response Time Tracking
-- **Performance Monitoring**: Real-time tracking of operation performance
-- **Alert System**: Automatic alerts for slow operations
-- **Optimization Insights**: Data-driven optimization recommendations
+#### Features
+- **Multi-Language Support**: Support for 20+ programming languages
+- **Static Analysis**: Static code analysis and linting
+- **Security Scanning**: Security vulnerability detection
+- **Performance Analysis**: Code performance assessment
+- **Parallel Processing**: Multi-threaded scanning for large codebases
 
-## Testing Architecture
+#### Supported Languages
+- Python, JavaScript, TypeScript, Java, C++, C#, Go, Rust, PHP, Ruby, Swift, Kotlin, Scala, Haskell, Erlang, Elixir, Clojure, F#, R, MATLAB, Julia
 
-### 1. Comprehensive Test Suite
-- **Unit Tests**: Individual module testing with 100% coverage for core modules
-- **Integration Tests**: Frontend-backend communication testing
-- **Performance Tests**: Database and service performance validation
-- **Error Tests**: Edge case and error scenario testing
+#### Usage Example
+```python
+from src.backend.services.scanner import ScannerService
 
-### 2. Test Features
-- **Cross-platform Compatibility**: Tests run on Linux, macOS, and Windows
-- **Async Support**: Professional testing of async operations
-- **Mocking**: Robust mocking of external dependencies
-- **Timeout Mechanisms**: Prevents test hangs and infinite loops
+scanner = ScannerService()
+results = scanner.scan_directory("/path/to/code", options={
+    "security": True,
+    "quality": True,
+    "standards": True
+})
+```
 
-### 3. Test Results
-- **92% Success Rate**: 26/28 tests passing
-- **Core Modules**: 100% pass rate for config, error handling, logging, threading
-- **Frontend Components**: All base component tests passing
-- **Backend Services**: Most services passing with minor interface updates needed
+### 2. LLM Manager (`src/backend/services/llm_manager.py`)
 
-## Migration Benefits
+The LLM manager provides unified access to multiple AI providers with automatic failover.
 
-### 1. Maintainability
-- **Clear Separation**: Frontend and backend are completely separated
-- **Modular Design**: Each component has a single responsibility
-- **Consistent Patterns**: All services follow the same architectural patterns
-- **Organized File Structure**: Configuration and data files are logically organized
+#### Features
+- **Multi-Provider Support**: OpenAI, Anthropic, Google AI, Ollama
+- **Automatic Failover**: Automatic switching between providers
+- **Cost Management**: Usage tracking and cost optimization
+- **Health Monitoring**: Provider health monitoring
+- **Model Management**: Model loading and caching
 
-### 2. Scalability
-- **Event-Driven**: Easy to add new components without tight coupling
-- **Service-Oriented**: Services can be scaled independently
-- **Database Layer**: Efficient data access with connection pooling
+#### Supported Providers
+- **OpenAI**: GPT-4, GPT-3.5-turbo
+- **Anthropic**: Claude-3, Claude-2
+- **Google AI**: Gemini Pro, Gemini Flash
+- **Ollama**: Local models (Llama, Mistral, etc.)
 
-### 3. Reliability
-- **Error Handling**: Comprehensive error handling and recovery
-- **Logging**: Detailed logging for debugging and monitoring
-- **Testing**: Extensive test coverage ensures reliability
+#### Usage Example
+```python
+from src.backend.services.llm_manager import LLMManager
 
-### 4. Performance
-- **Database Optimization**: Connection pooling and query optimization
-- **Memory Management**: Proper resource cleanup and management
-- **Event System**: Efficient inter-module communication
+manager = LLMManager()
+response = manager.generate_response(
+    prompt="Analyze this code for security issues",
+    model="gpt-4",
+    temperature=0.7
+)
+```
 
-## Future Enhancements
+### 3. Intelligent Analyzer (`src/backend/services/intelligent_analyzer.py`)
 
-### 1. API Layer
-- **REST API**: Full REST API for external integrations
-- **WebSocket Support**: Real-time communication capabilities
-- **API Documentation**: Comprehensive API documentation
+The intelligent analyzer provides AI-powered code analysis and suggestions.
 
-### 2. Advanced Features
-- **Microservices**: Potential migration to microservices architecture
-- **Containerization**: Docker support for easy deployment
-- **Cloud Integration**: Enhanced cloud provider support
+#### Features
+- **Code Review**: Automated code review with AI
+- **Refactoring Suggestions**: Intelligent refactoring recommendations
+- **Best Practices**: Best practice suggestions
+- **Documentation**: Automated documentation generation
+- **Code Explanation**: Code explanation and comments
 
-### 3. Monitoring and Analytics
-- **Application Metrics**: Comprehensive application performance metrics
-- **User Analytics**: Usage patterns and feature adoption tracking
-- **Health Monitoring**: System health and performance monitoring
+#### Analysis Types
+- **Security Analysis**: Security vulnerability detection
+- **Performance Analysis**: Performance optimization suggestions
+- **Quality Analysis**: Code quality assessment
+- **Maintainability Analysis**: Maintainability improvements
+- **Accessibility Analysis**: Accessibility compliance checking
 
-## Development Workflow
+#### Usage Example
+```python
+from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
 
-### 1. Local Development
+analyzer = IntelligentCodeAnalyzer()
+analysis = analyzer.analyze_file("/path/to/file.py", options={
+    "security": True,
+    "performance": True,
+    "quality": True
+})
+```
+
+### 4. Security Intelligence (`src/backend/services/security_intelligence.py`)
+
+The security intelligence service provides comprehensive security analysis and threat intelligence.
+
+#### Features
+- **SAST Analysis**: Static Application Security Testing
+- **Dependency Scanning**: Third-party dependency analysis
+- **Secret Scanning**: Secret and credential detection
+- **Compliance Checking**: Security compliance verification
+- **Threat Intelligence**: Real-time threat intelligence
+
+#### Security Standards
+- **OWASP Top 10**: OWASP security standards
+- **CWE**: Common Weakness Enumeration
+- **NIST**: National Institute of Standards
+- **ISO 27001**: Information security management
+- **SOC2**: Service Organization Control 2
+- **HIPAA**: Health Insurance Portability and Accountability Act
+
+#### Usage Example
+```python
+from src.backend.services.security_intelligence import SecurityIntelligenceService
+
+security = SecurityIntelligenceService()
+vulnerabilities = security.scan_code("/path/to/code", standards=["owasp", "cwe"])
+```
+
+### 5. Code Standards (`src/backend/services/code_standards.py`)
+
+The code standards service enforces coding standards and best practices.
+
+#### Features
+- **Multi-Language Standards**: Language-specific coding standards
+- **Custom Rules**: User-defined coding rules
+- **Industry Standards**: Industry-specific standards
+- **Team Standards**: Team-specific standards
+- **Automated Enforcement**: Automated code formatting and fixing
+
+#### Supported Standards
+- **Python**: PEP 8, Google Style, Black
+- **JavaScript**: ESLint, Prettier, Airbnb Style
+- **Java**: Google Style, Checkstyle
+- **C++**: Google Style, LLVM Style
+- **Go**: Go fmt, golint
+
+#### Usage Example
+```python
+from src.backend.services.code_standards import CodeStandardsService
+
+standards = CodeStandardsService()
+violations = standards.check_compliance("/path/to/code", language="python")
+```
+
+### 6. Performance Optimization (`src/backend/services/performance_optimization.py`)
+
+The performance optimization service analyzes and optimizes code performance.
+
+#### Features
+- **Performance Profiling**: Code performance profiling
+- **Memory Analysis**: Memory usage analysis
+- **Algorithm Optimization**: Algorithm improvement suggestions
+- **Resource Monitoring**: System resource monitoring
+- **Benchmarking**: Performance benchmarking
+
+#### Optimization Types
+- **Algorithm Optimization**: Algorithm efficiency improvements
+- **Memory Optimization**: Memory usage optimization
+- **I/O Optimization**: Input/output optimization
+- **Parallelization**: Parallel processing opportunities
+- **Caching**: Caching strategy optimization
+
+#### Usage Example
+```python
+from src.backend.services.performance_optimization import PerformanceOptimizationService
+
+performance = PerformanceOptimizationService()
+optimizations = performance.analyze_performance("/path/to/code")
+```
+
+### 7. Continuous Learning (`src/backend/services/continuous_learning.py`)
+
+The continuous learning service provides adaptive model improvement and training.
+
+#### Features
+- **Incremental Learning**: Incremental model training
+- **Feedback Integration**: User feedback processing
+- **Model Fine-tuning**: Model fine-tuning capabilities
+- **Transfer Learning**: Transfer learning support
+- **Model Evaluation**: Model performance evaluation
+
+#### Learning Types
+- **Supervised Learning**: Supervised learning with labeled data
+- **Unsupervised Learning**: Unsupervised learning for pattern discovery
+- **Reinforcement Learning**: Reinforcement learning for optimization
+- **Active Learning**: Active learning for efficient data labeling
+
+#### Usage Example
+```python
+from src.backend.services.continuous_learning import ContinuousLearningService
+
+learning = ContinuousLearningService()
+learning.train_model(training_data, model_type="code_analysis")
+```
+
+### 8. Task Management (`src/backend/services/task_management.py`)
+
+The task management service provides task scheduling and execution management.
+
+#### Features
+- **Task Scheduling**: Priority-based task scheduling
+- **Dependency Resolution**: Task dependency management
+- **Progress Tracking**: Real-time task progress tracking
+- **Resource Management**: Resource allocation and management
+- **Error Recovery**: Automatic error recovery and retry
+
+#### Task Types
+- **Code Analysis**: Code analysis tasks
+- **Model Training**: Model training tasks
+- **Security Scanning**: Security scanning tasks
+- **Performance Testing**: Performance testing tasks
+- **Report Generation**: Report generation tasks
+
+#### Usage Example
+```python
+from src.backend.services.task_management import TaskManagementService
+
+task_manager = TaskManagementService()
+task_id = task_manager.schedule_task("code_analysis", {
+    "directory": "/path/to/code",
+    "priority": "high"
+})
+```
+
+### 9. Web Server (`src/backend/services/web_server.py`)
+
+The web server provides REST API access to the application services.
+
+#### Features
+- **REST API**: RESTful API endpoints
+- **OpenAPI Documentation**: Automatic API documentation
+- **Authentication**: API key authentication
+- **Rate Limiting**: Request rate limiting
+- **CORS Support**: Cross-origin resource sharing
+
+#### API Endpoints
+- `GET /health`: Health check endpoint
+- `POST /scan`: Code scanning endpoint
+- `POST /analyze`: Code analysis endpoint
+- `GET /models`: Available models endpoint
+- `POST /train`: Model training endpoint
+
+#### Usage Example
 ```bash
-# Set up environment
-export PYTHONPATH=src
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# Health check
+curl http://localhost:8000/health
 
-# Run tests
-pytest -v
-
-# Run application
-python src/main.py
+# Scan code
+curl -X POST http://localhost:8000/scan \
+  -H "Content-Type: application/json" \
+  -d '{"directory": "/path/to/code"}'
 ```
 
-### 2. Building
-```bash
-# Build all components
-python build_all.py
+### 10. Performance Monitor (`src/backend/services/performance_monitor.py`)
 
-# Build specific component
-python build_all.py --component assistant
+The performance monitor provides real-time system and application performance monitoring.
+
+#### Features
+- **System Monitoring**: CPU, memory, disk, network monitoring
+- **Application Monitoring**: Application performance metrics
+- **GPU Monitoring**: GPU usage and performance monitoring
+- **Alerting**: Performance alerting and notifications
+- **Metrics Collection**: Prometheus-compatible metrics
+
+#### Metrics Types
+- **System Metrics**: CPU, memory, disk, network usage
+- **Application Metrics**: Request rate, response time, error rate
+- **Business Metrics**: User activity, feature usage
+- **Custom Metrics**: User-defined metrics
+
+#### Usage Example
+```python
+from src.backend.services.performance_monitor import get_performance_monitor
+
+monitor = get_performance_monitor()
+monitor.start_monitoring()
+metrics = monitor.get_metrics_summary()
 ```
 
-### 3. Testing
-```bash
-# Run all tests
-pytest -v
+## Frontend Architecture
 
-# Run specific test categories
-pytest src/tests/core/ -v
-pytest src/tests/backend/ -v
-pytest src/tests/frontend/ -v
+### 1. Main Window (`src/frontend/ui/main_window.py`)
+
+The main window provides the primary user interface for the application.
+
+#### Features
+- **Tabbed Interface**: Multi-tab interface for different features
+- **Responsive Design**: Responsive layout for different screen sizes
+- **Theme Support**: Light and dark theme support
+- **Accessibility**: Accessibility features and keyboard navigation
+- **Internationalization**: Multi-language support
+
+#### Tab Components
+- **AI Analysis Tab**: AI-powered code analysis
+- **Scanner Tab**: Code scanning and analysis
+- **Security Intelligence Tab**: Security analysis
+- **Code Standards Tab**: Code standards enforcement
+- **Performance Optimization Tab**: Performance analysis
+- **Continuous Learning Tab**: Model training and learning
+- **PR Management Tab**: Pull request management
+- **Refactoring Tab**: Code refactoring tools
+- **Collaboration Tab**: Team collaboration features
+- **Settings Tab**: Application settings
+- **Model Manager Tab**: AI model management
+- **Cloud Models Tab**: Cloud model configuration
+- **Web Server Tab**: Web server management
+- **Advanced Analytics Tab**: Advanced analytics and reporting
+
+### 2. Component Architecture
+
+The frontend uses a component-based architecture with reusable UI components.
+
+#### Base Component (`src/frontend/ui/base_component.py`)
+- **Lifecycle Management**: Component lifecycle management
+- **Event Handling**: Event handling and propagation
+- **State Management**: Component state management
+- **Error Handling**: Component error handling
+- **Logging**: Component logging
+
+#### Reusable Components
+- **Scanner Component**: Code scanning UI component
+- **Model Management Component**: Model management UI component
+- **Task Management Component**: Task management UI component
+- **Settings Component**: Settings UI component
+- **Analytics Component**: Analytics UI component
+
+### 3. Controllers (`src/frontend/controllers/`)
+
+The controllers provide the communication layer between the frontend and backend.
+
+#### Backend Controller (`src/frontend/controllers/backend_controller.py`)
+- **Service Communication**: Communication with backend services
+- **Data Transformation**: Data transformation between layers
+- **Error Handling**: Error handling and user feedback
+- **Caching**: Response caching for performance
+- **Authentication**: Authentication and authorization
+
+## Data Flow
+
+### 1. Code Analysis Flow
+
+```
+User Input → Frontend → Controller → Backend Service → AI Model → Analysis → Results → Frontend → User
 ```
 
-### 4. Configuration Management
-```bash
-# Edit configuration files
-vim config/llm_studio_config.json
-vim config/code_standards_config.json
+1. **User Input**: User selects code directory and analysis options
+2. **Frontend**: UI captures user input and sends to controller
+3. **Controller**: Transforms data and sends to backend service
+4. **Backend Service**: Processes request and calls AI model
+5. **AI Model**: Performs analysis and returns results
+6. **Analysis**: Backend service processes AI results
+7. **Results**: Results are sent back through the chain
+8. **Frontend**: UI displays results to user
 
-# View data files
-cat data/security_vulnerabilities.json
-cat data/security_breaches.json
+### 2. Event Flow
+
+```
+Component A → Event Bus → Component B → Event Bus → Component C
 ```
 
-This new architecture provides a solid foundation for future development while maintaining all existing functionality and significantly improving performance, reliability, and maintainability. The organized file structure makes the project more professional and easier to navigate. 
+1. **Event Emission**: Component emits event with data
+2. **Event Bus**: Routes event to subscribed components
+3. **Event Handling**: Subscribed components handle event
+4. **Response**: Components may emit response events
+
+### 3. Data Persistence Flow
+
+```
+Application → Data Access Layer → Database/File System
+```
+
+1. **Application**: Application generates data
+2. **Data Access Layer**: Transforms and validates data
+3. **Persistence**: Data is stored in database or file system
+
+## Security Architecture
+
+### 1. Security Layers
+
+#### Application Security
+- **Input Validation**: All user inputs are validated
+- **Output Encoding**: All outputs are properly encoded
+- **Authentication**: Multi-factor authentication support
+- **Authorization**: Role-based access control
+- **Session Management**: Secure session management
+
+#### Network Security
+- **HTTPS**: All communications use HTTPS
+- **API Security**: API key authentication and rate limiting
+- **CORS**: Proper CORS configuration
+- **Firewall**: Network firewall protection
+
+#### Data Security
+- **Encryption**: Data encryption at rest and in transit
+- **Access Control**: Data access control and audit logging
+- **Backup Security**: Secure backup and recovery
+- **Data Retention**: Data retention and disposal policies
+
+### 2. Security Services
+
+#### Secret Management (`src/backend/utils/secrets.py`)
+- **Secure Storage**: Secure storage of sensitive data
+- **Key Rotation**: Automatic key rotation
+- **Access Control**: Access control for secrets
+- **Audit Logging**: Secret access audit logging
+
+#### Security Intelligence (`src/backend/services/security_intelligence.py`)
+- **Vulnerability Scanning**: Security vulnerability detection
+- **Threat Intelligence**: Real-time threat intelligence
+- **Compliance Checking**: Security compliance verification
+- **Incident Response**: Security incident response
+
+## Performance Architecture
+
+### 1. Performance Optimization
+
+#### Caching Strategy
+- **Memory Caching**: In-memory caching for frequently accessed data
+- **Disk Caching**: Disk caching for large datasets
+- **CDN Caching**: Content delivery network caching
+- **Database Caching**: Database query caching
+
+#### Parallel Processing
+- **Multi-threading**: Multi-threaded processing for I/O operations
+- **Multi-processing**: Multi-process processing for CPU-intensive tasks
+- **Async Processing**: Asynchronous processing for non-blocking operations
+- **Task Queuing**: Task queuing for load balancing
+
+#### Resource Management
+- **Memory Management**: Efficient memory usage and garbage collection
+- **CPU Management**: CPU usage optimization
+- **I/O Management**: I/O operation optimization
+- **Network Management**: Network usage optimization
+
+### 2. Monitoring and Alerting
+
+#### Performance Monitoring (`src/backend/services/performance_monitor.py`)
+- **System Metrics**: CPU, memory, disk, network monitoring
+- **Application Metrics**: Application performance metrics
+- **Business Metrics**: Business performance metrics
+- **Custom Metrics**: User-defined metrics
+
+#### Alerting System
+- **Threshold Alerts**: Performance threshold alerts
+- **Trend Alerts**: Performance trend alerts
+- **Anomaly Detection**: Performance anomaly detection
+- **Escalation**: Alert escalation procedures
+
+## Deployment Architecture
+
+### 1. Container Architecture
+
+#### Docker Configuration
+- **Multi-stage Builds**: Multi-stage Docker builds for optimization
+- **Layer Caching**: Docker layer caching for faster builds
+- **Security Scanning**: Container security scanning
+- **Resource Limits**: Container resource limits
+
+#### Docker Compose
+- **Service Orchestration**: Service orchestration with Docker Compose
+- **Environment Management**: Environment-specific configurations
+- **Volume Management**: Persistent volume management
+- **Network Management**: Container network management
+
+### 2. Cloud Deployment
+
+#### Kubernetes Deployment
+- **Pod Management**: Kubernetes pod management
+- **Service Discovery**: Service discovery and load balancing
+- **Scaling**: Horizontal and vertical scaling
+- **Rolling Updates**: Rolling update deployment
+
+#### Cloud Services
+- **AWS**: Amazon Web Services integration
+- **Azure**: Microsoft Azure integration
+- **GCP**: Google Cloud Platform integration
+- **Multi-cloud**: Multi-cloud deployment support
+
+### 3. CI/CD Pipeline
+
+#### GitHub Actions
+- **Quality Assurance**: Automated quality assurance
+- **Multi-platform Testing**: Cross-platform testing
+- **Security Scanning**: Automated security scanning
+- **Performance Testing**: Automated performance testing
+- **Documentation**: Automated documentation generation
+- **Release Management**: Automated release management
+
+## Development Architecture
+
+### 1. Development Environment
+
+#### Poetry Integration
+- **Dependency Management**: Poetry-based dependency management
+- **Virtual Environments**: Isolated virtual environments
+- **Script Management**: Poetry script management
+- **Build System**: Poetry-based build system
+
+#### Development Tools
+- **Code Formatting**: Black and isort for code formatting
+- **Linting**: Flake8 and mypy for code linting
+- **Testing**: Pytest for testing
+- **Coverage**: Coverage reporting
+- **Pre-commit Hooks**: Pre-commit hooks for quality assurance
+
+### 2. Testing Architecture
+
+#### Test Types
+- **Unit Tests**: Unit tests for individual components
+- **Integration Tests**: Integration tests for component interaction
+- **End-to-End Tests**: End-to-end tests for complete workflows
+- **Performance Tests**: Performance tests for performance validation
+- **Security Tests**: Security tests for security validation
+
+#### Test Infrastructure
+- **Test Database**: Isolated test database
+- **Mock Services**: Mock services for external dependencies
+- **Test Data**: Test data management
+- **Test Reporting**: Test reporting and analytics
+
+### 3. Documentation Architecture
+
+#### Documentation Types
+- **User Documentation**: User manuals and guides
+- **Developer Documentation**: Developer guides and API documentation
+- **Architecture Documentation**: System architecture documentation
+- **Deployment Documentation**: Deployment and operations documentation
+
+#### Documentation Tools
+- **Markdown**: Markdown for documentation
+- **Sphinx**: Sphinx for API documentation
+- **Mermaid**: Mermaid for diagrams
+- **GitBook**: GitBook for documentation hosting
+
+---
+
+**Version**: 1.0.0  
+**Last Updated**: January 2025  
+**License**: GNU General Public License v3.0 

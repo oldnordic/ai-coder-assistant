@@ -105,7 +105,8 @@ class LocalCodeReviewer:
         self.executor = ThreadPoolExecutor(max_workers=3)
         self.active_futures: Dict[str, Future[Any]] = {}
         
-        # Model configuration
+        # Model configuration - prioritize fine-tuned models
+        self.fine_tuned_model = "code-reviewer-v1"  # Our specialized model
         self.default_model = "codellama:7b"
         self.fallback_model = "llama2:7b"
         self.current_model: Optional[str] = None
@@ -125,6 +126,7 @@ class LocalCodeReviewer:
                 with open(config_path, 'r') as f:
                     config_data = json.load(f)
                 
+                self.fine_tuned_model = config_data.get('fine_tuned_model', self.fine_tuned_model)
                 self.default_model = config_data.get('default_model', self.default_model)
                 self.fallback_model = config_data.get('fallback_model', self.fallback_model)
                 
@@ -134,7 +136,7 @@ class LocalCodeReviewer:
         # Override with environment variables if available
         env_model = self.secrets_manager.get_secret('LOCAL_CODE_REVIEWER_MODEL')
         if env_model:
-            self.default_model = env_model
+            self.fine_tuned_model = env_model
     
     def _initialize_model(self):
         """Initialize the local model for code review."""
@@ -143,10 +145,13 @@ class LocalCodeReviewer:
             available_models = get_available_models_sync()
             
             if available_models:
-                # Try to use the default model
-                if self.default_model in available_models:
+                # Prioritize fine-tuned model if available
+                if self.fine_tuned_model in available_models:
+                    self.current_model = self.fine_tuned_model
+                    logger.info(f"Using fine-tuned model: {self.current_model}")
+                elif self.default_model in available_models:
                     self.current_model = self.default_model
-                    logger.info(f"Using model: {self.current_model}")
+                    logger.info(f"Using default model: {self.current_model}")
                 elif self.fallback_model in available_models:
                     self.current_model = self.fallback_model
                     logger.info(f"Using fallback model: {self.current_model}")
@@ -258,81 +263,138 @@ class LocalCodeReviewer:
         return False
     
     def _create_enhancement_prompt(self, request: EnhancementRequest) -> str:
-        """Create a prompt for the AI model based on the enhancement type."""
-        base_prompt = f"""
-You are an expert code reviewer analyzing the following issue:
+        """Create a specialized prompt for the AI model based on the enhancement type."""
+        
+        # Enhanced prompt engineering for better code analysis
+        system_prompt = """You are an expert code reviewer with deep knowledge of software engineering best practices, security vulnerabilities, and performance optimization. Your task is to analyze code and provide actionable, specific recommendations.
 
-Issue: {request.issue_description}
-File: {request.file_path}
-Line: {request.line_number}
-Language: {request.language}
+When analyzing code, consider:
+1. Code quality and maintainability
+2. Security vulnerabilities and best practices
+3. Performance implications and optimization opportunities
+4. Architectural patterns and design principles
+5. Language-specific conventions and idioms
+6. Error handling and edge cases
+7. Documentation and readability
 
-Code Snippet:
+Provide your analysis in a structured, professional manner with clear explanations and specific code examples."""
+        
+        base_prompt = f"""{system_prompt}
+
+**Code Review Request:**
+- File: {request.file_path}
+- Line: {request.line_number}
+- Language: {request.language}
+- Issue Type: {request.enhancement_type.value.replace('_', ' ').title()}
+
+**Original Issue:**
+{request.issue_description}
+
+**Code to Review:**
 ```{request.language}
 {request.code_snippet}
 ```
 
-Please provide a detailed analysis including:
+**Analysis Task:**
 """
         
         if request.enhancement_type == EnhancementType.CODE_IMPROVEMENT:
             base_prompt += """
-1. What is the problem with this code?
-2. How can it be improved?
-3. Provide specific code suggestions
-4. Explain why these changes are beneficial
+Analyze this code for potential improvements in:
+1. **Logic and Correctness**: Are there bugs, edge cases, or logical errors?
+2. **Code Quality**: Can the code be made more readable, maintainable, or efficient?
+3. **Best Practices**: Are there language-specific or general programming best practices being violated?
+4. **Refactoring Opportunities**: Can the code be restructured for better organization?
+
+Provide specific, actionable suggestions with code examples where appropriate.
 """
         elif request.enhancement_type == EnhancementType.SECURITY_ANALYSIS:
             base_prompt += """
-1. What security vulnerabilities exist?
-2. What are the potential attack vectors?
-3. How can these vulnerabilities be mitigated?
-4. Provide secure code examples
+Analyze this code for security vulnerabilities:
+1. **Input Validation**: Are inputs properly validated and sanitized?
+2. **Authentication & Authorization**: Are proper access controls in place?
+3. **Data Protection**: Is sensitive data handled securely?
+4. **Common Vulnerabilities**: Are there SQL injection, XSS, CSRF, or other common vulnerabilities?
+5. **Cryptographic Issues**: Are cryptographic functions used correctly?
+6. **Error Handling**: Do error messages leak sensitive information?
+
+Provide specific security recommendations with secure code examples.
 """
         elif request.enhancement_type == EnhancementType.PERFORMANCE_OPTIMIZATION:
             base_prompt += """
-1. What performance issues exist?
-2. What is the performance impact?
-3. How can performance be improved?
-4. Provide optimized code examples
+Analyze this code for performance issues:
+1. **Algorithm Efficiency**: Are there more efficient algorithms or data structures?
+2. **Resource Usage**: Is memory, CPU, or I/O being used efficiently?
+3. **Caching Opportunities**: Could caching improve performance?
+4. **Concurrency**: Could parallel processing or async operations help?
+5. **Database Queries**: Are database operations optimized?
+6. **Network Calls**: Are external API calls optimized?
+
+Provide specific performance recommendations with optimized code examples.
 """
         elif request.enhancement_type == EnhancementType.BEST_PRACTICES:
             base_prompt += """
-1. What best practices are being violated?
-2. What are the recommended practices?
-3. How should this code be refactored?
-4. Provide examples following best practices
+Analyze this code for best practices violations:
+1. **Code Style**: Does the code follow language-specific style guidelines?
+2. **Naming Conventions**: Are variables, functions, and classes named appropriately?
+3. **SOLID Principles**: Are object-oriented design principles followed?
+4. **DRY Principle**: Is there code duplication that could be eliminated?
+5. **Error Handling**: Are exceptions and errors handled properly?
+6. **Documentation**: Is the code self-documenting and well-commented?
+
+Provide specific recommendations for improving code quality and maintainability.
 """
         elif request.enhancement_type == EnhancementType.DOCUMENTATION:
             base_prompt += """
-1. What documentation is missing or unclear?
-2. How should this code be documented?
-3. Provide example documentation
-4. Suggest inline comments where needed
+Analyze this code for documentation needs:
+1. **Function Documentation**: Do functions have clear docstrings explaining their purpose?
+2. **Inline Comments**: Are complex sections of code explained with comments?
+3. **API Documentation**: Are public interfaces properly documented?
+4. **Code Examples**: Would usage examples help clarify the code's purpose?
+5. **README/Setup**: Is there documentation for setup and usage?
+
+Provide specific documentation recommendations with examples.
 """
         elif request.enhancement_type == EnhancementType.ARCHITECTURAL_REVIEW:
             base_prompt += """
-1. What architectural issues exist?
-2. How does this code fit into the overall architecture?
-3. What design patterns could be applied?
-4. Suggest architectural improvements
+Analyze this code for architectural considerations:
+1. **Separation of Concerns**: Are different responsibilities properly separated?
+2. **Design Patterns**: Could established design patterns improve the architecture?
+3. **Dependency Management**: Are dependencies properly managed and minimized?
+4. **Scalability**: Will the current architecture scale with growth?
+5. **Testability**: Is the code designed for easy testing?
+6. **Integration**: How does this code fit into the larger system architecture?
+
+Provide specific architectural recommendations with design suggestions.
 """
         
         base_prompt += """
 Please format your response as JSON with the following structure:
 {
     "analysis": "Detailed analysis of the issue",
-    "suggestions": ["Suggestion 1", "Suggestion 2", ...],
-    "explanation": "Explanation of the analysis",
+    "suggestions": ["Specific suggestion 1", "Specific suggestion 2", ...],
+    "explanation": "Clear explanation of why these changes are beneficial",
     "confidence": 0.95,
     "code_changes": [
         {
-            "type": "replacement",
+            "type": "replacement|addition|deletion",
             "line": 10,
             "old_code": "original code",
-            "new_code": "improved code"
+            "new_code": "improved code",
+            "explanation": "Why this change is needed"
         }
-    ]
+    ],
+    "security_implications": "Security considerations (if applicable)",
+    "performance_impact": "Performance considerations (if applicable)"
+}
+
+If no issues are found, respond with:
+{
+    "analysis": "No significant issues found in this code",
+    "suggestions": [],
+    "explanation": "The code appears to follow good practices",
+    "confidence": 0.9,
+    "code_changes": []
 }
 """
         
@@ -371,7 +433,9 @@ Please format your response as JSON with the following structure:
                     confidence_score=parsed.get('confidence', 0.5),
                     model_used=self.current_model or "unknown",
                     processing_time=0.0,  # TODO: Track actual processing time
-                    code_changes=parsed.get('code_changes', [])
+                    code_changes=parsed.get('code_changes', []),
+                    security_implications=parsed.get('security_implications'),
+                    performance_impact=parsed.get('performance_impact')
                 )
             else:
                 # Fallback: treat the entire response as analysis
@@ -423,6 +487,16 @@ Please format your response as JSON with the following structure:
         except Exception as e:
             logger.error(f"Failed to switch model: {e}")
             return False
+    
+    def get_model_info(self) -> Dict[str, Any]:
+        """Get information about the current model."""
+        return {
+            "current_model": self.current_model,
+            "fine_tuned_model": self.fine_tuned_model,
+            "default_model": self.default_model,
+            "fallback_model": self.fallback_model,
+            "is_fine_tuned": self.current_model == self.fine_tuned_model if self.current_model else False
+        }
     
     def cleanup(self):
         """Clean up resources."""

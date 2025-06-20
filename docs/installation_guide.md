@@ -1,769 +1,616 @@
 # AI Coder Assistant - Installation Guide
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [System Requirements](#system-requirements)
+3. [Installation Methods](#installation-methods)
+4. [Configuration](#configuration)
+5. [Verification](#verification)
+6. [Troubleshooting](#troubleshooting)
+
 ## Overview
 
-This guide covers the complete installation and setup process for the AI Coder Assistant, including the new Cloud Model Integration feature for multi-provider LLM support. The application now uses an organized file structure with separate `config/` and `data/` directories for better maintainability.
-
-## Project Structure
-
-The AI Coder Assistant uses an organized file structure:
-
-```
-ai_coder_assistant/
-├── config/                     # Configuration files
-│   ├── code_standards_config.json
-│   ├── llm_studio_config.json
-│   ├── pr_automation_config.json
-│   └── security_intelligence_config.json
-├── data/                       # Data storage files
-│   ├── security_breaches.json
-│   ├── security_patches.json
-│   ├── security_training_data.json
-│   └── security_vulnerabilities.json
-├── src/                        # Source code
-├── docs/                       # Documentation
-├── api/                        # API server
-├── scripts/                    # Utility scripts
-├── logs/                       # Application logs
-├── tmp/                        # Temporary files
-├── requirements.txt            # Python dependencies
-├── main.py                     # Main application entry point
-└── README.md                   # Project overview
-```
+This guide provides comprehensive instructions for installing AI Coder Assistant on various platforms. The application supports multiple installation methods to accommodate different user preferences and system configurations.
 
 ## System Requirements
 
 ### Minimum Requirements
-- **OS**: Windows 10+, macOS 10.15+, or Linux (Ubuntu 18.04+)
-- **Python**: 3.8 or higher
-- **RAM**: 8GB minimum (16GB recommended)
-- **Storage**: 10GB free space
-- **GPU**: Optional but recommended for local models
+
+- **Operating System**: 
+  - Windows 10 (64-bit) or later
+  - macOS 10.15 (Catalina) or later
+  - Ubuntu 18.04 LTS or later
+- **Python**: 3.11 or 3.12
+- **Memory**: 8GB RAM
+- **Storage**: 2GB free disk space
+- **Network**: Internet connection for AI model downloads
 
 ### Recommended Requirements
-- **OS**: Latest stable version
-- **Python**: 3.11 or higher
-- **RAM**: 16GB or more
-- **Storage**: 50GB free space
-- **GPU**: NVIDIA GPU with 8GB+ VRAM or AMD GPU with ROCm support
+
+- **Memory**: 16GB RAM or more
+- **Storage**: 5GB free disk space
+- **GPU**: NVIDIA GPU with CUDA support (optional)
+- **CPU**: Multi-core processor (4+ cores)
+
+### GPU Support
+
+For enhanced AI processing, the following GPU configurations are supported:
+
+- **NVIDIA**: CUDA 11.8+ with compatible drivers
+- **AMD**: ROCm 5.0+ (Linux only)
+- **Apple**: Metal Performance Shaders (macOS)
 
 ## Installation Methods
 
-### Method 1: Quick Install (Recommended)
+### Method 1: Poetry Installation (Recommended)
+
+Poetry is the recommended installation method as it provides the best dependency management and development experience.
 
 #### Prerequisites
-1. **Python 3.8+**: Ensure Python is installed and in your PATH
-2. **Git**: For cloning the repository
-3. **pip**: Python package manager
+
+1. **Install Python 3.11+**
+   ```bash
+   # Ubuntu/Debian
+   sudo apt update
+   sudo apt install python3.11 python3.11-venv python3.11-pip
+
+   # macOS (using Homebrew)
+   brew install python@3.11
+
+   # Windows
+   # Download from https://www.python.org/downloads/
+   ```
+
+2. **Install Poetry**
+   ```bash
+   # Install Poetry
+   curl -sSL https://install.python-poetry.org | python3 -
+
+   # Add Poetry to PATH (if not already added)
+   export PATH="$HOME/.local/bin:$PATH"
+
+   # Verify installation
+   poetry --version
+   ```
 
 #### Installation Steps
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/ai-coder-assistant.git
-cd ai-coder-assistant
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/aicoder/ai-coder-assistant.git
+   cd ai-coder-assistant
+   ```
 
-# 2. Create virtual environment
-python -m venv .venv
+2. **Install Dependencies**
+   ```bash
+   # Install all dependencies including development tools
+   poetry install --with dev
 
-# 3. Activate virtual environment
-# On Windows:
-.venv\Scripts\activate
-# On macOS/Linux:
-source .venv/bin/activate
+   # For production installation (without dev dependencies)
+   poetry install --only main
+   ```
 
-# 4. Install dependencies
-pip install -r requirements.txt
+3. **Activate Virtual Environment**
+   ```bash
+   # Activate the virtual environment
+   poetry shell
 
-# 5. Install additional dependencies for Cloud Models
-pip install fastapi uvicorn requests openai anthropic google-generativeai
+   # Or run commands directly
+   poetry run python -m src.main
+   ```
 
-# 6. Run the application
-python main.py
-```
+4. **Verify Installation**
+   ```bash
+   # Check Python version
+   poetry run python --version
+
+   # Check installed packages
+   poetry show
+
+   # Run basic tests
+   poetry run pytest --tb=short -v -m "not slow"
+   ```
 
 ### Method 2: Docker Installation
 
+Docker provides a consistent environment across different platforms and is ideal for production deployments.
+
 #### Prerequisites
-- **Docker**: Docker Desktop or Docker Engine
-- **Docker Compose**: For multi-container setup
+
+1. **Install Docker**
+   ```bash
+   # Ubuntu/Debian
+   sudo apt update
+   sudo apt install docker.io docker-compose
+   sudo systemctl enable --now docker
+   sudo usermod -aG docker $USER
+
+   # macOS
+   # Download Docker Desktop from https://www.docker.com/products/docker-desktop
+
+   # Windows
+   # Download Docker Desktop from https://www.docker.com/products/docker-desktop
+   ```
+
+2. **Verify Docker Installation**
+   ```bash
+   docker --version
+   docker-compose --version
+   ```
 
 #### Installation Steps
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/ai-coder-assistant.git
-cd ai-coder-assistant
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/aicoder/ai-coder-assistant.git
+   cd ai-coder-assistant
+   ```
 
-# 2. Build and run with Docker Compose
-docker-compose up --build
+2. **Build and Run**
+   ```bash
+   # Build and start the application
+   docker-compose up -d ai-coder-assistant
 
-# 3. Access the application
-# Open http://localhost:8000 in your browser
-```
+   # For development environment
+   docker-compose --profile dev up -d ai-coder-dev
 
-### Method 3: Development Installation
+   # With monitoring stack
+   docker-compose --profile monitoring up -d
+   ```
+
+3. **Access the Application**
+   - **GUI**: The application will be available on your local machine
+   - **API**: http://localhost:8000
+   - **Monitoring**: http://localhost:3000 (Grafana)
+
+### Method 3: Binary Distribution
+
+Pre-built binaries are available for users who prefer not to install Python or Docker.
+
+#### Download and Installation
+
+1. **Download Binary**
+   - Visit the [GitHub Releases](https://github.com/aicoder/ai-coder-assistant/releases)
+   - Download the appropriate binary for your platform
+
+2. **Extract and Run**
+   ```bash
+   # Extract the archive
+   tar -xzf ai-coder-assistant-1.0.0-linux.tar.gz
+   cd ai-coder-assistant-1.0.0
+
+   # Make executable
+   chmod +x ai-coder-assistant
+
+   # Run the application
+   ./ai-coder-assistant
+   ```
+
+### Method 4: Development Installation
+
+For developers who want to contribute to the project.
 
 #### Prerequisites
-- **Python 3.8+**: Latest version recommended
-- **Git**: For version control
-- **Development tools**: Compiler and build tools
 
-#### Installation Steps
+1. **Install Development Tools**
+   ```bash
+   # Ubuntu/Debian
+   sudo apt install build-essential git curl
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/ai-coder-assistant.git
-cd ai-coder-assistant
+   # macOS
+   xcode-select --install
 
-# 2. Create virtual environment
-python -m venv .venv
+   # Windows
+   # Install Visual Studio Build Tools
+   ```
 
-# 3. Activate virtual environment
-source .venv/bin/activate  # Linux/macOS
-# or
-.venv\Scripts\activate     # Windows
+2. **Install Poetry with Development Dependencies**
+   ```bash
+   poetry install --with dev,gpu,docs
+   ```
 
-# 4. Install development dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+3. **Setup Pre-commit Hooks**
+   ```bash
+   poetry run pre-commit install
+   ```
 
-# 5. Install pre-commit hooks
-pre-commit install
+4. **Run Development Server**
+   ```bash
+   # Start development server
+   poetry run python -m src.main
 
-# 6. Run tests
-python -m pytest
+   # Run tests
+   poetry run pytest
 
-# 7. Start development server
-python main.py
-```
+   # Run linting
+   poetry run black src/
+   poetry run isort src/
+   poetry run flake8 src/
+   ```
 
-## Configuration Setup
+## Configuration
 
 ### Initial Configuration
 
-After installation, you may need to configure the application:
+After installation, the application will guide you through initial configuration:
 
-```bash
-# 1. Edit LLM configuration
-vim config/llm_studio_config.json
+1. **Welcome Screen**: Choose your preferred settings
+2. **Model Selection**: Select AI models for analysis
+3. **API Keys**: Configure API keys for cloud models
+4. **Directory Setup**: Configure project directories
 
-# 2. Edit code standards configuration
-vim config/code_standards_config.json
+### Configuration Files
 
-# 3. Edit security intelligence configuration
-vim config/security_intelligence_config.json
+The application uses several configuration files located in the `config/` directory:
 
-# 4. Edit PR automation configuration
-vim config/pr_automation_config.json
+#### **LLM Studio Configuration** (`config/llm_studio_config.json`)
+```json
+{
+  "providers": {
+    "openai": {
+      "api_key": "your-openai-key",
+      "model": "gpt-4",
+      "enabled": true
+    },
+    "anthropic": {
+      "api_key": "your-anthropic-key",
+      "model": "claude-3-sonnet",
+      "enabled": true
+    },
+    "ollama": {
+      "url": "http://localhost:11434",
+      "model": "llama2",
+      "enabled": true
+    }
+  },
+  "default_provider": "openai",
+  "temperature": 0.7,
+  "max_tokens": 2000
+}
 ```
 
-### Configuration File Locations
-
-All configuration files are now organized in the `config/` directory:
-
-- **`config/llm_studio_config.json`**: LLM provider settings and API keys
-- **`config/code_standards_config.json`**: Code standards and rules
-- **`config/security_intelligence_config.json`**: Security feed configurations
-- **`config/pr_automation_config.json`**: Pull request automation settings
-
-### Data File Locations
-
-All data files are organized in the `data/` directory:
-
-- **`data/security_vulnerabilities.json`**: Security vulnerability data
-- **`data/security_breaches.json`**: Security breach information
-- **`data/security_patches.json`**: Security patch data
-- **`data/security_training_data.json`**: Security training datasets
-
-## Cloud Model Integration Setup
-
-### Overview
-
-The Cloud Model Integration feature allows you to use multiple AI providers (OpenAI, Anthropic, Google AI) with automatic failover, cost tracking, and health monitoring.
-
-### Provider Configuration
-
-#### 1. OpenAI Setup
-
-**Get API Key**:
-1. Visit [OpenAI Platform](https://platform.openai.com/)
-2. Create an account or sign in
-3. Navigate to API Keys section
-4. Create a new API key
-5. Copy the key (starts with `sk-`)
-
-**Configure Environment**:
-```bash
-# Set environment variables
-export OPENAI_API_KEY="your-openai-api-key"
-export OPENAI_BASE_URL="https://api.openai.com"  # Optional
-export OPENAI_ORGANIZATION="your-org-id"  # Optional
+#### **Code Standards Configuration** (`config/code_standards_config.json`)
+```json
+{
+  "python": {
+    "style_guide": "pep8",
+    "max_line_length": 88,
+    "docstring_style": "google",
+    "type_hints": true
+  },
+  "javascript": {
+    "style_guide": "eslint",
+    "max_line_length": 80,
+    "semicolons": true
+  },
+  "java": {
+    "style_guide": "google",
+    "max_line_length": 100,
+    "indentation": 4
+  }
+}
 ```
 
-**Using the UI**:
-1. Open AI Coder Assistant
-2. Go to "Cloud Models" tab
-3. Click "Add Provider"
-4. Select "OpenAI"
-5. Enter your API key
-6. Set priority (1 = highest)
-7. Click "Save"
-
-#### 2. Anthropic Setup
-
-**Get API Key**:
-1. Visit [Anthropic Console](https://console.anthropic.com/)
-2. Create an account or sign in
-3. Navigate to API Keys section
-4. Create a new API key
-5. Copy the key (starts with `sk-ant-`)
-
-**Configure Environment**:
-```bash
-export ANTHROPIC_API_KEY="your-anthropic-api-key"
+#### **Security Configuration** (`config/security_intelligence_config.json`)
+```json
+{
+  "scanning": {
+    "sast_enabled": true,
+    "dependency_scanning": true,
+    "secret_scanning": true,
+    "compliance_checking": true
+  },
+  "standards": {
+    "owasp_top_10": true,
+    "cwe": true,
+    "nist": true,
+    "iso_27001": true,
+    "soc2": true,
+    "hipaa": true
+  },
+  "reporting": {
+    "severity_levels": ["critical", "high", "medium", "low"],
+    "include_recommendations": true,
+    "include_examples": true
+  }
+}
 ```
-
-**Using the UI**:
-1. Go to "Cloud Models" tab
-2. Click "Add Provider"
-3. Select "Anthropic"
-4. Enter your API key
-5. Set priority
-6. Click "Save"
-
-#### 3. Google AI Setup
-
-**Get API Key**:
-1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with Google account
-3. Create a new API key
-4. Copy the key
-
-**Configure Environment**:
-```bash
-export GOOGLE_API_KEY="your-google-api-key"
-```
-
-**Using the UI**:
-1. Go to "Cloud Models" tab
-2. Click "Add Provider"
-3. Select "Google AI"
-4. Enter your API key
-5. Set priority
-6. Click "Save"
-
-#### 4. Ollama Setup
-
-**Install Ollama**:
-```bash
-# macOS/Linux
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Windows
-# Download from https://ollama.ai/download
-```
-
-**Start Ollama**:
-```bash
-ollama serve
-```
-
-**Pull Models**:
-```bash
-# Pull a model
-ollama pull llama3:latest
-
-# Or pull your custom model
-ollama pull your-model:latest
-```
-
-**Configure in UI**:
-1. Go to "Cloud Models" tab
-2. Click "Add Provider"
-3. Select "Ollama"
-4. Enter endpoint: `http://localhost:11434`
-5. Set priority
-6. Click "Save"
-
-### CLI Configuration
-
-You can also configure providers using the command line:
-
-```bash
-# Check status
-python -m src.cli.main llm-studio status
-
-# Add OpenAI provider
-python -m src.cli.main llm-studio add-provider --provider openai --api-key "your-key"
-
-# Add Anthropic provider
-python -m src.cli.main llm-studio add-provider --provider anthropic --api-key "your-key"
-
-# Add Google AI provider
-python -m src.cli.main llm-studio add-provider --provider google_gemini --api-key "your-key"
-
-# Add Ollama provider
-python -m src.cli.main llm-studio add-provider --provider ollama --api-key "http://localhost:11434"
-
-# List providers
-python -m src.cli.main llm-studio list-providers
-
-# Test provider
-python -m src.cli.main llm-studio test-provider --provider openai
-```
-
-## Language-Specific Setup
-
-### Python Development
-
-**Install Python Linters**:
-```bash
-pip install flake8 black isort mypy
-```
-
-**Configure Linters**:
-```bash
-# Create .flake8 configuration
-echo "[flake8]
-max-line-length = 88
-extend-ignore = E203, W503
-" > .flake8
-
-# Create pyproject.toml for black
-echo "[tool.black]
-line-length = 88
-target-version = ['py38']
-" > pyproject.toml
-```
-
-### JavaScript/TypeScript Development
-
-**Install Node.js**:
-```bash
-# Using nvm (recommended)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-nvm install node
-nvm use node
-```
-
-**Install Linters**:
-```bash
-npm install -g eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
-```
-
-**Configure ESLint**:
-```bash
-# Initialize ESLint configuration
-eslint --init
-```
-
-### Java Development
-
-**Install Java**:
-```bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install openjdk-11-jdk
-
-# macOS
-brew install openjdk@11
-
-# Windows
-# Download from https://adoptium.net/
-```
-
-**Install Checkstyle**:
-```bash
-# Download checkstyle
-wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.5/checkstyle-10.12.5-all.jar
-```
-
-### C/C++ Development
-
-**Install Compiler**:
-```bash
-# Ubuntu/Debian
-sudo apt install build-essential
-
-# macOS
-xcode-select --install
-
-# Windows
-# Install Visual Studio Build Tools
-```
-
-**Install cppcheck**:
-```bash
-# Ubuntu/Debian
-sudo apt install cppcheck
-
-# macOS
-brew install cppcheck
-
-# Windows
-# Download from https://cppcheck.sourceforge.io/
-```
-
-## Configuration Files
 
 ### Environment Variables
 
-Create a `.env` file in the project root:
+The application supports various environment variables for configuration:
 
 ```bash
-# AI Provider API Keys
-OPENAI_API_KEY=your-openai-api-key
-ANTHROPIC_API_KEY=your-anthropic-api-key
-GOOGLE_API_KEY=your-google-api-key
+# API Configuration
+export OPENAI_API_KEY="your-openai-key"
+export ANTHROPIC_API_KEY="your-anthropic-key"
+export GOOGLE_API_KEY="your-google-key"
 
-# Ollama Configuration
-OLLAMA_ENDPOINT=http://localhost:11434
+# Application Configuration
+export AI_CODER_LOG_LEVEL="INFO"
+export AI_CODER_DATA_DIR="/path/to/data"
+export AI_CODER_CACHE_DIR="/path/to/cache"
+export AI_CODER_DEBUG="false"
 
-# Application Settings
-LOG_LEVEL=INFO
-DEBUG_MODE=false
-MAX_WORKERS=4
+# Docker Configuration
+export AI_CODER_DOCKER_ENABLED="true"
+export AI_CODER_DOCKER_IMAGE="ai-coder-assistant:latest"
 
-# Database Settings (if using)
-DATABASE_URL=sqlite:///ai_coder.db
-
-# Security Settings
-SECRET_KEY=your-secret-key
+# GPU Configuration
+export CUDA_VISIBLE_DEVICES="0"
+export ROCR_VISIBLE_DEVICES="0"
 ```
 
-### Application Configuration
+### User Configuration
 
-Create `config.yaml` in the project root:
-
-```yaml
-# Application Settings
-app:
-  name: "AI Coder Assistant"
-  version: "1.0.0"
-  debug: false
-  log_level: "INFO"
-
-# AI Providers
-providers:
-  openai:
-    enabled: true
-    priority: 1
-    timeout: 30
-    max_retries: 3
-  
-  anthropic:
-    enabled: true
-    priority: 2
-    timeout: 30
-    max_retries: 3
-  
-  google:
-    enabled: true
-    priority: 3
-    timeout: 30
-    max_retries: 3
-  
-  ollama:
-    enabled: true
-    priority: 4
-    timeout: 60
-    max_retries: 1
-
-# Models
-models:
-  default:
-    provider: "openai"
-    model: "gpt-4"
-    temperature: 0.7
-    max_tokens: 1000
-  
-  fallback:
-    provider: "anthropic"
-    model: "claude-3-sonnet"
-    temperature: 0.7
-    max_tokens: 1000
-
-# Cost Management
-cost_management:
-  daily_limit: 10.0
-  alert_threshold: 0.8
-  auto_switch: true
-
-# Health Monitoring
-health_monitoring:
-  check_interval: 300  # 5 minutes
-  failover_threshold: 3
-  recovery_check_interval: 60  # 1 minute
-```
-
-## Verification and Testing
-
-### 1. Basic Functionality Test
+User-specific configuration is stored in `~/.ai_coder_assistant/`:
 
 ```bash
-# Start the application
-python main.py
+# Create user configuration directory
+mkdir -p ~/.ai_coder_assistant
 
-# Check if the UI loads
-# Navigate through different tabs
-# Verify basic functionality
+# Copy default configuration
+cp config/*.json ~/.ai_coder_assistant/
 ```
 
-### 2. Cloud Model Integration Test
+## Verification
 
-```bash
-# Test provider connections
-python -m src.cli.main llm-studio status
+### Basic Functionality Test
 
-# Test individual providers
-python -m src.cli.main llm-studio test-provider --provider openai
-python -m src.cli.main llm-studio test-provider --provider anthropic
-python -m src.cli.main llm-studio test-provider --provider google_gemini
-python -m src.cli.main llm-studio test-provider --provider ollama
-```
+1. **Start the Application**
+   ```bash
+   # Using Poetry
+   poetry run python -m src.main
 
-### 3. Code Analysis Test
+   # Using Docker
+   docker-compose up ai-coder-assistant
 
-```bash
-# Test code analysis with CLI
-python -m src.cli.main analyze --file src/main.py --language python --format text
+   # Using binary
+   ./ai-coder-assistant
+   ```
 
-# Test workspace scanning
-python -m src.cli.main scan . --output scan_results.json --format json
-```
+2. **Verify GUI Launch**
+   - The main window should appear
+   - All tabs should be accessible
+   - No error messages in the console
 
-### 4. Advanced Refactoring Test
+3. **Test Basic Features**
+   - Navigate between tabs
+   - Open settings
+   - Check model status
 
-```bash
-# Test refactoring analysis
-# Use the UI to analyze a project
-# Verify refactoring suggestions are generated
-```
+### API Functionality Test
+
+1. **Start API Server**
+   ```bash
+   # Using Poetry
+   poetry run python -m src.backend.services.web_server
+
+   # Using Docker
+   docker-compose up ai-coder-api
+   ```
+
+2. **Test API Endpoints**
+   ```bash
+   # Health check
+   curl http://localhost:8000/health
+
+   # API documentation
+   curl http://localhost:8000/docs
+   ```
+
+### CLI Functionality Test
+
+1. **Test CLI Commands**
+   ```bash
+   # Help
+   poetry run python -m src.cli.main --help
+
+   # Version
+   poetry run python -m src.cli.main --version
+
+   # Scan directory
+   poetry run python -m src.cli.main scan --directory /path/to/code
+   ```
+
+### Performance Test
+
+1. **Run Performance Tests**
+   ```bash
+   # Run performance benchmarks
+   poetry run pytest --benchmark-only -m "benchmark"
+
+   # Check system resources
+   poetry run python -c "
+   from src.backend.services.performance_monitor import get_performance_monitor
+   monitor = get_performance_monitor()
+   monitor.start_monitoring()
+   import time
+   time.sleep(10)
+   summary = monitor.get_metrics_summary()
+   print(summary)
+   "
+   ```
 
 ## Troubleshooting
 
-### Common Issues
+### Common Installation Issues
 
-#### 1. Import Errors
+#### **Poetry Installation Issues**
 
-**Problem**: `ModuleNotFoundError: No module named 'src'`
-
-**Solution**:
+**Problem**: Poetry not found in PATH
 ```bash
-# Ensure you're in the project root directory
-cd ai-coder-assistant
+# Solution: Add Poetry to PATH
+export PATH="$HOME/.local/bin:$PATH"
 
-# Add project root to Python path
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-
-# Or run with module flag
-python -m src.cli.main
+# Add to shell profile
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-#### 2. API Key Issues
-
-**Problem**: Provider authentication fails
-
-**Solution**:
+**Problem**: Poetry virtual environment issues
 ```bash
-# Verify API keys are set
-echo $OPENAI_API_KEY
-echo $ANTHROPIC_API_KEY
-echo $GOOGLE_API_KEY
-
-# Test API keys manually
-curl -H "Authorization: Bearer $OPENAI_API_KEY" https://api.openai.com/v1/models
+# Solution: Recreate virtual environment
+poetry env remove python
+poetry install
 ```
 
-#### 3. Ollama Connection Issues
+#### **Docker Installation Issues**
 
-**Problem**: Cannot connect to Ollama
-
-**Solution**:
+**Problem**: Docker permission denied
 ```bash
-# Check if Ollama is running
-curl http://localhost:11434/api/tags
-
-# Start Ollama if not running
-ollama serve
-
-# Check Ollama logs
-ollama logs
+# Solution: Add user to docker group
+sudo usermod -aG docker $USER
+newgrp docker
 ```
 
-#### 4. Memory Issues
-
-**Problem**: Application runs out of memory
-
-**Solution**:
+**Problem**: Docker build fails
 ```bash
-# Increase Python memory limit
-export PYTHONMALLOC=malloc
-export PYTHONDEVMODE=1
-
-# Or run with memory optimization
-python -X dev main.py
+# Solution: Clean and rebuild
+docker-compose down
+docker system prune -a
+docker-compose build --no-cache
 ```
 
-#### 5. GPU Issues
+#### **Python Version Issues**
 
-**Problem**: GPU not detected or used
-
-**Solution**:
+**Problem**: Wrong Python version
 ```bash
-# Check GPU availability
-python -c "import torch; print(torch.cuda.is_available())"
-
-# Install GPU drivers
-# NVIDIA: Install CUDA toolkit
-# AMD: Install ROCm
+# Solution: Use correct Python version
+poetry env use python3.11
+poetry install
 ```
 
-### Performance Optimization
+#### **Dependency Issues**
 
-#### 1. Memory Optimization
-
+**Problem**: Package installation fails
 ```bash
-# Set memory limits
-export PYTHONMALLOC=malloc
-export MALLOC_ARENA_MAX=2
-
-# Use memory-efficient settings
-python main.py --memory-efficient
+# Solution: Update pip and retry
+poetry run pip install --upgrade pip
+poetry install --sync
 ```
 
-#### 2. GPU Optimization
+### Runtime Issues
+
+#### **Application Won't Start**
+
+1. **Check Python Version**
+   ```bash
+   python --version
+   # Should be 3.11 or 3.12
+   ```
+
+2. **Check Dependencies**
+   ```bash
+   poetry show
+   # Should show all required packages
+   ```
+
+3. **Check Logs**
+   ```bash
+   # Check application logs
+   tail -f logs/application.log
+   ```
+
+#### **AI Models Not Working**
+
+1. **Check API Keys**
+   ```bash
+   # Verify API keys are set
+   echo $OPENAI_API_KEY
+   echo $ANTHROPIC_API_KEY
+   ```
+
+2. **Check Internet Connection**
+   ```bash
+   # Test connectivity
+   curl -I https://api.openai.com
+   ```
+
+3. **Check Model Status**
+   ```bash
+   # Test model availability
+   poetry run python -c "
+   from src.backend.services.llm_manager import LLMManager
+   manager = LLMManager()
+   print(manager.get_available_models())
+   "
+   ```
+
+#### **Performance Issues**
+
+1. **Check System Resources**
+   ```bash
+   # Monitor system resources
+   htop
+   df -h
+   free -h
+   ```
+
+2. **Check Application Performance**
+   ```bash
+   # Monitor application performance
+   poetry run python -c "
+   from src.backend.services.performance_monitor import get_performance_monitor
+   monitor = get_performance_monitor()
+   monitor.start_monitoring()
+   import time
+   time.sleep(30)
+   summary = monitor.get_metrics_summary()
+   print(summary)
+   "
+   ```
+
+### Debug Mode
+
+Enable debug mode for detailed troubleshooting:
 
 ```bash
-# Enable GPU acceleration
-export CUDA_VISIBLE_DEVICES=0
-export ROCR_VISIBLE_DEVICES=0
+# Set debug environment variable
+export AI_CODER_DEBUG="true"
 
-# Use mixed precision
-export TORCH_AMP_ENABLED=1
+# Or modify configuration
+# In ~/.ai_coder_assistant/config.json
+{
+  "debug": true,
+  "log_level": "DEBUG"
+}
 ```
 
-#### 3. Network Optimization
+### Getting Help
 
-```bash
-# Set connection pooling
-export REQUESTS_SESSION_POOL_SIZE=10
-export REQUESTS_SESSION_POOL_MAXSIZE=20
+1. **Check Documentation**: Review the documentation in `docs/`
+2. **Check Issues**: Search existing issues on GitHub
+3. **Create Issue**: Create a new issue with detailed information
+4. **Community Support**: Join discussions on GitHub
 
-# Enable HTTP/2
-export REQUESTS_HTTP2_ENABLED=1
-```
+### Support Information
 
-## Security Considerations
+When requesting help, please provide:
 
-### 1. API Key Security
+1. **System Information**
+   ```bash
+   # Operating system
+   uname -a
 
-```bash
-# Use environment variables (recommended)
-export OPENAI_API_KEY="your-key"
+   # Python version
+   python --version
 
-# Or use a secrets manager
-# AWS Secrets Manager, Azure Key Vault, etc.
+   # Poetry version
+   poetry --version
 
-# Never commit API keys to version control
-echo "*.key" >> .gitignore
-echo ".env" >> .gitignore
-```
+   # Docker version (if applicable)
+   docker --version
+   ```
 
-### 2. Network Security
+2. **Installation Method**: Poetry, Docker, or Binary
+3. **Error Messages**: Complete error messages and stack traces
+4. **Log Files**: Relevant log files from `logs/` directory
+5. **Configuration**: Relevant configuration files
 
-```bash
-# Use HTTPS for all API calls
-export OPENAI_BASE_URL="https://api.openai.com"
+---
 
-# Set up firewall rules
-# Allow only necessary outbound connections
-
-# Use VPN for additional security
-```
-
-### 3. Data Privacy
-
-```bash
-# Configure data retention
-export DATA_RETENTION_DAYS=30
-
-# Enable data encryption
-export ENCRYPT_DATA=true
-
-# Set up audit logging
-export AUDIT_LOG_ENABLED=true
-```
-
-## Updates and Maintenance
-
-### 1. Updating the Application
-
-```bash
-# Pull latest changes
-git pull origin main
-
-# Update dependencies
-pip install -r requirements.txt --upgrade
-
-# Run migrations (if any)
-python -m src.backend.migrations
-
-# Restart the application
-python main.py
-```
-
-### 2. Updating Models
-
-```bash
-# Update Ollama models
-ollama pull llama3:latest
-
-# Update local models
-python -m src.backend.services.trainer --update-models
-```
-
-### 3. Backup and Recovery
-
-```bash
-# Backup configuration
-cp config.yaml config.yaml.backup
-
-# Backup database (if using)
-cp ai_coder.db ai_coder.db.backup
-
-# Backup trained models
-tar -czf models_backup.tar.gz src/backend/data/processed_data/
-```
-
-## Support and Resources
-
-### Documentation
-- [User Manual](docs/user_manual.md)
-- [Cloud Model Integration Guide](docs/cloud_model_integration_guide.md)
-- [Advanced Refactoring Guide](docs/advanced_refactoring_guide.md)
-- [API Documentation](docs/api_documentation.md)
-
-### Community
-- [GitHub Issues](https://github.com/your-username/ai-coder-assistant/issues)
-- [Discussions](https://github.com/your-username/ai-coder-assistant/discussions)
-- [Wiki](https://github.com/your-username/ai-coder-assistant/wiki)
-
-### Troubleshooting
-- [FAQ](docs/faq.md)
-- [Troubleshooting Guide](docs/troubleshooting.md)
-- [Performance Tuning](docs/performance_tuning.md)
-
-## Conclusion
-
-The AI Coder Assistant is now fully installed and configured with Cloud Model Integration. You can:
-
-1. **Use Multiple AI Providers**: Configure OpenAI, Anthropic, Google AI, and Ollama
-2. **Monitor Costs**: Track usage and optimize spending
-3. **Ensure Reliability**: Automatic failover between providers
-4. **Analyze Code**: Use intelligent code analysis across 20+ languages
-5. **Refactor Code**: Apply advanced refactoring suggestions
-6. **Train Models**: Create custom models for your domain
-
-For the best experience, ensure all providers are properly configured and test the functionality using the provided CLI commands and UI tools. 
+**Version**: 1.0.0  
+**Last Updated**: January 2025  
+**License**: GNU General Public License v3.0 
