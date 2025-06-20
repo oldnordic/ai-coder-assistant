@@ -12,6 +12,9 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import jwt
 import secrets
+import sqlite3
+import hashlib
+import uuid
 
 # Add the project root to the path
 project_root = Path(__file__).parent.parent
@@ -58,6 +61,91 @@ security = HTTPBearer()
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
 JWT_ALGORITHM = "HS256"
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
+# User database configuration
+USER_DB_PATH = os.getenv("USER_DB_PATH", "data/users.db")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")  # Change in production!
+
+def init_user_database():
+    """Initialize user database with admin user"""
+    try:
+        os.makedirs(os.path.dirname(USER_DB_PATH), exist_ok=True)
+        with sqlite3.connect(USER_DB_PATH) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    email TEXT,
+                    role TEXT DEFAULT 'user',
+                    created_at TEXT NOT NULL,
+                    last_login TEXT,
+                    is_active BOOLEAN DEFAULT 1
+                )
+            """)
+            
+            # Check if admin user exists
+            cursor = conn.execute("SELECT id FROM users WHERE username = ?", (ADMIN_USERNAME,))
+            if not cursor.fetchone():
+                # Create admin user
+                user_id = str(uuid.uuid4())
+                password_hash = hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest()
+                conn.execute("""
+                    INSERT INTO users (id, username, password_hash, email, role, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (user_id, ADMIN_USERNAME, password_hash, "admin@example.com", "admin", datetime.utcnow().isoformat()))
+                print(f"Created admin user: {ADMIN_USERNAME}")
+            
+            conn.commit()
+    except Exception as e:
+        print(f"Error initializing user database: {e}")
+
+def hash_password(password: str) -> str:
+    """Hash password using SHA-256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password: str, password_hash: str) -> bool:
+    """Verify password against hash"""
+    return hash_password(password) == password_hash
+
+def get_user_by_username(username: str) -> Optional[Dict[str, Any]]:
+    """Get user by username"""
+    try:
+        with sqlite3.connect(USER_DB_PATH) as conn:
+            cursor = conn.execute("""
+                SELECT id, username, password_hash, email, role, created_at, last_login, is_active
+                FROM users WHERE username = ? AND is_active = 1
+            """, (username,))
+            row = cursor.fetchone()
+            if row:
+                return {
+                    "id": row[0],
+                    "username": row[1],
+                    "password_hash": row[2],
+                    "email": row[3],
+                    "role": row[4],
+                    "created_at": row[5],
+                    "last_login": row[6],
+                    "is_active": bool(row[7])
+                }
+    except Exception as e:
+        print(f"Error getting user: {e}")
+    return None
+
+def update_last_login(user_id: str):
+    """Update user's last login time"""
+    try:
+        with sqlite3.connect(USER_DB_PATH) as conn:
+            conn.execute("""
+                UPDATE users SET last_login = ? WHERE id = ?
+            """, (datetime.utcnow().isoformat(), user_id))
+            conn.commit()
+    except Exception as e:
+        print(f"Error updating last login: {e}")
+
+# Initialize user database
+init_user_database()
 
 # Initialize components
 settings = Settings()
@@ -169,16 +257,26 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 # Authentication endpoints
 @app.post("/auth/login", response_model=TokenResponse)
 async def login(request: LoginRequest):
-    """Login endpoint - In production, implement proper user authentication"""
-    # TODO: Implement proper user authentication against database
-    # For now, accept any username/password combination
+    """Login endpoint with proper user authentication"""
     if not request.username or not request.password:
         raise HTTPException(status_code=400, detail="Username and password required")
+    
+    # Get user from database
+    user = get_user_by_username(request.username)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    
+    # Verify password
+    if not verify_password(request.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    
+    # Update last login
+    update_last_login(user["id"])
     
     # Create access token
     access_token_expires = timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": request.username}, 
+        data={"sub": user["username"], "role": user["role"], "user_id": user["id"]}, 
         expires_delta=access_token_expires
     )
     
@@ -187,6 +285,33 @@ async def login(request: LoginRequest):
         token_type="bearer",
         expires_in=JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
+
+@app.post("/auth/register")
+async def register_user(request: LoginRequest):
+    """Register new user endpoint"""
+    if not request.username or not request.password:
+        raise HTTPException(status_code=400, detail="Username and password required")
+    
+    # Check if user already exists
+    existing_user = get_user_by_username(request.username)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    # Create new user
+    try:
+        user_id = str(uuid.uuid4())
+        password_hash = hash_password(request.password)
+        
+        with sqlite3.connect(USER_DB_PATH) as conn:
+            conn.execute("""
+                INSERT INTO users (id, username, password_hash, email, role, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (user_id, request.username, password_hash, "", "user", datetime.utcnow().isoformat()))
+            conn.commit()
+        
+        return {"success": True, "message": "User registered successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 @app.post("/auth/verify")
 async def verify_token_endpoint(token: str = Depends(verify_token)):
@@ -208,6 +333,82 @@ async def health_check():
         }
     )
 
+# Path validation
+def validate_scan_path(path: str) -> str:
+    """Validate and sanitize scan path to prevent directory traversal"""
+    try:
+        # Resolve the absolute path
+        abs_path = os.path.abspath(path)
+        real_path = os.path.realpath(abs_path)
+        
+        # Define allowed base directories
+        allowed_dirs = [
+            os.path.abspath("."),  # Current directory
+            os.path.abspath("src"),  # Source directory
+            os.path.abspath("data"),  # Data directory
+            os.path.abspath("tests"),  # Tests directory
+        ]
+        
+        # Check if the resolved path is within allowed directories
+        for allowed_dir in allowed_dirs:
+            if real_path.startswith(allowed_dir):
+                return real_path
+        
+        # If not in allowed directories, raise error
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Path '{path}' is not allowed. Only paths within project directories are permitted."
+        )
+        
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid path: {str(e)}"
+        )
+
+def validate_file_path(file_path: str) -> str:
+    """Validate and sanitize file path to prevent directory traversal"""
+    try:
+        # Resolve the absolute path
+        abs_path = os.path.abspath(file_path)
+        real_path = os.path.realpath(abs_path)
+        
+        # Check if file exists
+        if not os.path.isfile(real_path):
+            raise HTTPException(
+                status_code=404, 
+                detail=f"File not found: {file_path}"
+            )
+        
+        # Define allowed base directories
+        allowed_dirs = [
+            os.path.abspath("."),  # Current directory
+            os.path.abspath("src"),  # Source directory
+            os.path.abspath("data"),  # Data directory
+            os.path.abspath("tests"),  # Tests directory
+        ]
+        
+        # Check if the resolved path is within allowed directories
+        for allowed_dir in allowed_dirs:
+            if real_path.startswith(allowed_dir):
+                return real_path
+        
+        # If not in allowed directories, raise error
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File path '{file_path}' is not allowed. Only files within project directories are permitted."
+        )
+        
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid file path: {str(e)}"
+        )
+
 # Scan endpoint
 @app.post("/scan", response_model=ScanResponse)
 async def scan_code(
@@ -220,13 +421,12 @@ async def scan_code(
         start_time = datetime.now()
         
         # Validate path
-        if not os.path.exists(request.path):
-            raise HTTPException(status_code=404, detail="Path not found")
+        validated_path = validate_scan_path(request.path)
         
         # Perform scan
         results = await asyncio.to_thread(
             scanner.scan_directory,
-            request.path,
+            validated_path,
             language=request.language,
             severity_filter=request.severity_filter,
             type_filter=request.type_filter,
@@ -290,13 +490,12 @@ async def security_scan(
         start_time = datetime.now()
         
         # Validate path
-        if not os.path.exists(request.path):
-            raise HTTPException(status_code=404, detail="Path not found")
+        validated_path = validate_scan_path(request.path)
         
         # Perform security scan
         results = await asyncio.to_thread(
             scanner.security_scan,
-            request.path,
+            validated_path,
             compliance=request.compliance or ["owasp", "cwe", "pci"]
         )
         
@@ -351,13 +550,12 @@ async def analyze_file(
         start_time = datetime.now()
         
         # Validate file
-        if not os.path.exists(request.file_path):
-            raise HTTPException(status_code=404, detail="File not found")
+        validated_file_path = validate_file_path(request.file_path)
         
         # Perform analysis
         results = await asyncio.to_thread(
             analyzer.analyze_file,
-            request.file_path,
+            validated_file_path,
             request.language,
             include_suggestions=request.include_suggestions
         )
@@ -418,10 +616,13 @@ async def upload_and_analyze(
             }
             language = language_map.get(ext, 'unknown')
         
+        # Validate file
+        validated_file_path = validate_file_path(temp_path)
+        
         # Perform analysis
         results = await asyncio.to_thread(
             analyzer.analyze_file,
-            temp_path,
+            validated_file_path,
             language,
             include_suggestions=include_suggestions
         )

@@ -44,6 +44,7 @@ pydantic>=2.5.0
 python-multipart>=0.0.6
 aiofiles>=23.2.0
 websockets>=12.0.0
+PyJWT>=2.8.0
 
 # Code Analysis and Quality
 flake8>=6.1.0
