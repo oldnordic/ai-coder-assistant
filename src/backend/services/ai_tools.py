@@ -29,7 +29,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import html
 import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
-from typing import Optional, List, Dict, Tuple, Any
+from typing import Optional, List, Dict, Tuple, Any, Callable
 import hashlib
 import pickle
 from pathlib import Path
@@ -39,10 +39,14 @@ import subprocess
 import tempfile
 import shutil
 from urllib.parse import urlparse, urljoin
+import asyncio
+import aiohttp
 
-from ..utils import settings
-from . import ollama_client
-from .trainer import train_model as train_language_model
+from backend.utils import settings
+from backend.services import ollama_client
+from backend.services.trainer import train_model as train_language_model
+from backend.services.docker_utils import build_docker_image, run_docker_container
+from backend.utils.settings import is_docker_available
 from backend.utils.constants import (
     CACHE_EXPIRY_SECONDS, DEFAULT_USER_AGENT, MAX_CONTENT_SIZE, 
     PROGRESS_COMPLETE, PROGRESS_WEIGHT_DOWNLOAD,
@@ -50,8 +54,7 @@ from backend.utils.constants import (
     DEFAULT_MAX_PAGES, DEFAULT_MAX_DEPTH, DEFAULT_LINKS_PER_PAGE,
     PERCENTAGE_MULTIPLIER, HTTP_TIMEOUT_SHORT, HTTP_TIMEOUT_LONG, OLLAMA_API_BASE_URL, OLLAMA_TAGS_ENDPOINT
 )
-from .docker_utils import build_docker_image, run_docker_container
-from ..utils.settings import is_docker_available
+from backend.services.ollama_client import OllamaClient, get_suggestion_for_issue, get_suggestions_for_issues_batch
 
 # Global cache for the embedding model to prevent re-downloading
 _embedding_model_cache = None
@@ -77,7 +80,7 @@ class AICache:
             
             if cache_file.exists():
                 with open(cache_file, 'rb') as f:
-                    cached_data = pickle.load(f)
+                    cached_data = pickle.load(f)  # nosec B301 - Cache files are created by our own application
                     # Check if cache is not too old (7 days)
                     if cached_data.get('timestamp', 0) > (time.time() - CACHE_EXPIRY_SECONDS):
                         return cached_data.get('response')
@@ -144,6 +147,7 @@ def generate_with_own_model(
     return first_line if first_line else "Failed to generate valid suggestion."
 
 def generate_report_and_training_data(suggestion_list, model_mode, model_ref, tokenizer_ref, **kwargs):
+    """Generate a comprehensive report and training data from scan results."""
     log_message_callback = kwargs.get('log_message_callback', print)
     progress_callback = kwargs.get('progress_callback', lambda c, t, m: None)
 
@@ -226,7 +230,17 @@ def generate_report_and_training_data(suggestion_list, model_mode, model_ref, to
         progress_callback(i + 1, total_issues, f"Building report section {i+1}/{total_issues}...")
         
         filepath = suggestion.get('file_path', 'N/A')
-        line_num = suggestion.get('line_number', -1) + 1
+        line_num_raw = suggestion.get('line_number')
+        
+        line_num = 0
+        if line_num_raw is not None:
+            try:
+                # Ensure we handle line numbers that might be returned as strings
+                line_num = int(line_num_raw) + 1
+            except (ValueError, TypeError):
+                # If conversion fails, default to 0 to prevent crashing
+                line_num = 0
+
         issue = suggestion.get('description', 'N/A')
         original_code = suggestion.get('code_snippet', '')
         proposed_code = suggestion.get('suggested_improvement', '')
@@ -435,32 +449,36 @@ def browse_web_tool(url: str, **kwargs) -> str:
                 
                 # Use shorter timeout for individual requests
                 request_timeout = min(5, timeout // 3)  # Reduced from 10 to 5 seconds
-                response = requests.get(page_url, headers=headers, timeout=request_timeout)
-                response.raise_for_status()
                 
-                # Check cancellation after request
-                if cancellation_callback():
-                    log_message_callback("Web scraping cancelled by user")
-                    return "", []
-                
-                soup = BeautifulSoup(response.content, 'html.parser')
-                
-                # Remove script and style elements
-                for script in soup(["script", "style", "nav", "footer", "header", "aside"]):
-                    script.decompose()
-                
-                # Extract text content
-                text_content = soup.get_text(separator='\n', strip=True)
-                
-                # Clean up text
-                lines = [line.strip() for line in text_content.split('\n') if line.strip()]
-                cleaned_text = '\n'.join(lines)
-                
-                # Extract navigation links
-                links = extract_navigation_links(soup, page_url) if depth < max_depth else []
-                
-                log_message_callback(f"Successfully scraped {len(cleaned_text)} characters from {page_url}")
-                return cleaned_text, links
+                # Create a new session for each request to avoid connection pooling issues
+                with requests.Session() as session:
+                    session.headers.update(headers)
+                    response = session.get(page_url, timeout=request_timeout)
+                    response.raise_for_status()
+                    
+                    # Check cancellation after request
+                    if cancellation_callback():
+                        log_message_callback("Web scraping cancelled by user")
+                        return "", []
+                    
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    
+                    # Remove script and style elements
+                    for script in soup(["script", "style", "nav", "footer", "header", "aside"]):
+                        script.decompose()
+                    
+                    # Extract text content
+                    text_content = soup.get_text(separator='\n', strip=True)
+                    
+                    # Clean up text
+                    lines = [line.strip() for line in text_content.split('\n') if line.strip()]
+                    cleaned_text = '\n'.join(lines)
+                    
+                    # Extract navigation links
+                    links = extract_navigation_links(soup, page_url) if depth < max_depth else []
+                    
+                    log_message_callback(f"Successfully scraped {len(cleaned_text)} characters from {page_url}")
+                    return cleaned_text, links
                 
             except requests.exceptions.Timeout:
                 log_message_callback(f"Timeout scraping {page_url}")
@@ -615,23 +633,17 @@ def transcribe_youtube_tool(youtube_url: str, **kwargs) -> str:
         pass
 
 def batch_process_suggestions(suggestions: List[dict], model_mode: str, model_ref: str, tokenizer_ref: Any = None, **kwargs) -> List[str]:
-    """Process multiple suggestions in batches for better performance."""
+    """Process multiple suggestions in batches with proper progress updates."""
     log_message_callback = kwargs.get('log_message_callback', print)
     progress_callback = kwargs.get('progress_callback', lambda c, t, m: None)
     
-    log_message_callback("=== BATCH PROCESSING START ===")
-    log_message_callback(f"Processing {len(suggestions)} suggestions in batches")
-    
-    if not suggestions:
-        log_message_callback("No suggestions to process")
-        return []
-    
-    # Limit batch size to prevent timeout
-    batch_size = 10  # Process 10 suggestions at a time
     total_suggestions = len(suggestions)
+    batch_size = 5  # Process 5 suggestions at a time
     explanations = []
     
-    log_message_callback(f"Processing {total_suggestions} suggestions in batches of {batch_size}...")
+    log_message_callback(f"=== BATCH PROCESSING START ===")
+    log_message_callback(f"Total suggestions: {total_suggestions}")
+    log_message_callback(f"Batch size: {batch_size}")
     
     for batch_num, i in enumerate(range(0, total_suggestions, batch_size)):
         batch = suggestions[i:i + batch_size]
@@ -665,31 +677,19 @@ def batch_process_suggestions(suggestions: List[dict], model_mode: str, model_re
     
     return explanations
 
-def _process_suggestion_batch(suggestions: List[dict], model_mode: str, model_ref: str, tokenizer_ref: Any = None, **kwargs) -> List[str]:
-    """Process a batch of suggestions with AI explanations."""
+def _process_suggestion_batch(batch: List[dict], model_mode: str, model_ref: str, tokenizer_ref: Any = None, **kwargs) -> List[str]:
+    """Process a batch of suggestions to generate explanations."""
     log_message_callback = kwargs.get('log_message_callback', print)
-    
-    log_message_callback(f"=== PROCESSING SUGGESTION BATCH ===")
-    log_message_callback(f"Batch size: {len(suggestions)}")
-    
     explanations = []
     
-    for i, suggestion in enumerate(suggestions):
+    for suggestion in batch:
         try:
-            log_message_callback(f"Processing suggestion {i+1}/{len(suggestions)}: {suggestion.get('description', 'Unknown')[:50]}...")
-            
             explanation = get_ai_explanation(suggestion, model_mode, model_ref, tokenizer_ref, **kwargs)
             explanations.append(explanation)
-            
-            log_message_callback(f"Suggestion {i+1} completed: {len(explanation)} characters")
-            
         except Exception as e:
-            log_message_callback(f"Error processing suggestion {i+1}: {e}")
-            import traceback
-            log_message_callback(f"Suggestion {i+1} traceback: {traceback.format_exc()}")
-            explanations.append("Error generating explanation.")
+            log_message_callback(f"Error processing suggestion: {e}")
+            explanations.append(f"AI analysis for issue: {suggestion.get('description', 'Unknown issue')}")
     
-    log_message_callback(f"Batch processing complete: {len(explanations)} explanations")
     return explanations
 
 class AITools:
@@ -807,3 +807,81 @@ def run_build_and_test_in_docker(
         "stage": "test",
         "output": run_out
     }
+
+BATCH_SIZE = 10 # Number of issues to process in a single batch
+
+async def enhance_issues_with_ai_async(
+    issues: List[Dict[str, Any]],
+    model_mode: str,
+    model_ref: str,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    log_message_callback: Optional[Callable[[str], None]] = None,
+    cancellation_callback: Optional[Callable[[], bool]] = None
+) -> List[Dict[str, Any]]:
+    _log = log_message_callback if callable(log_message_callback) else print
+    total_issues = len(issues)
+    _log(f"Starting AI enhancement for {total_issues} issues using model {model_ref}.")
+
+    if model_mode != 'ollama':
+        _log(f"AI enhancement is only supported for 'ollama' mode, but got '{model_mode}'. Skipping.")
+        return issues
+
+    enhanced_issues = issues.copy() # Start with a copy of the original issues
+    
+    try:
+        # Create Ollama client without session parameter
+        client = OllamaClient()
+        
+        for i in range(0, total_issues, BATCH_SIZE):
+            if cancellation_callback and cancellation_callback():
+                _log("AI enhancement cancelled by user.")
+                break
+
+            batch = issues[i:i+BATCH_SIZE]
+            batch_indices = {original_index: issue for original_index, issue in enumerate(issues) if i <= original_index < i+BATCH_SIZE}
+
+            _log(f"Processing batch {i//BATCH_SIZE + 1}/{-(-total_issues//BATCH_SIZE)}...")
+
+            try:
+                suggestions = await get_suggestions_for_issues_batch(client, batch, model_ref)
+                
+                for suggestion in suggestions:
+                    original_index = suggestion.pop("original_issue_index", None)
+                    if original_index is not None and i <= original_index < i + BATCH_SIZE:
+                        # Update the issue in our list
+                        enhanced_issues[original_index].update(suggestion)
+                
+                if progress_callback:
+                    progress_callback(min(i + BATCH_SIZE, total_issues), total_issues, f"Enhanced {min(i + BATCH_SIZE, total_issues)}/{total_issues} issues...")
+
+            except Exception as e:
+                _log(f"Error processing a batch: {e}")
+
+    except Exception as e:
+        _log(f"An error occurred during AI enhancement: {e}")
+
+    _log(f"AI enhancement complete. {len(enhanced_issues)} issues processed.")
+    return enhanced_issues
+
+def enhance_issues_with_ai(
+    issues: List[Dict[str, Any]],
+    model_mode: str,
+    model_ref: str,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    log_message_callback: Optional[Callable[[str], None]] = None,
+    cancellation_callback: Optional[Callable[[], bool]] = None
+) -> List[Dict[str, Any]]:
+    """Synchronous wrapper for the async AI enhancement function."""
+    try:
+        return asyncio.run(enhance_issues_with_ai_async(
+            issues,
+            model_mode,
+            model_ref,
+            progress_callback,
+            log_message_callback,
+            cancellation_callback
+        ))
+    except Exception as e:
+        log_func = log_message_callback or print
+        log_func(f"Error running async enhancement: {e}")
+        return issues

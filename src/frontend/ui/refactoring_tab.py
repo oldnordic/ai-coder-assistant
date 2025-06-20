@@ -30,54 +30,34 @@ from PyQt6.QtWidgets import (
     QCheckBox, QSpinBox, QListWidget, QListWidgetItem, QTreeWidget,
     QTreeWidgetItem, QDialog, QDialogButtonBox, QFormLayout, QLineEdit
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, pyqtSlot
 from PyQt6.QtGui import QFont, QColor, QPalette
 
 from backend.services.refactoring import refactoring_engine, RefactoringSuggestion, RefactoringOperation
 from backend.utils.constants import MAX_FILE_SIZE_KB
+from .worker_threads import get_thread_manager
 
 logger = logging.getLogger(__name__)
 
-class RefactoringWorker(QThread):
-    """Worker thread for refactoring operations."""
-    
-    progress_updated = pyqtSignal(int, int, str)  # current, total, message
-    operation_completed = pyqtSignal(dict)  # result
-    error_occurred = pyqtSignal(str)  # error message
-    
-    def __init__(self, operation: str, **kwargs):
-        super().__init__()
-        self.operation = operation
-        self.kwargs = kwargs
-    
-    def run(self):
-        """Run the refactoring operation."""
-        try:
-            if self.operation == "analyze":
-                self._analyze_refactoring_opportunities()
-            elif self.operation == "apply":
-                self._apply_refactoring()
-            elif self.operation == "preview":
-                self._preview_refactoring()
-            else:
-                raise ValueError(f"Unknown operation: {self.operation}")
-                
-        except Exception as e:
-            self.error_occurred.emit(str(e))
-    
-    def _analyze_refactoring_opportunities(self):
-        """Analyze project for refactoring opportunities."""
-        project_path = self.kwargs.get('project_path')
-        languages = self.kwargs.get('languages', None)
+# Backend functions for ThreadManager
+def analyze_refactoring_opportunities_backend(project_path: str, languages: Optional[List[str]] = None,
+                                            progress_callback=None, log_message_callback=None, cancellation_callback=None):
+    """Backend function for analyzing refactoring opportunities."""
+    try:
+        if progress_callback:
+            progress_callback(1, 3, "Analyzing project structure...")
         
-        self.progress_updated.emit(1, 3, "Analyzing project structure...")
+        if cancellation_callback and cancellation_callback():
+            return None
         
         # Analyze refactoring opportunities
-        suggestions = refactoring_engine.analyze_refactoring_opportunities(
-            project_path, languages
-        )
+        suggestions = refactoring_engine.analyze_refactoring_opportunities(project_path, languages)
         
-        self.progress_updated.emit(2, 3, f"Found {len(suggestions)} refactoring opportunities...")
+        if progress_callback:
+            progress_callback(2, 3, f"Found {len(suggestions)} refactoring opportunities...")
+        
+        if cancellation_callback and cancellation_callback():
+            return None
         
         # Convert suggestions to serializable format
         serialized_suggestions = []
@@ -108,83 +88,104 @@ class RefactoringWorker(QThread):
             
             serialized_suggestions.append(serialized)
         
-        self.progress_updated.emit(3, 3, "Analysis complete!")
+        if progress_callback:
+            progress_callback(3, 3, "Analysis complete!")
         
-        result = {
+        return {
             'success': True,
             'suggestions': serialized_suggestions,
             'total_count': len(suggestions)
         }
         
-        self.operation_completed.emit(result)
-    
-    def _apply_refactoring(self):
-        """Apply a refactoring suggestion."""
-        suggestion_data = self.kwargs.get('suggestion')
-        backup = self.kwargs.get('backup', True)
+    except Exception as e:
+        if log_message_callback:
+            log_message_callback(f"Error analyzing refactoring opportunities: {e}")
+        raise
+
+def apply_refactoring_backend(suggestion_data: Dict[str, Any], backup: bool = True,
+                             progress_callback=None, log_message_callback=None, cancellation_callback=None):
+    """Backend function for applying refactoring."""
+    try:
+        if progress_callback:
+            progress_callback(1, 2, "Applying refactoring...")
+        
+        if cancellation_callback and cancellation_callback():
+            return None
         
         # Reconstruct suggestion object
-        suggestion = self._reconstruct_suggestion(suggestion_data)
-        
-        self.progress_updated.emit(1, 2, "Applying refactoring...")
+        suggestion = _reconstruct_suggestion(suggestion_data)
         
         # Apply the refactoring
         result = refactoring_engine.apply_refactoring(suggestion, backup)
         
-        self.progress_updated.emit(2, 2, "Refactoring applied!")
+        if progress_callback:
+            progress_callback(2, 2, "Refactoring applied!")
         
-        self.operation_completed.emit(result)
-    
-    def _preview_refactoring(self):
-        """Preview a refactoring suggestion."""
-        suggestion_data = self.kwargs.get('suggestion')
+        return result
+        
+    except Exception as e:
+        if log_message_callback:
+            log_message_callback(f"Error applying refactoring: {e}")
+        raise
+
+def preview_refactoring_backend(suggestion_data: Dict[str, Any],
+                               progress_callback=None, log_message_callback=None, cancellation_callback=None):
+    """Backend function for previewing refactoring."""
+    try:
+        if progress_callback:
+            progress_callback(1, 2, "Generating preview...")
+        
+        if cancellation_callback and cancellation_callback():
+            return None
         
         # Reconstruct suggestion object
-        suggestion = self._reconstruct_suggestion(suggestion_data)
-        
-        self.progress_updated.emit(1, 2, "Generating preview...")
+        suggestion = _reconstruct_suggestion(suggestion_data)
         
         # Generate preview
         preview = refactoring_engine.preview_refactoring(suggestion)
         
-        self.progress_updated.emit(2, 2, "Preview generated!")
+        if progress_callback:
+            progress_callback(2, 2, "Preview generated!")
         
-        result = {
+        return {
             'success': True,
             'preview': preview
         }
         
-        self.operation_completed.emit(result)
-    
-    def _reconstruct_suggestion(self, suggestion_data: Dict[str, Any]) -> RefactoringSuggestion:
-        """Reconstruct a RefactoringSuggestion object from serialized data."""
-        operations = []
-        for op_data in suggestion_data.get('operations', []):
-            operation = RefactoringOperation(
-                operation_type=op_data['operation_type'],
-                file_path=op_data['file_path'],
-                line_start=op_data['line_start'],
-                line_end=op_data['line_end'],
-                description=op_data['description'],
-                confidence=op_data['confidence'],
-                original_code="",  # Will be loaded from file
-                refactored_code="",  # Will be generated
-                risks=op_data.get('risks', []),
-                benefits=op_data.get('benefits', [])
-            )
-            operations.append(operation)
-        
-        return RefactoringSuggestion(
-            id=suggestion_data['id'],
-            title=suggestion_data['title'],
-            description=suggestion_data['description'],
-            priority=suggestion_data['priority'],
-            operations=operations,
-            impact_score=suggestion_data['impact_score'],
-            estimated_time=suggestion_data['estimated_time'],
-            category=suggestion_data['category'],
-            tags=suggestion_data.get('tags', [])
+    except Exception as e:
+        if log_message_callback:
+            log_message_callback(f"Error generating preview: {e}")
+        raise
+
+def _reconstruct_suggestion(suggestion_data: Dict[str, Any]) -> RefactoringSuggestion:
+    """Reconstruct a RefactoringSuggestion object from serialized data."""
+    operations = []
+    for op_data in suggestion_data.get('operations', []):
+        operation = RefactoringOperation(
+            operation_type=op_data['operation_type'],
+            file_path=op_data['file_path'],
+            line_start=op_data['line_start'],
+            line_end=op_data['line_end'],
+            description=op_data['description'],
+            confidence=op_data['confidence'],
+            original_code="",  # Will be loaded from file
+            refactored_code="",  # Will be generated
+            risks=op_data.get('risks', []),
+            benefits=op_data.get('benefits', [])
         )
+        operations.append(operation)
+    
+    return RefactoringSuggestion(
+        id=suggestion_data['id'],
+        title=suggestion_data['title'],
+        description=suggestion_data['description'],
+        priority=suggestion_data['priority'],
+        operations=operations,
+        impact_score=suggestion_data['impact_score'],
+        estimated_time=suggestion_data['estimated_time'],
+        category=suggestion_data['category'],
+        tags=suggestion_data.get('tags', [])
+    )
 
 class RefactoringPreviewDialog(QDialog):
     """Dialog for previewing refactoring changes."""
@@ -278,7 +279,6 @@ class RefactoringTab(QWidget):
         self.project_path = None
         self.suggestions = []
         self.current_suggestion = None
-        self.worker = None
         self.setup_ui()
     
     def setup_ui(self):
@@ -288,10 +288,27 @@ class RefactoringTab(QWidget):
         # Header
         header_layout = QHBoxLayout()
         header_layout.addWidget(QLabel("Advanced Refactoring"))
+        
+        # Project selection
+        project_layout = QHBoxLayout()
+        self.project_path_label = QLabel("Project:")
+        project_layout.addWidget(self.project_path_label)
+        
+        self.project_path_input = QLineEdit()
+        self.project_path_input.setReadOnly(True)
+        self.project_path_input.setPlaceholderText("Select project directory...")
+        project_layout.addWidget(self.project_path_input)
+        
+        self.browse_btn = QPushButton("Browse...")
+        self.browse_btn.clicked.connect(self.browse_project)
+        project_layout.addWidget(self.browse_btn)
+        
+        header_layout.addLayout(project_layout)
         header_layout.addStretch()
         
         self.analyze_btn = QPushButton("Analyze Project")
         self.analyze_btn.clicked.connect(self.analyze_project)
+        self.analyze_btn.setEnabled(False)  # Disabled until project is selected
         header_layout.addWidget(self.analyze_btn)
         
         self.refresh_btn = QPushButton("Refresh")
@@ -417,6 +434,19 @@ class RefactoringTab(QWidget):
         self.status_label = QLabel("Ready to analyze project")
         layout.addWidget(self.status_label)
     
+    def browse_project(self):
+        """Open file dialog to select project directory."""
+        project_dir = QFileDialog.getExistingDirectory(
+            self,
+            "Select Project Directory",
+            os.path.expanduser("~"),
+            QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks
+        )
+        
+        if project_dir:
+            self.set_project_path(project_dir)
+            self.project_path_input.setText(project_dir)
+            
     def set_project_path(self, project_path: str):
         """Set the project path for analysis."""
         self.project_path = project_path
@@ -434,16 +464,25 @@ class RefactoringTab(QWidget):
         self.status_label.setText("Analyzing project...")
         
         # Start analysis worker
-        self.worker = RefactoringWorker(
-            "analyze",
-            project_path=self.project_path,
-            languages=['python', 'javascript', 'typescript', 'java', 'cpp']
+        self.current_worker_id = start_worker(
+            "refactoring_analysis",
+            analyze_refactoring_opportunities_backend,
+            self.project_path,
+            ["python", "javascript", "typescript", "java", "cpp"],
+            progress_callback=self.update_progress,
+            log_message_callback=self.handle_error
         )
-        self.worker.progress_updated.connect(self.update_progress)
-        self.worker.operation_completed.connect(self.handle_analysis_complete)
-        self.worker.error_occurred.connect(self.handle_error)
         
-        self.worker.start()
+        thread_manager = get_thread_manager()
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+        # thread_manager.worker_progress.connect(self._on_worker_progress)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+        # thread_manager.worker_finished.connect(self._on_worker_finished)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+        # thread_manager.worker_error.connect(self._on_worker_error)
     
     def refresh_suggestions(self):
         """Refresh the suggestions list."""
@@ -515,15 +554,24 @@ class RefactoringTab(QWidget):
         self.status_label.setText("Generating preview...")
         
         # Start preview worker
-        self.worker = RefactoringWorker(
-            "preview",
-            suggestion=self.current_suggestion
+        self.current_worker_id = start_worker(
+            "refactoring_preview",
+            preview_refactoring_backend,
+            self.current_suggestion,
+            progress_callback=self.update_progress,
+            log_message_callback=self.handle_error
         )
-        self.worker.progress_updated.connect(self.update_progress)
-        self.worker.operation_completed.connect(self.handle_preview_complete)
-        self.worker.error_occurred.connect(self.handle_error)
         
-        self.worker.start()
+        thread_manager = get_thread_manager()
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+        # thread_manager.worker_progress.connect(self._on_worker_progress)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+        # thread_manager.worker_finished.connect(self._on_worker_finished)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+        # thread_manager.worker_error.connect(self._on_worker_error)
     
     def apply_suggestion(self):
         """Apply the selected suggestion."""
@@ -543,16 +591,43 @@ class RefactoringTab(QWidget):
             self.status_label.setText("Applying refactoring...")
             
             # Start apply worker
-            self.worker = RefactoringWorker(
-                "apply",
-                suggestion=self.current_suggestion,
-                backup=self.backup_checkbox.isChecked()
+            self.current_worker_id = start_worker(
+                "refactoring_apply",
+                apply_refactoring_backend,
+                self.current_suggestion,
+                backup=self.backup_checkbox.isChecked(),
+                progress_callback=self.update_progress,
+                log_message_callback=self.handle_error
             )
-            self.worker.progress_updated.connect(self.update_progress)
-            self.worker.operation_completed.connect(self.handle_apply_complete)
-            self.worker.error_occurred.connect(self.handle_error)
             
-            self.worker.start()
+            thread_manager = get_thread_manager()
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+            # thread_manager.worker_progress.connect(self._on_worker_progress)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+            # thread_manager.worker_finished.connect(self._on_worker_finished)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+            # thread_manager.worker_error.connect(self._on_worker_error)
+    
+    def _on_worker_progress(self, worker_id, current, total, message):
+        if hasattr(self, 'current_worker_id') and worker_id == self.current_worker_id:
+            self.update_progress(current, total, message)
+
+    def _on_worker_finished(self, worker_id, result):
+        if hasattr(self, 'current_worker_id') and worker_id == self.current_worker_id:
+            # Handle completion based on worker type
+            if hasattr(self, 'preview_mode') and self.preview_mode:
+                self.handle_preview_complete(result)
+            else:
+                self.handle_analysis_complete(result)
+            self.progress_bar.setVisible(False)
+
+    def _on_worker_error(self, worker_id, error):
+        if hasattr(self, 'current_worker_id') and worker_id == self.current_worker_id:
+            self.handle_error(error)
+            self.progress_bar.setVisible(False)
     
     def update_progress(self, current: int, total: int, message: str):
         """Update progress display."""
@@ -658,4 +733,50 @@ class RefactoringTab(QWidget):
             self.suggestions_table.setItem(row, 4, time_item)
         
         # Apply current filters
-        self.apply_filters() 
+        self.apply_filters()
+
+    @pyqtSlot(object)
+    def _on_refactor_complete(self, result: Optional[Dict[str, str]]):
+        """Handle refactoring completion."""
+        try:
+            _ = self.isVisible()
+        except RuntimeError:
+            return # Widget is deleted
+
+        self.progress_bar.hide()
+        if result and "refactored_code" in result:
+            self.refactored_code_edit.setPlainText(result["refactored_code"])
+            QMessageBox.information(self, "Success", "Code refactored successfully.")
+        else:
+            QMessageBox.warning(self, "Refactoring Failed", result.get("error", "An unknown error occurred."))
+
+    @pyqtSlot(object)
+    def _on_test_generation_complete(self, result: Optional[Dict[str, str]]):
+        """Handle test generation completion."""
+        try:
+            _ = self.isVisible()
+        except RuntimeError:
+            return # Widget is deleted
+
+        self.progress_bar.hide()
+        if result and "test_code" in result:
+            # Assuming you have a widget to display the tests, e.g., self.generated_tests_edit
+            self.generated_tests_edit.setPlainText(result["test_code"])
+            QMessageBox.information(self, "Success", "Tests generated successfully.")
+        else:
+            QMessageBox.warning(self, "Test Generation Failed", result.get("error", "An unknown error occurred."))
+
+    @pyqtSlot(object)
+    def _on_docstring_generation_complete(self, result: Optional[Dict[str, str]]):
+        """Handle docstring generation completion."""
+        try:
+            _ = self.isVisible()
+        except RuntimeError:
+            return # Widget is deleted
+
+        self.progress_bar.hide()
+        if result and "code_with_docstrings" in result:
+            self.refactored_code_edit.setPlainText(result["code_with_docstrings"])
+            QMessageBox.information(self, "Success", "Docstrings generated successfully.")
+        else:
+            QMessageBox.warning(self, "Docstring Generation Failed", result.get("error", "An unknown error occurred.")) 

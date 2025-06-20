@@ -18,12 +18,13 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
 # src/frontend/ui/ai_tab_widgets.py
+from typing import Any
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QGroupBox,
                              QProgressBar, QFormLayout, QLineEdit, QComboBox, QTextEdit, QCheckBox)
 from PyQt6.QtCore import Qt
 from backend.utils import settings
 
-def setup_ai_tab(parent_widget, main_app_instance):
+def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
     """
     Sets up the UI components for the AI code analysis tab.
     """
@@ -40,12 +41,21 @@ def setup_ai_tab(parent_widget, main_app_instance):
     main_app_instance.ollama_model_label = QLabel("Ollama Model:")
     main_app_instance.ollama_model_selector = QComboBox()
     main_app_instance.refresh_button = QPushButton("Refresh Models")
+    # Connect the refresh button to the populate_ollama_models method
+    main_app_instance.refresh_button.clicked.connect(main_app_instance.populate_ollama_models)
     ollama_layout = QHBoxLayout()
     ollama_layout.addWidget(main_app_instance.ollama_model_selector)
     ollama_layout.addWidget(main_app_instance.refresh_button)
+    # Expose the refresh button for main window connection
+    if hasattr(parent_widget, 'refresh_button'):
+        parent_widget.refresh_button = main_app_instance.refresh_button
+    else:
+        setattr(parent_widget, 'refresh_button', main_app_instance.refresh_button)
 
     main_app_instance.model_status_label = QLabel("Status: Not Loaded")
     main_app_instance.load_model_button = QPushButton("Load Trained Model")
+    # Connect the load model button to the load_trained_model method (to be implemented)
+    # main_app_instance.load_model_button.clicked.connect(main_app_instance.load_trained_model)
 
     model_layout.addRow(QLabel("Model Source:"), main_app_instance.model_source_selector)
     model_layout.addRow(main_app_instance.ollama_model_label, ollama_layout)
@@ -61,6 +71,8 @@ def setup_ai_tab(parent_widget, main_app_instance):
     main_app_instance.scan_dir_entry = QLineEdit()
     main_app_instance.scan_dir_entry.setPlaceholderText("Select a project folder to scan...")
     main_app_instance.browse_button = QPushButton("Browse...")
+    # Connect the browse button to the select_scan_directory method
+    main_app_instance.browse_button.clicked.connect(main_app_instance.select_scan_directory)
     
     scan_dir_layout = QHBoxLayout()
     scan_dir_layout.addWidget(main_app_instance.scan_dir_entry)
@@ -81,10 +93,14 @@ def setup_ai_tab(parent_widget, main_app_instance):
 
     main_app_instance.scan_button = QPushButton("Start Scan")
     main_app_instance.scan_button.setFixedHeight(35)
+    # Connect the scan button to the start_scan method
+    main_app_instance.scan_button.clicked.connect(main_app_instance.start_scan)
     
     main_app_instance.stop_scan_button = QPushButton("Stop Scan")
     main_app_instance.stop_scan_button.setFixedHeight(35)
     main_app_instance.stop_scan_button.setEnabled(False)  # Initially disabled
+    # Connect the stop scan button to the stop_scan method
+    main_app_instance.stop_scan_button.clicked.connect(main_app_instance.stop_scan)
     
     scan_buttons_layout = QHBoxLayout()
     scan_buttons_layout.addWidget(main_app_instance.scan_button)
@@ -110,9 +126,13 @@ def setup_ai_tab(parent_widget, main_app_instance):
     
     main_app_instance.review_suggestions_button = QPushButton("Review Suggestions Interactively")
     main_app_instance.review_suggestions_button.setEnabled(False)
+    # Connect the review suggestions button to the review_next_suggestion method
+    main_app_instance.review_suggestions_button.clicked.connect(main_app_instance.review_next_suggestion)
     
     main_app_instance.create_report_button = QPushButton("Generate Full Markdown Report")
     main_app_instance.create_report_button.setEnabled(False)
+    # Connect the create report button to the start_report_generation method
+    main_app_instance.create_report_button.clicked.connect(main_app_instance.start_report_generation)
 
     results_layout.addWidget(main_app_instance.scan_results_text)
     results_layout.addWidget(main_app_instance.review_suggestions_button)

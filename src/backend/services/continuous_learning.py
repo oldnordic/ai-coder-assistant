@@ -509,37 +509,55 @@ class ContinuousLearningService:
             date_filter = f"WHERE {' AND '.join(conditions)}" if conditions else ""
             
             # Get total counts
-            cursor = conn.execute(f"""
-                SELECT 
-                    COUNT(*) as total,
-                    SUM(CASE WHEN quality_score >= ? THEN 1 ELSE 0 END) as accepted,
-                    SUM(CASE WHEN quality_score < ? THEN 1 ELSE 0 END) as rejected
-                FROM feedback_data {date_filter}
-            """, [self.quality_threshold, self.quality_threshold] + params)
+            if date_filter:
+                cursor = conn.execute("""
+                    SELECT 
+                        COUNT(*) as total,
+                        SUM(CASE WHEN quality_score >= ? THEN 1 ELSE 0 END) as accepted,
+                        SUM(CASE WHEN quality_score < ? THEN 1 ELSE 0 END) as rejected
+                    FROM feedback_data WHERE timestamp >= ? AND timestamp <= ?
+                """, [self.quality_threshold, self.quality_threshold] + params)
+            else:
+                cursor = conn.execute("""
+                    SELECT 
+                        COUNT(*) as total,
+                        SUM(CASE WHEN quality_score >= ? THEN 1 ELSE 0 END) as accepted,
+                        SUM(CASE WHEN quality_score < ? THEN 1 ELSE 0 END) as rejected
+                    FROM feedback_data
+                """, [self.quality_threshold, self.quality_threshold])
             
             row = cursor.fetchone()
             total, accepted, rejected = row
             
             # Get feedback type distribution
-            cursor = conn.execute(f"""
-                SELECT feedback_type, COUNT(*) as count
-                FROM feedback_data {date_filter}
-                GROUP BY feedback_type
-            """, params)
+            if date_filter:
+                cursor = conn.execute("""
+                    SELECT feedback_type, COUNT(*) as count
+                    FROM feedback_data WHERE timestamp >= ? AND timestamp <= ?
+                    GROUP BY feedback_type
+                """, params)
+            else:
+                cursor = conn.execute("""
+                    SELECT feedback_type, COUNT(*) as count
+                    FROM feedback_data
+                    GROUP BY feedback_type
+                """)
             
             type_distribution = dict(cursor.fetchall())
             
             # Get quality distribution
-            # Combine date_filter and quality_level IS NOT NULL
             if date_filter:
-                quality_where = f"{date_filter} AND quality_level IS NOT NULL"
+                cursor = conn.execute("""
+                    SELECT quality_level, COUNT(*) as count
+                    FROM feedback_data WHERE timestamp >= ? AND timestamp <= ? AND quality_level IS NOT NULL
+                    GROUP BY quality_level
+                """, params)
             else:
-                quality_where = "WHERE quality_level IS NOT NULL"
-            cursor = conn.execute(f"""
-                SELECT quality_level, COUNT(*) as count
-                FROM feedback_data {quality_where}
-                GROUP BY quality_level
-            """, params)
+                cursor = conn.execute("""
+                    SELECT quality_level, COUNT(*) as count
+                    FROM feedback_data WHERE quality_level IS NOT NULL
+                    GROUP BY quality_level
+                """)
             quality_distribution = dict(cursor.fetchall())
             
             return {
@@ -973,26 +991,34 @@ class ContinuousLearningService:
         try:
             with sqlite3.connect(self.db_path) as conn:
                 # Build date filter
-                date_filter = ""
+                conditions = []
                 params = []
-                if start_date or end_date:
-                    conditions = []
-                    if start_date:
-                        conditions.append("timestamp >= ?")
-                        params.append(start_date.isoformat())
-                    if end_date:
-                        conditions.append("timestamp <= ?")
-                        params.append(end_date.isoformat())
-                    date_filter = f"WHERE {' AND '.join(conditions)}"
+                if start_date:
+                    conditions.append("timestamp >= ?")
+                    params.append(start_date.isoformat())
+                if end_date:
+                    conditions.append("timestamp <= ?")
+                    params.append(end_date.isoformat())
+                
+                where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
                 
                 cursor = conn.cursor()
-                cursor.execute(f"""
-                    SELECT id, timestamp, feedback_type, original_input, original_output,
-                           corrected_output, user_rating, user_comment, quality_score,
-                           validation_errors
-                    FROM feedback_data {date_filter}
-                    ORDER BY timestamp DESC
-                """, params)
+                if conditions:
+                    cursor.execute(f"""
+                        SELECT id, timestamp, feedback_type, original_input, original_output,
+                               corrected_output, user_rating, user_comment, quality_score,
+                               validation_errors
+                        FROM feedback_data {where_clause}
+                        ORDER BY timestamp DESC
+                    """, params)
+                else:
+                    cursor.execute("""
+                        SELECT id, timestamp, feedback_type, original_input, original_output,
+                               corrected_output, user_rating, user_comment, quality_score,
+                               validation_errors
+                        FROM feedback_data
+                        ORDER BY timestamp DESC
+                    """)
                 
                 data = []
                 for row in cursor.fetchall():

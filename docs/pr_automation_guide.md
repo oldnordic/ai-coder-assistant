@@ -340,7 +340,7 @@ POST /api/servicenow/change-requests?short_description=Change Summary&descriptio
 
 ### PR Automation Config
 
-The system stores configuration in `pr_automation_config.json`:
+The system stores configuration in `config/pr_automation_config.json`:
 
 ```json
 {

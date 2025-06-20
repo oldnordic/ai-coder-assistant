@@ -1,7 +1,34 @@
-# Test Suite Guide (Updated v2.6.0)
+# Test Suite Guide (Updated v3.0.0)
 
 ## Overview
-The test suite covers all major features, including security intelligence, code standards, PR automation, Ollama management, and performance optimization.
+The test suite covers all major features, including security intelligence, code standards, PR automation, Ollama management, and performance optimization. The tests are designed to work with the new organized file structure using `config/` and `data/` directories.
+
+## Project Structure for Testing
+
+The test suite works with the organized file structure:
+
+```
+ai_coder_assistant/
+├── config/                     # Configuration files for testing
+│   ├── code_standards_config.json
+│   ├── llm_studio_config.json
+│   ├── pr_automation_config.json
+│   └── security_intelligence_config.json
+├── data/                       # Data files for testing
+│   ├── security_breaches.json
+│   ├── security_patches.json
+│   ├── security_training_data.json
+│   └── security_vulnerabilities.json
+├── src/tests/                  # Test files
+│   ├── __init__.py
+│   ├── test_cloud_models.py
+│   ├── test_ai_tools.py
+│   ├── test_refactoring.py
+│   ├── test_scanner.py
+│   ├── test_continuous_learning.py
+│   └── frontend_backend/
+└── ...
+```
 
 ## Features
 - Cross-platform compatibility (Linux, macOS, Windows)
@@ -9,19 +36,25 @@ The test suite covers all major features, including security intelligence, code 
 - Comprehensive mocking of external dependencies
 - Timeout mechanisms to prevent hangs
 - Debugging and logging support
+- Support for organized file structure with config/ and data/ directories
 
 ## Usage
 1. Set up the test environment as described in the README.
-2. Run tests with `pytest -v`.
-3. Review test output and logs for results.
+2. Ensure configuration files are in the `config/` directory.
+3. Ensure data files are in the `data/` directory.
+4. Run tests with `pytest -v`.
+5. Review test output and logs for results.
 
 ## CI Integration
 - Integrate with GitHub Actions, GitLab CI, or other CI systems.
 - Use environment variables for API keys and config paths.
 - Mock external services for reliable CI runs.
+- Ensure CI environment has proper file structure with config/ and data/ directories.
 
 ## Troubleshooting
 - Ensure all dependencies are installed.
+- Verify configuration files are in the `config/` directory.
+- Verify data files are in the `data/` directory.
 - Use debug logs to diagnose failures.
 - Check for network or config issues if tests fail.
 
@@ -55,6 +88,7 @@ src/tests/
 - **Comprehensive mocking**: Robust mocking of external dependencies
 - **Timeout mechanisms**: Prevents test hangs and infinite loops
 - **Debug capabilities**: Built-in debugging and logging
+- **Organized file structure**: Tests work with config/ and data/ directories
 
 ## Setup
 
@@ -82,7 +116,18 @@ src/tests/
    set PYTHONPATH=%PYTHONPATH%;%CD%\src
    ```
 
-3. **Verify Setup**
+3. **Verify Configuration Files**
+   ```bash
+   # Ensure configuration files exist
+   ls config/
+   # Should show: code_standards_config.json, llm_studio_config.json, etc.
+   
+   # Ensure data files exist
+   ls data/
+   # Should show: security_breaches.json, security_patches.json, etc.
+   ```
+
+4. **Verify Setup**
    ```bash
    python -c "from backend.services.providers import OpenAIProvider; print('Setup successful!')"
    ```
@@ -98,6 +143,50 @@ python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
 addopts = -v --tb=short --maxfail=5
+```
+
+### Configuration File Management
+
+Tests should handle configuration files in their new locations:
+
+```python
+import os
+from pathlib import Path
+
+class TestConfiguration:
+    """Test configuration file handling."""
+    
+    def test_config_files_exist(self):
+        """Test that configuration files exist in config/ directory."""
+        config_dir = Path("config")
+        assert config_dir.exists(), "config/ directory should exist"
+        
+        expected_files = [
+            "code_standards_config.json",
+            "llm_studio_config.json", 
+            "pr_automation_config.json",
+            "security_intelligence_config.json"
+        ]
+        
+        for file_name in expected_files:
+            file_path = config_dir / file_name
+            assert file_path.exists(), f"{file_name} should exist in config/ directory"
+    
+    def test_data_files_exist(self):
+        """Test that data files exist in data/ directory."""
+        data_dir = Path("data")
+        assert data_dir.exists(), "data/ directory should exist"
+        
+        expected_files = [
+            "security_breaches.json",
+            "security_patches.json",
+            "security_training_data.json",
+            "security_vulnerabilities.json"
+        ]
+        
+        for file_name in expected_files:
+            file_path = data_dir / file_name
+            assert file_path.exists(), f"{file_name} should exist in data/ directory"
 ```
 
 ## Running Tests

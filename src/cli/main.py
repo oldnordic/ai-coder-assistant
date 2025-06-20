@@ -77,7 +77,23 @@ def scan_workspace(workspace_path: str, output_file: Optional[str] = None, outpu
         
         # Use the existing scanner service with correct signature
         model_mode = "ollama"  # Default model mode
-        results = scan_code(workspace_path, model_mode, None, None)
+        model_ref = "codellama"  # Default model
+        
+        def progress_callback(current: int, total: int, message: str):
+            print(f"Progress: {current}/{total} - {message}")
+            
+        def log_callback(message: str):
+            print(message)
+            
+        results = scan_code(
+            directory=workspace_path,
+            model_mode=model_mode,
+            model_ref=model_ref,
+            tokenizer_ref=None,
+            progress_callback=progress_callback,
+            log_message_callback=log_callback,
+            cancellation_callback=lambda: False
+        )
         
         if output_file:
             with open(output_file, 'w', encoding='utf-8') as f:

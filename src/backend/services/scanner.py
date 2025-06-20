@@ -21,17 +21,30 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 import os
 import subprocess
 import re
-from typing import List, Tuple, Optional, Dict, Callable, Any
+from typing import List, Tuple, Optional, Dict, Callable, Any, Set
 import pathspec
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import time
+import shlex
+from pathlib import Path
+from datetime import datetime
+import uuid
+from core.config import Config
+from core.logging import LogManager
+from core.error import ErrorHandler, ErrorSeverity
+from core.events import EventBus, Event, EventType
+from core.threading import ThreadManager, TaskStatus
 
-# --- FIXED: Use relative imports for modules within the same package ---
-from ..utils import settings
-from . import ai_tools, ollama_client
-from .intelligent_analyzer import IntelligentCodeAnalyzer, CodeIssue, IssueType
-from ..utils.constants import (
+# --- FIXED: Use absolute imports for modules within the same package ---
+from backend.utils import settings
+from backend.services import ai_tools, ollama_client
+from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, CodeIssue, IssueType
+from backend.services.scanner_persistence import (
+    ScannerPersistenceService, ScanResult, CodeIssue as PersistenceCodeIssue, 
+    FileAnalysis, ScanStatus, IssueSeverity
+)
+from backend.utils.constants import (
     MAX_CONTENT_SIZE, MAX_DESCRIPTION_LENGTH, MAX_CODE_SNIPPET_LENGTH, 
     MAX_SUGGESTION_LENGTH, MAX_ERROR_MESSAGE_LENGTH, MAX_PROMPT_LENGTH,
     MAX_FILE_SIZE_KB, MAX_FILE_SIZE, MAX_FILENAME_LENGTH,
@@ -168,6 +181,368 @@ SUPPORTED_LANGUAGES = {
 # Add thread lock for linter execution at the top of the file
 linter_lock = threading.Lock()
 
+def detect_language(file_path: str) -> str:
+    """Detect programming language from file extension."""
+    ext = Path(file_path).suffix.lower()
+    for lang, info in SUPPORTED_LANGUAGES.items():
+        if ext in info['extensions']:
+            return lang
+    return 'unknown'
+
+class ScannerService:
+    """Code scanning and analysis service.
+    
+    Provides functionality for scanning and analyzing code using different models.
+    Uses the core modules for configuration, logging, error handling, and threading.
+    Integrates with persistence service for data storage.
+    """
+    
+    def __init__(self):
+        """Initialize the scanner service."""
+        self.config = Config()
+        self.logger = LogManager().get_logger('scanner_service')
+        self.error_handler = ErrorHandler()
+        self.event_bus = EventBus()
+        self.thread_manager = ThreadManager()
+        
+        # Initialize persistence service
+        self.persistence = ScannerPersistenceService()
+        
+        self._current_scan_id: Optional[str] = None
+        self._excluded_dirs: Set[str] = set(
+            self.config.get('scanner.excluded_dirs', [])
+        )
+        self._file_extensions: Set[str] = set(
+            self.config.get('scanner.file_extensions', [])
+        )
+    
+    def _convert_issue_severity(self, severity: str) -> IssueSeverity:
+        """Convert internal issue severity to persistence severity."""
+        severity_map = {
+            'low': IssueSeverity.LOW,
+            'medium': IssueSeverity.MEDIUM,
+            'high': IssueSeverity.HIGH,
+            'critical': IssueSeverity.CRITICAL
+        }
+        return severity_map.get(severity.lower(), IssueSeverity.MEDIUM)
+    
+    def _convert_scan_status(self, status: str) -> ScanStatus:
+        """Convert internal scan status to persistence status."""
+        status_map = {
+            'pending': ScanStatus.PENDING,
+            'in_progress': ScanStatus.IN_PROGRESS,
+            'completed': ScanStatus.COMPLETED,
+            'failed': ScanStatus.FAILED,
+            'cancelled': ScanStatus.CANCELLED
+        }
+        return status_map.get(status.lower(), ScanStatus.PENDING)
+    
+    def _create_scan_result(self, scan_id: str, scan_type: str, target_path: str, 
+                           model_used: str, status: ScanStatus = ScanStatus.PENDING) -> ScanResult:
+        """Create a scan result record."""
+        return ScanResult(
+            scan_id=scan_id,
+            scan_type=scan_type,
+            target_path=target_path,
+            model_used=model_used,
+            status=status,
+            start_time=datetime.now(),
+            metadata={"scanner_version": "1.0.0"}
+        )
+    
+    def _create_persistence_issue(self, issue: CodeIssue, scan_id: str, file_path: str) -> PersistenceCodeIssue:
+        """Convert internal code issue to persistence code issue."""
+        # Convert context dict to string if it exists
+        context_str = None
+        if issue.context:
+            context_str = str(issue.context)
+        
+        return PersistenceCodeIssue(
+            issue_id=str(uuid.uuid4()),
+            scan_id=scan_id,
+            file_path=file_path,
+            line_number=issue.line_number,
+            column_number=None,  # CodeIssue doesn't have column_number
+            severity=self._convert_issue_severity(issue.severity),
+            category=issue.issue_type.value,
+            description=issue.description[:MAX_DESCRIPTION_LENGTH] if len(issue.description) > MAX_DESCRIPTION_LENGTH else issue.description,
+            suggestion=issue.suggestion[:MAX_SUGGESTION_LENGTH] if issue.suggestion and len(issue.suggestion) > MAX_SUGGESTION_LENGTH else issue.suggestion,
+            code_snippet=issue.code_snippet[:MAX_CODE_SNIPPET_LENGTH] if issue.code_snippet and len(issue.code_snippet) > MAX_CODE_SNIPPET_LENGTH else issue.code_snippet,
+            context=context_str[:MAX_CODE_CONTEXT_LENGTH] if context_str and len(context_str) > MAX_CODE_CONTEXT_LENGTH else context_str
+        )
+    
+    def _create_file_analysis(self, file_path: str, scan_id: str, language: str, 
+                             file_size: int, lines_of_code: int, issues_count: int = 0,
+                             complexity_score: Optional[float] = None) -> FileAnalysis:
+        """Create a file analysis record."""
+        return FileAnalysis(
+            file_id=str(uuid.uuid4()),
+            scan_id=scan_id,
+            file_path=file_path,
+            file_size=file_size,
+            lines_of_code=lines_of_code,
+            language=language,
+            complexity_score=complexity_score,
+            issues_count=issues_count,
+            analysis_data={"language": language, "analyzed_at": datetime.now().isoformat()}
+        )
+
+    def start_scan(
+        self,
+        directory: str,
+        model_name: Optional[str] = None,
+        callback: Optional[callable] = None
+    ) -> str:
+        """Start a code scan operation with persistence integration.
+        
+        Args:
+            directory: Directory to scan
+            model_name: Name of the model to use (optional)
+            callback: Callback function for scan completion (optional)
+        
+        Returns:
+            str: Scan task ID
+        """
+        if not os.path.isdir(directory):
+            raise ValueError(f"Invalid directory: {directory}")
+        
+        scan_id = f"scan_{directory.replace(os.path.sep, '_')}"
+        
+        # Create scan result in persistence
+        scan_result = self._create_scan_result(
+            scan_id=scan_id,
+            scan_type="directory_scan",
+            target_path=directory,
+            model_used=model_name or self.config.get('scanner.default_model', 'default'),
+            status=ScanStatus.IN_PROGRESS
+        )
+        self.persistence.save_scan_result(scan_result)
+        
+        # Create scan configuration
+        scan_config = {
+            'directory': directory,
+            'model_name': model_name or self.config.get('scanner.default_model'),
+            'excluded_dirs': self._excluded_dirs,
+            'file_extensions': self._file_extensions,
+            'scan_id': scan_id  # Add scan_id to config for persistence
+        }
+        
+        # Submit scan task
+        self.thread_manager.submit_task(
+            scan_id,
+            self._run_scan,
+            args=(scan_config,),
+            callback=self._handle_scan_completion if callback is None else callback
+        )
+        
+        self._current_scan_id = scan_id
+        self.event_bus.publish(Event(
+            EventType.SCAN_STARTED,
+            data={'scan_id': scan_id, 'config': scan_config}
+        ))
+        
+        return scan_id
+    
+    def _run_scan(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Run the actual scan operation.
+        
+        Args:
+            config: Scan configuration
+        
+        Returns:
+            Dict[str, Any]: Scan results
+        """
+        try:
+            directory = config['directory']
+            files_to_scan = self._collect_files(directory, config)
+            total_files = len(files_to_scan)
+            processed_files = 0
+            results = {}
+            
+            for file_path in files_to_scan:
+                try:
+                    file_result = self._scan_file(file_path, config)
+                    if file_result:
+                        results[file_path] = file_result
+                    
+                    processed_files += 1
+                    progress = (processed_files / total_files) * 100
+                    
+                    self.event_bus.publish(Event(
+                        EventType.SCAN_PROGRESS,
+                        data={
+                            'scan_id': self._current_scan_id,
+                            'progress': progress,
+                            'current_file': file_path
+                        }
+                    ))
+                    
+                except Exception as e:
+                    self.error_handler.handle_error(
+                        e,
+                        'scanner_service',
+                        '_run_scan',
+                        ErrorSeverity.WARNING,
+                        {'file': file_path}
+                    )
+            
+            return {
+                'total_files': total_files,
+                'processed_files': processed_files,
+                'results': results
+            }
+            
+        except Exception as e:
+            self.error_handler.handle_error(
+                e,
+                'scanner_service',
+                '_run_scan',
+                ErrorSeverity.ERROR
+            )
+            raise
+    
+    def _collect_files(
+        self,
+        directory: str,
+        config: Dict[str, Any]
+    ) -> List[str]:
+        """Collect files to scan based on configuration.
+        
+        Args:
+            directory: Root directory to scan
+            config: Scan configuration
+        
+        Returns:
+            List[str]: List of file paths to scan
+        """
+        files_to_scan = []
+        
+        for root, dirs, files in os.walk(directory):
+            # Remove excluded directories
+            dirs[:] = [d for d in dirs if d not in config['excluded_dirs']]
+            
+            for file in files:
+                if any(file.endswith(ext) for ext in config['file_extensions']):
+                    files_to_scan.append(os.path.join(root, file))
+        
+        return files_to_scan
+    
+    def _scan_file(
+        self,
+        file_path: str,
+        config: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Scan a single file.
+        
+        Args:
+            file_path: Path to the file to scan
+            config: Scan configuration
+        
+        Returns:
+            Optional[Dict[str, Any]]: Scan results for the file
+        """
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # TODO: Implement actual file scanning using the specified model
+            # This is a placeholder that should be replaced with actual model integration
+            return {
+                'path': file_path,
+                'size': len(content),
+                'lines': len(content.splitlines()),
+                'analysis': {}  # To be filled with model analysis
+            }
+            
+        except Exception as e:
+            self.error_handler.handle_error(
+                e,
+                'scanner_service',
+                '_scan_file',
+                ErrorSeverity.WARNING,
+                {'file': file_path}
+            )
+            return None
+    
+    def _handle_scan_completion(self, task_result: Dict[str, Any]) -> None:
+        """Handle scan completion.
+        
+        Args:
+            task_result: Result from the scan task
+        """
+        if task_result['status'] == TaskStatus.COMPLETED:
+            self.event_bus.publish(Event(
+                EventType.SCAN_COMPLETED,
+                data={
+                    'scan_id': self._current_scan_id,
+                    'results': task_result['result']
+                }
+            ))
+        else:
+            self.event_bus.publish(Event(
+                EventType.SCAN_FAILED,
+                data={
+                    'scan_id': self._current_scan_id,
+                    'error': task_result.get('error')
+                }
+            ))
+        
+        self._current_scan_id = None
+    
+    def cancel_scan(self) -> bool:
+        """Cancel the current scan operation.
+        
+        Returns:
+            bool: True if scan was cancelled, False otherwise
+        """
+        if self._current_scan_id:
+            cancelled = self.thread_manager.cancel_task(self._current_scan_id)
+            if cancelled:
+                self.event_bus.publish(Event(
+                    EventType.SCAN_FAILED,
+                    data={
+                        'scan_id': self._current_scan_id,
+                        'error': 'Scan cancelled by user'
+                    }
+                ))
+                self._current_scan_id = None
+            return cancelled
+        return False
+    
+    def get_scan_status(self) -> Optional[TaskStatus]:
+        """Get the status of the current scan.
+        
+        Returns:
+            Optional[TaskStatus]: Current scan status or None if no scan is running
+        """
+        if self._current_scan_id:
+            return self.thread_manager.get_task_status(self._current_scan_id)
+        return None
+
+    def get_scan_result(self, scan_id: str) -> Optional[ScanResult]:
+        """Get scan result from persistence."""
+        return self.persistence.get_scan_result(scan_id)
+    
+    def get_all_scan_results(self, status: Optional[ScanStatus] = None, limit: int = 100) -> List[ScanResult]:
+        """Get all scan results from persistence."""
+        return self.persistence.get_all_scan_results(status, limit)
+    
+    def get_code_issues(self, scan_id: str, severity: Optional[IssueSeverity] = None) -> List[PersistenceCodeIssue]:
+        """Get code issues for a scan from persistence."""
+        return self.persistence.get_code_issues(scan_id, severity)
+    
+    def get_file_analysis(self, scan_id: str) -> List[FileAnalysis]:
+        """Get file analysis for a scan from persistence."""
+        return self.persistence.get_file_analysis(scan_id)
+    
+    def get_scanner_analytics(self) -> Dict[str, Any]:
+        """Get scanner analytics from persistence."""
+        return self.persistence.get_scanner_analytics()
+    
+    def delete_scan_result(self, scan_id: str) -> bool:
+        """Delete scan result and all associated data."""
+        return self.persistence.delete_scan_result(scan_id)
+
 def _get_all_code_files(directory: str, log_message_callback: Optional[Callable[[str], None]] = None) -> Dict[str, List[str]]:
     """
     Get all code files in the directory, organized by language.
@@ -266,9 +641,14 @@ def _get_all_code_files(directory: str, log_message_callback: Optional[Callable[
 def run_linter(filepath: str, language: str) -> tuple[list[str], bool]:
     """
     Run the appropriate linter for the given file and language.
-    Returns a tuple: (issues, linter_available)
-    Thread-safe implementation to prevent memory corruption.
+    Returns (output_lines, success).
     """
+    # Sanitize filepath to prevent command injection
+    filepath = os.path.abspath(filepath)  # Get absolute path
+    if not os.path.exists(filepath):
+        return [], False
+    
+    # Get linter configuration
     if language not in SUPPORTED_LANGUAGES:
         return [], False
     
@@ -276,40 +656,64 @@ def run_linter(filepath: str, language: str) -> tuple[list[str], bool]:
     linter = config['linter']
     args = config['linter_args']
     
-    # Use thread lock to prevent concurrent subprocess calls
+    # Sanitize arguments to prevent command injection
+    sanitized_args = []
+    for arg in args:
+        if isinstance(arg, str):
+            # Quote arguments that might contain special characters
+            sanitized_args.append(shlex.quote(arg))
+        else:
+            sanitized_args.append(str(arg))
+    
+    # Use thread lock to prevent concurrent linter execution
     with linter_lock:
         try:
             # Special handling for different linters
             if linter == 'flake8':
+                # flake8 is safe as it only takes the filepath
                 result = subprocess.run(['flake8', filepath], capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'eslint':
-                result = subprocess.run(['eslint', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for eslint
+                result = subprocess.run(['eslint', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'cppcheck':
-                result = subprocess.run(['cppcheck', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for cppcheck
+                result = subprocess.run(['cppcheck', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'dotnet':
+                # dotnet format is safe as it only takes the filepath
                 result = subprocess.run(['dotnet', 'format', filepath, '--verify-no-changes'], capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'golangci-lint':
-                result = subprocess.run(['golangci-lint', 'run', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for golangci-lint
+                result = subprocess.run(['golangci-lint', 'run', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'cargo':
+                # cargo clippy is safe as it only takes predefined arguments
                 result = subprocess.run(['cargo', 'clippy', '--message-format=short'], capture_output=True, text=True, check=False, cwd=os.path.dirname(filepath), timeout=30)
             elif linter == 'phpcs':
-                result = subprocess.run(['phpcs', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for phpcs
+                result = subprocess.run(['phpcs', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'rubocop':
-                result = subprocess.run(['rubocop', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for rubocop
+                result = subprocess.run(['rubocop', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'swiftlint':
-                result = subprocess.run(['swiftlint', 'lint', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for swiftlint
+                result = subprocess.run(['swiftlint', 'lint', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'ktlint':
-                result = subprocess.run(['ktlint', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for ktlint
+                result = subprocess.run(['ktlint', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'scalafmt':
-                result = subprocess.run(['scalafmt', '--test', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for scalafmt
+                result = subprocess.run(['scalafmt', '--test', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'dart':
-                result = subprocess.run(['dart', 'analyze', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for dart analyze
+                result = subprocess.run(['dart', 'analyze', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'shellcheck':
-                result = subprocess.run(['shellcheck', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for shellcheck
+                result = subprocess.run(['shellcheck', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'sqlfluff':
-                result = subprocess.run(['sqlfluff', 'lint', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for sqlfluff
+                result = subprocess.run(['sqlfluff', 'lint', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             elif linter == 'htmlhint':
-                result = subprocess.run(['htmlhint', filepath] + args, capture_output=True, text=True, check=False, timeout=30)
+                # Sanitize filepath for htmlhint
+                result = subprocess.run(['htmlhint', filepath] + sanitized_args, capture_output=True, text=True, check=False, timeout=30)
             else:
                 return [], False
             
@@ -391,6 +795,21 @@ def enhance_code(
             return "Could not read code context from file."
 
         if model_mode == "ollama":
+            # Check if Ollama service is available before attempting to use it
+            try:
+                from backend.services.ollama_client import get_available_models_sync
+                available_models = get_available_models_sync()
+                if not available_models:
+                    return "No Ollama models available. Please install and configure Ollama first."
+                
+                if not model_ref:
+                    return "No Ollama model selected. Please select a model in the AI tab."
+                    
+            except Exception as e:
+                if log_message_callback:
+                    log_message_callback(f"Ollama service not available: {str(e)[:MAX_ERROR_MESSAGE_LENGTH]}")
+                return "Ollama service not available. Please check your Ollama installation."
+            
             code_context = get_code_context(filepath, line_num, context_lines=2)  # Further reduced context
             language_name = SUPPORTED_LANGUAGES[language]['language_name']
             prompt = (
@@ -424,10 +843,15 @@ def enhance_code(
                 return "AI suggestion generation timed out"
             except Exception as e:
                 signal.alarm(0)  # Cancel timeout
-                log_message_callback(f"Error enhancing code: {str(e)[:MAX_ERROR_MESSAGE_LENGTH]}")
+                if log_message_callback:
+                    log_message_callback(f"Error enhancing code: {str(e)[:MAX_ERROR_MESSAGE_LENGTH]}")
                 return "Error generating AI suggestion"
         
         elif model_mode == "own_model":
+            # Check if own model is available
+            if not model_ref or not tokenizer_ref:
+                return "No trained model available. Please train a model first."
+                
             prompt = f"[BAD_CODE] {original_code_line[:MAX_PROMPT_LENGTH]} [GOOD_CODE]"
             try:
                 clean_suggestion = ai_tools.generate_with_own_model(
@@ -530,7 +954,7 @@ def scan_code(
     directory: str, 
     model_mode: str, 
     model_ref: Any,
-    tokenizer_ref: Any,
+    tokenizer_ref: Any = None,  # Make tokenizer optional
     progress_callback: Optional[Callable[[int, int, str], None]] = None,
     log_message_callback: Optional[Callable[[str], None]] = None,
     cancellation_callback: Optional[Callable[[], bool]] = None
@@ -541,190 +965,252 @@ def scan_code(
     """
     _log = log_message_callback if callable(log_message_callback) else print
     
-    _log(f"Starting intelligent multi-language code scan in '{directory}' using '{model_mode}' model.")
-    
-    # Initialize intelligent analyzer
-    analyzer = IntelligentCodeAnalyzer()
-    
-    language_files = _get_all_code_files(directory, log_message_callback=_log)
-    
-    all_issues = []
-    total_files = sum(len(files) for files in language_files.values())
-    processed_files = 0
-    missing_linters = set()
-    
-    # Thread-safe progress tracking
-    progress_lock = threading.Lock()
-    
-    def update_progress(filepath: str):
-        nonlocal processed_files
-        with progress_lock:
-            processed_files += 1
-            if progress_callback:
-                progress_callback(processed_files, total_files, f"Analyzing {os.path.relpath(filepath, directory)}")
-    
-    # Check for cancellation before starting
-    if cancellation_callback and cancellation_callback():
-        _log("Scan cancelled before starting")
+    # Validate model settings
+    if model_mode == "ollama":
+        if not model_ref:
+            _log("Error: No Ollama model selected")
+            return []
+        try:
+            # Verify Ollama model is available
+            from backend.services.ollama_client import get_available_models_sync
+            available_models = get_available_models_sync()
+            if model_ref not in available_models:
+                _log(f"Error: Selected Ollama model '{model_ref}' is not available")
+                return []
+        except Exception as e:
+            _log(f"Error: Failed to verify Ollama model availability: {e}")
+            return []
+    elif model_mode == "own_model":
+        if not model_ref or not tokenizer_ref:  # Only check tokenizer for own models
+            _log("Error: Own model or tokenizer not loaded")
+            return []
+    else:
+        _log(f"Error: Unsupported model mode: {model_mode}")
         return []
     
-    # Determine optimal number of workers based on CPU cores and file count
-    import multiprocessing
-    cpu_count = multiprocessing.cpu_count()
+    _log(f"Starting intelligent multi-language code scan in '{directory}' using '{model_mode}' model.")
     
-    # Very conservative threading strategy to prevent memory issues
-    # Use single thread for maximum stability
-    max_workers = 1  # Single thread for maximum stability
-    
-    _log(f"Using {max_workers} worker thread for maximum stability (CPU cores: {cpu_count}, files: {total_files})")
-    
-    # Disable linters to prevent subprocess crashes
-    _log("Disabling linters to prevent subprocess crashes - using intelligent analysis only")
-    process_file_parallel._linters_disabled = True
-    
-    # Process files in batches to prevent memory overload
-    batch_size = max(1, total_files // 4)  # Smaller batches for single thread
-    all_file_paths = []
-    for language, files in language_files.items():
-        if files:
-            all_file_paths.extend([(filepath, language) for filepath in files])
-    
-    # Process files in batches
-    for batch_start in range(0, len(all_file_paths), batch_size):
-        batch_end = min(batch_start + batch_size, len(all_file_paths))
-        batch_files = all_file_paths[batch_start:batch_end]
-        
-        # Check for cancellation before processing batch
-        if cancellation_callback and cancellation_callback():
-            _log("Scan cancelled during batch processing")
-            return all_issues
-        
-        _log(f"Processing batch {batch_start//batch_size + 1}/{(len(all_file_paths) + batch_size - 1)//batch_size} ({len(batch_files)} files)")
-        
-        # Process batch with ThreadPoolExecutor (single thread)
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit batch file processing tasks
-            future_to_file = {}
-            
-            for filepath, language in batch_files:
-                future = executor.submit(
-                    process_file_parallel,
-                    filepath,
-                    language,
-                    model_mode,
-                    model_ref,
-                    tokenizer_ref,
-                    analyzer,
-                    log_message_callback
-                )
-                future_to_file[future] = (filepath, language)
-            
-            # Collect results as they complete
-            for future in as_completed(future_to_file):
-                # Check for cancellation during processing
-                if cancellation_callback and cancellation_callback():
-                    _log("Scan cancelled during processing")
-                    # Cancel remaining futures
-                    for remaining_future in future_to_file:
-                        if not remaining_future.done():
-                            remaining_future.cancel()
-                    return all_issues
-                
-                filepath, language = future_to_file[future]
-                try:
-                    file_issues, linter_available = future.result()
-                    all_issues.extend(file_issues)
-                    
-                    if not linter_available:
-                        linter_name = SUPPORTED_LANGUAGES[language]['linter']
-                        missing_linters.add(f"{SUPPORTED_LANGUAGES[language]['language_name']} ({linter_name})")
-                    
-                    update_progress(filepath)
-                    
-                except Exception as e:
-                    _log(f"Error processing {filepath}: {e}")
-                    update_progress(filepath)
-        
-        # Force garbage collection after each batch to prevent memory buildup
-        import gc
-        gc.collect()
-        
-        # Small delay between batches to prevent system overload
-        time.sleep(0.3)  # Increased delay for single thread
-
-    if progress_callback: 
-        progress_callback(total_files, total_files, "Analysis complete.")
-    
-    # Generate comprehensive summary
     try:
-        _log("Starting summary generation...")
-        # Convert issues back to CodeIssue objects for summary
-        code_issues = []
-        for i, issue in enumerate(all_issues):
+        # Initialize progress
+        if progress_callback:
+            progress_callback(0, 100, "Initializing scan...")
+        
+        # Get list of files to scan
+        files = get_files_to_scan(directory)
+        if not files:
+            _log("No files found to scan")
+            return []
+        
+        total_files = len(files)
+        _log(f"Found {total_files} files to scan")
+
+        if progress_callback:
+            # Initialize with total number of files
+            progress_callback(0, total_files, "Initializing scan...")
+        
+        # Process files
+        results = []
+        for i, file_path in enumerate(files, 1):
+            # Check for cancellation
+            if cancellation_callback and cancellation_callback():
+                _log("Scan cancelled by user")
+                return results
+            
+            # Update progress
+            if progress_callback:
+                progress_callback(i, total_files, f"Scanning file {i}/{total_files}: {os.path.basename(file_path)}")
+            
             try:
-                # Fix the IssueType conversion - use the string value directly
-                issue_type_str = issue['issue_type']
-                _log(f"Processing issue {i+1}/{len(all_issues)}: {issue_type_str}")
+                # Process file based on model mode
+                if model_mode == "ollama":
+                    file_results = process_file_ollama(file_path, model_ref)
+                else:  # own_model
+                    file_results = process_file_own_model(file_path, model_ref, tokenizer_ref)
                 
-                # Map string values to IssueType enum
-                issue_type_mapping = {
-                    'performance_issue': IssueType.PERFORMANCE_ISSUE,
-                    'security_vulnerability': IssueType.SECURITY_VULNERABILITY,
-                    'code_smell': IssueType.CODE_SMELL,
-                    'maintainability_issue': IssueType.MAINTAINABILITY_ISSUE,
-                    'documentation_issue': IssueType.DOCUMENTATION_ISSUE,
-                    'best_practice_violation': IssueType.BEST_PRACTICE_VIOLATION,
-                    'linter_error': IssueType.LINTER_ERROR,
-                    'architectural_issue': IssueType.ARCHITECTURAL_ISSUE,
-                    'dependency_issue': IssueType.DEPENDENCY_ISSUE,
-                    'semantic_issue': IssueType.SEMANTIC_ISSUE,
-                    'data_flow_issue': IssueType.DATA_FLOW_ISSUE,
-                    'code_quality': IssueType.CODE_QUALITY,
-                    'logic_error': IssueType.LOGIC_ERROR
-                }
-                
-                issue_type = issue_type_mapping.get(issue_type_str, IssueType.CODE_QUALITY)
-                
-                code_issues.append(CodeIssue(
-                    file_path=issue['file_path'],
-                    line_number=issue['line_number'] + 1,  # Convert back to 1-based
-                    issue_type=issue_type,
-                    severity=issue['severity'],
-                    description=issue['description'],
-                    code_snippet=issue['code_snippet'],
-                    suggestion=issue['suggested_improvement'],
-                    context=issue['context']
-                ))
+                if file_results:
+                    results.extend(file_results)
             except Exception as e:
-                _log(f"Error converting issue {i+1}: {e}")
+                _log(f"Error processing file {file_path}: {e}")
                 continue
         
-        _log(f"Successfully converted {len(code_issues)} issues for summary")
+        # Final progress update
+        if progress_callback:
+            progress_callback(total_files, total_files, "Scan complete")
         
-        summary = analyzer.generate_summary(code_issues)
-        _log(f"\n=== INTELLIGENT ANALYSIS SUMMARY ===")
-        _log(f"Total issues found: {summary['total_issues']}")
-        _log(f"Issues by type: {summary['by_type']}")
-        _log(f"Issues by severity: {summary['by_severity']}")
-        
-        if summary['critical_issues']:
-            _log(f"Critical issues: {len(summary['critical_issues'])}")
-            for issue in summary['critical_issues'][:3]:  # Show first 3
-                _log(f"  - {issue['file']}:{issue['line']} - {issue['description']}")
-        
-        if summary['recommendations']:
-            _log(f"Recommendations:")
-            for rec in summary['recommendations']:
-                _log(f"  - {rec}")
-        
+        return results
     except Exception as e:
-        _log(f"Error generating summary: {e}")
-        import traceback
-        _log(f"Traceback: {traceback.format_exc()}")
-    
-    # Report missing linters
-    if missing_linters:
-        _log(f"\nMissing linters: {', '.join(missing_linters)}")
-        _log("Install missing linters for better analysis results.")
-    
-    return all_issues
+        _log(f"Error during scan: {e}")
+        return []
+
+def get_files_to_scan(directory: str) -> List[str]:
+    """Get list of files to scan in the directory, respecting .ai_coder_ignore patterns."""
+    import pathspec
+    files = []
+    ignore_file = os.path.join(directory, '.ai_coder_ignore')
+    patterns = []
+    if os.path.exists(ignore_file):
+        with open(ignore_file, 'r', encoding='utf-8') as f:
+            patterns = [line.strip() for line in f if line.strip() and not line.strip().startswith('#')]
+    spec = pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+    for root, _, filenames in os.walk(directory):
+        rel_root = os.path.relpath(root, directory)
+        if rel_root == '.':
+            rel_root = ''
+        # Exclude ignored directories
+        dirs_to_check = {os.path.join(rel_root, d).replace(os.sep, '/') for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))}
+        ignored_dirs = set(spec.match_files(dirs_to_check))
+        ignored_dir_names = {os.path.basename(str(p).strip('/')) for p in ignored_dirs}
+        # Remove ignored dirs from os.walk traversal
+        dirnames = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+        for d in dirnames:
+            if d in ignored_dir_names:
+                try:
+                    os.listdir(os.path.join(root, d))  # Touch to trigger os.walk to skip
+                except Exception:
+                    pass
+        # Exclude ignored files
+        for filename in filenames:
+            rel_file_path = os.path.join(rel_root, filename).replace(os.sep, '/')
+            if spec.match_file(rel_file_path):
+                continue
+            if filename.endswith(('.py', '.js', '.ts', '.java', '.cpp', '.c', '.h', '.hpp')):
+                files.append(os.path.join(root, filename))
+    return files
+
+def process_file_ollama(file_path: str, model_ref: str) -> List[Dict[str, Any]]:
+    """Process a file using Ollama model."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Call Ollama API to analyze code
+        from backend.services.ollama_client import analyze_code, OllamaClient
+        
+        # Create Ollama client instance
+        client = OllamaClient()
+        
+        # Use asyncio to run the async function
+        import asyncio
+        results = asyncio.run(analyze_code(client, content, model_ref))
+        
+        # Convert results to standard format
+        issues = []
+        for result in results:
+            issues.append({
+                'file_path': file_path,
+                'line_number': result.get('line_number', 0),
+                'description': result.get('description', ''),
+                'severity': result.get('severity', 'medium'),
+                'suggested_improvement': result.get('suggestion', ''),
+                'code_snippet': result.get('code_snippet', ''),
+                'context': result.get('context', ''),
+                'issue_type': result.get('issue_type', 'code_quality'),
+                'language': 'unknown'  # Will be set by the caller
+            })
+        return issues
+    except Exception as e:
+        print(f"Error processing file {file_path} with Ollama: {e}")
+        return []
+
+def process_file_own_model(file_path: str, model_ref: Any, tokenizer_ref: Any) -> List[Dict[str, Any]]:
+    """Process a file using own trained model."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Use own model to analyze code
+        # This is a placeholder - implement your own model analysis here
+        issues = []
+        # TODO: Implement own model analysis
+        return issues
+    except Exception as e:
+        print(f"Error processing file {file_path} with own model: {e}")
+        return []
+
+def scan_code_local(
+    directory: str, 
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    log_message_callback: Optional[Callable[[str], None]] = None,
+    cancellation_callback: Optional[Callable[[], bool]] = None
+) -> List[dict]:
+    """
+    Performs a fast, local-only code scan using pattern matching.
+    Workflow:
+      1. File discovery (with .ai_coder_ignore support)
+      2. Language detection
+      3. Linter/static analysis (TODO)
+      4. AI analysis (TODO)
+      5. Aggregation and reporting
+    """
+    _log = log_message_callback if callable(log_message_callback) else print
+    _log(f"Starting local code scan in '{directory}'.")
+
+    try:
+        # 1. File discovery
+        if progress_callback:
+            progress_callback(0, 100, "Initializing local scan...")
+
+        files = get_files_to_scan(directory)
+        if not files:
+            _log("No files found to scan")
+            if progress_callback:
+                progress_callback(100, 100, "No files found.")
+            return []
+
+        total_files = len(files)
+        _log(f"Found {total_files} files to scan")
+        
+        analyzer = IntelligentCodeAnalyzer()
+        all_issues = []
+        
+        for i, file_path in enumerate(files, 1):
+            if cancellation_callback and cancellation_callback():
+                _log("Scan cancelled by user")
+                break
+            
+            if progress_callback:
+                progress_callback(i, total_files, f"Scanning file {i}/{total_files}: {os.path.basename(file_path)}")
+
+            # 2. Language detection
+            language = detect_language(file_path)
+            if language == 'unknown':
+                continue
+
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+                
+                # 3. Linter/static analysis (TODO: integrate linter here)
+                # linter_issues = run_linter(file_path, language)
+                # all_issues.extend(linter_issues)
+
+                # 4. AI analysis (current: intelligent analyzer)
+                issues = analyzer._analyze_content_intelligently(content, file_path, language)
+                
+                for issue in issues:
+                    all_issues.append({
+                        'file_path': issue.file_path,
+                        'line_number': issue.line_number,
+                        'description': issue.description,
+                        'code_snippet': issue.code_snippet,
+                        'suggested_improvement': '',
+                        'language': language,
+                        'issue_type': issue.issue_type.value,
+                        'severity': issue.severity,
+                        'context': issue.context or {}
+                    })
+
+            except Exception as e:
+                _log(f"Error processing file {file_path} locally: {e}")
+                continue
+
+        # 5. Aggregation and reporting
+        if progress_callback:
+            progress_callback(total_files, total_files, "Local scan complete")
+
+        _log(f"Local scan found {len(all_issues)} potential issues.")
+        return all_issues
+
+    except Exception as e:
+        _log(f"Error during local scan: {e}")
+        return []

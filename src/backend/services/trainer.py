@@ -33,8 +33,8 @@ from datasets import load_dataset
 from typing import Dict
 
 # --- FIXED: Import the new settings module from the config package ---
-from ..utils import settings
-from ..utils.constants import PROGRESS_MIN, PROGRESS_MAX
+from backend.utils import settings
+from backend.utils.constants import PROGRESS_MIN, PROGRESS_MAX
 
 def get_best_device(log_callback):
     """

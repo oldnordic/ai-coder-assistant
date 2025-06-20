@@ -1,0 +1,106 @@
+=== MAIN PAGE ===
+FirstSpirit Online Documentation - Welcome to the FirstSpirit Online Documentation
+Overview
+Templates (basics)
+Template development
+Plug-In Development
+Enhanced JSON support
+Advanced topics
+Tutorials
+Documentation for Administrators
+Documentation “Content Experience Tools”
+Documentation FirstSpirit SiteArchitect
+Documentation „FirstSpirit Launcher JRE“
+Documentation „Installation Instructions“
+Isolated Mode Guide
+Documentation “External Synchronization”
+Online Documentation
+Sprache / Language
+Deutsch / German
+Englisch / English
+Start page
+/
+Overview
+Welcome to the FirstSpirit Developer Documentation
+For which users is this documentation intended?
+This documentation deals with template development and plug-in development in FirstSpirit. By linking different sub-areas of the template development and by the sub-division into two difficulty levels for beginners (see
+Basic principles of template development
+) and for advanced users (see
+Template development
+) this documentation provides clearly structured information and should therefore make familiarisation with the template syntax of FirstSpirit easier.
+Sub-areas of the online documentation
+This online documentation is divided into the following main sections:
+Template development
+All important aspects for the development of a FirstSpirit project in the Template Store can be read up in this section. The section is divided into the relevant sub-aspects of template development. These include:
+Forms
+for the definition of input components.
+Rules
+for influencing specific elements or characteristic of a form
+Snippets
+for influencing the display of objects (“teasers”)
+Template syntax
+divided into instructions, expressions, data types and functions.
+Variables
+for evaluation of contents of different areas.
+Debugging
+providing information about finding and fixing bugs in FirstSpirit projects.
+ContentCreator
+provides information about functional scope, requirements and restrictions of ContentCreator. For information about how to implement EasyEdit / InlineEdit / LiveEdit please refer to Chapter
+Content Highlighting and EasyEdit
+, for information about developing using JavaScript API please refer to Chapter
+JavaScript API
+.
+Scripting
+for automation of control sequences.
+FirstSpirit API
+as a public interface of FirstSpirit.
+Security
+with notes about security aspects for project and template development.
+Templates (basic principles)
+The topics used in most FirstSpirit projects are dealt with in this section.
+Among other things there is a
+step by step introduction
+to the development of a FirstSpirit project. From the initial creation of a new project to the creation of page and section templates through to use of databases; simple examples are used to explain working with FirstSpirit.
+ContentCreator
+Requirements
+,
+functions
+and
+restrictions
+for using the editing environment ContentCreator can be read up in this section.
+In addition, topics that affect template development for ContentCreator will be covered:
+Template development
+Primarily to simplify the editorial work in the preview (EasyEdit / InlineEdit / LiveEdit).
+Customization
+The interface of ContentCreator can be customized to meet the requirements of the respective project.
+JavaScript-API
+(
+WE_API
+)
+Enables interaction with the user interface and other ContentCreator functions via JavaScript, e.g. from documents in the preview.
+Plugins
+Custom extensions (modules) that extend the functionality of ContentCreator.
+Advanced topics
+Over-all aspects of the functionality of FirstSpirit are explained in this section.
+Generation
+Server-side release
+Exif data
+Remote access
+Document groups
+Tracking changes
+Input assistance
+(code completion)
+are illustrated here. Further subjects will be added successively.
+Tutorials
+This section provides
+exercises
+for developing templates.
+And now, enjoy working with FirstSpirit!
+FirstSpirit is not a universal “out-of-the-box” product, but is software which is constantly being developed. New functions are continuously being integrated and customer ideas are realised. The documentation can only satisfy this constant updating process to a limited extent. It is therefore possible that a figure in this document differs from the current view in FirstSpirit due to slight time delays. Do not let it confuse you and follow the instructions as usual.
+Disclaimer
+This documentation is provided for information purposes only. Crownpeak may change the contents hereof without notice. This documentation is not warranted to be error-free, nor subject to any other warranties or conditions, whether expressed orally or implied in law, including implied warranties and conditions of merchantability or fitness for a particular purpose. Crownpeak specifically disclaims any liability with respect to this documentation and no contractual obligations are formed either directly or indirectly by this documentation. The technologies, functionality, services, and processes described herein are subject to change without notice.
+Print version
+|
+Page start
+© 2005 - 2025 Crownpeak Technology GmbH | All rights reserved. | FirstSpirit 2025.6 |
+Data privacy

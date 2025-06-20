@@ -24,7 +24,7 @@ Provides GUI components for AI-powered PR creation and review.
 
 import os
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable
 from pathlib import Path
 
 from PyQt6.QtWidgets import (
@@ -42,122 +42,124 @@ from PyQt6.QtGui import QFont, QTextCursor
 # from ..pr.scan_integrator import ScanIntegrator
 # from ..pr.pr_templates import PRType
 from backend.utils.constants import WAIT_TIMEOUT_SHORT_MS, SPLITTER_LEFT_SIZE, SPLITTER_RIGHT_SIZE
+from .worker_threads import get_thread_manager
 
 
-class PRCreationWorker(QThread):
-    """Worker thread for PR creation to avoid blocking the UI."""
-    
-    progress_updated = pyqtSignal(int, int, str)
-    pr_created = pyqtSignal(dict)
-    error_occurred = pyqtSignal(str)
-    
-    def __init__(self, scan_files: List[str], config: Dict[str, Any]):
-        super().__init__()
-        self.scan_files = scan_files
-        self.config = config
-    
-    def run(self):
-        try:
-            # Simulate PR creation process
-            self.progress_updated.emit(1, 5, "Loading scan results...")
-            self.msleep(WAIT_TIMEOUT_SHORT_MS)
-            
-            self.progress_updated.emit(2, 5, "Integrating scan results...")
-            self.msleep(WAIT_TIMEOUT_SHORT_MS)
-            
-            self.progress_updated.emit(3, 5, "Getting AI recommendations...")
-            self.msleep(WAIT_TIMEOUT_SHORT_MS)
-            
-            self.progress_updated.emit(4, 5, "Creating PR...")
-            self.msleep(WAIT_TIMEOUT_SHORT_MS)
-            
-            self.progress_updated.emit(5, 5, "PR created successfully!")
-            
-            # Return mock result
-            result = {
-                'success': True,
-                'title': 'AI-Powered Code Quality Improvements',
-                'description': 'This PR addresses code quality issues identified by AI analysis.',
-                'branch_name': 'ai-code-quality-fix',
-                'commit_hash': 'abc123',
-                'pr_url': 'https://github.com/example/pull/123',
-                'files_changed': ['src/main.py', 'src/core/analyzer.py'],
-                'status': 'ready',
-                'issues': [
-                    {'issue_type': 'code_smell', 'severity': 'medium'},
-                    {'issue_type': 'security_vulnerability', 'severity': 'high'}
-                ],
-                'priority_order': ['security_vulnerability', 'code_smell'],
-                'estimated_time': '2 hours',
-                'risk_impact': 'Low risk, improves code quality',
-                'review_notes': 'Please review the AI-generated fixes for accuracy.'
-            }
-            
-            self.pr_created.emit(result)
-            
-        except Exception as e:
-            self.error_occurred.emit(str(e))
+"""
 
+# MIGRATION NEEDED: Replace QThread subclass with ThreadManager pattern
+
+# 1. Remove this QThread subclass.
+# 2. Create a backend function for the threaded operation:
+#    def backend_func(..., progress_callback=None, log_message_callback=None, cancellation_callback=None):
+#        # do work, call callbacks, return result
+# 3. In the UI, use:
+#    from .worker_threads import start_worker
+#    worker_id = start_worker("task_type", backend_func, ..., progress_callback=..., log_message_callback=...)
+# 4. Connect ThreadManager signals to UI slots for progress, result, and error.
+
+"""
+
+def pr_creation_backend(
+    scan_files: List[str], 
+    config: Dict[str, Any], 
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    log_message_callback: Optional[Callable[[str], None]] = None,
+    cancellation_callback: Optional[Callable[[], bool]] = None
+) -> Optional[Dict[str, Any]]:
+    import time
+    steps = [
+        ("Loading scan results...", 1),
+        ("Integrating scan results...", 2),
+        ("Getting AI recommendations...", 3),
+        ("Creating PR...", 4),
+        ("PR created successfully!", 5),
+    ]
+    total = len(steps)
+    for i, (msg, step) in enumerate(steps, 1):
+        if cancellation_callback and cancellation_callback():
+            if log_message_callback:
+                log_message_callback("PR creation cancelled.")
+            return None
+        if progress_callback:
+            progress_callback(i, total, msg)
+        if log_message_callback:
+            log_message_callback(msg)
+        time.sleep(0.5)  # Simulate work
+        
+    result = {
+        'success': True,
+        'title': 'AI-Powered Code Quality Improvements',
+        'description': 'This PR addresses code quality issues identified by AI analysis.',
+        'branch_name': 'ai-code-quality-fix',
+        'commit_hash': 'abc123',
+        'pr_url': 'https://github.com/example/pull/123',
+        'files_changed': ['src/main.py', 'src/core/analyzer.py'],
+        'status': 'ready',
+        'issues': [
+            {'issue_type': 'code_smell', 'severity': 'medium'},
+            {'issue_type': 'security_vulnerability', 'severity': 'high'}
+        ],
+        'priority_order': ['security_vulnerability', 'code_smell'],
+        'estimated_time': '2 hours',
+        'risk_impact': 'Low risk, improves code quality',
+        'review_notes': 'Please review the AI-generated fixes for accuracy.'
+    }
+    return result
 
 class PRCreationTab(QWidget):
     """Main PR creation tab widget."""
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.scan_files = []
+        self.scan_files: List[str] = []
+        self.thread_manager = get_thread_manager()
         self.setup_ui()
         self.setup_connections()
     
     def setup_ui(self):
         """Setup the PR creation UI."""
-        layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout(self)
         
-        # Title
         title = QLabel("AI-Powered PR Creation and Review")
         title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
-        layout.addWidget(title)
+        main_layout.addWidget(title)
         
-        # Create main splitter
         splitter = QSplitter(Qt.Orientation.Horizontal)
-        layout.addWidget(splitter)
+        main_layout.addWidget(splitter)
         
-        # Left panel - Configuration
         left_panel = self.create_configuration_panel()
         splitter.addWidget(left_panel)
         
-        # Right panel - Preview and Results
         right_panel = self.create_preview_panel()
         splitter.addWidget(right_panel)
         
-        # Set splitter proportions
         splitter.setSizes([SPLITTER_LEFT_SIZE, SPLITTER_RIGHT_SIZE])
         
-        # Bottom panel - Actions
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        main_layout.addWidget(self.progress_bar)
+        
         bottom_panel = self.create_actions_panel()
-        layout.addWidget(bottom_panel)
+        main_layout.addWidget(bottom_panel)
     
     def create_configuration_panel(self) -> QWidget:
         """Create the configuration panel."""
         panel = QWidget()
         layout = QVBoxLayout(panel)
         
-        # Scan Results Selection
         scan_group = QGroupBox("Scan Results")
         scan_layout = QVBoxLayout(scan_group)
-        
         self.scan_files_list = QListWidget()
         scan_layout.addWidget(self.scan_files_list)
-        
         scan_buttons_layout = QHBoxLayout()
         self.add_scan_files_btn = QPushButton("Add Scan Files")
         self.clear_scan_files_btn = QPushButton("Clear All")
         scan_buttons_layout.addWidget(self.add_scan_files_btn)
         scan_buttons_layout.addWidget(self.clear_scan_files_btn)
         scan_layout.addLayout(scan_buttons_layout)
-        
         layout.addWidget(scan_group)
         
-        # PR Configuration
         config_group = QGroupBox("PR Configuration")
         config_layout = QVBoxLayout(config_group)
         
@@ -239,339 +241,162 @@ class PRCreationTab(QWidget):
         """Create the preview panel."""
         panel = QWidget()
         layout = QVBoxLayout(panel)
-        
-        # Create tab widget for different previews
         self.preview_tabs = QTabWidget()
-        
-        # PR Preview Tab
         self.pr_preview_edit = QTextEdit()
         self.pr_preview_edit.setPlaceholderText("PR preview will appear here...")
         self.preview_tabs.addTab(self.pr_preview_edit, "PR Preview")
-        
-        # Issues Summary Tab
-        self.issues_summary_edit = QTextEdit()
-        self.issues_summary_edit.setPlaceholderText("Issues summary will appear here...")
-        self.preview_tabs.addTab(self.issues_summary_edit, "Issues Summary")
-        
-        # AI Recommendations Tab
-        self.ai_recommendations_edit = QTextEdit()
-        self.ai_recommendations_edit.setPlaceholderText("AI recommendations will appear here...")
-        self.preview_tabs.addTab(self.ai_recommendations_edit, "AI Recommendations")
-        
+        self.log_output_edit = QTextEdit()
+        self.log_output_edit.setReadOnly(True)
+        self.preview_tabs.addTab(self.log_output_edit, "Log Output")
         layout.addWidget(self.preview_tabs)
-        
         return panel
     
     def create_actions_panel(self) -> QWidget:
         """Create the actions panel."""
-        panel = QFrame()
-        panel.setFrameStyle(QFrame.Shape.StyledPanel)
+        panel = QWidget()
         layout = QHBoxLayout(panel)
-        
-        # Progress bar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        layout.addWidget(self.progress_bar)
-        
-        # Action buttons
-        self.preview_btn = QPushButton("Preview PR")
+        layout.addStretch()
+        self.preview_pr_btn = QPushButton("Preview PR")
         self.create_pr_btn = QPushButton("Create PR")
-        self.export_config_btn = QPushButton("Export Config")
-        self.import_config_btn = QPushButton("Import Config")
-        
-        layout.addWidget(self.preview_btn)
+        layout.addWidget(self.preview_pr_btn)
         layout.addWidget(self.create_pr_btn)
-        layout.addWidget(self.export_config_btn)
-        layout.addWidget(self.import_config_btn)
-        
+        layout.addStretch()
         return panel
     
     def setup_connections(self):
-        """Setup signal connections."""
+        """Setup signal-slot connections."""
         self.add_scan_files_btn.clicked.connect(self.add_scan_files)
         self.clear_scan_files_btn.clicked.connect(self.clear_scan_files)
-        self.browse_repo_btn.clicked.connect(self.browse_repository)
-        self.preview_btn.clicked.connect(self.preview_pr)
+        self.preview_pr_btn.clicked.connect(self.preview_pr)
         self.create_pr_btn.clicked.connect(self.create_pr)
-        self.export_config_btn.clicked.connect(self.export_config)
-        self.import_config_btn.clicked.connect(self.import_config)
-    
+        
+        # Connect thread manager signals globally
+        # Note: Worker-specific signals are handled via callbacks in start_worker
+        self.thread_manager.worker_error.connect(self._on_worker_error)
+
     def add_scan_files(self):
         """Add scan result files."""
-        files, _ = QFileDialog.getOpenFileNames(
-            self, "Select Scan Result Files", "", 
-            "JSON Files (*.json);;All Files (*)"
-        )
-        
-        for file_path in files:
-            if file_path not in self.scan_files:
-                self.scan_files.append(file_path)
-                item = QListWidgetItem(os.path.basename(file_path))
-                item.setData(Qt.ItemDataRole.UserRole, file_path)
-                self.scan_files_list.addItem(item)
-    
+        files, _ = QFileDialog.getOpenFileNames(self, "Select Scan Files", "", "JSON Files (*.json)")
+        if files:
+            self.scan_files_list.addItems(files)
+
     def clear_scan_files(self):
-        """Clear all scan files."""
-        self.scan_files.clear()
         self.scan_files_list.clear()
-    
-    def browse_repository(self):
-        """Browse for repository path."""
-        path = QFileDialog.getExistingDirectory(self, "Select Repository Path")
-        if path:
-            self.repo_path_edit.setText(path)
-    
+
     def get_config(self) -> Dict[str, Any]:
-        """Get current configuration."""
         return {
-            'scan_result_files': self.scan_files,
-            'repository_path': self.repo_path_edit.text(),
-            'base_branch': self.base_branch_edit.text(),
-            'pr_type': self.pr_type_combo.currentText(),
-            'priority_strategy': self.priority_strategy_combo.currentText(),
-            'template_standard': self.template_standard_combo.currentText(),
-            'deduplicate': self.deduplicate_check.isChecked(),
-            'auto_commit': self.auto_commit_check.isChecked(),
-            'auto_push': self.auto_push_check.isChecked(),
-            'create_pr': self.create_pr_check.isChecked(),
-            'dry_run': self.dry_run_check.isChecked()
+            "dry_run": self.dry_run_check.isChecked(),
         }
-    
+
     def preview_pr(self):
-        """Preview the PR without creating it."""
-        if not self.scan_files:
-            QMessageBox.warning(self, "Warning", "Please add scan result files first.")
+        if not self.get_scan_files():
+            QMessageBox.warning(self, "No Scan Files", "Please add scan files first.")
             return
         
-        try:
-            config = self.get_config()
-            config['dry_run'] = True
-            
-            # Create worker for preview
-            self.worker = PRCreationWorker(self.scan_files, config)
-            self.worker.progress_updated.connect(self.update_progress)
-            self.worker.pr_created.connect(self.show_preview)
-            self.worker.error_occurred.connect(self.show_error)
-            
-            self.progress_bar.setVisible(True)
-            self.worker.start()
-            
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error previewing PR: {e}")
-    
-    def create_pr(self):
-        """Create the PR."""
-        if not self.scan_files:
-            QMessageBox.warning(self, "Warning", "Please add scan result files first.")
-            return
+        config = self.get_config()
+        config['dry_run'] = True
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, 0)
         
-        reply = QMessageBox.question(
-            self, "Confirm PR Creation", 
-            "Are you sure you want to create a PR? This will make changes to your repository.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        worker = self.thread_manager.start_worker(
+            "preview_pr",
+            pr_creation_backend,
+            self.get_scan_files(),
+            config,
+            callback=self.show_preview,
+            error_callback=self.show_error
         )
-        
-        if reply == QMessageBox.StandardButton.Yes:
-            try:
-                config = self.get_config()
-                
-                # Create worker for PR creation
-                self.worker = PRCreationWorker(self.scan_files, config)
-                self.worker.progress_updated.connect(self.update_progress)
-                self.worker.pr_created.connect(self.show_pr_result)
-                self.worker.error_occurred.connect(self.show_error)
-                
-                self.progress_bar.setVisible(True)
-                self.worker.start()
-                
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Error creating PR: {e}")
-    
-    @pyqtSlot(int, int, str)
-    def update_progress(self, current: int, total: int, message: str):
-        """Update progress bar."""
-        self.progress_bar.setMaximum(total)
+        worker.progress.connect(self.update_progress)
+        worker.log_message.connect(self.handle_log_message)
+
+    def create_pr(self):
+        if not self.get_scan_files():
+            QMessageBox.warning(self, "No Scan Files", "Please add scan files first.")
+            return
+
+        config = self.get_config()
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, 0)
+
+        worker = self.thread_manager.start_worker(
+            "create_pr",
+            pr_creation_backend,
+            self.get_scan_files(),
+            config,
+            callback=self.show_pr_result,
+            error_callback=self.show_error
+        )
+        worker.progress.connect(self.update_progress)
+        worker.log_message.connect(self.handle_log_message)
+
+    def _on_worker_error(self, worker_id: str, error: str):
+        # This slot handles errors from any worker managed by the thread manager
+        self.show_error(f"Error in task '{worker_id}': {error}")
+
+    def handle_log_message(self, message: str):
+        self.log_output_edit.append(message)
+
+    def get_scan_files(self) -> List[str]:
+        return [self.scan_files_list.item(i).text() for i in range(self.scan_files_list.count())]
+
+    @pyqtSlot(str, int, int, str)
+    def update_progress(self, worker_id: str, current: int, total: int, message: str):
+        self.progress_bar.setRange(0, total)
         self.progress_bar.setValue(current)
-        self.progress_bar.setFormat(f"{message} ({current}/{total})")
-    
-    @pyqtSlot(dict)
-    def show_preview(self, result: Dict[str, Any]):
-        """Show PR preview."""
+        self.log_output_edit.append(f"Progress: {message}")
+
+    @pyqtSlot(object)
+    def show_preview(self, result: Optional[Dict[str, Any]]):
         self.progress_bar.setVisible(False)
-        
-        # Show PR preview
-        pr_text = f"""# PR Preview
-
-## Title
-{result.get('title', 'N/A')}
-
-## Description
-{result.get('description', 'N/A')}
-
-## Branch
-{result.get('branch_name', 'N/A')}
-
-## Files Changed
-{result.get('files_changed', [])}
-
-## Status
-{result.get('status', 'N/A')}
-"""
-        self.pr_preview_edit.setPlainText(pr_text)
-        
-        # Show issues summary
-        issues_text = f"""# Issues Summary
-
-Total Issues: {len(result.get('issues', []))}
-
-## Issues by Type
-{self.format_issues_by_type(result.get('issues', []))}
-
-## Issues by Severity
-{self.format_issues_by_severity(result.get('issues', []))}
-"""
-        self.issues_summary_edit.setPlainText(issues_text)
-        
-        # Show AI recommendations
-        ai_text = f"""# AI Recommendations
-
-## Priority Order
-{result.get('priority_order', [])}
-
-## Estimated Time
-{result.get('estimated_time', 'N/A')}
-
-## Risk Impact
-{result.get('risk_impact', 'N/A')}
-
-## Review Notes
-{result.get('review_notes', 'N/A')}
-"""
-        self.ai_recommendations_edit.setPlainText(ai_text)
-        
-        QMessageBox.information(self, "Preview Complete", "PR preview generated successfully!")
-    
-    @pyqtSlot(dict)
-    def show_pr_result(self, result: Dict[str, Any]):
-        """Show PR creation result."""
-        self.progress_bar.setVisible(False)
-        
-        if result.get('success', False):
-            message = f"""PR created successfully!
-
-Branch: {result.get('branch_name', 'N/A')}
-Commit: {result.get('commit_hash', 'N/A')}
-PR URL: {result.get('pr_url', 'N/A')}
-"""
-            QMessageBox.information(self, "Success", message)
+        if result and result.get('success'):
+            self.pr_preview_edit.setText(result.get('description', 'Preview not available.'))
+            self.log_output_edit.append("PR preview generated successfully.")
         else:
-            QMessageBox.critical(self, "Error", f"Failed to create PR: {result.get('error_message', 'Unknown error')}")
-    
+            self.show_error("Failed to generate PR preview.")
+
+    @pyqtSlot(object)
+    def show_pr_result(self, result: Optional[Dict[str, Any]]):
+        self.progress_bar.setVisible(False)
+        if result and result.get('success'):
+            QMessageBox.information(self, "PR Created", f"PR created successfully!\nURL: {result.get('pr_url', 'N/A')}")
+            self.pr_preview_edit.setText(result.get('description', ''))
+        else:
+            self.show_error(f"Failed to create PR: {result.get('error', 'Unknown error') if result else 'Worker cancelled or failed'}")
+
     @pyqtSlot(str)
     def show_error(self, error: str):
-        """Show error message."""
         self.progress_bar.setVisible(False)
-        QMessageBox.critical(self, "Error", f"An error occurred: {error}")
-    
-    def format_issues_by_type(self, issues: List[Dict]) -> str:
-        """Format issues by type."""
-        type_counts = {}
-        for issue in issues:
-            issue_type = issue.get('issue_type', 'unknown')
-            type_counts[issue_type] = type_counts.get(issue_type, 0) + 1
-        
-        result = []
-        for issue_type, count in sorted(type_counts.items()):
-            result.append(f"- {issue_type}: {count}")
-        
-        return '\n'.join(result)
-    
-    def format_issues_by_severity(self, issues: List[Dict]) -> str:
-        """Format issues by severity."""
-        severity_counts = {}
-        for issue in issues:
-            severity = issue.get('severity', 'unknown')
-            severity_counts[severity] = severity_counts.get(severity, 0) + 1
-        
-        result = []
-        for severity in ['critical', 'high', 'medium', 'low']:
-            if severity in severity_counts:
-                result.append(f"- {severity}: {severity_counts[severity]}")
-        
-        return '\n'.join(result)
-    
-    def export_config(self):
-        """Export current configuration."""
-        file_path, _ = QFileDialog.getSaveFileName(
-            self, "Export Configuration", "", "JSON Files (*.json)"
-        )
-        
-        if file_path:
-            try:
-                config = self.get_config()
-                with open(file_path, 'w') as f:
-                    json.dump(config, f, indent=2)
-                QMessageBox.information(self, "Success", "Configuration exported successfully!")
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to export configuration: {e}")
-    
-    def import_config(self):
-        """Import configuration."""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Import Configuration", "", "JSON Files (*.json)"
-        )
-        
-        if file_path:
-            try:
-                with open(file_path, 'r') as f:
-                    config = json.load(f)
-                
-                # Apply configuration
-                self.apply_config(config)
-                QMessageBox.information(self, "Success", "Configuration imported successfully!")
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to import configuration: {e}")
-    
-    def apply_config(self, config: Dict[str, Any]):
-        """Apply configuration to UI."""
-        self.repo_path_edit.setText(config.get('repository_path', '.'))
-        self.base_branch_edit.setText(config.get('base_branch', 'main'))
-        
-        # Set combo box values
-        pr_type = config.get('pr_type', 'code_quality')
-        index = self.pr_type_combo.findText(pr_type)
-        if index >= 0:
-            self.pr_type_combo.setCurrentIndex(index)
-        
-        priority_strategy = config.get('priority_strategy', 'balanced')
-        index = self.priority_strategy_combo.findText(priority_strategy)
-        if index >= 0:
-            self.priority_strategy_combo.setCurrentIndex(index)
-        
-        template_standard = config.get('template_standard', 'github_standard')
-        index = self.template_standard_combo.findText(template_standard)
-        if index >= 0:
-            self.template_standard_combo.setCurrentIndex(index)
-        
-        # Set checkboxes
-        self.deduplicate_check.setChecked(config.get('deduplicate', True))
-        self.auto_commit_check.setChecked(config.get('auto_commit', True))
-        self.auto_push_check.setChecked(config.get('auto_push', False))
-        self.create_pr_check.setChecked(config.get('create_pr', False))
-        self.dry_run_check.setChecked(config.get('dry_run', False))
-        
-        # Load scan files
-        scan_files = config.get('scan_result_files', [])
-        self.scan_files = scan_files
-        self.scan_files_list.clear()
-        for file_path in scan_files:
-            if os.path.exists(file_path):
-                item = QListWidgetItem(os.path.basename(file_path))
-                item.setData(Qt.ItemDataRole.UserRole, file_path)
-                self.scan_files_list.addItem(item)
+        QMessageBox.critical(self, "Worker Error", error)
+        self.log_output_edit.append(f"ERROR: {error}")
 
+    @pyqtSlot(object)
+    def on_pr_fetch_complete(self, pr_data):
+        try:
+            _ = self.isVisible()
+        except RuntimeError:
+            return # Widget is deleted
 
-def setup_pr_tab(parent_widget: QWidget, main_window) -> QWidget:
+        self.progress_bar.hide()
+        if pr_data:
+            self.pr_details_text.setPlainText(pr_data)
+        else:
+            QMessageBox.warning(self, "Error", "Failed to fetch PR details.")
+
+    @pyqtSlot(object)
+    def on_summary_complete(self, summary_data):
+        try:
+            _ = self.isVisible()
+        except RuntimeError:
+            return # Widget is deleted
+            
+        self.progress_bar.hide()
+        if summary_data and "summary" in summary_data:
+            self.summary_text.setPlainText(summary_data["summary"])
+        else:
+            QMessageBox.warning(self, "Error", "Failed to generate summary.")
+
+def setup_pr_tab(parent_widget: QWidget, main_window: QWidget) -> QWidget:
     """Setup the PR creation tab."""
-    pr_tab = PRCreationTab(parent_widget)
-    return pr_tab 
+    tab = PRCreationTab(parent_widget)
+    # Global signal connections are now managed within the tab itself.
+    return tab 

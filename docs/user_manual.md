@@ -76,22 +76,26 @@ The Data Acquisition tab is where you build your knowledge base by adding docume
 
 **Purpose**: Automatically extract content from web documentation.
 
+The AI Coder Assistant provides robust web scraping capabilities with two modes:
+
 **Enhanced Mode** (Recommended for documentation):
-- **Max Pages**: 1-50 (default: 15) - Maximum pages to scrape per URL
-- **Max Depth**: 1-10 (default: 4) - How deep to follow links
-- **Same Domain Only**: Restricts crawling to the same website
-- **Smart Navigation**: Follows pagination, next/previous links, and navigation menus
+- Multi-page crawling with configurable depth
+- Smart link following with domain restrictions
+- Concurrent processing with proper resource management
+- Progress tracking and cancellation support
 
 **Simple Mode** (For single pages):
-- Scrapes only the main page content
+- Fast single-page extraction
 - No link following
-- Faster processing for basic content
+- Minimal resource usage
 
 **How to use**:
 1. Enter URLs (one per line) in the text area
 2. Select scraping mode (Enhanced or Simple)
 3. Configure parameters as needed
 4. Click "Scrape URLs and Add to Corpus"
+
+For detailed configuration, best practices, troubleshooting, and API reference, see the [Web Scraping Guide](web_scraping_guide.md).
 
 **Example URLs**:
 ```
@@ -1933,7 +1937,7 @@ The Security Intelligence Tab provides real-time monitoring of vulnerabilities, 
 - **Training Data**: Export security data for AI model training.
 
 ### Configuration
-- Feeds are managed in the Feeds sub-tab or via `security_intelligence_config.json`.
+- Feeds are managed in the Feeds sub-tab or via `config/security_intelligence_config.json`.
 - Auto-refresh and manual fetch supported.
 
 ### Troubleshooting
@@ -1953,7 +1957,7 @@ The Code Standards Tab enforces company-specific coding standards across multipl
 - **Import/Export**: Share standards across teams.
 
 ### Configuration
-- Standards and rules can be managed in the UI or via `code_standards_config.json`.
+- Standards and rules can be managed in the UI or via `config/code_standards_config.json`.
 - Supports Python, JS, TS, Java, C++, C#, Go, Rust, PHP, Ruby.
 
 ### Troubleshooting

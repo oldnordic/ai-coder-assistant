@@ -1,4 +1,6 @@
 import unittest
+import tempfile
+import os
 from unittest.mock import patch, MagicMock
 from PyQt6.QtWidgets import QWidget, QApplication
 from frontend.ui.ollama_export_tab import setup_ollama_export_tab
@@ -8,7 +10,7 @@ class TestOllamaExportTabBackend(unittest.TestCase):
     def setUpClass(cls):
         cls.app = QApplication([])
 
-    @patch('backend.utils.settings.MODEL_SAVE_PATH', '/tmp/model_dir')
+    @patch('backend.utils.settings.MODEL_SAVE_PATH', tempfile.mkdtemp())
     @patch('backend.utils.constants.HTTP_TIMEOUT_SHORT', 5)
     @patch('backend.utils.constants.HTTP_TIMEOUT_LONG', 30)
     @patch('backend.utils.constants.HTTP_OK', 200)

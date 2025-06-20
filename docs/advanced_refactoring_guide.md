@@ -2,7 +2,26 @@
 
 ## Overview
 
-The Advanced Refactoring system in AI Coder Assistant provides **comprehensive automated refactoring capabilities** with multi-language support, safety features, and intelligent suggestion management. This guide covers all aspects of using the refactoring system effectively.
+The Advanced Refactoring system in AI Coder Assistant provides **comprehensive automated refactoring capabilities** with multi-language support, safety features, and intelligent suggestion management. This guide covers all aspects of using the refactoring system effectively. The system now uses an organized file structure with configuration files stored in the `config/` directory.
+
+## Project Structure
+
+The refactoring system uses the organized file structure:
+
+```
+ai_coder_assistant/
+├── config/                     # Configuration files
+│   ├── code_standards_config.json  # Code standards for refactoring
+│   └── ...                     # Other configuration files
+├── data/                       # Data storage files
+├── src/                        # Source code
+│   ├── backend/services/
+│   │   ├── refactoring.py      # Refactoring engine
+│   │   ├── code_standards.py   # Code standards enforcement
+│   │   └── ...                 # Other services
+│   └── ...
+└── ...
+```
 
 ## Table of Contents
 
@@ -25,6 +44,19 @@ The Advanced Refactoring system in AI Coder Assistant provides **comprehensive a
 - **Version Control**: Ensure your code is committed to version control
 - **Backup Strategy**: Understand the backup and safety features
 - **Test Coverage**: Have good test coverage before refactoring
+- **Configuration**: Ensure `config/code_standards_config.json` is properly configured
+
+### Configuration Setup
+
+The refactoring system uses configuration files in the `config/` directory:
+
+```bash
+# View code standards configuration
+cat config/code_standards_config.json
+
+# Edit code standards for refactoring
+vim config/code_standards_config.json
+```
 
 ### Quick Start
 

@@ -47,7 +47,8 @@ class LLMManager:
     """
     
     def __init__(self, config_path: Optional[str] = None):
-        self.config_path = config_path or "llm_studio_config.json"
+        """Initialize the LLMManager with a path to the configuration file."""
+        self.config_path = config_path or "config/llm_studio_config.json"
         self.config = self._load_config()
         self.providers: Dict[ProviderType, Any] = {}
         self.models: Dict[str, LLMModel] = {}
@@ -75,24 +76,49 @@ class LLMManager:
         try:
             if Path(self.config_path).exists():
                 with open(self.config_path, 'r') as f:
-                    data = json.load(f)
+                    raw_data = json.load(f)
                 
-                # Convert string enums back to enum objects
-                if 'default_provider' in data:
-                    data['default_provider'] = ProviderType(data['default_provider'])
+                # Extract model configurations
+                models: Dict[str, ModelConfig] = {}
+                providers: Dict[ProviderType, ProviderConfig] = {}
+                default_model = raw_data.get('studio_settings', {}).get('default_model', 'gpt-3.5-turbo')
                 
-                if 'providers' in data:
-                    for provider_type_str, provider_data in data['providers'].items():
-                        provider_data['provider_type'] = ProviderType(provider_type_str)
-                        data['providers'][provider_type_str] = ProviderConfig(**provider_data)
+                # Convert model configurations
+                for model_name, model_data in raw_data.get('model_configurations', {}).items():
+                    provider_type = ProviderType(model_data['provider'])
+                    models[model_name] = ModelConfig(
+                        name=model_name,
+                        provider=provider_type,
+                        model_type=ModelType.CHAT,  # Default to chat
+                        max_tokens=model_data.get('max_tokens', 4096),
+                        temperature=0.7,  # Default temperature
+                        is_default=(model_name == default_model),
+                        cost_per_1k_tokens=model_data.get('cost_per_1k_tokens'),
+                        capabilities=model_data.get('supported_features', [])
+                    )
+                    
+                    # Add provider if not already present
+                    if provider_type not in providers:
+                        providers[provider_type] = ProviderConfig(
+                            provider_type=provider_type,
+                            api_key="",  # Will be loaded from environment
+                            is_enabled=True
+                        )
                 
-                if 'models' in data:
-                    for model_name, model_data in data['models'].items():
-                        model_data['provider'] = ProviderType(model_data['provider'])
-                        model_data['model_type'] = ModelType(model_data['model_type'])
-                        data['models'][model_name] = ModelConfig(**model_data)
-                
-                return LLMStudioConfig(**data)
+                return LLMStudioConfig(
+                    models=models,
+                    providers=providers,
+                    default_model=default_model,
+                    enable_fallback=True,
+                    enable_retry=True,
+                    max_concurrent_requests=5,
+                    request_timeout=30,
+                    enable_logging=True,
+                    enable_metrics=True,
+                    cost_tracking=True,
+                    auto_switch_on_error=True,
+                    ollama_instances=[]
+                )
             else:
                 return self._create_default_config()
                 
@@ -134,37 +160,36 @@ class LLMManager:
     def _save_config(self):
         """Save configuration to file."""
         try:
-            with open(self.config_path, 'w') as f:
-                # Convert enums to strings for JSON serialization
-                config_dict = {
-                    'default_provider': self.config.default_provider.value,
+            # Convert enums to strings for JSON serialization
+            config_dict: Dict[str, Any] = {
+                'studio_settings': {
                     'default_model': self.config.default_model,
-                    'enable_fallback': self.config.enable_fallback,
-                    'enable_retry': self.config.enable_retry,
-                    'max_concurrent_requests': self.config.max_concurrent_requests,
-                    'request_timeout': self.config.request_timeout,
-                    'enable_logging': self.config.enable_logging,
-                    'enable_metrics': self.config.enable_metrics,
-                    'cost_tracking': self.config.cost_tracking,
-                    'auto_switch_on_error': self.config.auto_switch_on_error,
-                    'providers': {},
-                    'models': {},
-                    'ollama_instances': [c.__dict__ for c in self.config.ollama_instances],
+                    'default_temperature': 0.7,
+                    'default_max_tokens': 2048,
+                    'default_system_prompt': "You are a helpful AI coding assistant.",
+                    'auto_save_interval': 30,
+                    'max_conversation_history': 50,
+                    'enable_code_highlighting': True,
+                    'enable_auto_completion': True,
+                    'theme': 'dark',
+                    'font_size': 14,
+                    'font_family': "Consolas, 'Courier New', monospace"
+                },
+                'model_configurations': {}
+            }
+            
+            # Convert models
+            for model_name, model_config in self.config.models.items():
+                model_dict = {
+                    'provider': model_config.provider.value,
+                    'max_tokens': model_config.max_tokens,
+                    'temperature_range': [0.0, 2.0],
+                    'supported_features': model_config.capabilities,
+                    'cost_per_1k_tokens': model_config.cost_per_1k_tokens
                 }
-                
-                # Convert providers
-                for provider_type, provider_config in self.config.providers.items():
-                    provider_dict = provider_config.__dict__.copy()
-                    provider_dict['provider_type'] = provider_type.value
-                    config_dict['providers'][provider_type.value] = provider_dict
-                
-                # Convert models
-                for model_name, model_config in self.config.models.items():
-                    model_dict = model_config.__dict__.copy()
-                    model_dict['provider'] = model_config.provider.value
-                    model_dict['model_type'] = model_config.model_type.value
-                    config_dict['models'][model_name] = model_dict
-                
+                config_dict['model_configurations'][model_name] = model_dict
+            
+            with open(self.config_path, 'w') as f:
                 json.dump(config_dict, f, indent=2, default=str)
                 
         except Exception as e:
@@ -587,7 +612,11 @@ class LLMManager:
     
     async def fetch_security_feeds(self):
         """Fetch security data from configured feeds."""
-        return await self.security_intelligence.fetch_security_feeds()
+        try:
+            await self.security_intelligence.fetch_security_feeds()
+        except Exception as e:
+            logger.error(f"Error fetching security feeds: {e}")
+            raise
     
     def get_security_vulnerabilities(self, severity: Optional[str] = None, limit: int = 100) -> List[SecurityVulnerability]:
         """Get security vulnerabilities with optional filtering."""
@@ -644,8 +673,8 @@ class LLMManager:
         return self.code_standards.get_standards()
     
     def get_current_code_standard(self) -> Optional[CodeStandard]:
-        """Get the current active code standard."""
-        return self.code_standards.get_current_standard()
+        """Get current code standard."""
+        return self.code_standards.current_standard
     
     def set_current_code_standard(self, standard_name: str):
         """Set the current active code standard."""
@@ -677,4 +706,58 @@ class LLMManager:
         return {
             "standards": [standard.__dict__ for standard in self.get_code_standards()],
             "current_standard": current_standard.name if current_standard else None
-        } 
+        }
+
+    async def list_ollama_models(self, progress_callback=None, log_message_callback=None, cancellation_callback=None) -> List[str]:
+        """List all available local models from Ollama."""
+        ollama_provider = self.providers.get(ProviderType.OLLAMA)
+        if not ollama_provider:
+            return []
+        
+        try:
+            return await ollama_provider.list_models()
+        except Exception as e:
+            logger.error(f"Error listing Ollama models: {e}")
+            return []
+
+    async def generate_with_ollama(self, prompt: str, model: str) -> str:
+        """Generate text using Ollama."""
+        try:
+            provider = self.providers.get(ProviderType.OLLAMA)
+            if not provider:
+                raise Exception("Ollama provider not initialized")
+            request = ChatCompletionRequest(
+                messages=[ChatMessage(role="user", content=prompt)],
+                model=model
+            )
+            response = await provider.chat_completion(request)
+            return response.choices[0]["message"]["content"]
+        except Exception as e:
+            logger.error(f"Error generating with Ollama: {e}")
+            return f"Error: {e}"
+
+    async def delete_model(self, model_name: str) -> bool:
+        """Delete an Ollama model."""
+        try:
+            provider = self.providers.get(ProviderType.OLLAMA)
+            if not provider:
+                raise Exception("Ollama provider not initialized")
+            await provider.delete_model(model_name)
+            return True
+        except Exception as e:
+            logger.error(f"Error deleting model {model_name}: {e}")
+            raise
+
+    def get_code_standards_manager(self) -> 'CodeStandardsManager':
+        """Get the CodeStandardsManager instance."""
+        from .code_standards import CodeStandardsManager
+        # Assuming the config directory is at the same level as the entry script
+        code_standards_config_path = "config/code_standards_config.json"
+        return CodeStandardsManager(config_path=code_standards_config_path)
+
+    def get_security_intelligence(self) -> 'SecurityIntelligence':
+        """Get the SecurityIntelligence instance."""
+        from .security_intelligence import SecurityIntelligence
+        # Assuming the config directory is at the same level as the entry script
+        security_config_path = "config/security_intelligence_config.json"
+        return SecurityIntelligence(config_path=security_config_path) 

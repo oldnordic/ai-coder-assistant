@@ -1,6 +1,40 @@
 # AI Coder Assistant: Training and Ollama Integration Workflow
 
-This document provides a comprehensive guide to the training and Ollama integration workflow for the AI Coder Assistant. It covers data preparation, model training, and the process of feeding your custom knowledge back into Ollama for on-device inference with **intelligent analysis capabilities**.
+This document provides a comprehensive guide to the training and Ollama integration workflow for the AI Coder Assistant. It covers data preparation, model training, and the process of feeding your custom knowledge back into Ollama for on-device inference with **intelligent analysis capabilities**. The system now uses an organized file structure with configuration and data files stored in dedicated directories.
+
+## Project Structure
+
+The training workflow uses the organized file structure:
+
+```
+ai_coder_assistant/
+├── config/                     # Configuration files
+│   ├── llm_studio_config.json  # Training configuration
+│   └── ...                     # Other configuration files
+├── data/                       # Data storage files
+│   ├── security_training_data.json  # Security training data
+│   └── ...                     # Other data files
+├── src/                        # Source code
+│   ├── backend/services/
+│   │   ├── trainer.py          # Model training service
+│   │   ├── preprocess.py       # Data preprocessing
+│   │   └── ...                 # Other services
+│   └── ...
+├── continuous_learning_data/   # Continuous learning database
+└── ...
+```
+
+## Configuration
+
+The training system uses configuration files in the `config/` directory:
+
+```bash
+# View training configuration
+cat config/llm_studio_config.json
+
+# Edit training settings
+vim config/llm_studio_config.json
+```
 
 ## Overview: Intelligent Analysis Integration
 

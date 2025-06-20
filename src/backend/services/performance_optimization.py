@@ -28,7 +28,7 @@ import ast
 import time
 import psutil
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 import cProfile
@@ -463,3 +463,217 @@ class PerformanceOptimizationService:
             "best_file": max(results, key=lambda r: r.overall_score).file_path,
             "worst_file": min(results, key=lambda r: r.overall_score).file_path
         }
+
+
+class PersistencePerformanceMonitor:
+    """Monitor and log performance of persistence operations."""
+    def __init__(self):
+        self.metrics = []  # List of (operation, duration, success, timestamp)
+        self.errors = []   # List of (operation, error, timestamp)
+        self.lock = threading.Lock()
+
+    def record_operation(self, operation: str, duration: float, success: bool):
+        with self.lock:
+            self.metrics.append({
+                'operation': operation,
+                'duration': duration,
+                'success': success,
+                'timestamp': datetime.now().isoformat()
+            })
+
+    def record_error(self, operation: str, error: str):
+        with self.lock:
+            self.errors.append({
+                'operation': operation,
+                'error': error,
+                'timestamp': datetime.now().isoformat()
+            })
+
+    def get_metrics(self, last_n: int = 100):
+        with self.lock:
+            return self.metrics[-last_n:]
+
+    def get_error_stats(self, last_n: int = 100):
+        with self.lock:
+            return self.errors[-last_n:]
+
+    def get_summary(self):
+        with self.lock:
+            total = len(self.metrics)
+            errors = len(self.errors)
+            avg_time = (sum(m['duration'] for m in self.metrics) / total) if total else 0.0
+            return {
+                'total_operations': total,
+                'total_errors': errors,
+                'average_duration': avg_time
+            }
+
+
+def analyze_file_performance_backend(
+    file_path: str,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    log_message_callback: Optional[Callable[[str], None]] = None,
+    cancellation_callback: Optional[Callable[[], bool]] = None
+) -> Dict[str, Any]:
+    """Backend function for analyzing a single file's performance."""
+    try:
+        if log_message_callback:
+            log_message_callback(f"Starting analysis of {file_path}")
+        
+        service = PerformanceOptimizationService()
+        
+        if progress_callback:
+            progress_callback(0, 2, "Analyzing file...")
+        
+        result = service.analyze_file(file_path)
+        
+        if cancellation_callback and cancellation_callback():
+            return {"error": "Analysis cancelled"}
+        
+        if progress_callback:
+            progress_callback(1, 2, "Generating report...")
+        
+        # Convert result to dict
+        report = {
+            "file_path": result.file_path,
+            "language": result.language,
+            "overall_score": result.overall_score,
+            "analysis_time": result.analysis_time,
+            "issues": [
+                {
+                    "line_number": issue.line_number,
+                    "issue_type": issue.issue_type,
+                    "severity": issue.severity,
+                    "description": issue.description,
+                    "impact_score": issue.impact_score,
+                    "suggestion": issue.suggestion,
+                    "category": issue.category,
+                    "auto_fixable": issue.auto_fixable
+                }
+                for issue in result.issues
+            ],
+            "recommendations": result.recommendations
+        }
+        
+        if result.metrics:
+            report["metrics"] = {
+                "execution_time": result.metrics.execution_time,
+                "memory_usage": result.metrics.memory_usage,
+                "cpu_usage": result.metrics.cpu_usage,
+                "function_calls": result.metrics.function_calls,
+                "line_count": result.metrics.line_count,
+                "complexity_score": result.metrics.complexity_score,
+                "optimization_score": result.metrics.optimization_score
+            }
+        
+        if progress_callback:
+            progress_callback(2, 2, "Analysis complete")
+        
+        if log_message_callback:
+            log_message_callback(f"Analysis complete for {file_path}")
+        
+        return report
+        
+    except Exception as e:
+        logger.error(f"Error analyzing file {file_path}: {e}")
+        if log_message_callback:
+            log_message_callback(f"Error: {str(e)}")
+        return {"error": str(e)}
+
+
+def analyze_directory_performance_backend(
+    directory_path: str,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    log_message_callback: Optional[Callable[[str], None]] = None,
+    cancellation_callback: Optional[Callable[[], bool]] = None
+) -> Dict[str, Any]:
+    """Backend function for analyzing a directory's performance."""
+    try:
+        if log_message_callback:
+            log_message_callback(f"Starting analysis of directory {directory_path}")
+        
+        service = PerformanceOptimizationService()
+        
+        # Get list of files to analyze
+        directory = Path(directory_path)
+        supported_extensions = {".py", ".js", ".ts", ".java", ".cpp", ".c", ".cs"}
+        files_to_analyze = [
+            f for f in directory.rglob("*")
+            if f.is_file() and f.suffix in supported_extensions
+        ]
+        
+        if not files_to_analyze:
+            if log_message_callback:
+                log_message_callback("No supported files found in directory")
+            return {"error": "No supported files found"}
+        
+        total_files = len(files_to_analyze)
+        results = []
+        
+        for i, file_path in enumerate(files_to_analyze, 1):
+            if cancellation_callback and cancellation_callback():
+                return {"error": "Analysis cancelled"}
+            
+            if progress_callback:
+                progress_callback(i, total_files, f"Analyzing {file_path.name}...")
+            
+            if log_message_callback:
+                log_message_callback(f"Analyzing file {i}/{total_files}: {file_path}")
+            
+            try:
+                result = service.analyze_file(str(file_path))
+                results.append(result)
+            except Exception as e:
+                logger.error(f"Error analyzing {file_path}: {e}")
+                if log_message_callback:
+                    log_message_callback(f"Error analyzing {file_path}: {e}")
+        
+        if not results:
+            return {"error": "No files could be analyzed successfully"}
+        
+        # Generate summary report
+        summary = service.get_analysis_summary(results)
+        
+        # Convert results to dict
+        report = {
+            "directory_path": directory_path,
+            "total_files_analyzed": len(results),
+            "summary": summary,
+            "files": [
+                {
+                    "file_path": r.file_path,
+                    "language": r.language,
+                    "overall_score": r.overall_score,
+                    "analysis_time": r.analysis_time,
+                    "issues": [
+                        {
+                            "line_number": issue.line_number,
+                            "issue_type": issue.issue_type,
+                            "severity": issue.severity,
+                            "description": issue.description,
+                            "impact_score": issue.impact_score,
+                            "suggestion": issue.suggestion,
+                            "category": issue.category,
+                            "auto_fixable": issue.auto_fixable
+                        }
+                        for issue in r.issues
+                    ],
+                    "recommendations": r.recommendations
+                }
+                for r in results
+            ]
+        }
+        
+        if progress_callback:
+            progress_callback(total_files, total_files, "Analysis complete")
+        
+        if log_message_callback:
+            log_message_callback(f"Directory analysis complete. Analyzed {len(results)} files.")
+        
+        return report
+        
+    except Exception as e:
+        logger.error(f"Error analyzing directory {directory_path}: {e}")
+        if log_message_callback:
+            log_message_callback(f"Error: {str(e)}")
+        return {"error": str(e)}

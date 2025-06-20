@@ -2,7 +2,38 @@
 
 ## Overview
 
-The AI Coder Assistant supports **20 programming languages** with **intelligent analysis** that goes far beyond simple linter errors. Each language benefits from both traditional linter integration and advanced intelligent analysis that detects security vulnerabilities, performance issues, code smells, and maintainability problems.
+The AI Coder Assistant supports **20 programming languages** with **intelligent analysis** that goes far beyond simple linter errors. Each language benefits from both traditional linter integration and advanced intelligent analysis that detects security vulnerabilities, performance issues, code smells, and maintainability problems. The system now uses an organized file structure with configuration files stored in the `config/` directory.
+
+## Project Structure
+
+The multi-language support system uses the organized file structure:
+
+```
+ai_coder_assistant/
+├── config/                     # Configuration files
+│   ├── code_standards_config.json  # Language-specific standards
+│   └── ...                     # Other configuration files
+├── data/                       # Data storage files
+├── src/                        # Source code
+│   ├── backend/services/
+│   │   ├── scanner.py          # Multi-language scanner
+│   │   ├── code_standards.py   # Language standards enforcement
+│   │   └── ...                 # Other services
+│   └── ...
+└── ...
+```
+
+## Configuration
+
+The multi-language support system uses configuration files in the `config/` directory:
+
+```bash
+# View language-specific configuration
+cat config/code_standards_config.json
+
+# Edit language standards
+vim config/code_standards_config.json
+```
 
 ## Intelligent Analysis Features
 

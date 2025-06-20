@@ -1166,7 +1166,7 @@ async def import_code_standard(
 
 
 # Run the API server
-def run_api_server(host: str = "0.0.0.0", port: int = 8000):
+def run_api_server(host: str = "0.0.0.0", port: int = 8000):  # nosec B104 - Web server needs to bind to all interfaces
     """Run the API server."""
     uvicorn.run(app, host=host, port=port)
 

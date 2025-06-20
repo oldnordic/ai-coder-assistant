@@ -35,6 +35,7 @@ def setup_data_tab(parent_widget, main_app_instance):
     
     acq_layout.addWidget(QLabel("Add documents from local folder:"))
     main_app_instance.add_local_files_button = QPushButton("Select Local Docs Folder")
+    main_app_instance.add_local_files_button.clicked.connect(main_app_instance.select_local_corpus_dir)
     main_app_instance.local_files_label = QLabel("No local folder selected.")
     acq_layout.addWidget(main_app_instance.add_local_files_button)
     acq_layout.addWidget(main_app_instance.local_files_label)
@@ -102,6 +103,7 @@ def setup_data_tab(parent_widget, main_app_instance):
     acq_layout.addLayout(scraping_options_layout)
     
     main_app_instance.acquire_doc_button = QPushButton("Scrape URLs and Add to Corpus")
+    main_app_instance.acquire_doc_button.clicked.connect(main_app_instance.start_doc_acquisition)
     acq_layout.addWidget(main_app_instance.acquire_doc_button)
     
     layout.addWidget(acq_group)
@@ -121,6 +123,7 @@ def setup_data_tab(parent_widget, main_app_instance):
     main_app_instance.preprocess_docs_button.setToolTip(
         "Processes docs for the knowledge base and prepares all data for training."
     )
+    main_app_instance.preprocess_docs_button.clicked.connect(main_app_instance.start_preprocessing)
     pre_proc_layout.addWidget(main_app_instance.preprocess_docs_button)
     layout.addWidget(pre_proc_group)
 
@@ -133,11 +136,13 @@ def setup_data_tab(parent_widget, main_app_instance):
         "Trains the model from scratch on the general documentation corpus.\n"
         "Run this once, or after adding significant new documentation."
     )
+    main_app_instance.train_lm_button.clicked.connect(main_app_instance.start_base_training)
     main_app_instance.finetune_lm_button = QPushButton("Finetune Model with Feedback")
     main_app_instance.finetune_lm_button.setToolTip(
         "Continues training the existing model on the high-quality examples\n"
         "from your feedback and the reports."
     )
+    main_app_instance.finetune_lm_button.clicked.connect(main_app_instance.start_finetuning)
     train_lm_layout.addWidget(main_app_instance.train_lm_button)
     train_lm_layout.addWidget(main_app_instance.finetune_lm_button)
     layout.addWidget(train_lm_group)

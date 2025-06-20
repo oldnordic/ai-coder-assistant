@@ -28,6 +28,7 @@ import time
 from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtWidgets import QApplication
 import sys
+import shlex
 
 from backend.utils.constants import HTTP_TIMEOUT_SHORT, HTTP_TIMEOUT_LONG, HTTP_OK, STATUS_BOX_MIN_HEIGHT
 from backend.utils import settings
@@ -86,113 +87,6 @@ def get_ollama_models() -> list[str]:
             return []
     except Exception:
         return []
-
-class OllamaExportWorker(QThread):
-    progress = pyqtSignal(str)
-    finished = pyqtSignal(str)
-    error = pyqtSignal(str)
-
-    def __init__(self, parent_widget, model_selector, status_box):
-        super().__init__()
-        self.parent_widget = parent_widget
-        self.model_selector = model_selector
-        self.status_box = status_box
-        self._cancelled = False
-
-    def cancel(self):
-        self._cancelled = True
-
-    def run(self):
-        try:
-            def log(msg):
-                self.progress.emit(msg)
-            # Pre-check: Is Ollama running?
-            if not is_ollama_running():
-                log("Error: Ollama is not running. Please start Ollama before exporting.")
-                self.error.emit("Ollama server is not running. Please start it to continue.")
-                return
-            else:
-                log("Ollama server is running.")
-            from backend.utils import settings
-            model_dir = settings.MODEL_SAVE_PATH
-            if not os.path.exists(model_dir):
-                self.error.emit(f"Model directory not found: {model_dir}")
-                return
-            log(f"Found local model at: {model_dir}")
-            # 2. Ask user for GGUF output path (must be done in main thread, so skip here)
-            gguf_path = os.path.join(model_dir, "ai_coder_model.gguf")
-            # 3. Auto-detect llama.cpp
-            llama_cpp_dir = find_llama_cpp()
-            if not llama_cpp_dir:
-                log("Could not auto-detect llama.cpp. Please set LLAMA_CPP_PATH environment variable.")
-                self.error.emit("Could not auto-detect llama.cpp. Please set LLAMA_CPP_PATH environment variable.")
-                return
-            log(f"Using llama.cpp at: {llama_cpp_dir}")
-            convert_script = os.path.join(llama_cpp_dir, "convert_hf_to_gguf.py")
-            if not os.path.exists(convert_script):
-                log(f"convert_hf_to_gguf.py not found at {convert_script}.")
-                self.error.emit(f"convert_hf_to_gguf.py not found at {convert_script}.")
-                return
-            # 4. Convert to GGUF using llama.cpp's convert_hf_to_gguf.py
-            log("Converting HuggingFace model to GGUF format...")
-            try:
-                venv_python = sys.executable
-                cmd = [
-                    venv_python, convert_script,
-                    "--outfile", gguf_path,
-                    "--outtype", "q8_0",
-                    model_dir
-                ]
-                result = subprocess.run(cmd, capture_output=True, text=True)
-                if result.returncode != 0:
-                    log(f"Conversion failed: {result.stderr}")
-                    self.error.emit(f"Conversion failed: {result.stderr}")
-                    return
-                log(f"Model converted to GGUF: {gguf_path}")
-            except Exception as e:
-                log(f"Error during conversion: {e}")
-                self.error.emit(f"Error during conversion: {e}")
-                return
-            # 5. Create Modelfile and import to Ollama
-            selected_model = self.model_selector.currentText()
-            if not selected_model or selected_model.startswith("("):
-                log("No valid model selected for Ollama upload.")
-                self.error.emit("No valid model selected for Ollama upload.")
-                return
-            existing_enhanced_models = [m for m in get_ollama_models() if m.endswith('-ai-coder-enhanced')]
-            # For simplicity, always create a new model in this worker
-            timestamp = int(time.time())
-            model_name = f"{selected_model}-ai-coder-enhanced-{timestamp}"
-            log(f"Creating new model: {model_name}")
-            try:
-                modelfile_content = f"""FROM {selected_model}
-PARAMETER temperature 0.7
-PARAMETER top_p 0.9
-PARAMETER top_k 40
-PARAMETER repeat_penalty 1.1
-PARAMETER seed 42
-SYSTEM You are an AI coding assistant trained on custom documentation and user feedback. You provide helpful code suggestions and explanations. You have been enhanced with domain-specific knowledge from the user's documentation and learning data.
-"""
-                modelfile_path = os.path.join(os.path.dirname(gguf_path), "Modelfile")
-                with open(modelfile_path, 'w') as f:
-                    f.write(modelfile_content)
-                cmd = [
-                    "ollama", "create", model_name, 
-                    "-f", modelfile_path
-                ]
-                result = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(gguf_path))
-                if result.returncode != 0:
-                    log(f"Failed to create new Ollama model: {result.stderr}")
-                    self.error.emit(f"Failed to create new Ollama model: {result.stderr}")
-                    return
-                log(f"Successfully created new model: {model_name}")
-                self.finished.emit(f"Model '{model_name}' exported to Ollama successfully.")
-            except Exception as e:
-                log(f"Error creating new model: {e}")
-                self.error.emit(f"Error creating new model: {e}")
-                return
-        except Exception as e:
-            self.error.emit(f"Unexpected error: {e}")
 
 def setup_ollama_export_tab(parent_widget: QWidget, main_app_instance: Any):
     layout = QVBoxLayout(parent_widget)

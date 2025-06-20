@@ -26,6 +26,7 @@ import logging
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 import os
+import asyncio
 
 from backend.services.llm_manager import LLMManager
 
@@ -36,17 +37,22 @@ class BackendController:
     """Controller for backend services."""
     
     def __init__(self):
-        # Use the correct config path relative to the project root
-        config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "llm_studio_config.json")
-        self.llm_manager = LLMManager(config_path)
+        self._llm_manager = None
+    
+    def get_llm_manager(self):
+        """Get the LLMManager instance."""
+        if self._llm_manager is None:
+            # More direct path to the config file
+            config_path = "config/llm_studio_config.json"
+            self._llm_manager = LLMManager(config_path=config_path)
+        return self._llm_manager
     
     # Security Intelligence Methods
     
-    def fetch_security_feeds(self):
+    async def fetch_security_feeds(self):
         """Fetch security feeds."""
         try:
-            # This would be async in a real implementation
-            return self.llm_manager.fetch_security_feeds()
+            await self.get_llm_manager().fetch_security_feeds()
         except Exception as e:
             logger.error(f"Error fetching security feeds: {e}")
             raise
@@ -54,7 +60,7 @@ class BackendController:
     def get_security_vulnerabilities(self, severity: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
         """Get security vulnerabilities."""
         try:
-            vulnerabilities = self.llm_manager.get_security_vulnerabilities(severity, limit)
+            vulnerabilities = self.get_llm_manager().get_security_vulnerabilities(severity, limit)
             # Convert dataclass objects to dictionaries
             result: List[Dict[str, Any]] = []
             for vuln in vulnerabilities:
@@ -84,7 +90,7 @@ class BackendController:
     def get_security_breaches(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get security breaches."""
         try:
-            breaches = self.llm_manager.get_security_breaches(limit)
+            breaches = self.get_llm_manager().get_security_breaches(limit)
             # Convert dataclass objects to dictionaries
             result: List[Dict[str, Any]] = []
             for breach in breaches:
@@ -113,7 +119,7 @@ class BackendController:
     def get_security_patches(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get security patches."""
         try:
-            patches = self.llm_manager.get_security_patches(limit)
+            patches = self.get_llm_manager().get_security_patches(limit)
             # Convert dataclass objects to dictionaries
             result: List[Dict[str, Any]] = []
             for patch in patches:
@@ -141,7 +147,7 @@ class BackendController:
     def get_security_training_data(self, limit: int = 1000) -> List[Dict[str, Any]]:
         """Get security training data."""
         try:
-            return self.llm_manager.get_security_training_data(limit)
+            return self.get_llm_manager().get_security_training_data(limit)
         except Exception as e:
             logger.error(f"Error getting training data: {e}")
             return []
@@ -151,7 +157,7 @@ class BackendController:
         try:
             from backend.services.security_intelligence import SecurityFeed
             feed = SecurityFeed(**feed_data)
-            self.llm_manager.add_security_feed(feed)
+            self.get_llm_manager().add_security_feed(feed)
         except Exception as e:
             logger.error(f"Error adding security feed: {e}")
             raise
@@ -159,7 +165,7 @@ class BackendController:
     def remove_security_feed(self, feed_name: str):
         """Remove a security feed."""
         try:
-            self.llm_manager.remove_security_feed(feed_name)
+            self.get_llm_manager().remove_security_feed(feed_name)
         except Exception as e:
             logger.error(f"Error removing security feed: {e}")
             raise
@@ -167,7 +173,7 @@ class BackendController:
     def get_security_feeds(self) -> List[Dict[str, Any]]:
         """Get security feeds."""
         try:
-            feeds = self.llm_manager.get_security_feeds()
+            feeds = self.get_llm_manager().get_security_feeds()
             # Convert dataclass objects to dictionaries
             result: List[Dict[str, Any]] = []
             for feed in feeds:
@@ -189,7 +195,7 @@ class BackendController:
     def mark_patch_applied(self, patch_id: str):
         """Mark a patch as applied."""
         try:
-            self.llm_manager.mark_patch_applied(patch_id)
+            self.get_llm_manager().mark_patch_applied(patch_id)
         except Exception as e:
             logger.error(f"Error marking patch as applied: {e}")
             raise
@@ -197,7 +203,7 @@ class BackendController:
     def mark_vulnerability_patched(self, vuln_id: str):
         """Mark a vulnerability as patched."""
         try:
-            self.llm_manager.mark_vulnerability_patched(vuln_id)
+            self.get_llm_manager().mark_vulnerability_patched(vuln_id)
         except Exception as e:
             logger.error(f"Error marking vulnerability as patched: {e}")
             raise
@@ -207,7 +213,7 @@ class BackendController:
     def get_code_standards(self) -> List[Dict[str, Any]]:
         """Get code standards."""
         try:
-            standards = self.llm_manager.get_code_standards()
+            standards = self.get_llm_manager().get_code_standards()
             # Convert dataclass objects to dictionaries
             result: List[Dict[str, Any]] = []
             for standard in standards:
@@ -231,7 +237,7 @@ class BackendController:
     def get_current_code_standard(self) -> Optional[Dict[str, Any]]:
         """Get current code standard."""
         try:
-            standard = self.llm_manager.get_current_code_standard()
+            standard = self.get_llm_manager().get_current_code_standard()
             if not standard:
                 return None
             
@@ -315,7 +321,7 @@ class BackendController:
                 enabled=standard_data.get("enabled", True)
             )
             
-            self.llm_manager.add_code_standard(standard)
+            self.get_llm_manager().add_code_standard(standard)
         except Exception as e:
             logger.error(f"Error adding code standard: {e}")
             raise
@@ -323,7 +329,7 @@ class BackendController:
     def remove_code_standard(self, standard_name: str):
         """Remove a code standard."""
         try:
-            self.llm_manager.remove_code_standard(standard_name)
+            self.get_llm_manager().remove_code_standard(standard_name)
         except Exception as e:
             logger.error(f"Error removing code standard: {e}")
             raise
@@ -331,7 +337,7 @@ class BackendController:
     def set_current_code_standard(self, standard_name: str):
         """Set current code standard."""
         try:
-            self.llm_manager.set_current_code_standard(standard_name)
+            self.get_llm_manager().set_current_code_standard(standard_name)
         except Exception as e:
             logger.error(f"Error setting current code standard: {e}")
             raise
@@ -339,7 +345,7 @@ class BackendController:
     def analyze_code_file(self, file_path: str) -> Dict[str, Any]:
         """Analyze a single file for code standard violations."""
         try:
-            result = self.llm_manager.analyze_code_file(file_path)
+            result = self.get_llm_manager().analyze_code_file(file_path)
             # Convert dataclass object to dictionary
             result_dict: Dict[str, Any] = {
                 "file_path": result.file_path,
@@ -359,7 +365,7 @@ class BackendController:
     def analyze_code_directory(self, directory_path: str) -> List[Dict[str, Any]]:
         """Analyze all files in a directory for code standard violations."""
         try:
-            results = self.llm_manager.analyze_code_directory(directory_path)
+            results = self.get_llm_manager().analyze_code_directory(directory_path)
             # Convert dataclass objects to dictionaries
             result_list: List[Dict[str, Any]] = []
             for result in results:
@@ -382,7 +388,7 @@ class BackendController:
     def export_code_standard(self, standard_name: str, export_path: str):
         """Export a code standard to a file."""
         try:
-            self.llm_manager.export_code_standard(standard_name, export_path)
+            self.get_llm_manager().export_code_standard(standard_name, export_path)
         except Exception as e:
             logger.error(f"Error exporting code standard: {e}")
             raise
@@ -390,7 +396,7 @@ class BackendController:
     def import_code_standard(self, import_path: str):
         """Import a code standard from a file."""
         try:
-            self.llm_manager.import_code_standard(import_path)
+            self.get_llm_manager().import_code_standard(import_path)
         except Exception as e:
             logger.error(f"Error importing code standard: {e}")
             raise 

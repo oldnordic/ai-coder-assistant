@@ -100,7 +100,7 @@ The security intelligence system comes with pre-configured feeds:
    - **Enabled**: Check to enable the feed
 
 #### Via Configuration File
-Edit `security_intelligence_config.json`:
+Edit `config/security_intelligence_config.json`:
 ```json
 {
   "feeds": [
@@ -406,7 +406,7 @@ python run_api_server.py \
 
 ### Main Configuration Files
 
-#### `llm_studio_config.json`
+#### `config/llm_studio_config.json`
 ```json
 {
   "default_provider": "openai",
@@ -437,7 +437,7 @@ python run_api_server.py \
 }
 ```
 
-#### `security_intelligence_config.json`
+#### `config/security_intelligence_config.json`
 ```json
 {
   "feeds": [
@@ -453,7 +453,7 @@ python run_api_server.py \
 }
 ```
 
-#### `code_standards_config.json`
+#### `config/code_standards_config.json`
 ```json
 {
   "current_standard": "Company Python Standard",
@@ -470,7 +470,7 @@ python run_api_server.py \
 }
 ```
 
-#### `pr_automation_config.json`
+#### `config/pr_automation_config.json`
 ```json
 {
   "services": [

@@ -18,7 +18,7 @@ The Code Standards system enforces company-specific coding standards across mult
 5. Use the **Import/Export** feature to share standards.
 
 ## Configuration
-- Standards and rules can be managed in the UI or in `code_standards_config.json`.
+- Standards and rules can be managed in the UI or in `config/code_standards_config.json`.
 - Supports company-specific and language-specific rules.
 
 ## Troubleshooting

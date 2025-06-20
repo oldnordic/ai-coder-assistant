@@ -2,7 +2,34 @@
 
 ## Overview
 
-This guide covers the complete installation and setup process for the AI Coder Assistant, including the new Cloud Model Integration feature for multi-provider LLM support.
+This guide covers the complete installation and setup process for the AI Coder Assistant, including the new Cloud Model Integration feature for multi-provider LLM support. The application now uses an organized file structure with separate `config/` and `data/` directories for better maintainability.
+
+## Project Structure
+
+The AI Coder Assistant uses an organized file structure:
+
+```
+ai_coder_assistant/
+├── config/                     # Configuration files
+│   ├── code_standards_config.json
+│   ├── llm_studio_config.json
+│   ├── pr_automation_config.json
+│   └── security_intelligence_config.json
+├── data/                       # Data storage files
+│   ├── security_breaches.json
+│   ├── security_patches.json
+│   ├── security_training_data.json
+│   └── security_vulnerabilities.json
+├── src/                        # Source code
+├── docs/                       # Documentation
+├── api/                        # API server
+├── scripts/                    # Utility scripts
+├── logs/                       # Application logs
+├── tmp/                        # Temporary files
+├── requirements.txt            # Python dependencies
+├── main.py                     # Main application entry point
+└── README.md                   # Project overview
+```
 
 ## System Requirements
 
@@ -110,6 +137,44 @@ python -m pytest
 # 7. Start development server
 python main.py
 ```
+
+## Configuration Setup
+
+### Initial Configuration
+
+After installation, you may need to configure the application:
+
+```bash
+# 1. Edit LLM configuration
+vim config/llm_studio_config.json
+
+# 2. Edit code standards configuration
+vim config/code_standards_config.json
+
+# 3. Edit security intelligence configuration
+vim config/security_intelligence_config.json
+
+# 4. Edit PR automation configuration
+vim config/pr_automation_config.json
+```
+
+### Configuration File Locations
+
+All configuration files are now organized in the `config/` directory:
+
+- **`config/llm_studio_config.json`**: LLM provider settings and API keys
+- **`config/code_standards_config.json`**: Code standards and rules
+- **`config/security_intelligence_config.json`**: Security feed configurations
+- **`config/pr_automation_config.json`**: Pull request automation settings
+
+### Data File Locations
+
+All data files are organized in the `data/` directory:
+
+- **`data/security_vulnerabilities.json`**: Security vulnerability data
+- **`data/security_breaches.json`**: Security breach information
+- **`data/security_patches.json`**: Security patch data
+- **`data/security_training_data.json`**: Security training datasets
 
 ## Cloud Model Integration Setup
 

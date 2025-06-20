@@ -32,9 +32,9 @@ if ! command -v brew &> /dev/null; then
 fi
 
 # Check if virtual environment exists
-if [ ! -d "build-env" ]; then
+if [ ! -d ".venv" ]; then
     echo "Creating virtual environment..."
-    python3 -m venv build-env
+    python3 -m venv .venv
     if [ $? -ne 0 ]; then
         echo "ERROR: Failed to create virtual environment"
         exit 1
@@ -43,7 +43,7 @@ fi
 
 # Activate virtual environment
 echo "Activating virtual environment..."
-source build-env/bin/activate
+source .venv/bin/activate
 
 # Upgrade pip
 echo "Upgrading pip..."
@@ -61,10 +61,18 @@ fi
 
 # Install build tools
 echo "Installing build tools..."
-pip install pyinstaller
+pip install pyinstaller pytest pytest-qt
 if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to install PyInstaller"
+    echo "ERROR: Failed to install build tools"
     exit 1
+fi
+
+# Run tests to ensure everything is working
+echo "Running tests to verify build environment..."
+export PYTHONPATH=src
+python -m pytest src/tests/core/test_config.py src/tests/core/test_error_handler.py src/tests/test_base_component.py -v --tb=short
+if [ $? -ne 0 ]; then
+    echo "WARNING: Some tests failed, but continuing with build..."
 fi
 
 # Check for UPX
@@ -85,8 +93,9 @@ fi
 # Make build script executable
 chmod +x build_all.py
 
-# Run build
+# Run build with proper PYTHONPATH
 echo "Starting build process..."
+export PYTHONPATH=src
 python build_all.py
 if [ $? -ne 0 ]; then
     echo "ERROR: Build failed"
@@ -98,21 +107,24 @@ echo "Build completed successfully!"
 echo "========================================"
 echo ""
 echo "Output files are in the 'dist' directory:"
-echo "- ai-coder-core (Main GUI application)"
-echo "- ai-coder-analyzer (AI analysis engine)"
-echo "- ai-coder-scanner (Code scanner)"
-echo "- ai-coder-web (Web scraper)"
-echo "- ai-coder-trainer (Model trainer)"
-echo "- ai-coder-launcher (Component launcher)"
+echo "- ai-coder-assistant (Main GUI application)"
+echo "- ai-coder-cli (Command line interface)"
+echo "- ai-coder-api (REST API server)"
 echo ""
 echo "To run the application:"
-echo "  ./dist/ai-coder-core"
+echo "  ./dist/ai-coder-assistant"
 echo ""
-echo "Or use the launcher:"
-echo "  ./dist/ai-coder-launcher core"
+echo "To run the CLI:"
+echo "  ./dist/ai-coder-cli"
+echo ""
+echo "To run the API server:"
+echo "  ./dist/ai-coder-api"
 echo ""
 echo "Make sure to make the binaries executable:"
 echo "  chmod +x dist/*"
+echo ""
+echo "For development, use:"
+echo "  PYTHONPATH=src python src/main.py"
 echo ""
 echo "Note: On macOS, you may need to allow the application in Security & Privacy settings"
 echo "if you get a security warning when running the binary for the first time."

@@ -6,16 +6,21 @@ including configuration, health monitoring, and model management.
 """
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QPushButton, QDialog, QFormLayout, QLineEdit, QCheckBox, QSpinBox, QDialogButtonBox, QLabel, QMessageBox, QTabWidget, QComboBox, QTextEdit, QInputDialog
+    QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QPushButton, QDialog, QFormLayout, QLineEdit, QCheckBox, QSpinBox, QDialogButtonBox, QLabel, QMessageBox, QTabWidget, QComboBox, QTextEdit, QInputDialog, QProgressBar, QGroupBox, QHeaderView
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QFont
 from backend.services.llm_manager import LLMManager
 from backend.services.models import ProviderConfig, ProviderType, ChatMessage, ChatCompletionRequest
 import asyncio
+import logging
+from typing import List, Dict, Any, Optional
+from .worker_threads import get_thread_manager
 
+logger = logging.getLogger(__name__)
 
 class OllamaInstanceDialog(QDialog):
-    def __init__(self, parent=None, config: ProviderConfig = None):
+    def __init__(self, parent: Optional[QWidget] = None, config: Optional[ProviderConfig] = None):
         super().__init__(parent)
         self.setWindowTitle("Ollama Instance Configuration")
         self.config = config
@@ -73,180 +78,203 @@ class OllamaInstanceDialog(QDialog):
             verify_ssl=self.ssl_check.isChecked(),
         )
 
+# Mock backend functions for now
+def ollama_backend(operation: str, **kwargs) -> Dict[str, Any]:
+    """Mock backend function for Ollama operations."""
+    if operation == 'list_models':
+        return {
+            'success': True,
+            'models': ['llama2', 'codellama', 'mistral', 'neural-chat']
+        }
+    elif operation == 'pull_model':
+        model_name = kwargs.get('operation_args', {}).get('model_name', 'unknown')
+        return {
+            'success': True,
+            'model_name': model_name,
+            'status': 'downloaded'
+        }
+    elif operation == 'delete_model':
+        model_name = kwargs.get('operation_args', {}).get('model_name', 'unknown')
+        return {
+            'success': True,
+            'model_name': model_name,
+            'status': 'deleted'
+        }
+    elif operation == 'mock_operation':
+        return {'success': True, 'models': []}
+    else:
+        return {'success': False, 'error': f'Unknown operation: {operation}'}
+
 class OllamaManagerTab(QWidget):
-    """Main Ollama manager tab."""
+    """Ollama Manager Tab Widget."""
     
-    def __init__(self):
-        super().__init__()
-        self.llm_manager = LLMManager()
-        self.init_ui()
+    def __init__(self, llm_manager: LLMManager, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.llm_manager = llm_manager
+        self.thread_manager = get_thread_manager()
+        self.setup_ui()
+        self.load_data()
     
-    def init_ui(self):
-        """Initialize the UI."""
-        layout = QVBoxLayout()
-        self.tabs = QTabWidget()
-        self.instances_tab = QWidget()
-        self.models_tab = QWidget()
-        self.health_tab = QWidget()
-        self.init_instances_tab()
-        self.init_models_tab()
-        self.init_health_tab()
-        self.tabs.addTab(self.instances_tab, "Instances")
-        self.tabs.addTab(self.models_tab, "Models")
-        self.tabs.addTab(self.health_tab, "Health")
-        layout.addWidget(self.tabs)
-        self.setLayout(layout)
-
-    # --- Instances Tab ---
-    def init_instances_tab(self):
-        layout = QVBoxLayout()
-        self.instances_table = QTableWidget()
-        self.instances_table.setColumnCount(6)
-        self.instances_table.setHorizontalHeaderLabels([
-            "Name", "URL", "Status", "Priority", "Edit", "Delete"
-        ])
-        layout.addWidget(self.instances_table)
-        btn_layout = QHBoxLayout()
-        self.add_btn = QPushButton("Add Instance")
-        self.add_btn.clicked.connect(self.add_instance)
-        btn_layout.addWidget(self.add_btn)
-        btn_layout.addStretch()
-        layout.addLayout(btn_layout)
-        self.instances_tab.setLayout(layout)
-        self.refresh_instances()
-
-    def refresh_instances(self):
-        instances = self.llm_manager.list_ollama_instances()
-        self.instances_table.setRowCount(len(instances))
-        for row, config in enumerate(instances):
-            self.instances_table.setItem(row, 0, QTableWidgetItem(config.instance_name or ""))
-            self.instances_table.setItem(row, 1, QTableWidgetItem(config.base_url or ""))
-            status = "Enabled" if config.is_enabled else "Disabled"
-            self.instances_table.setItem(row, 2, QTableWidgetItem(status))
-            self.instances_table.setItem(row, 3, QTableWidgetItem(str(config.priority)))
-            edit_btn = QPushButton("Edit")
-            edit_btn.clicked.connect(lambda _, c=config: self.edit_instance(c))
-            self.instances_table.setCellWidget(row, 4, edit_btn)
-            del_btn = QPushButton("Delete")
-            del_btn.clicked.connect(lambda _, c=config: self.delete_instance(c))
-            self.instances_table.setCellWidget(row, 5, del_btn)
-
-    def add_instance(self):
-        dialog = OllamaInstanceDialog(self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            config = dialog.get_config()
-            self.llm_manager.add_ollama_instance(config)
-            self.refresh_instances()
-            self.refresh_models()
-            self.refresh_health()
-
-    def edit_instance(self, config: ProviderConfig):
-        dialog = OllamaInstanceDialog(self, config)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            new_config = dialog.get_config()
-            self.llm_manager.remove_ollama_instance(config.instance_name)
-            self.llm_manager.add_ollama_instance(new_config)
-            self.refresh_instances()
-            self.refresh_models()
-            self.refresh_health()
-
-    def delete_instance(self, config: ProviderConfig):
-        reply = QMessageBox.question(self, "Delete Instance", f"Delete '{config.instance_name}'?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if reply == QMessageBox.StandardButton.Yes:
-            self.llm_manager.remove_ollama_instance(config.instance_name)
-            self.refresh_instances()
-            self.refresh_models()
-            self.refresh_health()
-
-    # --- Models Tab ---
-    def init_models_tab(self):
-        layout = QVBoxLayout()
-        top_layout = QHBoxLayout()
-        self.instance_combo = QComboBox()
-        self.instance_combo.currentTextChanged.connect(self.refresh_models)
-        top_layout.addWidget(QLabel("Instance:"))
-        top_layout.addWidget(self.instance_combo)
-        layout.addLayout(top_layout)
+    def setup_ui(self):
+        """Setup the user interface."""
+        layout = QVBoxLayout(self)
+        
+        # Header
+        header_layout = QHBoxLayout()
+        title = QLabel("Ollama Model Manager")
+        title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+        header_layout.addWidget(title)
+        
+        refresh_btn = QPushButton("Refresh")
+        refresh_btn.clicked.connect(self.refresh_models)
+        header_layout.addWidget(refresh_btn)
+        
+        layout.addLayout(header_layout)
+        
+        # Progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
+        
+        # Models table
         self.models_table = QTableWidget()
-        self.models_table.setColumnCount(3)
-        self.models_table.setHorizontalHeaderLabels(["Model Name", "Context Length", "Test Chat"])
+        self.models_table.setColumnCount(5)
+        self.models_table.setHorizontalHeaderLabels([
+            "Name", "Size", "Status", "Instance", "Actions"
+        ])
+        
+        header = self.models_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+        
         layout.addWidget(self.models_table)
-        self.models_tab.setLayout(layout)
-        self.refresh_models()
+
+    def load_data(self):
+        """Load Ollama models data by running it in a worker thread."""
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, 0)  # Indeterminate progress
+        self.thread_manager.start_worker(
+            'list_ollama_models',
+            self.llm_manager.list_ollama_models,
+            callback=self._on_models_loaded
+        )
 
     def refresh_models(self):
-        instances = self.llm_manager.list_ollama_instances()
-        self.instance_combo.blockSignals(True)
-        self.instance_combo.clear()
-        for config in instances:
-            self.instance_combo.addItem(config.instance_name)
-        self.instance_combo.blockSignals(False)
-        if not instances:
-            self.models_table.setRowCount(0)
-            return
-        instance_name = self.instance_combo.currentText() or instances[0].instance_name
+        """Refresh the list of available models."""
+        self.load_data()
+
+    @pyqtSlot(object)
+    def _on_models_loaded(self, models: Optional[List[Any]]):
+        """Callback executed when the list of models is fetched."""
         try:
-            models = self.llm_manager.get_ollama_models(instance_name)
-        except Exception as e:
+            # Check if the widget is still valid before updating the UI
+            _ = self.isVisible()
+        except RuntimeError:
+            # Widget has been deleted, do nothing
+            return
+
+        self.progress_bar.setVisible(False)
+        if models is None:
+            QMessageBox.warning(self, "Error", "Failed to load Ollama models. The operation returned no result.")
+            logger.error("Failed to load Ollama models, received None.")
             self.models_table.setRowCount(0)
             return
+
+        try:
+            self.populate_models_table(models)
+        except Exception as e:
+            logger.error(f"Error populating models table: {e}", exc_info=True)
+            QMessageBox.warning(self, "Error", f"An error occurred while populating the models table: {e}")
+
+    def populate_models_table(self, models: List[Any]):
+        """Populate models table with data."""
+        self.models_table.setRowCount(0) # Clear table before populating
         self.models_table.setRowCount(len(models))
-        for row, model in enumerate(models):
-            self.models_table.setItem(row, 0, QTableWidgetItem(model.name))
-            self.models_table.setItem(row, 1, QTableWidgetItem(str(model.context_length or "?")))
-            test_btn = QPushButton("Test Chat")
-            test_btn.clicked.connect(lambda _, m=model, i=instance_name: self.test_chat(i, m.name))
-            self.models_table.setCellWidget(row, 2, test_btn)
-
-    def test_chat(self, instance_name, model_name):
-        prompt, ok = QInputDialog.getText(self, "Test Chat", "Enter prompt:")
-        if not ok or not prompt.strip():
-            return
-        try:
-            provider = self.llm_manager.ollama_instances[instance_name]
-            request = ChatCompletionRequest(
-                messages=[ChatMessage(role="user", content=prompt)],
-                model=model_name
-            )
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            response = loop.run_until_complete(provider.chat_completion(request))
-            loop.close()
-            content = response.choices[0]["message"]["content"]
-            QMessageBox.information(self, "Chat Result", content)
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"Chat failed: {e}")
-
-    # --- Health Tab ---
-    def init_health_tab(self):
-        layout = QVBoxLayout()
-        self.health_table = QTableWidget()
-        self.health_table.setColumnCount(3)
-        self.health_table.setHorizontalHeaderLabels(["Instance", "Status", "Check"])
-        layout.addWidget(self.health_table)
-        self.health_tab.setLayout(layout)
-        self.refresh_health()
-
-    def refresh_health(self):
-        instances = self.llm_manager.list_ollama_instances()
-        self.health_table.setRowCount(len(instances))
-        for row, config in enumerate(instances):
-            self.health_table.setItem(row, 0, QTableWidgetItem(config.instance_name or ""))
-            status_item = QTableWidgetItem("Unknown")
-            self.health_table.setItem(row, 1, status_item)
-            check_btn = QPushButton("Check")
-            check_btn.clicked.connect(lambda _, c=config: self.check_health(c, row))
-            self.health_table.setCellWidget(row, 2, check_btn)
-
-    def check_health(self, config: ProviderConfig, row: int):
-        try:
-            healthy = self.llm_manager.health_check_ollama(config.instance_name)
-            status = "Healthy" if healthy else "Unhealthy"
-            item = QTableWidgetItem(status)
-            if healthy:
-                item.setBackground(Qt.GlobalColor.green)
+        for i, model_data in enumerate(models):
+            # Handle both ModelConfig objects and dictionaries
+            if hasattr(model_data, 'name'):
+                # ModelConfig object
+                model_name = model_data.name
+                size_bytes = getattr(model_data, 'context_length', 0)
+                size_gb = f"{size_bytes / (1024**3):.2f} GB" if size_bytes > 0 else "N/A"
             else:
-                item.setBackground(Qt.GlobalColor.red)
-            self.health_table.setItem(row, 1, item)
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"Health check failed: {e}")
+                # Dictionary fallback
+                model_name = model_data.get('name', 'N/A')
+                size_bytes = model_data.get('size', 0)
+                size_gb = f"{size_bytes / (1024**3):.2f} GB" if size_bytes > 0 else "N/A"
+
+            # Name
+            name_item = QTableWidgetItem(model_name)
+            self.models_table.setItem(i, 0, name_item)
+
+            # Size
+            size_item = QTableWidgetItem(size_gb)
+            self.models_table.setItem(i, 1, size_item)
+
+            # Status
+            status_item = QTableWidgetItem("Available")
+            self.models_table.setItem(i, 2, status_item)
+            
+            # Instance (assuming 'local' for now, can be enhanced)
+            instance_item = QTableWidgetItem("Local")
+            self.models_table.setItem(i, 3, instance_item)
+
+            # Actions
+            actions_widget = QWidget()
+            actions_layout = QHBoxLayout(actions_widget)
+            actions_layout.setContentsMargins(0, 0, 0, 0)
+
+            delete_btn = QPushButton("Delete")
+            delete_btn.clicked.connect(lambda checked, m=model_name: self.delete_model(m))
+            actions_layout.addWidget(delete_btn)
+
+            export_btn = QPushButton("Export")
+            # Assuming export_model is defined elsewhere
+            export_btn.clicked.connect(lambda checked, m=model_name: self.export_model(m))
+            actions_layout.addWidget(export_btn)
+            
+            self.models_table.setCellWidget(i, 4, actions_widget)
+    
+    def delete_model(self, model_name: str):
+        """Delete a model from Ollama."""
+        reply = QMessageBox.question(
+            self,
+            "Confirm Deletion",
+            f"Are you sure you want to delete the model '{model_name}'?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+            
+        if reply == QMessageBox.StandardButton.Yes:
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setRange(0, 0)
+            logger.info(f"Starting deletion for model: {model_name}")
+            self.thread_manager.start_worker(
+                'delete_ollama_model',
+                self.llm_manager.delete_model,
+                callback=self._on_delete_complete,
+                model_name=model_name,
+            )
+
+    @pyqtSlot(object)
+    def _on_delete_complete(self, result: Any):
+        """Callback executed after a model deletion attempt."""
+        logger.info(f"Model deletion result: {result}")
+        self.progress_bar.setVisible(False)
+        # The worker returns the result of the target function.
+        # We assume delete_model returns something indicating success.
+        # For now, a simple notification and refresh is sufficient.
+        if result:
+            QMessageBox.information(self, "Success", "Model deleted successfully. Refreshing list.")
+        else:
+            QMessageBox.warning(self, "Error", "Failed to delete model. See logs for details.")
+        
+        self.refresh_models()
+
+    def export_model(self, model_name: str):
+        """Export a model from Ollama."""
+        # This can also be moved to a worker thread if it's a long-running task
+        QMessageBox.information(self, "Export", f"Exporting model: {model_name}")

@@ -26,7 +26,7 @@ import logging
 import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import re
 
@@ -65,15 +65,15 @@ class SecurityBreach:
     description: str
     company: str
     breach_date: Optional[datetime] = None
-    discovered_date: Optional[datetime] = None
+    discovery_date: Optional[datetime] = None
+    report_date: Optional[datetime] = None
     affected_users: Optional[int] = None
     data_types: List[str] = field(default_factory=list)
-    attack_vector: str = ""
-    severity: str = "Unknown"
     source: str = ""
     references: List[str] = field(default_factory=list)
-    lessons_learned: List[str] = field(default_factory=list)
-    mitigation_strategies: List[str] = field(default_factory=list)
+    tags: List[str] = field(default_factory=list)
+    status: str = "open"  # open, closed, investigating
+    resolution: Optional[str] = None
 
 
 @dataclass
@@ -82,16 +82,17 @@ class SecurityPatch:
     id: str
     title: str
     description: str
-    affected_products: List[str] = field(default_factory=list)
-    patch_version: str = ""
+    severity: str
+    products: List[str] = field(default_factory=list)
+    versions: List[str] = field(default_factory=list)
     release_date: Optional[datetime] = None
-    severity: str = "Unknown"
-    source: str = ""
-    download_url: str = ""
-    installation_instructions: str = ""
-    rollback_instructions: str = ""
+    installation_steps: List[str] = field(default_factory=list)
+    dependencies: List[str] = field(default_factory=list)
     tested: bool = False
     applied: bool = False
+    source: str = ""
+    references: List[str] = field(default_factory=list)
+    tags: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -110,7 +111,8 @@ class SecurityIntelligenceService:
     """Main security intelligence service."""
     
     def __init__(self, config_path: Optional[str] = None):
-        self.config_path = config_path or "security_intelligence_config.json"
+        """Initialize SecurityIntelligence with feed configurations."""
+        self.config_path = config_path or "config/security_intelligence_config.json"
         self.vulnerabilities: Dict[str, SecurityVulnerability] = {}
         self.breaches: Dict[str, SecurityBreach] = {}
         self.patches: Dict[str, SecurityPatch] = {}
@@ -184,56 +186,62 @@ class SecurityIntelligenceService:
             logger.error(f"Error saving security intelligence config: {e}")
     
     def load_data(self):
-        """Load cached security data."""
-        data_files = {
-            "vulnerabilities": "security_vulnerabilities.json",
-            "breaches": "security_breaches.json",
-            "patches": "security_patches.json",
-            "training_data": "security_training_data.json"
-        }
-        
-        for data_type, filename in data_files.items():
-            try:
-                file_path = Path(filename)
-                if file_path.exists():
-                    with open(file_path, 'r') as f:
-                        data = json.load(f)
-                        
-                    if data_type == "vulnerabilities":
-                        for vuln_data in data:
-                            vuln = SecurityVulnerability(**vuln_data)
-                            self.vulnerabilities[vuln.id] = vuln
-                    elif data_type == "breaches":
-                        for breach_data in data:
-                            breach = SecurityBreach(**breach_data)
-                            self.breaches[breach.id] = breach
-                    elif data_type == "patches":
-                        for patch_data in data:
-                            patch = SecurityPatch(**patch_data)
-                            self.patches[patch.id] = patch
-                    elif data_type == "training_data":
-                        self.training_data = data
-                        
-            except Exception as e:
-                logger.error(f"Error loading {data_type}: {e}")
+        """Load security data from files."""
+        try:
+            # Load vulnerabilities
+            if Path("data/security_vulnerabilities.json").exists():
+                with open("data/security_vulnerabilities.json", 'r') as f:
+                    data = json.load(f)
+                    for vuln_data in data:
+                        vuln = SecurityVulnerability(**vuln_data)
+                        self.vulnerabilities[vuln.id] = vuln
+            
+            # Load breaches
+            if Path("data/security_breaches.json").exists():
+                with open("data/security_breaches.json", 'r') as f:
+                    data = json.load(f)
+                    for breach_data in data:
+                        breach = SecurityBreach(**breach_data)
+                        self.breaches[breach.id] = breach
+            
+            # Load patches
+            if Path("data/security_patches.json").exists():
+                with open("data/security_patches.json", 'r') as f:
+                    data = json.load(f)
+                    for patch_data in data:
+                        patch = SecurityPatch(**patch_data)
+                        self.patches[patch.id] = patch
+            
+            # Load training data
+            if Path("data/security_training_data.json").exists():
+                with open("data/security_training_data.json", 'r') as f:
+                    self.training_data = json.load(f)
+                    
+        except Exception as e:
+            logger.error(f"Error loading security data: {e}")
+            # Initialize empty data structures
+            self.vulnerabilities = {}
+            self.breaches = {}
+            self.patches = {}
+            self.training_data = []
     
     def save_data(self):
         """Save security data to files."""
         try:
             # Save vulnerabilities
-            with open("security_vulnerabilities.json", 'w') as f:
+            with open("data/security_vulnerabilities.json", 'w') as f:
                 json.dump([vuln.__dict__ for vuln in self.vulnerabilities.values()], f, indent=2, default=str)
             
             # Save breaches
-            with open("security_breaches.json", 'w') as f:
+            with open("data/security_breaches.json", 'w') as f:
                 json.dump([breach.__dict__ for breach in self.breaches.values()], f, indent=2, default=str)
             
             # Save patches
-            with open("security_patches.json", 'w') as f:
+            with open("data/security_patches.json", 'w') as f:
                 json.dump([patch.__dict__ for patch in self.patches.values()], f, indent=2, default=str)
             
             # Save training data
-            with open("security_training_data.json", 'w') as f:
+            with open("data/security_training_data.json", 'w') as f:
                 json.dump(self.training_data, f, indent=2, default=str)
                 
         except Exception as e:
@@ -242,20 +250,23 @@ class SecurityIntelligenceService:
     async def fetch_security_feeds(self):
         """Fetch security data from configured feeds."""
         async with httpx.AsyncClient() as client:
+            tasks = []
             for feed_name, feed in self.feeds.items():
                 if not feed.enabled:
                     continue
                 
-                try:
-                    if feed.feed_type == "rss":
-                        await self._fetch_rss_feed(client, feed)
-                    elif feed.feed_type == "api":
-                        await self._fetch_api_feed(client, feed)
-                    
+                if feed.feed_type == "rss":
+                    tasks.append(self._fetch_rss_feed(client, feed))
+                elif feed.feed_type == "api":
+                    tasks.append(self._fetch_api_feed(client, feed))
+            
+            # Wait for all tasks to complete
+            await asyncio.gather(*tasks)
+            
+            # Update last fetch time for all feeds
+            for feed in self.feeds.values():
+                if feed.enabled:
                     feed.last_fetch = datetime.now()
-                    
-                except Exception as e:
-                    logger.error(f"Error fetching feed {feed_name}: {e}")
         
         self.save_config()
         self.save_data()
@@ -269,13 +280,17 @@ class SecurityIntelligenceService:
             # Parse RSS feed
             parsed_feed = feedparser.parse(response.text)
             
+            tasks = []
             for entry in parsed_feed.entries:
                 if "cve" in feed.tags:
-                    await self._process_cve_entry(entry, feed)
+                    tasks.append(self._process_cve_entry(entry, feed))
                 elif "breach" in feed.tags:
-                    await self._process_breach_entry(entry, feed)
+                    tasks.append(self._process_breach_entry(entry, feed))
                 elif "advisory" in feed.tags:
-                    await self._process_advisory_entry(entry, feed)
+                    tasks.append(self._process_advisory_entry(entry, feed))
+            
+            # Wait for all processing tasks to complete
+            await asyncio.gather(*tasks)
                     
         except Exception as e:
             logger.error(f"Error fetching RSS feed {feed.name}: {e}")
@@ -288,11 +303,15 @@ class SecurityIntelligenceService:
             
             data = response.json()
             
+            tasks = []
             # Process API data based on feed type
             if "cve" in feed.tags:
-                await self._process_cve_api_data(data, feed)
+                tasks.append(self._process_cve_api_data(data, feed))
             elif "breach" in feed.tags:
-                await self._process_breach_api_data(data, feed)
+                tasks.append(self._process_breach_api_data(data, feed))
+            
+            # Wait for all processing tasks to complete
+            await asyncio.gather(*tasks)
                 
         except Exception as e:
             logger.error(f"Error fetching API feed {feed.name}: {e}")
@@ -355,19 +374,21 @@ class SecurityIntelligenceService:
     async def _process_advisory_entry(self, entry, feed: SecurityFeed):
         """Process advisory entry from RSS feed."""
         try:
-            advisory_id = f"advisory_{len(self.patches) + 1}"
+            # Extract patch information
+            patch_id = f"patch_{len(self.patches) + 1}"
             
             # Create patch object
             patch = SecurityPatch(
-                id=advisory_id,
+                id=patch_id,
                 title=entry.title or "Unknown",
                 description=entry.description or "",
+                severity=self._extract_severity(entry.title or entry.description),
                 release_date=datetime.now(),
                 source=feed.name,
                 tags=feed.tags.copy()
             )
             
-            self.patches[advisory_id] = patch
+            self.patches[patch_id] = patch
             
             # Add to training data
             self._add_to_training_data(patch)
@@ -375,47 +396,102 @@ class SecurityIntelligenceService:
         except Exception as e:
             logger.error(f"Error processing advisory entry: {e}")
     
+    async def _process_cve_api_data(self, data: Dict[str, Any], feed: SecurityFeed):
+        """Process CVE data from API feed."""
+        try:
+            for vuln_data in data.get("vulnerabilities", []):
+                cve_id = vuln_data.get("id")
+                if not cve_id or cve_id in self.vulnerabilities:
+                    continue
+                
+                vuln = SecurityVulnerability(
+                    id=cve_id,
+                    title=vuln_data.get("title", "Unknown"),
+                    description=vuln_data.get("description", ""),
+                    severity=vuln_data.get("severity", "Unknown"),
+                    cvss_score=vuln_data.get("cvss_score"),
+                    affected_products=vuln_data.get("affected_products", []),
+                    affected_versions=vuln_data.get("affected_versions", []),
+                    published_date=datetime.now(),
+                    source=feed.name,
+                    tags=feed.tags.copy()
+                )
+                
+                self.vulnerabilities[cve_id] = vuln
+                self._add_to_training_data(vuln)
+                
+        except Exception as e:
+            logger.error(f"Error processing CVE API data: {e}")
+    
+    async def _process_breach_api_data(self, data: Dict[str, Any], feed: SecurityFeed):
+        """Process breach data from API feed."""
+        try:
+            for breach_data in data.get("breaches", []):
+                breach_id = f"breach_{len(self.breaches) + 1}"
+                
+                breach = SecurityBreach(
+                    id=breach_id,
+                    title=breach_data.get("title", "Unknown"),
+                    description=breach_data.get("description", ""),
+                    company=breach_data.get("company", "Unknown"),
+                    breach_date=datetime.now(),
+                    affected_users=breach_data.get("affected_users"),
+                    data_types=breach_data.get("data_types", []),
+                    source=feed.name,
+                    tags=feed.tags.copy()
+                )
+                
+                self.breaches[breach_id] = breach
+                self._add_to_training_data(breach)
+                
+        except Exception as e:
+            logger.error(f"Error processing breach API data: {e}")
+    
     def _extract_cve_id(self, text: str) -> Optional[str]:
         """Extract CVE ID from text."""
-        cve_pattern = r'CVE-\d{4}-\d{4,7}'
-        match = re.search(cve_pattern, text, re.IGNORECASE)
-        return match.group() if match else None
+        match = re.search(r"CVE-\d{4}-\d{4,}", text)
+        return match.group(0) if match else None
     
     def _extract_severity(self, text: str) -> str:
         """Extract severity from text."""
+        severity_patterns = {
+            "critical": r"\b(critical|severe)\b",
+            "high": r"\bhigh\b",
+            "medium": r"\b(medium|moderate)\b",
+            "low": r"\blow\b"
+        }
+        
         text_lower = text.lower()
-        if any(word in text_lower for word in ["critical", "severe"]):
-            return "Critical"
-        elif "high" in text_lower:
-            return "High"
-        elif "medium" in text_lower:
-            return "Medium"
-        elif "low" in text_lower:
-            return "Low"
+        for severity, pattern in severity_patterns.items():
+            if re.search(pattern, text_lower):
+                return severity.capitalize()
+        
         return "Unknown"
     
     def _extract_company(self, text: str) -> str:
         """Extract company name from text."""
-        # Simple extraction - could be enhanced with NLP
-        words = text.split()
-        if len(words) > 0:
-            return words[0]
+        # This is a simplified implementation
+        # Could be enhanced with NLP/entity recognition
         return "Unknown"
     
-    def _add_to_training_data(self, item):
-        """Add security item to training data."""
-        training_item = {
-            "type": type(item).__name__,
-            "id": item.id,
-            "title": item.title,
-            "description": item.description,
-            "severity": getattr(item, 'severity', 'Unknown'),
-            "source": item.source,
-            "tags": item.tags,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-        self.training_data.append(training_item)
+    def _add_to_training_data(self, item: Any):
+        """Add item to training data."""
+        try:
+            training_item = {
+                "type": type(item).__name__,
+                "id": item.id,
+                "title": item.title,
+                "description": item.description,
+                "severity": getattr(item, "severity", "Unknown"),
+                "source": item.source,
+                "tags": item.tags,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            self.training_data.append(training_item)
+            
+        except Exception as e:
+            logger.error(f"Error adding to training data: {e}")
     
     def get_vulnerabilities(self, severity: Optional[str] = None, limit: int = 100) -> List[SecurityVulnerability]:
         """Get vulnerabilities with optional filtering."""
@@ -424,9 +500,7 @@ class SecurityIntelligenceService:
         if severity:
             vulns = [v for v in vulns if v.severity.lower() == severity.lower()]
         
-        # Sort by published date (newest first)
         vulns.sort(key=lambda x: x.published_date or datetime.min, reverse=True)
-        
         return vulns[:limit]
     
     def get_breaches(self, limit: int = 100) -> List[SecurityBreach]:
@@ -442,7 +516,7 @@ class SecurityIntelligenceService:
         return patches[:limit]
     
     def get_training_data(self, limit: int = 1000) -> List[Dict[str, Any]]:
-        """Get training data for AI models."""
+        """Get training data."""
         return self.training_data[-limit:]
     
     def search_vulnerabilities(self, query: str) -> List[SecurityVulnerability]:

@@ -6,16 +6,97 @@ import logging
 import json
 import os
 from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Union, Callable, Any
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QPushButton,
     QLabel, QTextEdit, QTableWidget, QTableWidgetItem, QHeaderView,
     QComboBox, QLineEdit, QFileDialog, QMessageBox, QTabWidget,
-    QListWidget, QListWidgetItem, QProgressBar, QCheckBox
+    QListWidget, QListWidgetItem, QProgressBar, QCheckBox, QDialog,
+    QFormLayout, QDateEdit, QSpinBox, QDoubleSpinBox, QSplitter
 )
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QObject, pyqtBoundSignal
 from PyQt6.QtGui import QFont, QColor, QIcon
 
+# Import backend task management service
+from backend.services.task_management import (
+    get_task_management_service, TaskStatus, TaskPriority, Task
+)
+
 logger = logging.getLogger(__name__)
+
+
+class PlatformConfig:
+    """Configuration for collaboration platforms."""
+    
+    def __init__(self):
+        self.teams_enabled = False
+        self.teams_token = ""
+        self.slack_enabled = False
+        self.slack_token = ""
+        self.github_enabled = False
+        self.github_token = ""
+    
+    @property
+    def has_active_platform(self) -> bool:
+        return any([self.teams_enabled, self.slack_enabled, self.github_enabled])
+
+
+class ConfigDialog(QDialog):
+    """Dialog for configuring collaboration platforms."""
+    
+    def __init__(self, config: PlatformConfig, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.config = config
+        self.setup_ui()
+    
+    def setup_ui(self) -> None:
+        """Setup the configuration dialog UI."""
+        self.setWindowTitle("Configure Collaboration Platforms")
+        layout = QFormLayout(self)
+        
+        # Microsoft Teams
+        self.teams_check = QCheckBox("Enable Microsoft Teams")
+        self.teams_check.setChecked(self.config.teams_enabled)
+        self.teams_token = QLineEdit(self.config.teams_token)
+        self.teams_token.setEchoMode(QLineEdit.EchoMode.Password)
+        layout.addRow(self.teams_check)
+        layout.addRow("Teams Token:", self.teams_token)
+        
+        # Slack
+        self.slack_check = QCheckBox("Enable Slack")
+        self.slack_check.setChecked(self.config.slack_enabled)
+        self.slack_token = QLineEdit(self.config.slack_token)
+        self.slack_token.setEchoMode(QLineEdit.EchoMode.Password)
+        layout.addRow(self.slack_check)
+        layout.addRow("Slack Token:", self.slack_token)
+        
+        # GitHub
+        self.github_check = QCheckBox("Enable GitHub")
+        self.github_check.setChecked(self.config.github_enabled)
+        self.github_token = QLineEdit(self.config.github_token)
+        self.github_token.setEchoMode(QLineEdit.EchoMode.Password)
+        layout.addRow(self.github_check)
+        layout.addRow("GitHub Token:", self.github_token)
+        
+        # Buttons
+        button_box = QHBoxLayout()
+        save_btn = QPushButton("Save")
+        save_btn.clicked.connect(self.save_config)
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.reject)
+        button_box.addWidget(save_btn)
+        button_box.addWidget(cancel_btn)
+        layout.addRow(button_box)
+    
+    def save_config(self) -> None:
+        """Save the configuration."""
+        self.config.teams_enabled = self.teams_check.isChecked()
+        self.config.teams_token = self.teams_token.text()
+        self.config.slack_enabled = self.slack_check.isChecked()
+        self.config.slack_token = self.slack_token.text()
+        self.config.github_enabled = self.github_check.isChecked()
+        self.config.github_token = self.github_token.text()
+        self.accept()
 
 
 class TeamMember:
@@ -25,13 +106,19 @@ class TeamMember:
         self.name = name
         self.role = role
         self.status = status
-        self.last_seen = datetime.now()
+        self.last_seen: datetime = datetime.now()
 
 
 class ChatMessage:
     """Represents a chat message."""
     
-    def __init__(self, sender: str, content: str, message_type: str = "text", timestamp: datetime = None):
+    def __init__(
+        self,
+        sender: str,
+        content: str,
+        message_type: str = "text",
+        timestamp: Optional[datetime] = None
+    ):
         self.sender = sender
         self.content = content
         self.message_type = message_type  # "text", "code", "file"
@@ -44,9 +131,9 @@ class TeamChatWidget(QWidget):
     
     message_sent = pyqtSignal(str, str)  # sender, content
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.messages = []
+        self.messages: List[ChatMessage] = []
         self.team_members = [
             TeamMember("Alice", "Senior Developer", "online"),
             TeamMember("Bob", "QA Engineer", "online"),
@@ -58,7 +145,7 @@ class TeamChatWidget(QWidget):
         self.setup_ui()
         self.load_chat_history()
     
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Setup the chat UI."""
         layout = QVBoxLayout(self)
         
@@ -429,12 +516,13 @@ class CodeSharingWidget(QWidget):
 
 
 class ProjectManagementWidget(QWidget):
-    """Widget for project management features."""
+    """Widget for project management features with backend integration."""
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.tasks = []
+        self.task_service = get_task_management_service()
         self.setup_ui()
+        self.load_tasks()
     
     def setup_ui(self):
         """Setup the project management UI."""
@@ -455,9 +543,10 @@ class ProjectManagementWidget(QWidget):
         self.completed_tasks_label = QLabel("Completed: 0")
         self.in_progress_label = QLabel("In Progress: 0")
         self.pending_label = QLabel("Pending: 0")
+        self.overdue_label = QLabel("Overdue: 0")
         
         for label in [self.total_tasks_label, self.completed_tasks_label, 
-                     self.in_progress_label, self.pending_label]:
+                     self.in_progress_label, self.pending_label, self.overdue_label]:
             label.setStyleSheet("font-weight: bold; color: #007bff;")
             overview_layout.addWidget(label)
         
@@ -470,10 +559,10 @@ class ProjectManagementWidget(QWidget):
         
         # Task input form
         form_layout = QHBoxLayout()
-        form_layout.addWidget(QLabel("Task:"))
-        self.task_input = QLineEdit()
-        self.task_input.setPlaceholderText("Enter task description...")
-        form_layout.addWidget(self.task_input)
+        form_layout.addWidget(QLabel("Title:"))
+        self.task_title_input = QLineEdit()
+        self.task_title_input.setPlaceholderText("Enter task title...")
+        form_layout.addWidget(self.task_title_input)
         
         form_layout.addWidget(QLabel("Assignee:"))
         self.assignee_combo = QComboBox()
@@ -482,7 +571,7 @@ class ProjectManagementWidget(QWidget):
         
         form_layout.addWidget(QLabel("Priority:"))
         self.priority_combo = QComboBox()
-        self.priority_combo.addItems(["Low", "Medium", "High", "Critical"])
+        self.priority_combo.addItems([p.name for p in TaskPriority])
         form_layout.addWidget(self.priority_combo)
         
         self.add_task_button = QPushButton("Add Task")
@@ -490,6 +579,29 @@ class ProjectManagementWidget(QWidget):
         form_layout.addWidget(self.add_task_button)
         
         task_layout.addLayout(form_layout)
+        
+        # Advanced task form
+        advanced_layout = QHBoxLayout()
+        advanced_layout.addWidget(QLabel("Description:"))
+        self.task_description_input = QTextEdit()
+        self.task_description_input.setMaximumHeight(60)
+        self.task_description_input.setPlaceholderText("Enter task description...")
+        advanced_layout.addWidget(self.task_description_input)
+        
+        advanced_layout.addWidget(QLabel("Due Date:"))
+        self.due_date_edit = QDateEdit()
+        self.due_date_edit.setDate(datetime.now().date())
+        self.due_date_edit.setCalendarPopup(True)
+        advanced_layout.addWidget(self.due_date_edit)
+        
+        advanced_layout.addWidget(QLabel("Est. Hours:"))
+        self.estimated_hours_spin = QDoubleSpinBox()
+        self.estimated_hours_spin.setRange(0.5, 100.0)
+        self.estimated_hours_spin.setValue(4.0)
+        self.estimated_hours_spin.setSuffix(" h")
+        advanced_layout.addWidget(self.estimated_hours_spin)
+        
+        task_layout.addLayout(advanced_layout)
         layout.addWidget(task_group)
         
         # Tasks table
@@ -500,227 +612,440 @@ class ProjectManagementWidget(QWidget):
         filter_layout = QHBoxLayout()
         filter_layout.addWidget(QLabel("Filter by Status:"))
         self.status_filter_combo = QComboBox()
-        self.status_filter_combo.addItems(["All", "To Do", "In Progress", "Done"])
+        self.status_filter_combo.addItems(["All"] + [s.name for s in TaskStatus])
         self.status_filter_combo.currentTextChanged.connect(self.filter_tasks)
         filter_layout.addWidget(self.status_filter_combo)
         
         filter_layout.addWidget(QLabel("Filter by Priority:"))
         self.priority_filter_combo = QComboBox()
-        self.priority_filter_combo.addItems(["All", "Low", "Medium", "High", "Critical"])
+        self.priority_filter_combo.addItems(["All"] + [p.name for p in TaskPriority])
         self.priority_filter_combo.currentTextChanged.connect(self.filter_tasks)
         filter_layout.addWidget(self.priority_filter_combo)
+        
+        filter_layout.addWidget(QLabel("Filter by Assignee:"))
+        self.assignee_filter_combo = QComboBox()
+        self.assignee_filter_combo.addItems(["All", "You", "Alice", "Bob", "Charlie", "David", "Eva"])
+        self.assignee_filter_combo.currentTextChanged.connect(self.filter_tasks)
+        filter_layout.addWidget(self.assignee_filter_combo)
+        
+        refresh_btn = QPushButton("Refresh")
+        refresh_btn.clicked.connect(self.load_tasks)
+        filter_layout.addWidget(refresh_btn)
         
         filter_layout.addStretch()
         table_layout.addLayout(filter_layout)
         
         self.tasks_table = QTableWidget()
-        self.tasks_table.setColumnCount(5)
+        self.tasks_table.setColumnCount(8)
         self.tasks_table.setHorizontalHeaderLabels([
-            "Task", "Assignee", "Status", "Priority", "Actions"
+            "Title", "Assignee", "Status", "Priority", "Due Date", "Est. Hours", "Progress", "Actions"
         ])
         header = self.tasks_table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         table_layout.addWidget(self.tasks_table)
         
         layout.addWidget(table_group)
-        
-        # Populate with sample tasks
-        self.populate_tasks()
-        self.update_overview()
     
     def add_task(self):
-        """Add a new task."""
-        task = self.task_input.text().strip()
-        if not task:
+        """Add a new task using the backend service."""
+        title = self.task_title_input.text().strip()
+        if not title:
+            QMessageBox.warning(self, "Missing Title", "Please enter a task title.")
             return
         
+        description = self.task_description_input.toPlainText().strip()
         assignee = self.assignee_combo.currentText()
-        priority = self.priority_combo.currentText()
+        priority = TaskPriority[self.priority_combo.currentText()]
+        due_date = self.due_date_edit.date().toPyDate()
+        estimated_hours = self.estimated_hours_spin.value()
         
-        task_data = {
-            "id": len(self.tasks) + 1,
-            "description": task,
-            "assignee": assignee,
-            "status": "To Do",
-            "priority": priority,
-            "created_date": datetime.now(),
-            "completed_date": None
-        }
-        
-        self.tasks.append(task_data)
-        self.add_task_to_table(task_data)
-        self.task_input.clear()
-        self.update_overview()
+        try:
+            # Create task using backend service
+            task = self.task_service.create_task(
+                title=title,
+                description=description,
+                assignee=assignee,
+                priority=priority,
+                due_date=datetime.combine(due_date, datetime.min.time()),
+                estimated_hours=estimated_hours,
+                created_by="User"
+            )
+            
+            # Clear form
+            self.task_title_input.clear()
+            self.task_description_input.clear()
+            self.due_date_edit.setDate(datetime.now().date())
+            self.estimated_hours_spin.setValue(4.0)
+            
+            # Refresh display
+            self.load_tasks()
+            
+            QMessageBox.information(self, "Success", f"Task '{title}' created successfully!")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to create task: {str(e)}")
     
-    def add_task_to_table(self, task):
+    def load_tasks(self):
+        """Load tasks from the backend service."""
+        try:
+            # Get all tasks from backend
+            tasks = self.task_service.get_all_tasks()
+            
+            # Clear table
+            self.tasks_table.setRowCount(0)
+            
+            # Add tasks to table
+            for task in tasks:
+                self.add_task_to_table(task)
+            
+            # Update overview
+            self.update_overview()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to load tasks: {str(e)}")
+    
+    def add_task_to_table(self, task: Task):
         """Add a task to the table."""
         row = self.tasks_table.rowCount()
         self.tasks_table.insertRow(row)
         
-        # Task description
-        self.tasks_table.setItem(row, 0, QTableWidgetItem(task["description"]))
+        # Title
+        title_item = QTableWidgetItem(task.title)
+        if task.description:
+            title_item.setToolTip(task.description)
+        self.tasks_table.setItem(row, 0, title_item)
         
         # Assignee
-        self.tasks_table.setItem(row, 1, QTableWidgetItem(task["assignee"]))
+        self.tasks_table.setItem(row, 1, QTableWidgetItem(task.assignee))
         
         # Status
-        status_item = QTableWidgetItem(task["status"])
-        if task["status"] == "Done":
+        status_item = QTableWidgetItem(task.status.value)
+        if task.status == TaskStatus.DONE:
             status_item.setBackground(QColor(200, 255, 200))
-        elif task["status"] == "In Progress":
+        elif task.status == TaskStatus.IN_PROGRESS:
             status_item.setBackground(QColor(255, 255, 200))
+        elif task.status == TaskStatus.REVIEW:
+            status_item.setBackground(QColor(200, 200, 255))
         self.tasks_table.setItem(row, 2, status_item)
         
         # Priority
-        priority_item = QTableWidgetItem(task["priority"])
+        priority_item = QTableWidgetItem(task.priority.value)
         priority_colors = {
-            "Critical": QColor(255, 200, 200),
-            "High": QColor(255, 220, 200),
-            "Medium": QColor(255, 255, 200),
-            "Low": QColor(200, 255, 200)
+            TaskPriority.CRITICAL.value: QColor(255, 200, 200),
+            TaskPriority.HIGH.value: QColor(255, 220, 200),
+            TaskPriority.MEDIUM.value: QColor(255, 255, 200),
+            TaskPriority.LOW.value: QColor(200, 255, 200)
         }
-        priority_item.setBackground(priority_colors.get(task["priority"], QColor(255, 255, 255)))
+        priority_item.setBackground(priority_colors.get(task.priority.value, QColor(255, 255, 255)))
         self.tasks_table.setItem(row, 3, priority_item)
+        
+        # Due Date
+        due_date_text = task.due_date.strftime("%Y-%m-%d") if task.due_date else "No due date"
+        due_date_item = QTableWidgetItem(due_date_text)
+        if task.due_date and task.due_date < datetime.now() and task.status != TaskStatus.DONE:
+            due_date_item.setBackground(QColor(255, 200, 200))  # Red for overdue
+        self.tasks_table.setItem(row, 4, due_date_item)
+        
+        # Estimated Hours
+        est_hours = f"{task.estimated_hours:.1f}h" if task.estimated_hours else "N/A"
+        self.tasks_table.setItem(row, 5, QTableWidgetItem(est_hours))
+        
+        # Progress
+        if task.estimated_hours and task.actual_hours:
+            progress = min(100, (task.actual_hours / task.estimated_hours) * 100)
+            progress_text = f"{progress:.0f}%"
+        elif task.status == TaskStatus.DONE:
+            progress_text = "100%"
+        else:
+            progress_text = "0%"
+        self.tasks_table.setItem(row, 6, QTableWidgetItem(progress_text))
         
         # Actions
         actions_widget = QWidget()
         actions_layout = QHBoxLayout()
         actions_layout.setContentsMargins(0, 0, 0, 0)
         
-        if task["status"] != "Done":
-            complete_btn = QPushButton("Complete")
-            complete_btn.clicked.connect(lambda: self.complete_task(task["id"]))
-            actions_layout.addWidget(complete_btn)
+        if task.status != TaskStatus.DONE:
+            if task.status == TaskStatus.TODO:
+                start_btn = QPushButton("Start")
+                start_btn.clicked.connect(lambda: self.start_task(task.id))
+                actions_layout.addWidget(start_btn)
+            elif task.status == TaskStatus.IN_PROGRESS:
+                complete_btn = QPushButton("Complete")
+                complete_btn.clicked.connect(lambda: self.complete_task(task.id))
+                actions_layout.addWidget(complete_btn)
+        
+        edit_btn = QPushButton("Edit")
+        edit_btn.clicked.connect(lambda: self.edit_task(task.id))
+        actions_layout.addWidget(edit_btn)
         
         delete_btn = QPushButton("Delete")
-        delete_btn.clicked.connect(lambda: self.delete_task(task["id"]))
+        delete_btn.clicked.connect(lambda: self.delete_task(task.id))
         actions_layout.addWidget(delete_btn)
         
         actions_widget.setLayout(actions_layout)
-        self.tasks_table.setCellWidget(row, 4, actions_widget)
+        self.tasks_table.setCellWidget(row, 7, actions_widget)
+    
+    def start_task(self, task_id: int):
+        """Start a task (change status to In Progress)."""
+        try:
+            self.task_service.update_task(task_id, status=TaskStatus.IN_PROGRESS)
+            self.load_tasks()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to start task: {str(e)}")
     
     def complete_task(self, task_id: int):
-        """Mark a task as complete."""
-        for task in self.tasks:
-            if task["id"] == task_id:
-                task["status"] = "Done"
-                task["completed_date"] = datetime.now()
-                break
-        
-        self.refresh_table()
-        self.update_overview()
+        """Complete a task."""
+        try:
+            # For now, we'll use estimated hours as actual hours
+            task = self.task_service.get_task(task_id)
+            actual_hours = task.estimated_hours if task else None
+            
+            self.task_service.complete_task(task_id, actual_hours=actual_hours)
+            self.load_tasks()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to complete task: {str(e)}")
+    
+    def edit_task(self, task_id: int):
+        """Edit a task."""
+        try:
+            task = self.task_service.get_task(task_id)
+            if not task:
+                QMessageBox.warning(self, "Not Found", "Task not found.")
+                return
+            
+            # Show edit dialog
+            dialog = TaskEditDialog(task, self)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                # Get updated data
+                updated_data = dialog.get_updated_task_data()
+                
+                # Update task
+                self.task_service.update_task(task_id, **updated_data)
+                self.load_tasks()
+                
+                QMessageBox.information(self, "Success", "Task updated successfully!")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to edit task: {str(e)}")
     
     def delete_task(self, task_id: int):
         """Delete a task."""
-        self.tasks = [task for task in self.tasks if task["id"] != task_id]
-        self.refresh_table()
-        self.update_overview()
+        try:
+            task = self.task_service.get_task(task_id)
+            if not task:
+                QMessageBox.warning(self, "Not Found", "Task not found.")
+                return
+            
+            reply = QMessageBox.question(self, "Confirm Delete", 
+                                       f"Are you sure you want to delete task '{task.title}'?",
+                                       QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                self.task_service.delete_task(task_id)
+                self.load_tasks()
+                QMessageBox.information(self, "Success", "Task deleted successfully.")
+                
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to delete task: {str(e)}")
     
     def filter_tasks(self):
-        """Filter tasks by status and priority."""
-        self.refresh_table()
-    
-    def refresh_table(self):
-        """Refresh the tasks table."""
-        self.tasks_table.setRowCount(0)
-        
-        status_filter = self.status_filter_combo.currentText()
-        priority_filter = self.priority_filter_combo.currentText()
-        
-        for task in self.tasks:
-            if status_filter != "All" and task["status"] != status_filter:
-                continue
-            if priority_filter != "All" and task["priority"] != priority_filter:
-                continue
+        """Filter tasks by status, priority, and assignee."""
+        try:
+            status_filter = self.status_filter_combo.currentText()
+            priority_filter = self.priority_filter_combo.currentText()
+            assignee_filter = self.assignee_filter_combo.currentText()
             
-            self.add_task_to_table(task)
+            # Get all tasks
+            tasks = self.task_service.get_all_tasks()
+            
+            # Apply filters
+            filtered_tasks = []
+            for task in tasks:
+                if status_filter != "All" and task.status.value != status_filter:
+                    continue
+                if priority_filter != "All" and task.priority.value != priority_filter:
+                    continue
+                if assignee_filter != "All" and task.assignee != assignee_filter:
+                    continue
+                filtered_tasks.append(task)
+            
+            # Update table
+            self.tasks_table.setRowCount(0)
+            for task in filtered_tasks:
+                self.add_task_to_table(task)
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to filter tasks: {str(e)}")
     
     def update_overview(self):
-        """Update the project overview."""
-        total = len(self.tasks)
-        completed = sum(1 for task in self.tasks if task["status"] == "Done")
-        in_progress = sum(1 for task in self.tasks if task["status"] == "In Progress")
-        pending = total - completed - in_progress
-        
-        self.total_tasks_label.setText(f"Total: {total}")
-        self.completed_tasks_label.setText(f"Completed: {completed}")
-        self.in_progress_label.setText(f"In Progress: {in_progress}")
-        self.pending_label.setText(f"Pending: {pending}")
+        """Update the project overview with analytics."""
+        try:
+            analytics = self.task_service.get_analytics()
+            
+            self.total_tasks_label.setText(f"Total: {analytics.total_tasks}")
+            self.completed_tasks_label.setText(f"Completed: {analytics.completed_tasks}")
+            self.in_progress_label.setText(f"In Progress: {analytics.in_progress_tasks}")
+            self.pending_label.setText(f"Pending: {analytics.total_tasks - analytics.completed_tasks - analytics.in_progress_tasks}")
+            self.overdue_label.setText(f"Overdue: {analytics.overdue_tasks}")
+            
+        except Exception as e:
+            logger.error(f"Failed to update overview: {e}")
+
+
+class TaskEditDialog(QDialog):
+    """Dialog for editing task details."""
     
-    def populate_tasks(self):
-        """Populate with sample tasks."""
-        sample_tasks = [
-            {
-                "id": 1,
-                "description": "Implement user authentication system",
-                "assignee": "Alice",
-                "status": "In Progress",
-                "priority": "High",
-                "created_date": datetime.now() - timedelta(days=2),
-                "completed_date": None
-            },
-            {
-                "id": 2,
-                "description": "Fix database connection timeout issue",
-                "assignee": "Bob",
-                "status": "Done",
-                "priority": "Medium",
-                "created_date": datetime.now() - timedelta(days=3),
-                "completed_date": datetime.now() - timedelta(days=1)
-            },
-            {
-                "id": 3,
-                "description": "Add comprehensive unit tests",
-                "assignee": "Charlie",
-                "status": "To Do",
-                "priority": "High",
-                "created_date": datetime.now() - timedelta(days=1),
-                "completed_date": None
-            },
-            {
-                "id": 4,
-                "description": "Update API documentation",
-                "assignee": "David",
-                "status": "To Do",
-                "priority": "Low",
-                "created_date": datetime.now() - timedelta(hours=6),
-                "completed_date": None
-            },
-            {
-                "id": 5,
-                "description": "Optimize database queries",
-                "assignee": "Alice",
-                "status": "In Progress",
-                "priority": "Medium",
-                "created_date": datetime.now() - timedelta(hours=12),
-                "completed_date": None
-            }
-        ]
+    def __init__(self, task: Task, parent=None):
+        super().__init__(parent)
+        self.task = task
+        self.setup_ui()
+        self.load_task_data()
+    
+    def setup_ui(self):
+        """Setup the dialog UI."""
+        self.setWindowTitle("Edit Task")
+        self.setModal(True)
+        self.resize(500, 400)
         
-        self.tasks = sample_tasks
-        for task in self.tasks:
-            self.add_task_to_table(task)
+        layout = QVBoxLayout(self)
+        
+        # Form layout
+        form_layout = QFormLayout()
+        
+        # Title
+        self.title_edit = QLineEdit()
+        form_layout.addRow("Title:", self.title_edit)
+        
+        # Description
+        self.description_edit = QTextEdit()
+        self.description_edit.setMaximumHeight(100)
+        form_layout.addRow("Description:", self.description_edit)
+        
+        # Assignee
+        self.assignee_combo = QComboBox()
+        self.assignee_combo.addItems(["You", "Alice", "Bob", "Charlie", "David", "Eva"])
+        form_layout.addRow("Assignee:", self.assignee_combo)
+        
+        # Status
+        self.status_combo = QComboBox()
+        self.status_combo.addItems([s.name for s in TaskStatus])
+        form_layout.addRow("Status:", self.status_combo)
+        
+        # Priority
+        self.priority_combo = QComboBox()
+        self.priority_combo.addItems([p.name for p in TaskPriority])
+        form_layout.addRow("Priority:", self.priority_combo)
+        
+        # Due Date
+        self.due_date_edit = QDateEdit()
+        self.due_date_edit.setCalendarPopup(True)
+        form_layout.addRow("Due Date:", self.due_date_edit)
+        
+        # Estimated Hours
+        self.estimated_hours_spin = QDoubleSpinBox()
+        self.estimated_hours_spin.setRange(0.5, 100.0)
+        self.estimated_hours_spin.setSuffix(" h")
+        form_layout.addRow("Estimated Hours:", self.estimated_hours_spin)
+        
+        # Actual Hours
+        self.actual_hours_spin = QDoubleSpinBox()
+        self.actual_hours_spin.setRange(0.0, 100.0)
+        self.actual_hours_spin.setSuffix(" h")
+        form_layout.addRow("Actual Hours:", self.actual_hours_spin)
+        
+        layout.addLayout(form_layout)
+        
+        # Buttons
+        button_layout = QHBoxLayout()
+        save_btn = QPushButton("Save")
+        save_btn.clicked.connect(self.accept)
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.reject)
+        
+        button_layout.addStretch()
+        button_layout.addWidget(save_btn)
+        button_layout.addWidget(cancel_btn)
+        layout.addLayout(button_layout)
+    
+    def load_task_data(self):
+        """Load current task data into the form."""
+        self.title_edit.setText(self.task.title)
+        self.description_edit.setPlainText(self.task.description)
+        
+        # Set assignee
+        index = self.assignee_combo.findText(self.task.assignee)
+        if index >= 0:
+            self.assignee_combo.setCurrentIndex(index)
+        
+        # Set status
+        index = self.status_combo.findText(self.task.status.value)
+        if index >= 0:
+            self.status_combo.setCurrentIndex(index)
+        
+        # Set priority
+        index = self.priority_combo.findText(self.task.priority.value)
+        if index >= 0:
+            self.priority_combo.setCurrentIndex(index)
+        
+        # Set due date
+        if self.task.due_date:
+            self.due_date_edit.setDate(self.task.due_date.date())
+        
+        # Set hours
+        if self.task.estimated_hours:
+            self.estimated_hours_spin.setValue(self.task.estimated_hours)
+        if self.task.actual_hours:
+            self.actual_hours_spin.setValue(self.task.actual_hours)
+    
+    def get_updated_task_data(self) -> Dict[str, Any]:
+        """Get the updated task data from the form."""
+        return {
+            "title": self.title_edit.text().strip(),
+            "description": self.description_edit.toPlainText().strip(),
+            "assignee": self.assignee_combo.currentText(),
+            "status": TaskStatus[self.status_combo.currentText()],
+            "priority": TaskPriority[self.priority_combo.currentText()],
+            "due_date": datetime.combine(self.due_date_edit.date().toPyDate(), datetime.min.time()),
+            "estimated_hours": self.estimated_hours_spin.value(),
+            "actual_hours": self.actual_hours_spin.value()
+        }
 
 
 class CollaborationTab(QWidget):
     """Main Collaboration Features tab with clean, modern design."""
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
+        self.config = PlatformConfig()
         self.setup_ui()
         self.apply_styles()
     
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Setup the main UI."""
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
         layout.setContentsMargins(20, 20, 20, 20)
         
+        # Header with title and configuration
+        header_layout = QHBoxLayout()
+        
         # Title
         title = QLabel("Collaboration Features")
         title.setFont(QFont("Arial", 18, QFont.Weight.Bold))
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(title)
+        header_layout.addWidget(title)
+        
+        # Configuration button
+        config_btn = QPushButton("Configure Platforms")
+        config_btn.clicked.connect(self.show_config_dialog)
+        header_layout.addWidget(config_btn)
+        
+        layout.addLayout(header_layout)
+        
+        # Platform status
+        self.status_label = QLabel()
+        self.update_status_label()
+        layout.addWidget(self.status_label)
         
         # Description
         description = QLabel(
@@ -746,6 +1071,44 @@ class CollaborationTab(QWidget):
         self.tab_widget.addTab(self.project_widget, "Project Management")
         
         layout.addWidget(self.tab_widget)
+    
+    def show_config_dialog(self) -> None:
+        """Show the platform configuration dialog."""
+        dialog = ConfigDialog(self.config, self)
+        if dialog.exec():
+            self.update_status_label()
+            self.update_platform_integration()
+    
+    def update_status_label(self) -> None:
+        """Update the platform status label."""
+        status_text = "Active Platforms: "
+        platforms = []
+        if self.config.teams_enabled:
+            platforms.append("Microsoft Teams")
+        if self.config.slack_enabled:
+            platforms.append("Slack")
+        if self.config.github_enabled:
+            platforms.append("GitHub")
+        
+        if platforms:
+            status_text += ", ".join(platforms)
+        else:
+            status_text += "None (Configure platforms to enable integration)"
+        
+        self.status_label.setText(status_text)
+    
+    def update_platform_integration(self) -> None:
+        """Update the integration with enabled platforms."""
+        if not self.config.has_active_platform:
+            QMessageBox.warning(
+                self,
+                "No Active Platforms",
+                "Please configure and enable at least one collaboration platform."
+            )
+            return
+        
+        # TODO: Initialize platform clients and connect to services
+        pass
     
     def apply_styles(self):
         """Apply modern styling."""

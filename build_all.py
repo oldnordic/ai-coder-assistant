@@ -45,10 +45,10 @@ AI Coder Assistant - {component_name.title()} Component
 import sys
 import os
 
-# Add the project root to the Python path
-project_root = os.path.dirname(os.path.abspath(__file__))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+# Add the src directory to the Python path
+src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "src")
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
 
 {self.get_component_init(component_name)}
 
@@ -71,11 +71,11 @@ if __name__ == '__main__':
     def get_component_init(self, component_name):
         """Get component initialization code"""
         init_map = {
-            'core': '''
+            'assistant': '''
         from PyQt6.QtWidgets import QApplication
         from PyQt6.QtCore import QCoreApplication
-        from src.ui.main_window import AICoderAssistant
-        from src.core.logging_config import setup_logging
+        from frontend.ui.main_window import AICoderAssistant
+        from backend.services.logging_config import setup_logging
         
         # Setup logging
         setup_logging()
@@ -85,19 +85,28 @@ if __name__ == '__main__':
         QCoreApplication.setOrganizationName("AICoderOrg")
         QCoreApplication.setApplicationName("AICoderAssistant")
 ''',
-            'analyzer': '''
-        from src.core.intelligent_analyzer import IntelligentCodeAnalyzer
+            'cli': '''
+        from cli.main import main as cli_main
         import argparse
         
         # Parse command line arguments
-        parser = argparse.ArgumentParser(description='AI Code Analyzer')
-        parser.add_argument('--file', required=True, help='File to analyze')
-        parser.add_argument('--language', required=True, help='Programming language')
-        parser.add_argument('--output', help='Output file for results')
+        parser = argparse.ArgumentParser(description='AI Coder Assistant CLI')
+        parser.add_argument('command', help='Command to execute')
+        parser.add_argument('--config', help='Configuration file')
+        args = parser.parse_args()
+''',
+            'api': '''
+        from backend.services.web_server import start_server
+        import argparse
+        
+        # Parse command line arguments
+        parser = argparse.ArgumentParser(description='AI Coder Assistant API Server')
+        parser.add_argument('--host', default='localhost', help='Host to bind to')
+        parser.add_argument('--port', type=int, default=8000, help='Port to bind to')
         args = parser.parse_args()
 ''',
             'scanner': '''
-        from src.core.scanner import scan_codebase
+        from backend.services.scanner import ScannerService
         import argparse
         
         # Parse command line arguments
@@ -106,18 +115,8 @@ if __name__ == '__main__':
         parser.add_argument('--output', help='Output file for results')
         args = parser.parse_args()
 ''',
-            'web': '''
-        from src.processing.acquire import acquire_documents
-        import argparse
-        
-        # Parse command line arguments
-        parser = argparse.ArgumentParser(description='Web Scraper')
-        parser.add_argument('--url', required=True, help='URL to scrape')
-        parser.add_argument('--output', help='Output directory')
-        args = parser.parse_args()
-''',
             'trainer': '''
-        from src.training.trainer import train_model
+        from backend.services.trainer import TrainerService
         import argparse
         
         # Parse command line arguments
@@ -132,31 +131,26 @@ if __name__ == '__main__':
     def get_component_run(self, component_name):
         """Get component run code"""
         run_map = {
-            'core': '''
+            'assistant': '''
         # Create and show main window
         window = AICoderAssistant()
         window.show()
         sys.exit(app.exec())
 ''',
-            'analyzer': '''
-        # Initialize analyzer
-        analyzer = IntelligentCodeAnalyzer()
-        
-        # Analyze file
-        issues = analyzer.analyze_file(args.file, args.language)
-        
-        # Output results
-        if args.output:
-            import json
-            with open(args.output, 'w') as f:
-                json.dump([issue.__dict__ for issue in issues], f, indent=2)
-        else:
-            for issue in issues:
-                print(f"{{issue.severity}}: {{issue.description}}")
+            'cli': '''
+        # Run CLI
+        cli_main(args.command, config_file=args.config)
+''',
+            'api': '''
+        # Start API server
+        start_server(host=args.host, port=args.port)
 ''',
             'scanner': '''
+        # Initialize scanner service
+        scanner = ScannerService()
+        
         # Scan codebase
-        results = scan_codebase(args.path)
+        results = scanner.scan_directory(args.path)
         
         # Output results
         if args.output:
@@ -166,21 +160,12 @@ if __name__ == '__main__':
         else:
             print(f"Found {{len(results)}} files with issues")
 ''',
-            'web': '''
-        # Acquire documents
-        docs = acquire_documents(args.url)
-        
-        # Output results
-        if args.output:
-            import json
-            with open(args.output, 'w') as f:
-                json.dump(docs, f, indent=2)
-        else:
-            print(f"Acquired {{len(docs)}} documents")
-''',
             'trainer': '''
+        # Initialize trainer service
+        trainer = TrainerService()
+        
         # Train model
-        train_model(args.data, output_path=args.output)
+        trainer.train_model(args.data, output_path=args.output)
         print("Training completed successfully")
 '''
         }
@@ -196,18 +181,17 @@ if __name__ == '__main__':
     def get_spec_content(self, component_name):
         """Get spec file content for component"""
         spec_map = {
-            'core': '''# -*- mode: python ; coding: utf-8 -*-
+            'assistant': '''# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
 
 a = Analysis(
-    ['core_main.py'],
+    ['assistant_main.py'],
     pathex=[],
     binaries=[],
     datas=[
-        ('src/config', 'config'),
-        ('src/ui', 'ui'),
-        ('src/core/logging_config.py', 'core'),
+        ('frontend/ui', 'ui'),
+        ('backend/services/logging_config.py', 'core'),
     ],
     hiddenimports=[
         'PyQt6.QtCore',
@@ -239,7 +223,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='ai-coder-core',
+    name='ai-coder-assistant',
     debug=False,
     bootloader_ignore_signals=False,
     strip=True,
@@ -254,25 +238,19 @@ exe = EXE(
     entitlements_file=None,
 )
 ''',
-            'analyzer': '''# -*- mode: python ; coding: utf-8 -*-
+            'cli': '''# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
 
 a = Analysis(
-    ['analyzer_main.py'],
+    ['cli_main.py'],
     pathex=[],
     binaries=[],
     datas=[
-        ('src/core/intelligent_analyzer.py', 'core'),
+        ('cli', 'cli'),
     ],
     hiddenimports=[
-        'torch',
-        'transformers',
-        'networkx',
-        'ast',
-        'collections',
-        'dataclasses',
-        'enum',
+        'argparse',
     ],
     hookspath=[],
     hooksconfig={},
@@ -297,7 +275,59 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='ai-coder-analyzer',
+    name='ai-coder-cli',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=True,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=True,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+''',
+            'api': '''# -*- mode: python ; coding: utf-8 -*-
+
+block_cipher = None
+
+a = Analysis(
+    ['api_server.py'],
+    pathex=[],
+    binaries=[],
+    datas=[
+        ('backend/services', 'services'),
+    ],
+    hiddenimports=[
+        'argparse',
+    ],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[
+        'PyQt6', 'matplotlib', 'pandas', 'scipy',
+        'requests', 'beautifulsoup4', 'yt-dlp',
+        'youtube_transcript_api', 'PyPDF2'
+    ],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
+    noarchive=False,
+)
+
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    [],
+    name='ai-coder-api',
     debug=False,
     bootloader_ignore_signals=False,
     strip=True,
@@ -321,7 +351,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('src/core/scanner.py', 'core'),
+        ('backend/services/scanner.py', 'core'),
     ],
     hiddenimports=[
         'pathspec',
@@ -369,62 +399,6 @@ exe = EXE(
     entitlements_file=None,
 )
 ''',
-            'web': '''# -*- mode: python ; coding: utf-8 -*-
-
-block_cipher = None
-
-a = Analysis(
-    ['web_main.py'],
-    pathex=[],
-    binaries=[],
-    datas=[
-        ('src/processing/acquire.py', 'processing'),
-    ],
-    hiddenimports=[
-        'requests',
-        'beautifulsoup4',
-        'urllib',
-        're',
-        'os',
-        'sys',
-    ],
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=[
-        'PyQt6', 'torch', 'transformers',
-        'networkx', 'yt-dlp', 'youtube_transcript_api'
-    ],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
-    noarchive=False,
-)
-
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    [],
-    name='ai-coder-web',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=True,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=True,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-)
-''',
             'trainer': '''# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
@@ -434,7 +408,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('src/training/trainer.py', 'training'),
+        ('backend/services/trainer.py', 'training'),
     ],
     hiddenimports=[
         'torch',
@@ -510,34 +484,34 @@ exe = EXE(
         
         return True
     
-    def build_core(self):
-        """Build core application"""
-        return self.build_component('core')
+    def build_assistant(self):
+        """Build the assistant application"""
+        return self.build_component('assistant')
     
-    def build_analyzer(self):
-        """Build AI analyzer"""
-        return self.build_component('analyzer')
+    def build_cli(self):
+        """Build the CLI application"""
+        return self.build_component('cli')
+    
+    def build_api(self):
+        """Build the API server"""
+        return self.build_component('api')
     
     def build_scanner(self):
-        """Build code scanner"""
+        """Build the code scanner"""
         return self.build_component('scanner')
     
-    def build_web(self):
-        """Build web scraper"""
-        return self.build_component('web')
-    
     def build_trainer(self):
-        """Build model trainer"""
+        """Build the model trainer"""
         return self.build_component('trainer')
     
     def optimize_binaries(self):
         """Apply UPX compression and other optimizations"""
         print("⚡ Optimizing binaries...")
         binaries = [
-            "ai-coder-core",
-            "ai-coder-analyzer", 
+            "ai-coder-assistant",
+            "ai-coder-cli",
+            "ai-coder-api",
             "ai-coder-scanner",
-            "ai-coder-web",
             "ai-coder-trainer"
         ]
         
@@ -605,15 +579,16 @@ def main():
         print("Usage: launcher <component> [args...]")
         print("")
         print("Components:")
-        print("  core      - Main GUI application")
-        print("  analyzer  - AI code analysis")
+        print("  assistant - Main GUI application")
+        print("  cli       - Command-line interface")
+        print("  api       - API server")
         print("  scanner   - Code scanning and linting")
-        print("  web       - Web scraping and document acquisition")
         print("  trainer   - Model training and fine-tuning")
         print("")
         print("Examples:")
-        print("  launcher core")
-        print("  launcher analyzer --file main.py --language python")
+        print("  launcher assistant")
+        print("  launcher cli --command analyze --config config.yaml")
+        print("  launcher api --host 0.0.0.0 --port 8000")
         print("  launcher scanner --path /path/to/code")
         sys.exit(1)
     
@@ -621,10 +596,10 @@ def main():
     args = sys.argv[2:]
     
     binary_map = {
-        "core": "ai-coder-core",
-        "analyzer": "ai-coder-analyzer", 
+        "assistant": "ai-coder-assistant",
+        "cli": "ai-coder-cli",
+        "api": "ai-coder-api",
         "scanner": "ai-coder-scanner",
-        "web": "ai-coder-web",
         "trainer": "ai-coder-trainer"
     }
     
@@ -719,7 +694,7 @@ def main():
         
         if launcher_path.exists():
             print("Starting AI Coder Assistant...")
-            subprocess.run([str(launcher_path), "core"])
+            subprocess.run([str(launcher_path), "assistant"])
         else:
             print("Launcher not found. Please run from source or rebuild.")
             print("To rebuild, run: python build_all.py")
@@ -737,14 +712,14 @@ if __name__ == "__main__":
         
         if self.component:
             # Build specific component
-            if self.component == 'core':
-                success = self.build_core()
-            elif self.component == 'analyzer':
-                success = self.build_analyzer()
+            if self.component == 'assistant':
+                success = self.build_assistant()
+            elif self.component == 'cli':
+                success = self.build_cli()
+            elif self.component == 'api':
+                success = self.build_api()
             elif self.component == 'scanner':
                 success = self.build_scanner()
-            elif self.component == 'web':
-                success = self.build_web()
             elif self.component == 'trainer':
                 success = self.build_trainer()
             else:
@@ -762,10 +737,10 @@ if __name__ == "__main__":
             self.clean()
             
             components = [
-                ('core', self.build_core),
-                ('analyzer', self.build_analyzer),
+                ('assistant', self.build_assistant),
+                ('cli', self.build_cli),
+                ('api', self.build_api),
                 ('scanner', self.build_scanner),
-                ('web', self.build_web),
                 ('trainer', self.build_trainer)
             ]
             
@@ -785,7 +760,7 @@ if __name__ == "__main__":
 
 def main():
     parser = argparse.ArgumentParser(description='Build AI Coder Assistant binaries')
-    parser.add_argument('--component', choices=['core', 'analyzer', 'scanner', 'web', 'trainer'],
+    parser.add_argument('--component', choices=['assistant', 'cli', 'api', 'scanner', 'trainer'],
                        help='Build specific component only')
     parser.add_argument('--clean', action='store_true', help='Clean build directories')
     

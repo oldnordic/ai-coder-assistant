@@ -30,6 +30,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import subprocess
 import tempfile
+import os
+import shlex
 
 import httpx
 from git import Repo, GitCommandError
@@ -274,11 +276,12 @@ class GitService:
 class PRAutomationService:
     """Main PR automation service."""
     
-    def __init__(self, config_path: Optional[str] = None):
-        self.config_path = config_path or "pr_automation_config.json"
+    def __init__(self, config_path: str = "config/pr_automation_config.json"):
+        self.config_path = config_path
         self.services: Dict[str, Any] = {}
         self.templates: Dict[str, PRTemplate] = {}
-        self.load_config()
+        self.config = self.load_config()
+        self.github_token = self.config.get("github_token")
     
     def load_config(self):
         """Load configuration from file."""
@@ -302,6 +305,7 @@ class PRAutomationService:
                     
         except Exception as e:
             logger.error(f"Error loading PR automation config: {e}")
+        return data
     
     def save_config(self):
         """Save configuration to file."""
@@ -467,13 +471,23 @@ class PRAutomationService:
     async def _create_github_pr(self, repo_path: str, branch: str, base: str, title: str, body: str, labels: List[str], reviewers: List[str]) -> Optional[str]:
         """Create GitHub PR using GitHub CLI."""
         try:
-            cmd = ["gh", "pr", "create", "--title", title, "--body", body, "--head", branch, "--base", base]
+            # Sanitize all inputs to prevent command injection
+            sanitized_title = shlex.quote(title)
+            sanitized_body = shlex.quote(body)
+            sanitized_branch = shlex.quote(branch)
+            sanitized_base = shlex.quote(base)
             
-            if labels:
-                cmd.extend(["--label", ",".join(labels)])
+            # Sanitize labels and reviewers
+            sanitized_labels = [shlex.quote(label) for label in labels]
+            sanitized_reviewers = [shlex.quote(reviewer) for reviewer in reviewers]
             
-            if reviewers:
-                cmd.extend(["--reviewer", ",".join(reviewers)])
+            cmd = ["gh", "pr", "create", "--title", sanitized_title, "--body", sanitized_body, "--head", sanitized_branch, "--base", sanitized_base]
+            
+            if sanitized_labels:
+                cmd.extend(["--label", ",".join(sanitized_labels)])
+            
+            if sanitized_reviewers:
+                cmd.extend(["--reviewer", ",".join(sanitized_reviewers)])
             
             result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
             

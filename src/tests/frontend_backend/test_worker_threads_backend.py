@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, ANY
 from PyQt6.QtWidgets import QApplication
-from frontend.ui.worker_threads import Worker
+from frontend.ui.worker_threads import WorkerQRunnable
 import sys
 
 class TestWorkerThreadsBackend(unittest.TestCase):
@@ -19,9 +19,9 @@ class TestWorkerThreadsBackend(unittest.TestCase):
         progress_updates = []
         def progress_callback(current, total, message):
             progress_updates.append((current, total, message))
-        worker = Worker(backend_func, 1, 2, progress_callback=progress_callback)
+        worker = WorkerQRunnable("test_worker", backend_func, 1, 2, progress_callback=progress_callback)
         # Connect progress signal
-        worker.progress.connect(lambda c, t, m: progress_updates.append((c, t, m)))
+        worker.signals.worker_progress.connect(lambda c, t, m: progress_updates.append((c, t, m)))
         # Act
         worker.run()
         # Assert

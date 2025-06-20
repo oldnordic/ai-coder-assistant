@@ -23,6 +23,7 @@ import os
 import faulthandler
 import signal
 import atexit
+from typing import Any
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QCoreApplication
 
@@ -40,7 +41,7 @@ if src_path not in sys.path:
 from frontend.ui.main_window import AICoderAssistant
 from backend.services.logging_config import setup_logging
 
-def signal_handler(signum, frame):
+def signal_handler(signum: int, frame: Any) -> None:
     """Handle shutdown signals gracefully."""
     print(f"\nReceived signal {signum}, shutting down gracefully...")
     if 'app' in globals() and app:

@@ -34,6 +34,7 @@ except ImportError:
     QApplication = None
 
 # Import constants for testing
+from backend.utils import constants
 from backend.utils.constants import (
     PROGRESS_DIALOG_MAX_VALUE, PROGRESS_DIALOG_MIN_VALUE,
     WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
@@ -48,6 +49,7 @@ from backend.utils.constants import (
     DEFAULT_LINKS_PER_PAGE, DEFAULT_MAX_WORKERS,
     SSL_VERIFY_DEFAULT, VERIFY_DEFAULT
 )
+from backend.utils import settings
 
 class TestComprehensiveImports(unittest.TestCase):
     """Test that all modules can be imported successfully."""
@@ -79,8 +81,6 @@ class TestComprehensiveImports(unittest.TestCase):
     def test_utils_imports(self):
         """Test that all utility modules can be imported."""
         try:
-            from utils import constants
-            from backend.utils import settings
             self.assertTrue(True, "All utility modules imported successfully")
         except ImportError as e:
             self.fail(f"Failed to import utility modules: {e}")

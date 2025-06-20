@@ -31,8 +31,10 @@ from datetime import datetime
 class ProviderType(Enum):
     """Supported LLM providers."""
     OPENAI = "openai"
+    GOOGLE = "google"
     GOOGLE_GEMINI = "google_gemini"
     CLAUDE = "claude"
+    ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
 
 

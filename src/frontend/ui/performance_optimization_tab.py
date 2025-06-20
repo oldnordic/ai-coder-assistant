@@ -23,55 +23,47 @@ Performance Optimization Tab - Clean, modern interface for performance analysis.
 
 import os
 import logging
-from typing import Optional
+from typing import Optional, Any, Dict, Union, List, cast, Callable, Sequence
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox, QPushButton,
     QLabel, QTextEdit, QProgressBar, QFileDialog, QMessageBox, QTableWidget,
     QTableWidgetItem, QHeaderView, QComboBox, QLineEdit, QFormLayout
 )
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QThread
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QThread, pyqtSlot, QObject
 from PyQt6.QtGui import QFont
+from frontend.ui.worker_threads import get_thread_manager
+from core.logging import LogManager
+from core.threading import TaskResult, TaskStatus
 
-logger = logging.getLogger(__name__)
+logger = LogManager().get_logger(__name__)
 
 
-class PerformanceWorker(QThread):
-    """Worker thread for performance analysis."""
-    
-    analysis_complete = pyqtSignal(object)
-    error_occurred = pyqtSignal(str)
-    
-    def __init__(self):
-        super().__init__()
-        self.analysis_file: Optional[str] = None
-    
-    def analyze_file(self, file_path: str):
-        """Analyze a file for performance issues."""
-        self.analysis_file = file_path
-        self.start()
-    
-    def run(self):
-        """Run the worker thread."""
-        try:
-            if self.analysis_file:
-                # Simulate analysis for now
-                result = {"file_path": self.analysis_file, "score": 85.0, "issues": []}
-                self.analysis_complete.emit(result)
-        except Exception as e:
-            self.error_occurred.emit(str(e))
+"""
 
+# MIGRATION NEEDED: Replace QThread subclass with ThreadManager pattern
+
+# 1. Remove this QThread subclass.
+# 2. Create a backend function for the threaded operation:
+#    def backend_func(..., progress_callback=None, log_message_callback=None, cancellation_callback=None):
+#        # do work, call callbacks, return result
+# 3. In the UI, use:
+#    from .worker_threads import start_worker
+#    worker_id = start_worker("task_type", backend_func, ..., progress_callback=..., log_message_callback=...)
+# 4. Connect ThreadManager signals to UI slots for progress, result, and error.
+
+"""
 
 class MetricsWidget(QWidget):
     """Widget for displaying performance metrics."""
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setup_ui()
         self.metrics_timer = QTimer()
         self.metrics_timer.timeout.connect(self.update_metrics)
         self.metrics_timer.start(2000)  # Update every 2 seconds
     
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Setup the metrics UI."""
         layout = QVBoxLayout(self)
         
@@ -92,7 +84,8 @@ class MetricsWidget(QWidget):
         
         layout.addStretch()
     
-    def update_metrics(self):
+    @pyqtSlot()
+    def update_metrics(self) -> None:
         """Update metrics display."""
         try:
             import psutil
@@ -117,33 +110,55 @@ class MetricsWidget(QWidget):
 class AnalysisWidget(QWidget):
     """Widget for code performance analysis."""
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
+        """Initialize the analysis widget."""
         super().__init__(parent)
-        self.worker = PerformanceWorker()
+        self.worker_id: Optional[str] = None
+        self.thread_manager = get_thread_manager()
         self.setup_ui()
-        self.connect_signals()
     
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """Setup the analysis UI."""
         layout = QVBoxLayout(self)
         
-        # File selection
-        file_group = QGroupBox("File Analysis")
-        file_layout = QHBoxLayout(file_group)
+        # File/Directory selection
+        selection_group = QGroupBox("Analysis Target")
+        selection_layout = QVBoxLayout(selection_group)
         
+        # File selection
+        file_layout = QHBoxLayout()
         self.file_path_edit = QLineEdit()
         self.file_path_edit.setPlaceholderText("Select a file to analyze...")
         file_layout.addWidget(self.file_path_edit)
         
-        self.browse_button = QPushButton("Browse")
-        self.browse_button.clicked.connect(self.browse_file)
-        file_layout.addWidget(self.browse_button)
+        self.browse_file_button = QPushButton("Browse File")
+        self.browse_file_button.clicked.connect(self.browse_file)
+        file_layout.addWidget(self.browse_file_button)
         
+        selection_layout.addLayout(file_layout)
+        
+        # Directory selection
+        dir_layout = QHBoxLayout()
+        self.dir_path_edit = QLineEdit()
+        self.dir_path_edit.setPlaceholderText("Select a project directory to analyze...")
+        dir_layout.addWidget(self.dir_path_edit)
+        
+        self.browse_dir_button = QPushButton("Browse Directory")
+        self.browse_dir_button.clicked.connect(self.browse_directory)
+        dir_layout.addWidget(self.browse_dir_button)
+        
+        selection_layout.addLayout(dir_layout)
+        
+        # Analyze button
         self.analyze_button = QPushButton("Analyze")
-        self.analyze_button.clicked.connect(self.analyze_file)
-        file_layout.addWidget(self.analyze_button)
+        self.analyze_button.clicked.connect(self.analyze_target)
+        selection_layout.addWidget(self.analyze_button)
         
-        layout.addWidget(file_group)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        selection_layout.addWidget(self.progress_bar)
+        
+        layout.addWidget(selection_group)
         
         # Results
         results_group = QGroupBox("Analysis Results")
@@ -165,17 +180,13 @@ class AnalysisWidget(QWidget):
             "Line", "Type", "Severity", "Description"
         ])
         header = self.issues_table.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        if header:  # Check if header exists
+            header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         results_layout.addWidget(self.issues_table)
         
         layout.addWidget(results_group)
     
-    def connect_signals(self):
-        """Connect signals."""
-        self.worker.analysis_complete.connect(self.handle_analysis_complete)
-        self.worker.error_occurred.connect(self.handle_error)
-    
-    def browse_file(self):
+    def browse_file(self) -> None:
         """Browse for a file to analyze."""
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select File to Analyze", "",
@@ -183,48 +194,135 @@ class AnalysisWidget(QWidget):
         )
         if file_path:
             self.file_path_edit.setText(file_path)
+            self.dir_path_edit.clear()  # Clear directory path when file is selected
     
-    def analyze_file(self):
-        """Analyze the selected file."""
+    def browse_directory(self) -> None:
+        """Browse for a directory to analyze."""
+        dir_path = QFileDialog.getExistingDirectory(
+            self, "Select Project Directory to Analyze"
+        )
+        if dir_path:
+            self.dir_path_edit.setText(dir_path)
+            self.file_path_edit.clear()  # Clear file path when directory is selected
+    
+    def analyze_target(self) -> None:
+        """Analyze the selected file or directory."""
         file_path = self.file_path_edit.text()
-        if not file_path or not os.path.exists(file_path):
-            QMessageBox.warning(self, "Warning", "Please select a valid file.")
+        dir_path = self.dir_path_edit.text()
+        
+        if not file_path and not dir_path:
+            QMessageBox.warning(self, "Warning", "Please select a file or directory to analyze.")
+            return
+        
+        if file_path and dir_path:
+            QMessageBox.warning(self, "Warning", "Please select either a file or directory, not both.")
+            return
+
+        target_path = file_path or dir_path
+        backend_func = analyze_file_performance_backend if file_path else analyze_directory_performance_backend
+
+        if not os.path.exists(target_path):
+            QMessageBox.warning(self, "Warning", "Selected path does not exist.")
             return
         
         self.analyze_button.setEnabled(False)
         self.analyze_button.setText("Analyzing...")
-        self.worker.analyze_file(file_path)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
+        
+        try:
+            self.worker_id = 'performance_optimization'
+            worker = self.thread_manager.start_worker(
+                self.worker_id,
+                backend_func,
+                target_path
+            )
+            worker.progress.connect(self.update_progress_slot)
+            worker.finished.connect(self.on_worker_finished)
+            worker.error.connect(self.on_worker_error)
+            worker.log_message.connect(self.handle_log_message)
+            
+        except Exception as e:
+            self.analyze_button.setEnabled(True)
+            self.analyze_button.setText("Analyze")
+            self.progress_bar.setVisible(False)
+            QMessageBox.critical(self, "Error", f"Failed to start analysis: {str(e)}")
     
-    def handle_analysis_complete(self, result):
-        """Handle analysis completion."""
+    @pyqtSlot(str, int, int, str)
+    def update_progress_slot(self, worker_id: str, current: int, total: int, message: str) -> None:
+        """Update progress information."""
+        if worker_id == self.worker_id:
+            self.progress_bar.setMaximum(total)
+            self.progress_bar.setValue(current)
+    
+    def handle_log_message(self, message: str) -> None:
+        """Handle log messages from the worker."""
+        logger.info(f"Analysis log: {message}")
+    
+    @pyqtSlot(str, object)
+    def on_worker_finished(self, worker_id: str, result: Any):
+        if self.worker_id == worker_id:
+            self.show_analysis_result(result)
+
+    @pyqtSlot(str, str)
+    def on_worker_error(self, worker_id: str, error_msg: str):
+        if self.worker_id == worker_id:
+            self.show_error(error_msg)
+
+    def show_analysis_result(self, result: Dict[str, Any]) -> None:
+        """Show analysis results."""
+        self.progress_bar.setVisible(False)
+        try:
+            self.analyze_button.setEnabled(True)
+            self.analyze_button.setText("Analyze")
+            
+            if not isinstance(result, dict):
+                raise ValueError("Invalid result format")
+            
+            if "error" in result:
+                raise ValueError(result["error"])
+            
+            # Handle directory analysis
+            if "directory_path" in result:
+                self.score_label.setText(f"{result['summary']['average_score']:.1f}")
+                
+                # Clear and update issues table
+                self.issues_table.setRowCount(0)
+                
+                for issue in result["issues"]:
+                    row = self.issues_table.rowCount()
+                    self.issues_table.insertRow(row)
+                    
+                    self.issues_table.setItem(row, 0, QTableWidgetItem(str(issue["line"])))
+                    self.issues_table.setItem(row, 1, QTableWidgetItem(issue["type"]))
+                    self.issues_table.setItem(row, 2, QTableWidgetItem(issue["severity"]))
+                    self.issues_table.setItem(row, 3, QTableWidgetItem(issue["description"]))
+            
+            # Handle file analysis
+            else:
+                self.score_label.setText(f"{result['score']:.1f}")
+                
+                # Clear and update issues table
+                self.issues_table.setRowCount(0)
+                
+                for issue in result["issues"]:
+                    row = self.issues_table.rowCount()
+                    self.issues_table.insertRow(row)
+                    
+                    self.issues_table.setItem(row, 0, QTableWidgetItem(str(issue["line"])))
+                    self.issues_table.setItem(row, 1, QTableWidgetItem(issue["type"]))
+                    self.issues_table.setItem(row, 2, QTableWidgetItem(issue["severity"]))
+                    self.issues_table.setItem(row, 3, QTableWidgetItem(issue["description"]))
+        
+        except Exception as e:
+            self.show_error(str(e))
+    
+    def show_error(self, error: str) -> None:
+        """Show error message."""
         self.analyze_button.setEnabled(True)
         self.analyze_button.setText("Analyze")
-        
-        # Update score
-        score = result.get("score", 0)
-        self.score_label.setText(f"{score:.1f}%")
-        
-        if score >= 80:
-            self.score_label.setStyleSheet("color: green;")
-        elif score >= 60:
-            self.score_label.setStyleSheet("color: orange;")
-        else:
-            self.score_label.setStyleSheet("color: red;")
-        
-        # Update issues table
-        issues = result.get("issues", [])
-        self.issues_table.setRowCount(len(issues))
-        for i, issue in enumerate(issues):
-            self.issues_table.setItem(i, 0, QTableWidgetItem(str(issue.get("line", ""))))
-            self.issues_table.setItem(i, 1, QTableWidgetItem(issue.get("type", "")))
-            self.issues_table.setItem(i, 2, QTableWidgetItem(issue.get("severity", "")))
-            self.issues_table.setItem(i, 3, QTableWidgetItem(issue.get("description", "")))
-    
-    def handle_error(self, error: str):
-        """Handle analysis error."""
-        self.analyze_button.setEnabled(True)
-        self.analyze_button.setText("Analyze")
-        QMessageBox.critical(self, "Error", f"Analysis failed: {error}")
+        self.progress_bar.setVisible(False)
+        QMessageBox.critical(self, "Error", error)
 
 
 class ProfilingWidget(QWidget):
@@ -503,3 +601,80 @@ class PerformanceOptimizationTab(QWidget):
                 background: #3F3F3F;
             }
         """) 
+
+# Backend functions for ThreadManager
+def analyze_directory_performance_backend(dir_path: str, progress_callback: Optional[Callable[[int, int, str], None]] = None, log_callback: Optional[Callable[[str], None]] = None, cancellation_callback: Optional[Callable[[], bool]] = None) -> Dict[str, Any]:
+    """Analyze performance of all Python files in a directory."""
+    import time
+    if progress_callback:
+        progress_callback(0, 100, "Starting directory analysis...")
+    
+    if log_callback:
+        log_callback(f"Analyzing directory: {dir_path}")
+    
+    # Mock analysis for now
+    time.sleep(1)
+    
+    if progress_callback:
+        progress_callback(100, 100, "Analysis complete")
+    
+    return {
+        "directory_path": dir_path,
+        "summary": {
+            "average_score": 85.5,
+            "files_analyzed": 10,
+            "total_issues": 5
+        },
+        "issues": [
+            {
+                "line": 42,
+                "type": "Performance",
+                "severity": "Medium",
+                "description": "Consider using list comprehension instead of map()"
+            }
+        ]
+    }
+
+def analyze_file_performance_backend(file_path: str, progress_callback: Optional[Callable[[int, int, str], None]] = None, log_callback: Optional[Callable[[str], None]] = None, cancellation_callback: Optional[Callable[[], bool]] = None) -> Dict[str, Any]:
+    """Analyze performance of a single Python file."""
+    import time
+    if progress_callback:
+        progress_callback(0, 100, "Starting file analysis...")
+    
+    if log_callback:
+        log_callback(f"Analyzing file: {file_path}")
+    
+    # Mock analysis for now
+    time.sleep(1)
+    
+    if progress_callback:
+        progress_callback(100, 100, "Analysis complete")
+    
+    return {
+        "file_path": file_path,
+        "score": 85.5,
+        "issues": [
+            {
+                "line": 42,
+                "type": "Performance",
+                "severity": "Medium",
+                "description": "Consider using list comprehension instead of map()"
+            }
+        ]
+    } 
+
+@pyqtSlot(object)
+def _on_optimization_complete(self, result: Optional[Dict[str, Any]]):
+    """Callback for when optimization is complete."""
+    try:
+        _ = self.isVisible()
+    except RuntimeError:
+        return  # Widget is deleted
+
+    self.progress_bar.hide()
+    if result and result.get("success"):
+        self.results_text.setPlainText(result.get("optimized_code", ""))
+        QMessageBox.information(self, "Success", "Optimization complete.")
+    else:
+        error = result.get("error", "An unknown error occurred.") if result else "An unknown error occurred."
+        QMessageBox.critical(self, "Optimization Failed", f"Optimization failed: {error}") 

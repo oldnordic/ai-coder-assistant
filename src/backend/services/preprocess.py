@@ -29,9 +29,9 @@ from typing import Optional, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 
-from ..utils import settings
-from . import scanner as ai_coder_scanner
-from ..utils.constants import PROGRESS_COMPLETE
+from backend.utils import settings
+from backend.services import scanner as ai_coder_scanner
+from backend.utils.constants import PROGRESS_COMPLETE
 
 logger = logging.getLogger(__name__)
 

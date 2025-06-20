@@ -17,13 +17,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Copyright (C) 2024 AI Coder Assistant Contributors
 """
 
-from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, 
-                             QTextBrowser, QLabel, QLineEdit, QComboBox,
-                             QDialogButtonBox, QProgressBar, QSplitter)
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QFont, QTextCursor, QTextCharFormat, QColor
+from typing import Optional, List, Dict, Any, cast
 import re
 import os
+import markdown
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
+    QTextBrowser, QLabel, QLineEdit, QComboBox,
+    QDialogButtonBox, QProgressBar, QSplitter,
+    QFileDialog, QMessageBox, QMenu
+)
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QMarginsF, QUrl
+from PyQt6.QtGui import (
+    QFont, QTextCursor, QTextCharFormat, QColor,
+    QPageSize, QPageLayout, QTextDocument,
+    QAction, QPainter, QAbstractTextDocumentLayout
+)
+from PyQt6.QtPrintSupport import QPrinter, QPageSetupDialog
 from backend.utils.constants import (
     WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT,
     DIALOG_DEFAULT_WIDTH, DIALOG_DEFAULT_HEIGHT, 
@@ -218,235 +228,283 @@ class MarkdownRenderer:
         return html
 
 class MarkdownViewerDialog(QDialog):
-    def __init__(self, markdown_content: str, parent=None):
+    """Dialog for viewing and exporting markdown content."""
+    
+    def __init__(self, markdown_content: str, parent: Optional[QDialog] = None) -> None:
+        """Initialize the dialog with markdown content.
+        
+        Args:
+            markdown_content (str): The markdown content to display
+            parent (Optional[QDialog]): Parent widget
+        """
         super().__init__(parent)
-        self.setWindowTitle("AI Code Review Report - Markdown Viewer")
-        self.setGeometry(WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT)
         self.markdown_content = markdown_content
-        
-        # Setup UI
+        self.text_browser = QTextBrowser(self)  # Initialize text browser
+        self.search_input = QLineEdit(self)  # Initialize search input
+        self.search_options = QComboBox(self)  # Initialize search options
         self.setup_ui()
-        self.render_markdown()
+        self.display_markdown()
+
+    def display_markdown(self):
+        """Convert markdown to HTML and display it."""
+        try:
+            # Convert markdown to HTML
+            html_content = markdown.markdown(
+                self.markdown_content,
+                extensions=['fenced_code', 'tables', 'nl2br']
+            )
+            
+            # Set the HTML content
+            self.text_browser.setHtml(html_content)
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to render markdown: {str(e)}"
+            )
+
+    def setup_ui(self) -> None:
+        """Set up the dialog UI."""
+        self.setWindowTitle("Report Viewer")
+        self.resize(800, 600)
         
-    def setup_ui(self):
-        """Setup the user interface."""
         layout = QVBoxLayout(self)
         
         # Toolbar
         toolbar = QHBoxLayout()
         
-        # Search functionality
-        self.search_label = QLabel("Search:")
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Enter search term...")
-        self.search_input.textChanged.connect(self.search_text)
+        # Save menu
+        save_menu = QMenu(self)
+        save_menu.addAction("Save as Markdown", self.save_as_markdown)
+        save_menu.addAction("Save as HTML", self.save_as_html)
+        save_menu.addAction("Save as TXT", self.save_as_txt)
+        save_menu.addAction("Save as PDF", self.save_as_pdf)
         
-        # Search options
-        self.search_options = QComboBox()
-        self.search_options.addItems(["Case Sensitive", "Case Insensitive"])
+        save_button = QPushButton("Save As...")
+        save_button.setMenu(save_menu)
+        toolbar.addWidget(save_button)
         
-        # Navigation buttons
-        self.prev_button = QPushButton("Previous")
-        self.prev_button.clicked.connect(self.find_previous)
-        self.next_button = QPushButton("Next")
-        self.next_button.clicked.connect(self.find_next)
-        
+        # Search controls
+        self.search_label = QLabel("Search:", self)
         toolbar.addWidget(self.search_label)
-        toolbar.addWidget(self.search_input)
-        toolbar.addWidget(self.search_options)
-        toolbar.addWidget(self.prev_button)
-        toolbar.addWidget(self.next_button)
-        toolbar.addStretch()
         
-        # Progress indicator
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        toolbar.addWidget(self.progress_bar)
+        toolbar.addWidget(self.search_input)
+        self.search_input.textChanged.connect(self.highlight_search)
+        
+        self.search_options.addItems(["Case Sensitive", "Case Insensitive"])
+        toolbar.addWidget(self.search_options)
         
         layout.addLayout(toolbar)
         
-        # Main content area
-        self.content_browser = QTextBrowser()
-        self.content_browser.setOpenExternalLinks(True)
-        self.content_browser.setFont(QFont("Segoe UI", 12))  # Larger, more readable font
-        self.content_browser.setStyleSheet("""
-            QTextBrowser {
-                background-color: #2F2F2F;
-                color: #CCCCCC;
-                border: 1px solid #444444;
-                border-radius: 6px;
-                padding: 10px;
-                selection-background-color: #007bff;
-                selection-color: #CCCCCC;
-            }
-        """)
-        
-        layout.addWidget(self.content_browser)
-        
-        # Button bar
-        button_layout = QHBoxLayout()
-        
-        # Save button
-        self.save_button = QPushButton("Save Report")
-        self.save_button.clicked.connect(self.save_report)
-        
-        # Export options
-        self.export_combo = QComboBox()
-        self.export_combo.addItems(["Markdown (.md)", "HTML (.html)", "Text (.txt)"])
-        
-        self.export_button = QPushButton("Export")
-        self.export_button.clicked.connect(self.export_report)
-        
-        # Close button
-        self.close_button = QPushButton("Close")
-        self.close_button.clicked.connect(self.accept)
-        
-        button_layout.addWidget(self.save_button)
-        button_layout.addWidget(QLabel("Export as:"))
-        button_layout.addWidget(self.export_combo)
-        button_layout.addWidget(self.export_button)
-        button_layout.addStretch()
-        button_layout.addWidget(self.close_button)
-        
-        layout.addLayout(button_layout)
-        
-        # Status bar
-        self.status_label = QLabel("Ready")
-        layout.addWidget(self.status_label)
-        
-    def render_markdown(self):
-        """Render the markdown content to HTML."""
+        # Text browser
+        layout.addWidget(self.text_browser)
+        self.text_browser.anchorClicked.connect(self.handle_link_click)
+
+    def save_as_txt(self):
+        """Save the content as plain text file."""
         try:
-            self.status_label.setText("Rendering markdown...")
-            self.progress_bar.setVisible(True)
-            self.progress_bar.setRange(0, 0)  # Indeterminate progress
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Save as Text", "", "Text Files (*.txt)"
+            )
             
-            # Render markdown to HTML
-            html_content = MarkdownRenderer.render_markdown(self.markdown_content)
-            
-            # Set the HTML content
-            self.content_browser.setHtml(html_content)
-            
-            self.status_label.setText(f"Report loaded successfully")
-            self.progress_bar.setVisible(False)
-            
+            if file_path:
+                if not file_path.endswith('.txt'):
+                    file_path += '.txt'
+                
+                # Convert HTML to plain text while preserving structure
+                text_content = self.text_browser.toPlainText()
+                
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(text_content)
+                
+                QMessageBox.information(
+                    self, "Success", f"Report saved as text to {file_path}"
+                )
+        
         except Exception as e:
-            self.status_label.setText(f"Error rendering markdown: {e}")
-            self.progress_bar.setVisible(False)
-    
-    def search_text(self):
-        """Search for text in the document."""
-        search_term = self.search_input.text()
-        if not search_term:
-            return
-        
-        # Clear previous highlights
-        cursor = self.content_browser.textCursor()
-        cursor.clearSelection()
-        
-        # Find text
-        case_sensitive = self.search_options.currentText() == "Case Sensitive"
-        flags = QTextCursor.FindFlag(0)
-        if case_sensitive:
-            flags = QTextCursor.FindFlag.FindCaseSensitively
-        
-        found = self.content_browser.find(search_term, flags)
-        
-        if found:
-            self.status_label.setText(f"Found '{search_term}'")
-        else:
-            self.status_label.setText(f"'{search_term}' not found")
-    
-    def find_next(self):
-        """Find next occurrence of search term."""
-        search_term = self.search_input.text()
-        if search_term:
-            case_sensitive = self.search_options.currentText() == "Case Sensitive"
-            flags = QTextCursor.FindFlag(0)
-            if case_sensitive:
-                flags = QTextCursor.FindFlag.FindCaseSensitively
+            QMessageBox.warning(
+                self, "Error", f"Failed to save text file: {str(e)}"
+            )
+
+    def save_as_pdf(self):
+        """Save the content as PDF file."""
+        try:
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Save as PDF", "", "PDF Files (*.pdf)"
+            )
             
-            found = self.content_browser.find(search_term, flags)
-            if not found:
-                # Wrap around to beginning
-                cursor = self.content_browser.textCursor()
-                cursor.movePosition(QTextCursor.MoveOperation.Start)
-                self.content_browser.setTextCursor(cursor)
-                self.content_browser.find(search_term, flags)
-    
-    def find_previous(self):
-        """Find previous occurrence of search term."""
-        search_term = self.search_input.text()
-        if search_term:
-            case_sensitive = self.search_options.currentText() == "Case Sensitive"
-            flags = QTextCursor.FindFlag.FindBackward
-            if case_sensitive:
-                flags |= QTextCursor.FindFlag.FindCaseSensitively
+            if file_path:
+                if not file_path.endswith('.pdf'):
+                    file_path += '.pdf'
+                
+                # Create printer with high resolution
+                printer = QPrinter(QPrinter.PrinterMode.HighResolution)
+                printer.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
+                printer.setOutputFileName(file_path)
+                
+                # Set paper size to A4 and margins
+                printer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
+                printer.setPageMargins(QMarginsF(20, 20, 20, 20), QPageLayout.Unit.Millimeter)
+                
+                # Create a document from the text browser's content
+                doc = QTextDocument()
+                doc.setHtml(self.text_browser.toHtml())
+                
+                # Set the page size to match the printer (using DevicePixel unit)
+                doc.setPageSize(printer.pageRect(QPrinter.Unit.DevicePixel).size())
+                
+                # Print the document to PDF
+                doc.print(printer)
+                
+                QMessageBox.information(
+                    self, "Success", f"Report saved as PDF to {file_path}"
+                )
+        
+        except Exception as e:
+            QMessageBox.warning(
+                self, "Error", f"Failed to save PDF file: {str(e)}"
+            )
+
+    def save_as_html(self):
+        """Save the content as HTML file."""
+        try:
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Save as HTML", "", "HTML Files (*.html)"
+            )
             
-            found = self.content_browser.find(search_term, flags)
-            if not found:
-                # Wrap around to end
-                cursor = self.content_browser.textCursor()
-                cursor.movePosition(QTextCursor.MoveOperation.End)
-                self.content_browser.setTextCursor(cursor)
-                self.content_browser.find(search_term, flags)
+            if file_path:
+                if not file_path.endswith('.html'):
+                    file_path += '.html'
+                
+                html_content = self.text_browser.toHtml()
+                
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(html_content)
+                
+                QMessageBox.information(
+                    self, "Success", f"Report saved as HTML to {file_path}"
+                )
+        
+        except Exception as e:
+            QMessageBox.warning(
+                self, "Error", f"Failed to save HTML file: {str(e)}"
+            )
     
-    def save_report(self):
-        """Save the report as markdown."""
-        from PyQt6.QtWidgets import QFileDialog
-        
-        file_path, _ = QFileDialog.getSaveFileName(
-            self, "Save Report", "ai_code_review_report.md", 
-            "Markdown Files (*.md);;All Files (*)"
-        )
-        
-        if file_path:
-            try:
+    def save_as_markdown(self):
+        """Save the original markdown content."""
+        try:
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Save as Markdown", "", "Markdown Files (*.md)"
+            )
+            
+            if file_path:
+                if not file_path.endswith('.md'):
+                    file_path += '.md'
+                
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(self.markdown_content)
-                self.status_label.setText(f"Report saved to {file_path}")
-            except Exception as e:
-                self.status_label.setText(f"Error saving report: {e}")
-    
-    def export_report(self):
-        """Export the report in different formats."""
-        from PyQt6.QtWidgets import QFileDialog
+                
+                QMessageBox.information(
+                    self, "Success", f"Report saved as Markdown to {file_path}"
+                )
         
-        export_format = self.export_combo.currentText()
-        
-        if "HTML" in export_format:
-            file_path, _ = QFileDialog.getSaveFileName(
-                self, "Export Report", "ai_code_review_report.html", 
-                "HTML Files (*.html);;All Files (*)"
+        except Exception as e:
+            QMessageBox.warning(
+                self, "Error", f"Failed to save Markdown file: {str(e)}"
             )
-            if file_path:
-                try:
-                    html_content = MarkdownRenderer.render_markdown(self.markdown_content)
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(html_content)
-                    self.status_label.setText(f"Report exported to {file_path}")
-                except Exception as e:
-                    self.status_label.setText(f"Error exporting report: {e}")
+
+    def highlight_search(self):
+        """Highlight all occurrences of the search text."""
+        search_text = self.search_input.text()
+        if not search_text:
+            # Clear any existing highlighting
+            cursor = self.text_browser.textCursor()
+            cursor.select(QTextCursor.SelectionType.Document)
+            format = QTextCharFormat()
+            cursor.setCharFormat(format)
+            return
+
+        # Create format for highlighting
+        highlight_format = QTextCharFormat()
+        highlight_format.setBackground(QColor(255, 255, 0, 100))  # Light yellow
+
+        # Get the document
+        document = self.text_browser.document()
+
+        # Clear previous highlighting
+        cursor = QTextCursor(document)
+        cursor.select(QTextCursor.SelectionType.Document)
+        format = QTextCharFormat()
+        cursor.setCharFormat(format)
+
+        # Find and highlight all occurrences
+        cursor = QTextCursor(document)
+        pattern = search_text
+        if self.search_options.currentText() == "Case Insensitive":
+            pattern = pattern.lower()
+            while not cursor.isNull() and not cursor.atEnd():
+                cursor = document.find(pattern, cursor, QTextDocument.FindFlag.FindCaseSensitively)
+                if not cursor.isNull():
+                    cursor.mergeCharFormat(highlight_format)
+        else:
+            while not cursor.isNull() and not cursor.atEnd():
+                cursor = document.find(pattern, cursor)
+                if not cursor.isNull():
+                    cursor.mergeCharFormat(highlight_format)
+
+    def find_next(self):
+        """Find the next occurrence of the search text."""
+        search_text = self.search_input.text()
+        if not search_text:
+            return
+
+        flags = QTextDocument.FindFlag(0)
+        if self.search_options.currentText() == "Case Sensitive":
+            flags |= QTextDocument.FindFlag.FindCaseSensitively
+
+        # Start from current cursor position
+        cursor = self.text_browser.textCursor()
         
-        elif "Text" in export_format:
-            file_path, _ = QFileDialog.getSaveFileName(
-                self, "Export Report", "ai_code_review_report.txt", 
-                "Text Files (*.txt);;All Files (*)"
-            )
-            if file_path:
-                try:
-                    # Convert markdown to plain text
-                    text_content = re.sub(r'#+\s*', '', self.markdown_content)  # Remove headers
-                    text_content = re.sub(r'\*\*(.*?)\*\*', r'\1', text_content)  # Remove bold
-                    text_content = re.sub(r'\*(.*?)\*', r'\1', text_content)  # Remove italic
-                    text_content = re.sub(r'`(.*?)`', r'\1', text_content)  # Remove code
-                    text_content = re.sub(r'```.*?\n(.*?)\n```', r'\1', text_content, flags=re.DOTALL)  # Remove code blocks
-                    
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(text_content)
-                    self.status_label.setText(f"Report exported to {file_path}")
-                except Exception as e:
-                    self.status_label.setText(f"Error exporting report: {e}")
+        # Find next occurrence
+        found = self.text_browser.find(search_text, flags)
         
-        else:  # Markdown
-            self.save_report() 
+        if not found:
+            # If not found from current position, try from start
+            cursor = self.text_browser.textCursor()
+            cursor.movePosition(QTextCursor.MoveOperation.Start)
+            self.text_browser.setTextCursor(cursor)
+            found = self.text_browser.find(search_text, flags)
+            
+            if not found:
+                QMessageBox.information(self, "Search", "No more occurrences found.")
+
+    def find_previous(self):
+        """Find the previous occurrence of the search text."""
+        search_text = self.search_input.text()
+        if not search_text:
+            return
+
+        flags = QTextDocument.FindFlag.FindBackward
+        if self.search_options.currentText() == "Case Sensitive":
+            flags |= QTextDocument.FindFlag.FindCaseSensitively
+
+        # Start from current cursor position
+        cursor = self.text_browser.textCursor()
+        
+        # Find previous occurrence
+        found = self.text_browser.find(search_text, flags)
+        
+        if not found:
+            # If not found from current position, try from end
+            cursor = self.text_browser.textCursor()
+            cursor.movePosition(QTextCursor.MoveOperation.End)
+            self.text_browser.setTextCursor(cursor)
+            found = self.text_browser.find(search_text, flags)
+            
+            if not found:
+                QMessageBox.information(self, "Search", "No more occurrences found.")
+
+    def handle_link_click(self, url: QUrl):
+        """Handle link click event."""
+        # Implement link handling logic here
+        print(f"Link clicked: {url.toString()}") 

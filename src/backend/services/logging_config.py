@@ -20,7 +20,7 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 # src/core/logging_config.py
 import logging
 import os
-from ..utils import settings
+from backend.utils import settings
 
 def setup_logging():
     """

@@ -173,7 +173,15 @@ dist/
 ├── shared/
 │   ├── models/                    # AI models (optional)
 │   ├── config/                    # Configuration files
+│   │   ├── code_standards_config.json
+│   │   ├── llm_studio_config.json
+│   │   ├── pr_automation_config.json
+│   │   └── security_intelligence_config.json
 │   ├── data/                      # Data directory
+│   │   ├── security_breaches.json
+│   │   ├── security_patches.json
+│   │   ├── security_training_data.json
+│   │   └── security_vulnerabilities.json
 │   └── continuous_learning_data/  # Continuous learning database
 ├── docs/                          # Documentation
 ├── README.md                      # Instructions

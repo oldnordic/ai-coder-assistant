@@ -2,7 +2,26 @@
 
 ## Overview
 
-The Cloud Model Integration feature provides a unified interface for multiple AI providers, including automatic failover, cost tracking, and comprehensive monitoring. This guide covers setup, configuration, and usage of the multi-provider LLM system.
+The Cloud Model Integration feature provides a unified interface for multiple AI providers, including automatic failover, cost tracking, and comprehensive monitoring. This guide covers setup, configuration, and usage of the multi-provider LLM system. Configuration files are now organized in the `config/` directory for better maintainability.
+
+## Project Structure
+
+The cloud model integration uses the organized file structure:
+
+```
+ai_coder_assistant/
+├── config/                     # Configuration files
+│   ├── llm_studio_config.json  # LLM provider configurations
+│   └── ...                     # Other configuration files
+├── data/                       # Data storage files
+├── src/                        # Source code
+│   ├── backend/services/
+│   │   ├── cloud_models.py     # Cloud model management
+│   │   ├── providers.py        # Provider implementations
+│   │   └── llm_manager.py      # LLM manager
+│   └── ...
+└── ...
+```
 
 ## Features
 
@@ -13,6 +32,7 @@ The Cloud Model Integration feature provides a unified interface for multiple AI
 - **Unified API**: Single interface for all LLM operations
 - **PyQt6 UI**: Complete management interface
 - **CLI Support**: Command-line provider management
+- **Organized Configuration**: All settings stored in `config/llm_studio_config.json`
 
 ## Quick Start
 
@@ -45,7 +65,19 @@ export AWS_REGION="us-east-1"
 export COHERE_API_KEY="your-cohere-api-key"
 ```
 
-### 2. Using the PyQt6 UI
+### 2. Configuration File Setup
+
+The application automatically creates and manages the configuration file at `config/llm_studio_config.json`:
+
+```bash
+# View current configuration
+cat config/llm_studio_config.json
+
+# Edit configuration manually (optional)
+vim config/llm_studio_config.json
+```
+
+### 3. Using the PyQt6 UI
 
 1. Launch the AI Coder Assistant
 2. Navigate to the "Cloud Models" tab
@@ -54,7 +86,7 @@ export COHERE_API_KEY="your-cohere-api-key"
 5. Monitor usage in the "Usage Monitoring" tab
 6. Check health in the "Health Check" tab
 
-### 3. Using the CLI
+### 4. Using the CLI
 
 ```bash
 # Check status
@@ -68,6 +100,49 @@ python -m src.cli.main llm-studio list-providers
 
 # Test provider
 python -m src.cli.main llm-studio test-provider --provider openai
+```
+
+## Configuration File Structure
+
+The `config/llm_studio_config.json` file contains all provider configurations:
+
+```json
+{
+  "providers": {
+    "openai": {
+      "provider_type": "openai",
+      "api_key": "your-api-key",
+      "base_url": "https://api.openai.com",
+      "organization": "your-org-id",
+      "priority": 1,
+      "timeout": 30,
+      "enabled": true
+    },
+    "anthropic": {
+      "provider_type": "anthropic", 
+      "api_key": "your-api-key",
+      "priority": 2,
+      "timeout": 30,
+      "enabled": true
+    },
+    "google": {
+      "provider_type": "google",
+      "api_key": "your-api-key", 
+      "priority": 3,
+      "timeout": 30,
+      "enabled": true
+    }
+  },
+  "default_model": "gpt-4",
+  "cost_tracking": {
+    "enabled": true,
+    "currency": "USD"
+  },
+  "health_check": {
+    "enabled": true,
+    "interval": 300
+  }
+}
 ```
 
 ## Provider Configuration

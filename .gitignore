@@ -3,7 +3,11 @@
 # This single line handles docs, learning_data, and all processed artifacts
 # like models, vector stores, and datasets.
 /data/
-
+/allthingdocs/
+run_tests_and_fixes.py
+test_web_scraping_ui.py
+run_tests_and_fixes.py
+run_api_tests.py
 # Ignore old data directories that might still exist at the root
 /documentation_corpus/
 /tmp/
@@ -12,6 +16,72 @@
 # Ignore log files and the log directory
 /logs/
 *.log
+
+# --- Database and Persistence Files ---
+# Ignore SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+/src/backend/data/*.db
+/src/backend/data/*.sqlite
+/src/backend/data/*.sqlite3
+
+# --- Test Artifacts and Coverage ---
+# Ignore test artifacts and coverage reports
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# --- Build and Distribution Artifacts ---
+# Ignore build outputs for all platforms
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+*.spec
+*.exe
+*.dmg
+*.deb
+*.rpm
+*.AppImage
+
+# --- Platform-specific Build Files ---
+# Windows
+*.msi
+*.exe
+*.bat
+# macOS
+*.dmg
+*.pkg
+*.app
+# Linux
+*.deb
+*.rpm
+*.AppImage
+*.snap
+
+# --- Performance Monitoring Data ---
+# Ignore performance monitoring and analytics data
+/performance_data/
+/analytics_data/
+*.perf
+*.metrics
+*.benchmark
+
+# --- Generated Documentation ---
+# Ignore auto-generated documentation
+/docs/generated/
+/docs/api/
+*.rst
+*.html
 
 # Ignore generated report files and audit files
 *_report.md
@@ -110,6 +180,9 @@ PERFORMANCE_IMPROVEMENTS.md
 PR_CREATION_FEATURE.md
 BUILD_PLAN.md
 ai_code_review_report.txt
+CALLBACK_FIX_SUMMARY.md
+V3_0_0_ARCHITECTURAL_OVERHAUL_SUMMARY.md
+collaboration_test_output*.txt
 
 # Ignore temporary and cache directories
 /tmp/
@@ -317,3 +390,119 @@ src/backend/reports/*.md
 !BUILD_README.md
 !FEATURE_SUMMARY.md
 APP_PLAN_AND_COMPARISON.md
+collaboration_test_output2.txt
+
+# --- Additional Development Files ---
+# Ignore test files that are not part of the test suite
+test_web_scraping_ui.py
+run_tests_and_fixes.py
+run_api_tests.py
+
+# Ignore disabled GitHub workflows to prevent accidental re-enabling
+.github/workflows/*.disabled
+
+# Ignore lock files (except for specific ones that should be tracked)
+*.lock
+!poetry.lock
+!Pipfile.lock
+
+# Ignore temporary files created during development
+*.pid
+*.lock
+*.tmp
+*.temp
+
+# Ignore any files with test/debug in the name that aren't in tests/
+test_*.py
+debug_*.py
+temp_*.py
+fix_*.py
+
+# Ignore any files with output in the name
+*_output.txt
+*_output.log
+*_output.md
+
+# Ignore any files with summary in the name (except main documentation)
+*_summary.md
+*_summary.txt
+*_summary.log
+
+# Ignore any files with fixes in the name
+*_fixes.md
+*_fixes.txt
+*_fixes.log
+
+# Ignore any files with progress in the name
+*_progress.md
+*_progress.txt
+*_progress.log
+
+# Ignore any files with issues in the name
+*_issues.md
+*_issues.txt
+*_issues.log
+
+# Ignore any files with plan in the name (except main documentation)
+*_plan.md
+*_plan.txt
+*_plan.log
+
+# Ignore any files with comparison in the name
+*_comparison.md
+*_comparison.txt
+*_comparison.log
+
+# Ignore any files with implementation in the name
+*_implementation.md
+*_implementation.txt
+*_implementation.log
+
+# Ignore any files with enhancement in the name
+*_enhancement.md
+*_enhancement.txt
+*_enhancement.log
+
+# Ignore any files with security in the name (except main documentation)
+*_security.md
+*_security.txt
+*_security.log
+
+# Ignore any files with task in the name (except main documentation)
+*_task.md
+*_task.txt
+*_task.log
+
+# Ignore any files with architectural in the name (except main documentation)
+*_architectural.md
+*_architectural.txt
+*_architectural.log
+
+# Ignore any files with overhaul in the name
+*_overhaul.md
+*_overhaul.txt
+*_overhaul.log
+
+# Ignore any files with callback in the name
+*_callback.md
+*_callback.txt
+*_callback.log
+
+# Ignore any files with v3 in the name (except main documentation)
+*v3*.md
+*v3*.txt
+*v3*.log
+
+# Ignore any files with v2 in the name (except main documentation)
+*v2*.md
+*v2*.txt
+*v2*.log
+
+# Ignore any files with v1 in the name (except main documentation)
+*v1*.md
+*v1*.txt
+*v1*.log
+THREAD_SAFETY_AUDIT_REPORT.md
+TASKMASTER.md
+GITHUB_SERVICES_DISABLED.md
+check_github_status.sh

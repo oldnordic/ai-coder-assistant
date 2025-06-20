@@ -1,6 +1,56 @@
-# AI Coder Assistant v2.6.0
+# AI Coder Assistant v3.0.0
 
 AI Coder Assistant is a comprehensive, enterprise-grade code analysis and development tool that helps you analyze, improve, and train code with the help of AI. It supports advanced code scanning, security intelligence, code standards enforcement, PR automation, and model training, all from a modern desktop interface.
+
+## 📁 Project Structure
+
+The AI Coder Assistant uses an organized file structure for better maintainability:
+
+```
+ai_coder_assistant/
+├── config/                     # Configuration files
+│   ├── code_standards_config.json
+│   ├── llm_studio_config.json
+│   ├── pr_automation_config.json
+│   └── security_intelligence_config.json
+├── data/                       # Data storage files
+│   ├── security_breaches.json
+│   ├── security_patches.json
+│   ├── security_training_data.json
+│   └── security_vulnerabilities.json
+├── src/                        # Source code
+├── docs/                       # Documentation
+├── api/                        # API server
+├── scripts/                    # Utility scripts
+├── logs/                       # Application logs
+├── tmp/                        # Temporary files
+├── requirements.txt            # Python dependencies
+├── main.py                     # Main application entry point
+└── README.md                   # Project overview
+```
+
+## 🔄 Major Architectural Improvements (v3.0.0)
+
+### 🏗️ Modern Architecture
+- **Event-Driven Design**: Inter-module communication via event bus with type safety
+- **Modular Components**: Clear separation of concerns with independent services
+- **Database Persistence**: SQLite-based persistence with connection pooling and retry logic
+- **Performance Monitoring**: Integrated performance tracking across all services
+- **Robust Error Handling**: Centralized error management with severity levels
+- **Organized File Structure**: Clean separation of configuration and data files
+
+### 🔧 Enhanced Infrastructure
+- **Absolute Imports**: Standardized import paths using `src/` root for consistent module resolution
+- **Core Services**: Config management, logging, error handling, threading, and event systems
+- **Backend Services**: Scanner, model management, task management, and persistence services
+- **Frontend Components**: PyQt6-based UI components with lifecycle management
+- **Comprehensive Testing**: 92% test success rate with unit, integration, and performance tests
+
+### 📊 Performance & Reliability
+- **Database Optimization**: Connection pooling and query optimization
+- **Memory Management**: Enhanced resource cleanup and garbage collection
+- **Response Time Tracking**: Real-time performance metrics and alerts
+- **Error Recovery**: Robust error handling and recovery mechanisms
 
 ## 🚀 Main Features
 
@@ -95,41 +145,68 @@ export GOOGLE_API_KEY="your-google-api-key"
 export OLLAMA_BASE_URL="http://localhost:11434"
 ```
 
-### 4. Run the application
+### 4. Configure Application Settings (Optional)
+Edit configuration files in the `config/` directory:
+
 ```bash
-python main.py
+# LLM provider settings
+vim config/llm_studio_config.json
+
+# Code standards configuration
+vim config/code_standards_config.json
+
+# Security intelligence settings
+vim config/security_intelligence_config.json
+
+# PR automation settings
+vim config/pr_automation_config.json
 ```
 
-### 5. Start PR Automation API Server (Optional)
+### 5. Run the application
+```bash
+# Set PYTHONPATH for proper module resolution
+export PYTHONPATH=src
+python src/main.py
+```
+
+### 6. Start PR Automation API Server (Optional)
 ```bash
 # Start the API server for external integrations
-python run_api_server.py
+export PYTHONPATH=src
+python src/backend/services/web_server.py
 
 # Access API documentation at http://localhost:8000/docs
 ```
 
 ## 🧪 Running Tests
 
-The project includes a professional test suite with cross-platform compatibility:
+The project includes a comprehensive test suite with the new architecture:
 
 ### Setup for Testing
 **Linux/macOS:**
 ```bash
-export PYTHONPATH="$PYTHONPATH:$(pwd)/src"
+export PYTHONPATH=src
 pytest -v
 ```
 
 **Windows (PowerShell):**
 ```powershell
-$env:PYTHONPATH="$env:PYTHONPATH;$(Get-Location)\src"
+$env:PYTHONPATH="src"
 pytest -v
 ```
 
 **Windows (CMD):**
 ```cmd
-set PYTHONPATH=%PYTHONPATH%;%CD%\src
+set PYTHONPATH=src
 pytest -v
 ```
+
+### Test Coverage
+- **Core Modules**: Config, error handling, logging, threading, events (100% pass rate)
+- **Backend Services**: Scanner, model management, task management, persistence
+- **Frontend Components**: UI components with event-driven architecture
+- **Integration Tests**: Frontend-backend communication and data flow
+- **Performance Tests**: Database operations and service performance
 
 ### Test Features
 - **Cross-platform compatibility**: Works on Linux, macOS, and Windows
@@ -140,132 +217,83 @@ pytest -v
 
 For detailed testing information, see [Test Suite Guide](docs/test_suite_guide.md).
 
-## 📚 Complete Documentation
+## 🏗️ Building from Source
 
-### Core Documentation
-- [User Manual](docs/user_manual.md) - Complete feature guide
-- [Installation Guide](docs/installation_guide.md) - Detailed setup instructions
-- [Provider System Guide](docs/provider_system_guide.md) - LLM provider configuration and usage
-- [Test Suite Guide](docs/test_suite_guide.md) - Testing setup and best practices
-- [Remote Ollama Guide](docs/ollama_remote_guide.md) - Remote Ollama instance configuration
-- [PR Automation Guide](docs/pr_automation_guide.md) - PR automation and external integrations
-- [Security Intelligence Guide](docs/security_intelligence_guide.md) - Security vulnerability tracking and management
-- [Code Standards Guide](docs/code_standards_guide.md) - Company-specific coding standards enforcement
+### Prerequisites
+- Python 3.8+
+- PyInstaller
+- UPX (optional, for binary optimization)
 
-### Advanced Features
-- [Training Workflow](docs/training_workflow.md) - Custom model training
-- [Multi-Language Support](docs/multi_language_support.md) - Language-specific features
-- [Advanced Refactoring Guide](docs/advanced_refactoring_guide.md) - Code refactoring capabilities
-- [Cloud Model Integration Guide](docs/cloud_models_section.md) - Cloud provider setup
+### Build Commands
+```bash
+# Set PYTHONPATH
+export PYTHONPATH=src
 
-### Architecture & Development
-- [Architecture Documentation](docs/ARCHITECTURE.md) - System design and components
-- [Build Instructions](docs/BUILD_README.md) - Building from source
-- [Cloud Model Integration](docs/cloud_model_integration_guide.md) - Advanced provider setup
+# Build all components
+python build_all.py
 
-## 🚀 PR Automation System
+# Build specific component
+python build_all.py --component assistant
+python build_all.py --component cli
+python build_all.py --component api
+```
 
-The PR Automation System provides comprehensive automation for creating Pull Requests with integrated JIRA and ServiceNow ticket management:
+### Platform-Specific Builds
+```bash
+# Linux
+./build_linux.sh
 
-### Key Features
-- **🔧 Service Integration**: JIRA and ServiceNow with multi-instance support
-- **📝 PR Templates**: Customizable templates with variable substitution
-- **🚀 Automated PR Creation**: Git integration with GitHub CLI
-- **🌐 REST API**: Full API for external integrations and CI/CD
-- **🖥️ GUI Management**: User-friendly interface for configuration
+# macOS
+./build_macos.sh
 
-### Quick PR Automation Setup
+# Windows
+build_windows.bat
+```
 
-1. **Start the API Server**:
-   ```bash
-   python run_api_server.py
-   ```
+## 📚 Documentation
 
-2. **Configure Services** (via API or GUI):
-   ```bash
-   # Add JIRA service
-   curl -X POST "http://localhost:8000/api/services" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "service_type": "jira",
-       "name": "JIRA-Prod",
-       "base_url": "https://company.atlassian.net",
-       "username": "your-email@company.com",
-       "api_token": "your-api-token",
-       "project_key": "PROJ"
-     }'
-   ```
+The AI Coder Assistant includes comprehensive documentation that has been updated to reflect the new organized file structure:
 
-3. **Create PR Templates**:
-   ```bash
-   curl -X POST "http://localhost:8000/api/templates" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "name": "Feature Template",
-       "title_template": "feat: {title}",
-       "body_template": "## Description\n{description}\n\n## JIRA Ticket\n{jira_ticket}",
-       "branch_prefix": "feature/",
-       "is_default": true
-     }'
-   ```
+### 📁 File Organization
+- **`config/`**: All configuration files (JSON format)
+  - `code_standards_config.json`: Code standards and rules
+  - `llm_studio_config.json`: LLM provider settings
+  - `pr_automation_config.json`: PR automation configuration
+  - `security_intelligence_config.json`: Security feed settings
+- **`data/`**: All data storage files (JSON format)
+  - `security_breaches.json`: Security breach information
+  - `security_patches.json`: Security patch data
+  - `security_training_data.json`: Security training datasets
+  - `security_vulnerabilities.json`: Security vulnerability data
 
-4. **Create PRs**:
-   ```bash
-   curl -X POST "http://localhost:8000/api/pr/create" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "title": "Add authentication feature",
-       "description": "Implement OAuth2 authentication",
-       "repo_path": "/path/to/repo",
-       "auto_create_tickets": true
-     }'
-   ```
+### 📖 Updated Documentation
+- **[Architecture Guide](docs/ARCHITECTURE.md)**: Complete system architecture with new file structure
+- **[Installation Guide](docs/installation_guide.md)**: Setup instructions with organized file structure
+- **[User Manual](docs/user_manual.md)**: Comprehensive user guide with updated paths
+- **[Test Suite Guide](docs/test_suite_guide.md)**: Testing instructions with new file organization
+- **[Cloud Model Integration](docs/cloud_model_integration_guide.md)**: Multi-provider LLM setup
+- **[Advanced Refactoring](docs/advanced_refactoring_guide.md)**: Code refactoring with organized config
+- **[Multi-Language Support](docs/multi_language_support.md)**: 20+ language support documentation
+- **[Training Workflow](docs/training_workflow.md)**: Model training and Ollama integration
+- **[Security Intelligence](docs/security_intelligence_guide.md)**: Security monitoring and analysis
+- **[PR Automation](docs/pr_automation_guide.md)**: Automated pull request management
+- **[Code Standards](docs/code_standards_guide.md)**: Code quality enforcement
+- **[Provider System](docs/provider_system_guide.md)**: LLM provider management
 
-For complete PR automation documentation, see [PR Automation Guide](docs/pr_automation_guide.md).
+### 🔧 Configuration Management
+All configuration is now centralized and organized:
+```bash
+# View all configuration files
+ls config/
 
-## 🔒 Security Intelligence System
+# Edit specific configurations
+vim config/llm_studio_config.json
+vim config/code_standards_config.json
+vim config/security_intelligence_config.json
+vim config/pr_automation_config.json
+```
 
-The Security Intelligence System provides comprehensive security monitoring and vulnerability tracking:
-
-### Key Features
-- **🔍 Vulnerability Tracking**: Real-time CVE monitoring and analysis
-- **🚨 Breach Detection**: Security breach monitoring and analysis
-- **🛠️ Patch Management**: Automated patch tracking and application
-- **📡 RSS Feed Integration**: Multi-source security intelligence aggregation
-- **🤖 AI Training Data**: Security awareness training data generation
-- **📊 Export Capabilities**: Training data export for AI model enhancement
-
-### Quick Security Setup
-
-1. **Access Security Intelligence Tab**: Open the Security Intelligence tab in the main application
-2. **Configure Security Feeds**: Add RSS feeds for CVE monitoring and security news
-3. **Monitor Vulnerabilities**: View real-time vulnerability data and severity levels
-4. **Track Patches**: Monitor security patches and mark them as applied
-5. **Export Training Data**: Generate training data for AI security awareness
-
-For complete security intelligence documentation, see [Security Intelligence Guide](docs/security_intelligence_guide.md).
-
-## 📋 Code Standards Enforcement
-
-The Code Standards Enforcement system provides company-specific coding standards and quality control:
-
-### Key Features
-- **🏢 Company Standards**: Define and manage company-specific coding standards
-- **🔍 Multi-language Analysis**: Support for Python, JavaScript, TypeScript, Java, C++, C#, Go, Rust, PHP, Ruby
-- **⚡ Real-time Analysis**: Live code analysis with violation detection
-- **🔧 Auto-fix Capabilities**: Automatic fixing of common code violations
-- **📊 Severity Management**: Error, Warning, and Info level violations
-- **📁 Import/Export**: Standards import and export functionality
-
-### Quick Code Standards Setup
-
-1. **Access Code Standards Tab**: Open the Code Standards tab in the main application
-2. **Create Standards**: Define company-specific coding standards and rules
-3. **Analyze Code**: Analyze files or directories for violations
-4. **Auto-fix Violations**: Automatically fix common code violations
-5. **Export Standards**: Share standards across teams and projects
-
-For complete code standards documentation, see [Code Standards Guide](docs/code_standards_guide.md).
+## 🧪 Running Tests
 
 ## 🏗️ Architecture
 

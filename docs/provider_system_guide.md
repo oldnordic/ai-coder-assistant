@@ -17,7 +17,7 @@ The unified provider system supports multiple LLM providers (OpenAI, Anthropic, 
 4. Use cost tracking to optimize usage.
 
 ## Configuration
-- Providers are managed in the UI or in `llm_studio_config.json`.
+- Providers are managed in the UI or in `config/llm_studio_config.json`.
 - Supports custom endpoints and advanced settings.
 
 ## Integration

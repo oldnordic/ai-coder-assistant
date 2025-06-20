@@ -3,6 +3,8 @@ from unittest.mock import patch, MagicMock
 from PyQt6.QtWidgets import QWidget, QApplication, QComboBox, QLabel, QPushButton, QLineEdit, QTextEdit, QCheckBox, QProgressBar
 from frontend.ui.ai_tab_widgets import setup_ai_tab
 import sys
+import tempfile
+import os
 
 class TestAITabWidgetsBackend(unittest.TestCase):
     @classmethod
@@ -12,7 +14,7 @@ class TestAITabWidgetsBackend(unittest.TestCase):
         else:
             cls.app = QApplication.instance()
 
-    @patch('backend.utils.settings.PROJECT_ROOT', '/tmp/project_root')
+    @patch('backend.utils.settings.PROJECT_ROOT', tempfile.mkdtemp())
     def test_setup_ai_tab_uses_backend(self, *_):
         parent_widget = QWidget()
         main_app_instance = MagicMock()

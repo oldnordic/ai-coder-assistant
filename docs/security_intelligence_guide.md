@@ -18,7 +18,7 @@ The Security Intelligence system provides real-time tracking of vulnerabilities,
 5. Use the **Training Data** sub-tab to export data for AI training.
 
 ## Configuration
-- Feeds are managed in the UI or in `security_intelligence_config.json`.
+- Feeds are managed in the UI or in `config/security_intelligence_config.json`.
 - Sample feeds and data are provided by default.
 - Feeds auto-refresh every 5 minutes; manual fetch is also available.
 
@@ -35,11 +35,11 @@ The Security Intelligence system provides real-time tracking of vulnerabilities,
 
 Security data is stored in JSON files:
 
-- `security_vulnerabilities.json` - Vulnerability data
-- `security_breaches.json` - Breach information
-- `security_patches.json` - Patch data
-- `security_training_data.json` - Training data
-- `security_intelligence_config.json` - Feed configuration
+- `data/security_vulnerabilities.json` - Vulnerability data
+- `data/security_breaches.json` - Breach information
+- `data/security_patches.json` - Patch data
+- `data/security_training_data.json` - Training data
+- `config/security_intelligence_config.json` - Feed configuration
 
 ## Integration with AI Models
 

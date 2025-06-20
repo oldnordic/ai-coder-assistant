@@ -37,11 +37,11 @@ def download_github_file(item, token, save_dir, log_message_callback=None):
         if not git_url: 
             return None, False
         
-        blob_response = requests.get(git_url, headers={'Authorization': f'token {token}'}, timeout=10).json()
+        blob_response = requests.get(git_url, headers={'Authorization': f'token {token}'}, timeout=10, verify=True).json()
         download_url = blob_response.get('download_url')
 
         if download_url:
-            file_content_response = requests.get(download_url, timeout=10)
+            file_content_response = requests.get(download_url, timeout=10, verify=True)
             file_content_response.raise_for_status()
             
             repo_name = item['repository']['name']
@@ -78,7 +78,7 @@ def search_and_download_github_code(query, token, save_dir, max_files=50, log_me
     
     try:
         _log(f"Attempting to connect to GitHub API with query: {query}")
-        response = requests.get(search_url, headers=headers, timeout=15)
+        response = requests.get(search_url, headers=headers, timeout=15, verify=True)
         response.raise_for_status()
         _log("API connection successful.")
         data = response.json()

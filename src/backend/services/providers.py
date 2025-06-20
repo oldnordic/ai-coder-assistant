@@ -527,7 +527,7 @@ class OllamaProvider(BaseProvider):
             
             # Make request
             response = await self.client.post(endpoint, json=data)
-            await response.raise_for_status()
+            response.raise_for_status()
             result = response.json()
             
             response_time = time.time() - start_time
@@ -569,7 +569,7 @@ class OllamaProvider(BaseProvider):
             endpoint = self.custom_endpoints.get("list_models", "/api/tags")
             
             response = await self.client.get(endpoint)
-            await response.raise_for_status()
+            response.raise_for_status()
             result = response.json()
             
             models = []
@@ -603,11 +603,34 @@ class OllamaProvider(BaseProvider):
             endpoint = self.custom_endpoints.get("health", "/api/tags")
             
             response = await self.client.get(endpoint)
-            await response.raise_for_status()
+            response.raise_for_status()
             return True
         except Exception as e:
             logger.error(f"Ollama health check failed: {e}")
             return False
+    
+    async def delete_model(self, model_name: str) -> bool:
+        """Delete an Ollama model."""
+        try:
+            # Use custom endpoint if specified
+            endpoint = self.custom_endpoints.get("delete_model", f"/api/delete")
+            
+            # Make request using the more general `request` method
+            response = await self.client.request("DELETE", endpoint, json={"name": model_name})
+            response.raise_for_status()
+            return True
+            
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                raise Exception(f"Ollama authentication failed: {str(e)}")
+            elif e.response.status_code == 404:
+                raise Exception(f"Ollama model not found: {model_name}")
+            else:
+                raise Exception(f"Ollama HTTP error {e.response.status_code}: {str(e)}")
+        except httpx.ConnectError as e:
+            raise Exception(f"Ollama connection failed: {str(e)}")
+        except Exception as e:
+            raise Exception(f"Error deleting Ollama model: {str(e)}")
     
     def calculate_cost(self, usage: Dict[str, int], model: str) -> float:
         """Calculate cost for Ollama token usage (always 0 for local models)."""

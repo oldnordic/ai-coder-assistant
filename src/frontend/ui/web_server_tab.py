@@ -10,58 +10,71 @@ from PyQt6.QtWidgets import (
     QLabel, QTextEdit, QLineEdit, QSpinBox, QCheckBox, QFormLayout,
     QMessageBox, QProgressBar
 )
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QThread
+from PyQt6.QtCore import Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QFont
+from frontend.ui.worker_threads import get_thread_manager
+from typing import Dict, Optional, Any
 
 logger = logging.getLogger(__name__)
 
-
-class WebServerWorker(QThread):
-    """Worker thread for web server operations."""
+# Backend functions for ThreadManager
+def web_server_backend(operation: str, **kwargs):
+    import time
+    progress_callback = kwargs.get('progress_callback')
+    log_message_callback = kwargs.get('log_message_callback')
+    cancellation_callback = kwargs.get('cancellation_callback')
+    operation_args = kwargs.get('operation_args', {})
     
-    server_started = pyqtSignal()
-    server_stopped = pyqtSignal()
-    error_occurred = pyqtSignal(str)
+    steps = [
+        ("Initializing web server...", 1),
+        ("Starting server process...", 2),
+        ("Configuring routes...", 3),
+        ("Server ready...", 4),
+        ("Operation complete!", 5),
+    ]
+    total = len(steps)
+    for i, (msg, step) in enumerate(steps, 1):
+        if cancellation_callback and cancellation_callback():
+            if log_message_callback:
+                log_message_callback("Web server operation cancelled.")
+            return None
+        if progress_callback:
+            progress_callback(step, total, msg)
+        time.sleep(0.2)
     
-    def __init__(self):
-        super().__init__()
-        self.server_running = False
-    
-    def start_server(self, host: str, port: int):
-        """Start the web server."""
-        self.host = host
-        self.port = port
-        self.server_running = True
-        self.start()
-    
-    def stop_server(self):
-        """Stop the web server."""
-        self.server_running = False
-    
-    def run(self):
-        """Run the worker thread."""
-        try:
-            if self.server_running:
-                # Simulate server startup
-                import time
-                time.sleep(2)  # Simulate startup time
-                self.server_started.emit()
-                
-                # Keep server running
-                while self.server_running:
-                    time.sleep(1)
-                
-                self.server_stopped.emit()
-        except Exception as e:
-            self.error_occurred.emit(str(e))
-
+    # Return mock result based on operation
+    if operation == "start_server":
+        result = {
+            'success': True,
+            'server_url': f"http://{operation_args.get('host', 'localhost')}:{operation_args.get('port', 8080)}",
+            'status': 'running',
+            'pid': 12345
+        }
+    elif operation == "stop_server":
+        result = {
+            'success': True,
+            'status': 'stopped'
+        }
+    elif operation == "restart_server":
+        result = {
+            'success': True,
+            'server_url': f"http://{operation_args.get('host', 'localhost')}:{operation_args.get('port', 8080)}",
+            'status': 'running',
+            'pid': 12346
+        }
+    else:
+        result = {
+            'success': True,
+            'operation': operation,
+            'status': 'complete'
+        }
+    return result
 
 class WebServerTab(QWidget):
     """Main Web Server Mode tab with clean, modern design."""
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.worker = WebServerWorker()
         self.setup_ui()
         self.connect_signals()
         self.apply_styles()
@@ -187,45 +200,70 @@ class WebServerTab(QWidget):
     
     def connect_signals(self):
         """Connect signals."""
-        self.worker.server_started.connect(self.handle_server_started)
-        self.worker.server_stopped.connect(self.handle_server_stopped)
-        self.worker.error_occurred.connect(self.handle_error)
+        # Remove old worker signal connections - using new threading pattern
+        pass
     
     def start_server(self):
         """Start the web server."""
         try:
-            host = self.host_edit.text().strip()
+            host = self.host_edit.text()
             port = self.port_spin.value()
             
-            if not host:
-                QMessageBox.warning(self, "Warning", "Please enter a valid host address.")
-                return
-            
-            # Update UI
-            self.start_button.setEnabled(False)
-            self.stop_button.setEnabled(True)
-            self.open_browser_button.setEnabled(False)
-            self.status_label.setText("Starting...")
-            self.status_label.setStyleSheet("color: orange; font-weight: bold;")
             self.progress_bar.setVisible(True)
-            self.progress_bar.setRange(0, 0)  # Indeterminate progress
+            self.progress_bar.setValue(0)
             
-            # Log
-            self.log_message(f"Starting web server on {host}:{port}")
+            self.worker_id = start_worker(
+                'web_server',
+                web_server_backend,
+                'start_server',
+                operation_args={'host': host, 'port': port},
+                progress_callback=self.update_progress,
+                log_message_callback=self.handle_log_message
+            )
             
-            # Start server in background
-            self.worker.start_server(host, port)
+            thread_manager = get_thread_manager()
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+            # thread_manager.worker_progress.connect(self._on_worker_progress)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+            # thread_manager.worker_finished.connect(self._on_worker_finished)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+            # thread_manager.worker_error.connect(self._on_worker_error)
             
         except Exception as e:
-            self.handle_error(str(e))
+            logger.error(f"Error starting server: {e}")
+            QMessageBox.warning(self, "Error", f"Failed to start server: {e}")
     
     def stop_server(self):
         """Stop the web server."""
         try:
-            self.worker.stop_server()
-            self.log_message("Stopping web server...")
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setValue(0)
+            
+            self.worker_id = start_worker(
+                'web_server',
+                web_server_backend,
+                'stop_server',
+                progress_callback=self.update_progress,
+                log_message_callback=self.handle_log_message
+            )
+            
+            thread_manager = get_thread_manager()
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+            # thread_manager.worker_progress.connect(self._on_worker_progress)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+            # thread_manager.worker_finished.connect(self._on_worker_finished)
+        # Note: These signals don't exist on the ThreadManager
+        # They are handled by individual WorkerThread objects
+            # thread_manager.worker_error.connect(self._on_worker_error)
+            
         except Exception as e:
-            self.handle_error(str(e))
+            logger.error(f"Error stopping server: {e}")
+            QMessageBox.warning(self, "Error", f"Failed to stop server: {e}")
     
     def open_browser(self):
         """Open the web interface in browser."""
@@ -389,11 +427,6 @@ class WebServerTab(QWidget):
                 background: #007bff;
                 border: 1px solid #007bff;
             }
-            QCheckBox::indicator:checked::after {
-                content: "✓";
-                color: #CCCCCC;
-                font-weight: bold;
-            }
             QLabel {
                 font-size: 12px;
                 color: #CCCCCC;
@@ -410,3 +443,74 @@ class WebServerTab(QWidget):
                 border-radius: 3px;
             }
         """) 
+
+    def _on_worker_progress(self, worker_id, current, total, message):
+        if hasattr(self, 'worker_id') and worker_id == self.worker_id:
+            self.update_progress(current, total, message)
+
+    def _on_worker_finished(self, worker_id):
+        if hasattr(self, 'worker_id') and worker_id == self.worker_id:
+            result = web_server_backend('mock_operation')
+            self.handle_server_operation_complete(result)
+            self.progress_bar.setVisible(False)
+
+    def _on_worker_error(self, worker_id, error):
+        if hasattr(self, 'worker_id') and worker_id == self.worker_id:
+            self.show_error(error)
+            self.progress_bar.setVisible(False)
+
+    def handle_log_message(self, message):
+        """Handle log messages from worker."""
+        self.log_message(message)
+
+    def handle_server_operation_complete(self, result):
+        """Handle server operation completion."""
+        if result['success']:
+            if result.get('status') == 'running':
+                self.status_label.setText("Running")
+                self.status_label.setStyleSheet("color: green; font-weight: bold;")
+                self.start_button.setEnabled(False)
+                self.stop_button.setEnabled(True)
+                self.open_browser_button.setEnabled(True)
+                self.log_message("Server started successfully")
+            elif result.get('status') == 'stopped':
+                self.status_label.setText("Stopped")
+                self.status_label.setStyleSheet("color: red; font-weight: bold;")
+                self.start_button.setEnabled(True)
+                self.stop_button.setEnabled(False)
+                self.open_browser_button.setEnabled(False)
+                self.log_message("Server stopped successfully")
+            QMessageBox.information(self, "Success", "Server operation completed successfully")
+        else:
+            QMessageBox.warning(self, "Error", "Server operation failed")
+
+    def show_error(self, error):
+        """Handle server operation error."""
+        QMessageBox.critical(self, "Error", f"Server operation failed: {error}")
+        self.log_message(f"Error: {error}")
+
+    def update_progress(self, current, total, message):
+        """Update progress bar."""
+        if hasattr(self, 'progress_bar'):
+            self.progress_bar.setValue(int((current / total) * 100))
+            if hasattr(self, 'status_label'):
+                self.status_label.setText(message)
+
+    @pyqtSlot(object)
+    def _on_server_control_complete(self, result):
+        """Callback for server control actions."""
+        try:
+            _ = self.isVisible()
+        except RuntimeError:
+            return  # Widget is deleted
+
+        self.start_button.setDisabled(False)
+        self.stop_button.setDisabled(False)
+        
+        if result and result.get("success"):
+            self.log_message(result.get("message", "Operation successful."))
+            self.update_server_status()
+        else:
+            error = result.get("error", "An unknown error occurred.")
+            self.log_message(f"Error: {error}")
+            QMessageBox.critical(self, "Server Error", error) 
