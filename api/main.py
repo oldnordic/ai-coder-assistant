@@ -9,7 +9,9 @@ import sys
 import asyncio
 from pathlib import Path
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
+import jwt
+import secrets
 
 # Add the project root to the path
 project_root = Path(__file__).parent.parent
@@ -51,6 +53,11 @@ app.add_middleware(
 
 # Security
 security = HTTPBearer()
+
+# JWT Configuration
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
+JWT_ALGORITHM = "HS256"
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
 # Initialize components
 settings = Settings()
@@ -106,14 +113,85 @@ class HealthResponse(BaseModel):
     timestamp: datetime
     components: Dict[str, str]
 
+class TokenResponse(BaseModel):
+    """Token response model"""
+    access_token: str
+    token_type: str
+    expires_in: int
+
+class LoginRequest(BaseModel):
+    """Login request model"""
+    username: str = Field(..., description="Username")
+    password: str = Field(..., description="Password")
+
 # Authentication dependency
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Verify API token"""
-    # In production, implement proper token validation
-    # For now, accept any valid Bearer token
-    if not credentials.credentials:
+    """Verify JWT token"""
+    try:
+        if not credentials.credentials:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        # Decode and verify JWT token
+        payload = jwt.decode(
+            credentials.credentials, 
+            JWT_SECRET_KEY, 
+            algorithms=[JWT_ALGORITHM]
+        )
+        
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        
+        # Check if token is expired
+        exp = payload.get("exp")
+        if exp is None or datetime.utcnow().timestamp() > exp:
+            raise HTTPException(status_code=401, detail="Token expired")
+        
+        return username
+        
+    except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-    return credentials.credentials
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """Create JWT access token"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    return encoded_jwt
+
+# Authentication endpoints
+@app.post("/auth/login", response_model=TokenResponse)
+async def login(request: LoginRequest):
+    """Login endpoint - In production, implement proper user authentication"""
+    # TODO: Implement proper user authentication against database
+    # For now, accept any username/password combination
+    if not request.username or not request.password:
+        raise HTTPException(status_code=400, detail="Username and password required")
+    
+    # Create access token
+    access_token_expires = timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": request.username}, 
+        expires_delta=access_token_expires
+    )
+    
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
+
+@app.post("/auth/verify")
+async def verify_token_endpoint(token: str = Depends(verify_token)):
+    """Verify token endpoint"""
+    return {"valid": True, "username": token}
 
 # Health check endpoint
 @app.get("/health", response_model=HealthResponse)

@@ -3,10 +3,10 @@
     {
       "service_type": "jira",
       "name": "Default JIRA",
-      "base_url": "https://your-company.atlassian.net",
-      "username": "your-email@company.com",
-      "api_token": "your-jira-api-token",
-      "project_key": "PROJ",
+      "base_url": "${JIRA_BASE_URL}",
+      "username": "${JIRA_USERNAME}",
+      "api_token": "${JIRA_API_TOKEN}",
+      "project_key": "${JIRA_PROJECT_KEY}",
       "is_enabled": false,
       "metadata": {
         "issue_types": ["Task", "Bug", "Story", "Epic"],
@@ -19,9 +19,9 @@
     {
       "service_type": "servicenow",
       "name": "Default ServiceNow",
-      "base_url": "https://your-company.service-now.com",
-      "username": "your-username",
-      "api_token": "your-servicenow-api-token",
+      "base_url": "${SERVICENOW_BASE_URL}",
+      "username": "${SERVICENOW_USERNAME}",
+      "api_token": "${SERVICENOW_API_TOKEN}",
       "is_enabled": false,
       "metadata": {
         "table": "change_request",
@@ -103,5 +103,6 @@
         "created_date": "2024-01-10T14:30:00Z"
       }
     ]
-  }
+  },
+  "_security_note": "IMPORTANT: All sensitive credentials are now managed via environment variables. Set the following environment variables: JIRA_BASE_URL, JIRA_USERNAME, JIRA_API_TOKEN, JIRA_PROJECT_KEY, SERVICENOW_BASE_URL, SERVICENOW_USERNAME, SERVICENOW_API_TOKEN"
 } 

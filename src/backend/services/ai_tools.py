@@ -26,7 +26,6 @@ import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from typing import Optional, List, Dict, Any, Callable
 import hashlib
-import pickle
 from pathlib import Path
 import time
 import tempfile
@@ -63,11 +62,11 @@ class AICache:
         """Get cached response if available."""
         try:
             cache_key = self._get_cache_key(prompt, model_name)
-            cache_file = self.cache_dir / f"{cache_key}.pkl"
+            cache_file = self.cache_dir / f"{cache_key}.json"
             
             if cache_file.exists():
-                with open(cache_file, 'rb') as f:
-                    cached_data = pickle.load(f)  # nosec B301 - Cache files are created by our own application
+                with open(cache_file, 'r', encoding='utf-8') as f:
+                    cached_data = json.load(f)
                     # Check if cache is not too old (7 days)
                     if cached_data.get('timestamp', 0) > (time.time() - CACHE_EXPIRY_SECONDS):
                         return cached_data.get('response')
@@ -79,7 +78,7 @@ class AICache:
         """Cache the AI response."""
         try:
             cache_key = self._get_cache_key(prompt, model_name)
-            cache_file = self.cache_dir / f"{cache_key}.pkl"
+            cache_file = self.cache_dir / f"{cache_key}.json"
             
             cached_data = {
                 'prompt': prompt,
@@ -88,8 +87,8 @@ class AICache:
                 'timestamp': time.time()
             }
             
-            with open(cache_file, 'wb') as f:
-                pickle.dump(cached_data, f)
+            with open(cache_file, 'w', encoding='utf-8') as f:
+                json.dump(cached_data, f, ensure_ascii=False, indent=2)
         except Exception:
             pass
 
