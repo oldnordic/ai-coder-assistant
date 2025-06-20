@@ -24,8 +24,8 @@ Backend Controller - Handles communication between frontend and backend services
 import logging
 from typing import Dict, List, Optional, Any
 
-from backend.services.llm_manager import LLMManager
-from core.config import Config
+from src.backend.services.llm_manager import LLMManager
+from src.core.config import Config
 
 logger = logging.getLogger(__name__)
 

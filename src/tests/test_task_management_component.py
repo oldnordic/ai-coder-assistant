@@ -4,10 +4,10 @@ import pytest
 from PyQt6.QtWidgets import QApplication
 from unittest.mock import Mock
 
-from frontend.components.task_management_component import TaskManagementComponent
-from core.events import Event, EventType
-from core.error import ErrorSeverity
-from frontend.components.base_component import ComponentState
+from src.frontend.components.task_management_component import TaskManagementComponent
+from src.frontend.components.base_component import ComponentState
+from src.core.events import Event, EventType
+from src.core.error import ErrorSeverity
 from src.backend.utils.constants import (
     TEST_TASK_ID_123, TEST_TASK_ID_456, TEST_TASK_ID_789
 )

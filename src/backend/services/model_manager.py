@@ -4,11 +4,11 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Dict, Optional, Type, List, Any
 from datetime import datetime
-from core.events import Event, EventBus, EventType
-from core.config import Config
-from core.logging import LogManager
-from backend.services.ollama_client import OllamaClient
-from backend.services.model_persistence import ModelPersistenceService, ModelConfig, ModelStateRecord, ModelType as PersistenceModelType, ModelState as PersistenceModelState
+from src.core.events import Event, EventBus, EventType
+from src.core.config import Config
+from src.core.logging import LogManager
+from src.backend.services.ollama_client import OllamaClient
+from src.backend.services.model_persistence import ModelPersistenceService, ModelConfig, ModelStateRecord, ModelType as PersistenceModelType, ModelState as PersistenceModelState
 
 class ModelType(Enum):
     """Supported model types."""

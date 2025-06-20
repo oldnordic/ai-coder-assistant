@@ -26,20 +26,20 @@ from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QApplication, QWidget,
                              QTextEdit, QVBoxLayout, QLabel, QHBoxLayout, QGroupBox, QCheckBox, QLineEdit, QComboBox, QSpinBox, QGridLayout)
 from PyQt6.QtCore import QUrl, pyqtSlot, Qt, QTimer, QMutex, QMutexLocker, pyqtSignal
 
-from frontend.controllers.backend_controller import BackendController
-from frontend.ui.data_tab_widgets import setup_data_tab
-from frontend.ui.ollama_manager_tab import OllamaManagerTab, LLMManager
-from frontend.ui.ollama_export_tab import setup_ollama_export_tab
-from frontend.ui.pr_tab_widgets import setup_pr_tab
-from frontend.ui.code_standards_tab import CodeStandardsTab
-from frontend.ui.continuous_learning_tab import ContinuousLearningTab
-from frontend.ui.refactoring_tab import RefactoringTab
-from frontend.ui.security_intelligence_tab import SecurityIntelligenceTab
-from frontend.ui.performance_optimization_tab import PerformanceOptimizationTab
-from frontend.ui.advanced_analytics_tab import AdvancedAnalyticsTab
-from frontend.ui.web_server_tab import WebServerTab
-from frontend.ui.collaboration_tab import CollaborationTab
-from frontend.ui.cloud_models_tab import CloudModelsTab
+from src.frontend.controllers.backend_controller import BackendController
+from src.frontend.ui.data_tab_widgets import setup_data_tab
+from src.frontend.ui.ollama_manager_tab import OllamaManagerTab, LLMManager
+from src.frontend.ui.ollama_export_tab import setup_ollama_export_tab
+from src.frontend.ui.pr_tab_widgets import setup_pr_tab
+from src.frontend.ui.code_standards_tab import CodeStandardsTab
+from src.frontend.ui.continuous_learning_tab import ContinuousLearningTab
+from src.frontend.ui.refactoring_tab import RefactoringTab
+from src.frontend.ui.security_intelligence_tab import SecurityIntelligenceTab
+from src.frontend.ui.performance_optimization_tab import PerformanceOptimizationTab
+from src.frontend.ui.advanced_analytics_tab import AdvancedAnalyticsTab
+from src.frontend.ui.web_server_tab import WebServerTab
+from src.frontend.ui.collaboration_tab import CollaborationTab
+from src.frontend.ui.cloud_models_tab import CloudModelsTab
 from backend.utils import settings
 
 from backend.services import ai_tools, scanner, get_available_models_sync

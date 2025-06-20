@@ -10,12 +10,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 
-from core.config import Config
-from core.logging import LogManager
-from core.error import ErrorHandler, ErrorSeverity
-from core.events import EventBus, Event, EventType
-from backend.services.task_management import DatabaseConnectionPool
-from backend.services.performance_optimization import PersistencePerformanceMonitor
+from src.core.config import Config
+from src.core.logging import LogManager
+from src.core.error import ErrorHandler, ErrorSeverity
+from src.core.events import EventBus, Event, EventType
+from src.backend.services.task_management import DatabaseConnectionPool
+from src.backend.services.performance_optimization import PersistencePerformanceMonitor
 
 logger = LogManager().get_logger('scanner_persistence')
 

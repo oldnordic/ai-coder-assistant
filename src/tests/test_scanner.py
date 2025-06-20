@@ -31,16 +31,18 @@ from src.backend.utils.constants import (
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from backend.services.scanner import (
+from src.backend.services.scanner import (
     scan_code,
     process_file_parallel,
     _get_all_code_files,
     run_linter,
     parse_linter_output,
     get_code_context,
-    enhance_code
+    enhance_code,
+    get_files_to_scan,
+    ScannerService
 )
-from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, IssueType
+from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, IssueType
 
 
 def timeout(seconds=10):
@@ -70,7 +72,7 @@ class TestScanner(unittest.TestCase):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
         self.analyzer = IntelligentCodeAnalyzer()
-        self.patcher_scan = patch('backend.services.scanner.scan_code', return_value=[
+        self.patcher_scan = patch('src.backend.services.scanner.scan_code', return_value=[
             {'issue_type': 'security_vulnerability', 'description': 'SSRF vulnerability found.'},
             {'issue_type': 'insecure_deserialization', 'description': 'Insecure deserialization found.'},
             {'issue_type': 'weak_cryptography', 'description': 'Weak cryptography found.'},
@@ -80,7 +82,7 @@ class TestScanner(unittest.TestCase):
             {'issue_type': 'data_flow_issue', 'description': 'Data flow issue found.'}
         ])  # type: ignore
         self.mock_scan = self.patcher_scan.start()
-        self.patcher_process_file = patch('backend.services.scanner.process_file_parallel', return_value=([
+        self.patcher_process_file = patch('src.backend.services.scanner.process_file_parallel', return_value=([
             {'issue_type': 'security_vulnerability', 'description': 'SSRF vulnerability found.'},
             {'issue_type': 'dependency_issue', 'description': 'Dependency issue found.'},
             {'issue_type': 'data_flow_issue', 'description': 'Data flow issue found.'},
