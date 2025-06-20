@@ -228,10 +228,13 @@ class AICoderAssistant(QMainWindow):
             if worker_id and worker_id in self.active_workers:
                 self.executor.submit(lambda: None)  # Placeholder for cancellation
             
-            if self.progress_dialog:
-                self.progress_dialog.setLabelText("Cancelling web scraping...")
-                self.progress_dialog.setValue(self.progress_dialog.maximum())
-                QApplication.processEvents()  # Ensure UI updates
+            if self.progress_dialog is not None:
+                try:
+                    self.progress_dialog.setLabelText("Cancelling web scraping...")
+                    self.progress_dialog.setValue(self.progress_dialog.maximum())
+                    QApplication.processEvents()  # Ensure UI updates
+                except Exception as e:
+                    self.log_message(f"Error updating progress dialog during cancellation: {e}", "error")
             
             # Reset UI state
             self.start_scraping_button.setEnabled(True)
@@ -241,9 +244,13 @@ class AICoderAssistant(QMainWindow):
             self.log_message(f"Error cancelling web scraping: {e}")
             QMessageBox.critical(self, "Error", f"Failed to cancel web scraping: {e}")
         finally:
-            if self.progress_dialog:
-                self.progress_dialog.close()
-                self.progress_dialog = None
+            if self.progress_dialog is not None:
+                try:
+                    self.progress_dialog.close()
+                except Exception as e:
+                    self.log_message(f"Error closing progress dialog: {e}", "error")
+                finally:
+                    self.progress_dialog = None
 
     def setup_menu(self):
         """Set up the main menu bar."""
@@ -933,8 +940,13 @@ class AICoderAssistant(QMainWindow):
         self.stop_scan_button.setEnabled(False)
         
         # Close progress dialog if open
-        if hasattr(self, 'progress_dialog') and self.progress_dialog:
-            self.progress_dialog.close()
+        if self.progress_dialog is not None:
+            try:
+                self.progress_dialog.close()
+            except Exception as e:
+                self.log_message(f"Error closing progress dialog: {e}", "error")
+            finally:
+                self.progress_dialog = None
         
         # Force garbage collection
         import gc
@@ -984,17 +996,16 @@ class AICoderAssistant(QMainWindow):
 
     @pyqtSlot(int, int, str)
     def _update_scan_progress_safe(self, current: int, total: int, message: str):
-        """
-        Updates the progress dialog from the main UI thread.
-        This is a slot connected to the `scan_progress_updated` signal.
-        """
-        if self.progress_dialog:
-            if self.progress_dialog.maximum() != total:
+        """Updates the progress dialog from the main UI thread."""
+        if self.progress_dialog is not None:
+            try:
                 self.progress_dialog.setMaximum(total)
-            self.progress_dialog.setValue(current)
-            self.progress_dialog.setLabelText(message)
-            if self.progress_dialog.wasCanceled():
-                self.stop_scan()
+                self.progress_dialog.setValue(current)
+                self.progress_dialog.setLabelText(message)
+            except Exception as e:
+                # Log error and clean up the dialog if it's in an invalid state
+                self.log_message(f"Error updating progress dialog: {e}", "error")
+                self.progress_dialog = None
 
     def handle_scan_complete(self, result):
         """
@@ -1017,9 +1028,13 @@ class AICoderAssistant(QMainWindow):
             self.log_message(f"Error displaying scan results: {e}", "error")
         finally:
             self.start_scan_button.setEnabled(True)
-            if self.progress_dialog:
-                self.progress_dialog.close()
-                self.progress_dialog = None
+            if self.progress_dialog is not None:
+                try:
+                    QTimer.singleShot(0, self.progress_dialog.close)
+                except Exception as e:
+                    self.log_message(f"Error closing progress dialog: {e}", "error")
+                finally:
+                    self.progress_dialog = None
             
             # Enable post-scan buttons only if there are results
             if self.scan_results:
@@ -1132,23 +1147,14 @@ class AICoderAssistant(QMainWindow):
             self.log_message(f"AI enhancement failed: {e}", "error")
             QTimer.singleShot(0, lambda: self._enable_post_scan_buttons(True))
         finally:
-            if self.progress_dialog:
-                QTimer.singleShot(0, self.progress_dialog.close)
+            if self.progress_dialog is not None:
+                try:
+                    QTimer.singleShot(0, self.progress_dialog.close)
+                except Exception as e:
+                    self.log_message(f"Error closing progress dialog: {e}", "error")
+                finally:
+                    self.progress_dialog = None
     
-    @pyqtSlot(int, int, str)
-    def _update_scan_progress_safe(self, current: int, total: int, message: str):
-        """Updates the progress dialog from the main UI thread."""
-        if self.progress_dialog:
-            self.progress_dialog.setMaximum(total)
-            self.progress_dialog.setValue(current)
-            self.progress_dialog.setLabelText(message)
-
-    def _enable_post_scan_buttons(self, enabled: bool):
-        """Enable or disable buttons that require scan results."""
-        self.create_report_button.setEnabled(enabled)
-        self.enhance_button.setEnabled(enabled)
-        self.review_suggestions_button.setEnabled(enabled)
-
     def format_issues_for_display(self, result: List[Dict[str, Any]]) -> str:
         """Formats the scan results for display in the QTextEdit."""
         if not result:
@@ -1177,7 +1183,7 @@ class AICoderAssistant(QMainWindow):
     def update_preprocess_progress(self, current: int, total: int, message: str):
         """Update preprocessing progress with proper error handling."""
         try:
-            if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            if self.progress_dialog is not None:
                 self.progress_dialog.setRange(0, total)
                 self.progress_dialog.setValue(current)
                 self.progress_dialog.setLabelText(f"{message}\\nProgress: {current}/{total}")
@@ -1185,6 +1191,8 @@ class AICoderAssistant(QMainWindow):
                     self.progress_dialog.setValue(total)
         except Exception as e:
             self.log_message(f"Error updating preprocess progress: {e}")
+            # Clean up the dialog if it's in an invalid state
+            self.progress_dialog = None
 
     def start_base_training(self):
         """Start base model training with proper error handling."""
@@ -1204,7 +1212,7 @@ class AICoderAssistant(QMainWindow):
     def update_training_progress(self, current: int, total: int, message: str):
         """Update training progress with proper error handling."""
         try:
-            if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            if self.progress_dialog is not None:
                 self.progress_dialog.setRange(PROGRESS_DIALOG_MIN_VALUE, PROGRESS_DIALOG_MAX_VALUE)
                 self.progress_dialog.setValue(current)
                 self.progress_dialog.setLabelText(f"{message}\\nProgress: {current}/{total}")
@@ -1212,6 +1220,8 @@ class AICoderAssistant(QMainWindow):
                     self.progress_dialog.setValue(total)
         except Exception as e:
             self.log_message(f"Error updating training progress: {e}")
+            # Clean up the dialog if it's in an invalid state
+            self.progress_dialog = None
 
     def start_finetuning(self):
         """Start model finetuning with proper error handling."""
@@ -1231,7 +1241,7 @@ class AICoderAssistant(QMainWindow):
     def update_finetune_progress(self, current: int, total: int, message: str):
         """Update finetuning progress with proper error handling."""
         try:
-            if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            if self.progress_dialog is not None:
                 self.progress_dialog.setRange(PROGRESS_DIALOG_MIN_VALUE, PROGRESS_DIALOG_MAX_VALUE)
                 self.progress_dialog.setValue(current)
                 self.progress_dialog.setLabelText(f"{message}\\nProgress: {current}/{total}")
@@ -1239,11 +1249,13 @@ class AICoderAssistant(QMainWindow):
                     self.progress_dialog.setValue(total)
         except Exception as e:
             self.log_message(f"Error updating finetune progress: {e}")
+            # Clean up the dialog if it's in an invalid state
+            self.progress_dialog = None
 
     def update_generic_progress(self, current: int, total: int, message: str):
         """Generic progress update handler for tasks without specific progress dialogs."""
         try:
-            if hasattr(self, 'progress_dialog') and self.progress_dialog:
+            if self.progress_dialog is not None:
                 self.progress_dialog.setRange(0, total)
                 self.progress_dialog.setValue(current)
                 self.progress_dialog.setLabelText(f"{message}\\nProgress: {current}/{total}")
@@ -1251,6 +1263,8 @@ class AICoderAssistant(QMainWindow):
                     self.progress_dialog.setValue(total)
         except Exception as e:
             self.log_message(f"Error updating generic progress: {e}")
+            # Clean up the dialog if it's in an invalid state
+            self.progress_dialog = None
 
     def update_docker_status(self):
         """Update Docker status with proper error handling."""
@@ -1338,6 +1352,11 @@ class AICoderAssistant(QMainWindow):
             future.add_done_callback(cleanup_callback)
         except Exception as e:
             self.log_message(f"Error starting worker {worker_id}: {e}")
-            if hasattr(self, 'progress_dialog') and self.progress_dialog:
-                self.progress_dialog.close()
+            if self.progress_dialog is not None:
+                try:
+                    self.progress_dialog.close()
+                except Exception as close_error:
+                    self.log_message(f"Error closing progress dialog: {close_error}", "error")
+                finally:
+                    self.progress_dialog = None
             raise
