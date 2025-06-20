@@ -674,7 +674,7 @@ class RefactoringTab(QWidget):
             # Refresh suggestions
             self.refresh_suggestions()
         else:
-            error_message = "Refactoring failed:\n" + "\n".join(result.get('errors', []))
+            error_message = f"Refactoring failed:\n{chr(10).join(result.get('errors', []))}"
             QMessageBox.critical(self, "Error", error_message)
             self.status_label.setText("Refactoring failed")
     

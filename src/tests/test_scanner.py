@@ -351,7 +351,7 @@ function function2() {
         """Test handling of large files."""
         # Create a large test file
         test_file = os.path.join(self.temp_dir, "large_test.py")
-        large_content = "def test():\n" + "    pass\n" * 10000  # Large file
+        large_content = "def test():\n" + "\n".join(["    pass"] * 10000)  # Large file
         
         with open(test_file, 'w') as f:
             f.write(large_content)

@@ -20,7 +20,11 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 # src/frontend/ui/data_tab_widgets.py
 from PyQt6.QtWidgets import (QVBoxLayout, QPushButton, QLabel, QGroupBox,
                              QTextEdit, QComboBox, QHBoxLayout, QSpinBox, QCheckBox)
-from backend.utils.constants import INPUT_HEIGHT
+from backend.utils.constants import (
+    INPUT_HEIGHT, DEFAULT_MAX_PAGES_SPINBOX_VALUE, DEFAULT_MAX_DEPTH_SPINBOX_VALUE,
+    DEFAULT_LINKS_PER_PAGE_SPINBOX_VALUE,
+    MAX_PAGES_SPINBOX_RANGE, MAX_DEPTH_SPINBOX_RANGE, MAX_LINKS_PER_PAGE_SPINBOX_RANGE
+)
 
 def setup_data_tab(parent_widget, main_app_instance):
     """
@@ -66,8 +70,8 @@ def setup_data_tab(parent_widget, main_app_instance):
     max_pages_layout = QHBoxLayout()
     max_pages_layout.addWidget(QLabel("Max Pages:"))
     main_app_instance.max_pages_spinbox = QSpinBox()
-    main_app_instance.max_pages_spinbox.setRange(1, 50)
-    main_app_instance.max_pages_spinbox.setValue(15)
+    main_app_instance.max_pages_spinbox.setRange(1, MAX_PAGES_SPINBOX_RANGE)
+    main_app_instance.max_pages_spinbox.setValue(DEFAULT_MAX_PAGES_SPINBOX_VALUE)
     main_app_instance.max_pages_spinbox.setToolTip("Maximum number of pages to scrape per URL")
     max_pages_layout.addWidget(main_app_instance.max_pages_spinbox)
     enhanced_params_layout.addLayout(max_pages_layout)
@@ -76,8 +80,8 @@ def setup_data_tab(parent_widget, main_app_instance):
     max_depth_layout = QHBoxLayout()
     max_depth_layout.addWidget(QLabel("Max Depth:"))
     main_app_instance.max_depth_spinbox = QSpinBox()
-    main_app_instance.max_depth_spinbox.setRange(1, 10)
-    main_app_instance.max_depth_spinbox.setValue(4)
+    main_app_instance.max_depth_spinbox.setRange(1, MAX_DEPTH_SPINBOX_RANGE)
+    main_app_instance.max_depth_spinbox.setValue(DEFAULT_MAX_DEPTH_SPINBOX_VALUE)
     main_app_instance.max_depth_spinbox.setToolTip("Maximum depth to follow links")
     max_depth_layout.addWidget(main_app_instance.max_depth_spinbox)
     enhanced_params_layout.addLayout(max_depth_layout)
@@ -92,8 +96,8 @@ def setup_data_tab(parent_widget, main_app_instance):
     links_per_page_layout = QHBoxLayout()
     links_per_page_layout.addWidget(QLabel("Links per page:"))
     main_app_instance.links_per_page_spinbox = QSpinBox()
-    main_app_instance.links_per_page_spinbox.setRange(1, 100)
-    main_app_instance.links_per_page_spinbox.setValue(50)
+    main_app_instance.links_per_page_spinbox.setRange(1, MAX_LINKS_PER_PAGE_SPINBOX_RANGE)
+    main_app_instance.links_per_page_spinbox.setValue(DEFAULT_LINKS_PER_PAGE_SPINBOX_VALUE)
     main_app_instance.links_per_page_spinbox.setToolTip("Maximum number of links to follow per page")
     links_per_page_layout.addWidget(main_app_instance.links_per_page_spinbox)
     enhanced_params_layout.addLayout(links_per_page_layout)

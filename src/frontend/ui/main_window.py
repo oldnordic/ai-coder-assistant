@@ -46,7 +46,12 @@ from backend.services import ai_tools, scanner, get_available_models_sync
 from backend.services import acquire, preprocess
 from backend.services import trainer
 from backend.utils.constants import (
-    PROGRESS_DIALOG_MAX_VALUE, PROGRESS_DIALOG_MIN_VALUE
+    PROGRESS_DIALOG_MAX_VALUE, PROGRESS_DIALOG_MIN_VALUE,
+    MAIN_WINDOW_MIN_WIDTH, MAIN_WINDOW_MIN_HEIGHT,
+    LOG_OUTPUT_MAX_HEIGHT, DOC_URLS_INPUT_MAX_HEIGHT,
+    LOG_QUEUE_PROCESS_INTERVAL_MS,
+    DEFAULT_MAX_PAGES_SPINBOX_VALUE, DEFAULT_MAX_DEPTH_SPINBOX_VALUE,
+    MAX_PAGES_SPINBOX_RANGE, MAX_DEPTH_SPINBOX_RANGE
 )
 
 from backend.utils.settings import is_docker_available
@@ -83,7 +88,7 @@ class AICoderAssistant(QMainWindow):
         self._log_queue = []
         self._log_timer = QTimer()
         self._log_timer.timeout.connect(self._process_log_queue)
-        self._log_timer.start(50)  # Process log queue every 50ms
+        self._log_timer.start(LOG_QUEUE_PROCESS_INTERVAL_MS)  # Process log queue every 50ms
         self.setup_ui()
         self.setup_menu()
         self.setup_ai_tab()
@@ -96,7 +101,6 @@ class AICoderAssistant(QMainWindow):
         self.setup_code_standards_tab()
         self.setup_security_intelligence_tab()
         self.setup_performance_optimization_tab()
-        self.setup_advanced_refactoring_tab()
         self.setup_advanced_analytics_tab()
         self.setup_web_server_tab()
         self.setup_collaboration_tab()
@@ -288,7 +292,7 @@ class AICoderAssistant(QMainWindow):
         """Set up the main window UI."""
         # Set window properties
         self.setWindowTitle("AI Coder Assistant")
-        self.setMinimumSize(1024, 768)
+        self.setMinimumSize(MAIN_WINDOW_MIN_WIDTH, MAIN_WINDOW_MIN_HEIGHT)
         
         # Create central widget and main layout
         central_widget = QWidget()
@@ -302,7 +306,7 @@ class AICoderAssistant(QMainWindow):
         # Create log output area
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
-        self.log_output.setMaximumHeight(200)
+        self.log_output.setMaximumHeight(LOG_OUTPUT_MAX_HEIGHT)
         main_layout.addWidget(self.log_output)
         
         # Initialize progress dialog as None
@@ -455,18 +459,18 @@ class AICoderAssistant(QMainWindow):
             # Create web scraping UI elements if they don't exist
             self.doc_urls_input = QTextEdit()
             self.doc_urls_input.setPlaceholderText("Enter URLs here...")
-            self.doc_urls_input.setMaximumHeight(100)
+            self.doc_urls_input.setMaximumHeight(DOC_URLS_INPUT_MAX_HEIGHT)
             
             self.scraping_mode_selector = QComboBox()
             self.scraping_mode_selector.addItems(["Simple (Single Page)", "Enhanced (Follow Links)"])
             
             self.max_pages_spinbox = QSpinBox()
-            self.max_pages_spinbox.setRange(1, 100)
-            self.max_pages_spinbox.setValue(15)
+            self.max_pages_spinbox.setRange(1, MAX_PAGES_SPINBOX_RANGE)
+            self.max_pages_spinbox.setValue(DEFAULT_MAX_PAGES_SPINBOX_VALUE)
             
             self.max_depth_spinbox = QSpinBox()
-            self.max_depth_spinbox.setRange(1, 10)
-            self.max_depth_spinbox.setValue(4)
+            self.max_depth_spinbox.setRange(1, MAX_DEPTH_SPINBOX_RANGE)
+            self.max_depth_spinbox.setValue(DEFAULT_MAX_DEPTH_SPINBOX_VALUE)
             
             self.same_domain_checkbox = QCheckBox("Same Domain Only")
             self.same_domain_checkbox.setChecked(True)

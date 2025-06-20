@@ -106,7 +106,7 @@ def run_safe_ui_tests():
     total_passed = 0
     total_failed = 0
     
-    print("=" * 60)
+    print(f"\n{'=' * 60}")
     print("UI TEST RUNNER - AI Coder Assistant")
     print("=" * 60)
     
