@@ -4,7 +4,7 @@ import logging
 import logging.handlers
 from pathlib import Path
 from typing import Optional
-from core.config import Config
+from src.core.config import Config
 
 class LogManager:
     """Centralized logging management.

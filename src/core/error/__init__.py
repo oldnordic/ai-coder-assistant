@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any, Dict, Optional
-from core.logging import LogManager
+from src.core.logging import LogManager
 
 class ErrorSeverity(Enum):
     """Error severity levels."""

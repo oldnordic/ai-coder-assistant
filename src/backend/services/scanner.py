@@ -29,10 +29,10 @@ import shlex
 from pathlib import Path
 from datetime import datetime
 import uuid
-from core.config import Config
-from core.logging import LogManager
-from core.error import ErrorHandler, ErrorSeverity
-from core.events import Event, EventType
+from src.core.config import Config
+from src.core.logging import LogManager
+from src.core.error import ErrorHandler, ErrorSeverity
+from src.core.events import Event, EventType
 from backend.services import ai_tools, ollama_client
 from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, CodeIssue
 from backend.services.scanner_persistence import (

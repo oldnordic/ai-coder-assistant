@@ -16,6 +16,9 @@ import asyncio
 import logging
 from typing import List, Dict, Any, Optional
 import concurrent.futures
+from src.backend.utils.constants import (
+    DEFAULT_TIMEOUT, DEFAULT_MAX_WORKERS
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +41,10 @@ class OllamaInstanceDialog(QDialog):
         self.ssl_check.setChecked(True)
         self.timeout_spin = QSpinBox()
         self.timeout_spin.setRange(5, 300)
-        self.timeout_spin.setValue(30)
+        self.timeout_spin.setValue(DEFAULT_TIMEOUT)
         self.priority_spin = QSpinBox()
         self.priority_spin.setRange(1, 10)
-        self.priority_spin.setValue(5)
+        self.priority_spin.setValue(DEFAULT_MAX_WORKERS)
         self.enabled_check = QCheckBox("Enabled")
         self.enabled_check.setChecked(True)
         layout.addRow("Instance Name", self.name_edit)

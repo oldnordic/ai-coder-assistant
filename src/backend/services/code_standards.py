@@ -31,7 +31,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from ast import NodeVisitor
 from enum import Enum
-from core.config import Config
+from src.core.config import Config
 
 logger = logging.getLogger(__name__)
 

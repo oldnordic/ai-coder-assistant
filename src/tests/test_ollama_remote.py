@@ -9,6 +9,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from backend.services.providers import OllamaProvider
 from backend.services.models import ProviderConfig, ProviderType, ChatMessage, ChatCompletionRequest
+from src.backend.utils.constants import TEST_PORT
 
 
 class TestOllamaRemoteConfigurations:
@@ -58,7 +59,7 @@ class TestOllamaRemoteConfigurations:
         config = ProviderConfig(
             provider_type=ProviderType.OLLAMA,
             api_key="dummy_key",
-            base_url="http://localhost:11434",
+            base_url=f"http://localhost:{TEST_PORT}",
             timeout=30,
             priority=5,
             is_enabled=True,
@@ -69,7 +70,7 @@ class TestOllamaRemoteConfigurations:
         provider = OllamaProvider(config)
         
         # Verify configuration
-        assert provider.base_url == "http://localhost:11434"
+        assert provider.base_url == f"http://localhost:{TEST_PORT}"
         assert provider.verify_ssl is True
         assert provider.custom_endpoints == {}
     
@@ -168,7 +169,7 @@ class TestOllamaRemoteConfigurations:
         config = ProviderConfig(
             provider_type=ProviderType.OLLAMA,
             api_key="dummy_key",
-            base_url="http://localhost:11434",
+            base_url=f"http://localhost:{TEST_PORT}",
             instance_name="Test Instance"
         )
         
@@ -274,7 +275,7 @@ class TestOllamaErrorHandling:
         config = ProviderConfig(
             provider_type=ProviderType.OLLAMA,
             api_key="dummy_key",
-            base_url="http://localhost:11434"
+            base_url=f"http://localhost:{TEST_PORT}"
         )
         
         provider = OllamaProvider(config)
@@ -298,7 +299,7 @@ class TestOllamaErrorHandling:
         config = ProviderConfig(
             provider_type=ProviderType.OLLAMA,
             api_key="dummy_key",
-            base_url="http://unreachable-server:11434"
+            base_url=f"http://localhost:{TEST_PORT}"
         )
         
         provider = OllamaProvider(config)

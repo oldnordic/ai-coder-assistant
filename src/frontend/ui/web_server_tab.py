@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, pyqtSlot
 from PyQt6.QtGui import QFont
+from src.backend.utils.constants import TEST_PORT
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +111,7 @@ class WebServerTab(QWidget):
         # Port configuration
         self.port_spin = QSpinBox()
         self.port_spin.setRange(1024, 65535)
-        self.port_spin.setValue(8080)
+        self.port_spin.setValue(TEST_PORT)
         config_layout.addRow("Port:", self.port_spin)
         
         # Options

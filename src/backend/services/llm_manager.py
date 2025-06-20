@@ -36,7 +36,7 @@ from .providers import OpenAIProvider, GoogleGeminiProvider, ClaudeProvider, Oll
 from .pr_automation import PRAutomationService, ServiceConfig, PRTemplate, PRRequest, PRResult
 from .security_intelligence import SecurityIntelligenceService, SecurityVulnerability, SecurityBreach, SecurityPatch, SecurityFeed
 from .code_standards import CodeStandardsService, CodeStandard, CodeAnalysisResult
-from core.config import Config
+from src.core.config import Config
 
 logger = logging.getLogger(__name__)
 

@@ -35,12 +35,12 @@ import threading
 import httpx
 import feedparser
 
-from core.config import Config
-from core.logging import LogManager
-from core.error import ErrorHandler
-from core.events import EventBus
-from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
-from backend.utils.constants import MAX_FILE_SIZE_KB
+from src.core.config import Config
+from src.core.logging import LogManager
+from src.core.error import ErrorHandler
+from src.core.events import EventBus
+from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
+from src.backend.utils.constants import MAX_FILE_SIZE_KB
 
 # Constants
 ANALYSIS_TIMEOUT_SECONDS = 300  # 5 minutes

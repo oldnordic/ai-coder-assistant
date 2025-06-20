@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any, Callable, Dict, Optional, Set
 from threading import Lock
-from core.logging import LogManager
+from src.core.logging import LogManager
 
 class EventType(Enum):
     """Built-in event types."""

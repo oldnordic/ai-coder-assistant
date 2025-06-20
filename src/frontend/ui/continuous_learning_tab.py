@@ -26,6 +26,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import concurrent.futures
+import os
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
@@ -38,6 +39,9 @@ from PyQt6.QtCore import pyqtSlot, QTimer
 from backend.services.continuous_learning import (
     get_continuous_learning_service,
     FeedbackType
+)
+from src.backend.utils.constants import (
+    TMP_DIR, TEST_USER_RATING, TEST_BATCH_SIZE, TEST_CLEANUP_DAYS
 )
 
 logger = logging.getLogger(__name__)
@@ -83,7 +87,7 @@ def continuous_learning_backend(operation: str, **kwargs):
     elif operation == "export_data":
         result = {
             'success': True,
-            'output_path': '/tmp/exported_data.csv'
+            'output_path': os.path.join(TMP_DIR, 'exported_data.csv')
         }
     elif operation == "cleanup_data":
         result = {
@@ -216,7 +220,7 @@ class ContinuousLearningTab(QWidget):
         rating_layout.addWidget(QLabel("User Rating (1-5):"))
         self.user_rating_spin = QSpinBox()
         self.user_rating_spin.setRange(1, 5)
-        self.user_rating_spin.setValue(3)
+        self.user_rating_spin.setValue(TEST_USER_RATING)
         rating_layout.addWidget(self.user_rating_spin)
         form_layout.addLayout(rating_layout)
         
@@ -257,7 +261,7 @@ class ContinuousLearningTab(QWidget):
         batch_layout.addWidget(QLabel("Batch Size:"))
         self.batch_size_spin = QSpinBox()
         self.batch_size_spin.setRange(10, 1000)
-        self.batch_size_spin.setValue(100)
+        self.batch_size_spin.setValue(TEST_BATCH_SIZE)
         batch_layout.addWidget(self.batch_size_spin)
         update_layout.addLayout(batch_layout)
         
@@ -330,7 +334,7 @@ class ContinuousLearningTab(QWidget):
         cleanup_layout.addWidget(QLabel("Keep data for (days):"))
         self.cleanup_days_spin = QSpinBox()
         self.cleanup_days_spin.setRange(1, 365)
-        self.cleanup_days_spin.setValue(30)
+        self.cleanup_days_spin.setValue(TEST_CLEANUP_DAYS)
         cleanup_layout.addWidget(self.cleanup_days_spin)
         
         self.cleanup_btn = QPushButton("Cleanup Old Data")
@@ -436,7 +440,7 @@ class ContinuousLearningTab(QWidget):
             self.original_output_edit.clear()
             self.corrected_output_edit.clear()
             self.user_comment_edit.clear()
-            self.user_rating_spin.setValue(3)
+            self.user_rating_spin.setValue(TEST_USER_RATING)
             
             # Refresh stats
             self.refresh_stats()
@@ -629,7 +633,7 @@ def continuous_learning_backend(operation: str, **kwargs):
     elif operation == "export_data":
         result = {
             'success': True,
-            'output_path': '/tmp/exported_data.csv'
+            'output_path': os.path.join(TMP_DIR, 'exported_data.csv')
         }
     elif operation == "cleanup_data":
         result = {
