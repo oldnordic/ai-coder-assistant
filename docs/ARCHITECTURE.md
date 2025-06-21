@@ -1,4 +1,79 @@
-# AI Coder Assistant - Architecture Documentation
+# AI Coder Assistant Architecture (2025 Update)
+
+## Overview
+
+AI Coder Assistant is a modular, enterprise-grade application for code analysis, AI-powered code review, and model management. The architecture is designed for maintainability, security, and extensibility.
+
+---
+
+## Backend
+
+### Unified FastAPI API Server
+- **Single FastAPI application** (`api/main.py`) serves all API endpoints.
+- **JWT authentication** secures all sensitive endpoints.
+- **Dependency injection** is used for business logic (via `BackendController`).
+- **Async support** for high performance and scalability.
+- **Automatic OpenAPI documentation** at `/docs` and `/redoc`.
+- **WebSocket support** for real-time features.
+
+### Secure Configuration & Secrets Management
+- **API keys and sensitive config** are managed via the `SecretsManager` (`src/backend/utils/secrets.py`).
+    - Supports environment variables, OS keyring, and `.env` files.
+    - No secrets are stored in code or version control.
+- **Cloud Models Tab** and **Settings Tab** both use the same secure secrets infrastructure.
+- **Configuration workflow:**
+    1. User enters API keys in the UI (Settings or Cloud Models tab).
+    2. Keys are securely saved using the `SecretsManager`.
+    3. Backend loads keys from environment/keyring at startup.
+    4. All provider logic (OpenAI, Anthropic, Google, etc.) uses these keys.
+
+### Model & Provider Management
+- **LLMManager** orchestrates all model/provider logic.
+- **Config loading** is now refactored for maintainability (see `_load_config` and helpers).
+- **Only configured providers are initialized** (prevents runtime errors).
+- **ThreadPoolExecutor** is used for parallel tasks (e.g., data acquisition).
+
+### Security
+- **JWT authentication** for all API endpoints.
+- **Password hashing** and user management for login.
+- **No API keys or secrets in logs or error messages.**
+
+---
+
+## Frontend
+
+- **PyQt6 desktop application** with modular tabbed UI.
+- **Cloud Models Tab** now fully supports secure API key entry and management.
+- **Usage Monitoring Widget** UI is clean and free of duplicate elements.
+- **All UI updates from background threads use `QTimer.singleShot` for thread safety.**
+
+---
+
+## Documentation & Maintainability
+
+- All major architectural changes are tracked in `docs/EXECUTIVE_SUMMARY_IMPROVEMENTS.md`.
+- Migration from Flask to FastAPI is documented in `docs/API_MIGRATION_GUIDE.md` and `docs/UNIFIED_API_IMPLEMENTATION.md`.
+- All references to Flask or dual-server setup have been removed.
+
+---
+
+## Key Improvements (2025)
+- **Unified backend:** No more Flask; all logic is in FastAPI.
+- **Secure configuration:** All API keys are managed securely and consistently.
+- **Functional Cloud Models tab:** Users can save/load API keys for all providers.
+- **Cleaner UI:** No duplicate widgets; improved user experience.
+- **Refactored config loading:** `LLMManager._load_config` is now maintainable.
+
+---
+
+## Next Steps
+- Continue to monitor for architectural improvements.
+- Expand test coverage for new configuration and provider logic.
+- Gather user feedback on the new Cloud Models workflow.
+
+---
+
+_Last updated: December 2024_
 
 ## Table of Contents
 
@@ -12,20 +87,6 @@
 8. [Performance Architecture](#performance-architecture)
 9. [Deployment Architecture](#deployment-architecture)
 10. [Development Architecture](#development-architecture)
-
-## Overview
-
-AI Coder Assistant is built with a modern, modular architecture that separates concerns and provides scalability, maintainability, and extensibility. The application follows a layered architecture pattern with clear boundaries between different components.
-
-### Architecture Principles
-
-- **Separation of Concerns**: Clear separation between UI, business logic, and data layers
-- **Modularity**: Independent, reusable components
-- **Scalability**: Horizontal and vertical scaling capabilities
-- **Maintainability**: Clean code structure and comprehensive documentation
-- **Extensibility**: Plugin-based architecture for new features
-- **Security**: Defense in depth with multiple security layers
-- **Performance**: Optimized for speed and resource efficiency
 
 ## System Architecture
 
