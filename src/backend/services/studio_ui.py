@@ -22,8 +22,9 @@ LLM Studio GUI for provider/model management and chat playground (PyQt6 version)
 """
 
 
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
 import sys
+from typing import Any, Dict, List, Optional
+
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -41,6 +42,9 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFont
+
 from .models import ChatMessage, ModelConfig, ProviderConfig, ProviderType
 from .llm_manager import LLMManager
 
@@ -132,22 +136,14 @@ class LLMStudioUI(QWidget):
         pt = item.data(Qt.ItemDataRole.UserRole)
         pc = self.manager.config.providers[pt]
 
-        class TestThread(QThread):
-            result = pyqtSignal(bool)
+        def test_provider():
+            import asyncio
+            return asyncio.run(self.manager.test_provider(pt, pc.api_key))
 
-            def run(self_):
-                import asyncio
-
-                ok = asyncio.run(self.manager.test_provider(pt, pc.api_key))
-                self_.result.emit(ok)
-
-        thread = TestThread()
-        thread.result.connect(
-            lambda ok: QMessageBox.information(
-                self, "Test Result", f"Provider {pt.value}: {'OK' if ok else 'Failed'}"
-            )
+        result = test_provider()
+        QMessageBox.information(
+            self, "Test Result", f"Provider {pt.value}: {'OK' if result else 'Failed'}"
         )
-        thread.start()
 
     def model_tab_ui(self):
         widget = QWidget()
@@ -238,31 +234,21 @@ class LLMStudioUI(QWidget):
         self.chat_history.append(f"<b>You:</b> {user_msg}")
         self.user_input.clear()
 
-        class ChatThread(QThread):
-            result = pyqtSignal(str)
+        def chat_completion():
+            import asyncio
+            messages = []
+            system_prompt = self.manager.config.models[model].system_prompt
+            if system_prompt and system_prompt.strip():
+                messages.append(
+                    ChatMessage(role="system", content=system_prompt.strip())
+                )
+            messages.append(ChatMessage(role="user", content=user_msg))
+            resp = asyncio.run(self.manager.chat_completion(messages))
+            text = resp.choices[0]["message"]["content"]
+            return text
 
-            def run(self_):
-                import asyncio
-
-                try:
-                    messages = []
-                    system_prompt = self.manager.config.models[model].system_prompt
-                    if system_prompt and system_prompt.strip():
-                        messages.append(
-                            ChatMessage(role="system", content=system_prompt.strip())
-                        )
-                    messages.append(ChatMessage(role="user", content=user_msg))
-                    resp = asyncio.run(self.manager.chat_completion(messages))
-                    text = resp.choices[0]["message"]["content"]
-                except Exception as e:
-                    text = f"Error: {e}"
-                self_.result.emit(text)
-
-        thread = ChatThread()
-        thread.result.connect(
-            lambda text: self.chat_history.append(f"<b>AI:</b> {text}")
-        )
-        thread.start()
+        text = chat_completion()
+        self.chat_history.append(f"<b>AI:</b> {text}")
 
 
 if __name__ == "__main__":

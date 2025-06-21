@@ -28,6 +28,13 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 from src.backend.utils.constants import MAX_FILENAME_LENGTH
+from src.backend.utils.exceptions import (
+    WebScrapingError,
+    FileOperationError,
+    NetworkError,
+    TimeoutError,
+    AICoderAssistantError,
+)
 
 # --- FIXED: Use relative imports for modules within the same package ---
 from .ai_tools import browse_web_tool
@@ -83,9 +90,12 @@ def process_url_parallel(
             )
             filepath = os.path.join(output_dir, f"{filename}_enhanced.txt")
 
-            with open(filepath, "w", encoding="utf-8") as f:
-                f.write(content)
-            _log(f"Saved enhanced content to {filepath}")
+            try:
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write(content)
+                _log(f"Saved enhanced content to {filepath}")
+            except (OSError, IOError) as e:
+                raise FileOperationError(f"Failed to save content to {filepath}: {e}", file_path=filepath, operation="write")
 
             # Log content statistics
             content_length = len(content)
@@ -101,11 +111,24 @@ def process_url_parallel(
             _log(f"Failed to scrape or no content found for: {url}")
             if content and content.startswith("Error"):
                 _log(f"Scraping error: {content}")
+                raise WebScrapingError(f"Web scraping failed: {content}", url=url)
             return "", False
 
+    except WebScrapingError:
+        # Re-raise web scraping errors
+        raise
+    except FileOperationError:
+        # Re-raise file operation errors
+        raise
+    except (ConnectionError, TimeoutError) as e:
+        raise NetworkError(f"Network error while processing {url}: {e}", url=url)
+    except AICoderAssistantError:
+        # Re-raise our custom exceptions
+        raise
     except Exception as e:
-        _log(f"An error occurred while processing {url}: {e}")
-        return "", False
+        # Log unexpected errors and convert to generic error
+        _log(f"Unexpected error while processing {url}: {e}")
+        raise AICoderAssistantError(f"Unexpected error while processing {url}: {e}")
 
 
 def crawl_docs(urls: List[str], output_dir: str, **kwargs: Any) -> Dict[str, Any]:

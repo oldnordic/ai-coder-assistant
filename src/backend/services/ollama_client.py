@@ -1,25 +1,138 @@
 """
-Ollama client service module.
+Ollama Client for AI Coder Assistant
+
+This module provides a client for interacting with Ollama instances,
+supporting both local and remote Ollama servers.
 """
 
 import asyncio
 import json
 import logging
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
 import httpx
 import requests
+
+from src.backend.utils.config import get_url, get_timeout
+from src.backend.utils.constants import HTTP_OK
 
 logger = logging.getLogger(__name__)
 
 
 class OllamaClient:
-    """Client for interacting with Ollama API."""
+    """Client for interacting with Ollama instances."""
 
-    def __init__(self, base_url: str = "http://localhost:11434"):
-        self.base_url = base_url.rstrip("/")
+    def __init__(self, base_url: Optional[str] = None):
+        """
+        Initialize the Ollama client.
+        
+        Args:
+            base_url: Base URL for the Ollama instance. If None, uses default from config.
+        """
+        self.base_url = base_url or get_url("ollama_base")
+        self.timeout = get_timeout("http_short")
+        logger.info(f"Initialized Ollama client with base URL: {self.base_url}")
         self.client = httpx.AsyncClient(base_url=self.base_url, timeout=180.0)
+
+    def is_available(self) -> bool:
+        """Check if the Ollama instance is available."""
+        try:
+            response = requests.get(
+                f"{self.base_url}/api/tags", 
+                timeout=self.timeout
+            )
+            return response.status_code == HTTP_OK
+        except Exception as e:
+            logger.debug(f"Ollama not available at {self.base_url}: {e}")
+            return False
+
+    def get_models(self) -> List[Dict[str, Any]]:
+        """Get list of available models."""
+        try:
+            response = requests.get(
+                f"{self.base_url}/api/tags", 
+                timeout=self.timeout
+            )
+            if response.status_code == HTTP_OK:
+                data = response.json()
+                return data.get("models", [])
+            else:
+                logger.warning(f"Failed to get models: {response.status_code}")
+                return []
+        except Exception as e:
+            logger.error(f"Error getting models: {e}")
+            return []
+
+    def generate_response(
+        self, 
+        model: str, 
+        prompt: str, 
+        system: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: Optional[int] = None
+    ) -> Optional[str]:
+        """
+        Generate a response using the specified model.
+        
+        Args:
+            model: Model name to use
+            prompt: Input prompt
+            system: Optional system message
+            temperature: Sampling temperature (0.0 to 1.0)
+            max_tokens: Maximum tokens to generate
+            
+        Returns:
+            Generated response text or None if failed
+        """
+        try:
+            payload = {
+                "model": model,
+                "prompt": prompt,
+                "temperature": temperature,
+                "stream": False
+            }
+            
+            if system:
+                payload["system"] = system
+            if max_tokens:
+                payload["max_tokens"] = max_tokens
+
+            response = requests.post(
+                f"{self.base_url}/api/generate",
+                json=payload,
+                timeout=get_timeout("ai_suggestion")
+            )
+            
+            if response.status_code == HTTP_OK:
+                data = response.json()
+                return data.get("response", "")
+            else:
+                logger.error(f"Generation failed: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error generating response: {e}")
+            return None
+
+    def get_model_info(self, model: str) -> Optional[Dict[str, Any]]:
+        """Get information about a specific model."""
+        try:
+            response = requests.get(
+                f"{self.base_url}/api/show",
+                json={"name": model},
+                timeout=self.timeout
+            )
+            
+            if response.status_code == HTTP_OK:
+                return response.json()
+            else:
+                logger.warning(f"Failed to get model info: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting model info: {e}")
+            return None
 
     async def list_models(self) -> List[Dict[str, Any]]:
         """List available models with their details."""
@@ -81,85 +194,51 @@ class OllamaClient:
 _global_ollama_client = OllamaClient()
 
 
-def get_ollama_response(prompt: str, model_name: str) -> str:
-    """Generate text using Ollama model synchronously.
-
-    Args:
-        prompt: The prompt to send to the model
-        model_name: Name of the Ollama model to use
-
-    Returns:
-        The generated response text
+def get_available_models_sync(base_url: Optional[str] = None) -> List[str]:
     """
-    try:
-        # Check if there's already an event loop running
-        try:
-            loop = asyncio.get_running_loop()
-            # If we're in an event loop, we need to use a different approach
-            # For now, we'll use a synchronous HTTP request as a fallback
-            import requests
-            import json
-            
-            response = requests.post(
-                f"{_global_ollama_client.base_url}/api/generate",
-                json={
-                    "model": model_name,
-                    "prompt": prompt,
-                    "stream": False,
-                    "temperature": 0.7
-                },
-                timeout=60
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                return data.get("response", "")
-            else:
-                logger.error(f"Ollama API error: {response.status_code}")
-                return f"API_ERROR: HTTP {response.status_code}"
-                
-        except RuntimeError:
-            # No event loop running, we can use asyncio.run
-            return asyncio.run(_global_ollama_client.generate(model_name, prompt))
-            
-    except Exception as e:
-        logger.error(f"Error in get_ollama_response: {e}")
-        return f"API_ERROR: {str(e)}"
+    Get available models synchronously.
+    
+    Args:
+        base_url: Optional base URL for Ollama instance
+        
+    Returns:
+        List of model names
+    """
+    client = OllamaClient(base_url)
+    models = client.get_models()
+    return [model.get("name", "") for model in models if model.get("name")]
 
 
-def get_available_models_sync() -> List[str]:
-    """Get list of available Ollama models synchronously."""
-    try:
-        # Try to connect to Ollama service
-        response = requests.get("http://localhost:11434/api/tags")
-        if response.status_code != 200:
-            logger.error(f"Failed to connect to Ollama service: {response.status_code}")
-            return []
-
-        # Parse response
-        data = response.json()
-        if "models" not in data:
-            logger.error("Invalid response format from Ollama service")
-            return []
-
-        # Extract model names
-        models: List[str] = [
-            model_data["name"]
-            for model_data in data.get("models", [])
-            if "name" in model_data
-        ]
-
-        if not models:
-            logger.warning("No models found in Ollama service")
-
-        return models
-
-    except requests.exceptions.ConnectionError:
-        logger.error("Failed to connect to Ollama service - is it running?")
-        return []
-    except Exception as e:
-        logger.error(f"Error getting Ollama models: {e}")
-        return []
+def get_ollama_response(
+    model: str, 
+    prompt: str, 
+    system: Optional[str] = None,
+    base_url: Optional[str] = None,
+    temperature: float = 0.7,
+    max_tokens: Optional[int] = None
+) -> Optional[str]:
+    """
+    Get a response from Ollama.
+    
+    Args:
+        model: Model name to use
+        prompt: Input prompt
+        system: Optional system message
+        base_url: Optional base URL for Ollama instance
+        temperature: Sampling temperature
+        max_tokens: Maximum tokens to generate
+        
+    Returns:
+        Generated response text or None if failed
+    """
+    client = OllamaClient(base_url)
+    return client.generate_response(
+        model=model,
+        prompt=prompt,
+        system=system,
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
 
 
 def _extract_json_from_response(response_text: str) -> str:

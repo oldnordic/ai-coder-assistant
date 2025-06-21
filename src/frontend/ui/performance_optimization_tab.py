@@ -69,66 +69,6 @@ from src.utils.constants import (
 logger = LogManager().get_logger(__name__)
 
 
-class OptimizationWorker(QObject):
-    """Worker class for optimization operations."""
-    
-    finished = pyqtSignal(object)
-    error = pyqtSignal(str)
-    progress = pyqtSignal(int, int, str)
-    
-    def __init__(self, operation: str, target_path: str, optimization_type: str):
-        super().__init__()
-        self.operation = operation
-        self.target_path = target_path
-        self.optimization_type = optimization_type
-        self._cancelled = False
-    
-    def run(self):
-        """Run the optimization operation."""
-        try:
-            result = performance_optimization_backend(
-                self.operation,
-                self.target_path,
-                self.optimization_type,
-                progress_callback=self._progress_callback,
-                log_message_callback=self._log_callback,
-            )
-            if not self._cancelled:
-                self.finished.emit(result)
-        except Exception as e:
-            if not self._cancelled:
-                self.error.emit(str(e))
-    
-    def _progress_callback(self, current: int, total: int, message: str):
-        """Progress callback for the worker."""
-        if not self._cancelled:
-            self.progress.emit(current, total, message)
-    
-    def _log_callback(self, message: str):
-        """Log callback for the worker."""
-        logger.info(f"Optimization: {message}")
-    
-    def cancel(self):
-        """Cancel the operation."""
-        self._cancelled = True
-
-
-"""
-
-# MIGRATION NEEDED: Replace QThread subclass with ThreadManager pattern
-
-# 1. Remove this QThread subclass.
-# 2. Create a backend function for the threaded operation:
-#    def backend_func(..., progress_callback=None, log_message_callback=None, cancellation_callback=None):
-#        # do work, call callbacks, return result
-# 3. In the UI, use:
-#    from .worker_threads import start_worker
-#    worker_id = start_worker("task_type", backend_func, ..., progress_callback=..., log_message_callback=...)
-# 4. Connect ThreadManager signals to UI slots for progress, result, and error.
-
-"""
-
-
 class MetricsWidget(QWidget):
     """Widget for displaying performance metrics."""
 

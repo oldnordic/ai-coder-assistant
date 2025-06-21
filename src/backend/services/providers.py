@@ -47,6 +47,8 @@ from src.backend.services.models import (
     ProviderType,
     ModelType,
 )
+from src.backend.utils.config import get_url, get_timeout
+from src.backend.utils.constants import HTTP_OK
 
 logger = logging.getLogger(__name__)
 
@@ -569,7 +571,7 @@ class OllamaProvider(BaseProvider):
 
     def _setup_client(self):
         """Setup Ollama client with support for remote instances."""
-        self.base_url = self.config.base_url or "http://localhost:11434"
+        self.base_url = self.config.base_url or get_url("ollama_base")
 
         # Prepare headers for authentication if needed
         headers = {}
@@ -750,7 +752,7 @@ class LMStudioProvider(BaseProvider):
     def _setup_client(self):
         """Setup LM Studio client with OpenAI-compatible API."""
         # LM Studio typically runs on localhost:1234 with OpenAI-compatible API
-        lm_studio_base_url = self.config.base_url or "http://localhost:1234/v1"
+        lm_studio_base_url = self.config.base_url or get_url("lm_studio_base")
         
         self.client = AsyncOpenAI(
             api_key="lm-studio",  # LM Studio doesn't require a real API key

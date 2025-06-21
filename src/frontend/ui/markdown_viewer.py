@@ -45,7 +45,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from backend.utils.constants import DEFAULT_FONT_WEIGHT
+from src.backend.utils.constants import DEFAULT_FONT_WEIGHT
 
 
 class MarkdownRenderer:

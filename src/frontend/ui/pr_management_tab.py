@@ -21,8 +21,10 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 PR Management Tab - UI for managing PR automation with JIRA and ServiceNow integration.
 """
 
-
-from backend.services.pr_automation import PRTemplate, ServiceConfig
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QGroupBox, QFormLayout, QLineEdit, QPushButton, QLabel, QListWidget, QHBoxLayout, QMessageBox, QComboBox, QWidget, QCheckBox, QDialogButtonBox
+)
+from src.backend.services.pr_automation import PRTemplate, ServiceConfig
 from typing import List, Optional
 
 

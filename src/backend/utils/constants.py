@@ -22,6 +22,7 @@ Constants for the AI Coder Assistant application.
 Centralizes magic numbers and configuration values.
 """
 
+from .config import get_url, get_timeout, get_limit, get_ui_setting, get_scan_setting
 
 # UI Layout Constants
 import os
@@ -42,31 +43,31 @@ STATUS_BOX_MIN_HEIGHT = 200
 CONTEXT_TEXT_MAX_HEIGHT = 100
 
 # Window and Dialog Sizes
-MAIN_WINDOW_MIN_WIDTH = 1024
-MAIN_WINDOW_MIN_HEIGHT = 768
-LOG_OUTPUT_MAX_HEIGHT = 200
-DOC_URLS_INPUT_MAX_HEIGHT = 100
+MAIN_WINDOW_MIN_WIDTH = get_ui_setting("main_window_min_width")
+MAIN_WINDOW_MIN_HEIGHT = get_ui_setting("main_window_min_height")
+LOG_OUTPUT_MAX_HEIGHT = get_ui_setting("log_output_max_height")
+DOC_URLS_INPUT_MAX_HEIGHT = get_ui_setting("doc_urls_input_max_height")
 
 # Progress Dialog Constants
 PROGRESS_MIN = 0
 PROGRESS_MAX = 100
 PROGRESS_COMPLETE = 100
-PROGRESS_DIALOG_MAX_VALUE = 100
-PROGRESS_DIALOG_MIN_VALUE = 0
+PROGRESS_DIALOG_MAX_VALUE = get_ui_setting("progress_dialog_max_value")
+PROGRESS_DIALOG_MIN_VALUE = get_ui_setting("progress_dialog_min_value")
 PROGRESS_WEIGHT_DOWNLOAD = 0.8
 
 # Timer and Processing Constants
-LOG_QUEUE_PROCESS_INTERVAL_MS = 50  # Process log queue every 50ms
+LOG_QUEUE_PROCESS_INTERVAL_MS = 100
 
 # Web Scraping Defaults
 DEFAULT_MAX_PAGES = 100
 DEFAULT_MAX_DEPTH = 5
 DEFAULT_LINKS_PER_PAGE = 20
-DEFAULT_MAX_PAGES_SPINBOX_VALUE = 15
-DEFAULT_MAX_DEPTH_SPINBOX_VALUE = 10
+DEFAULT_MAX_PAGES_SPINBOX_VALUE = get_limit("max_pages_spinbox_value")
+DEFAULT_MAX_DEPTH_SPINBOX_VALUE = get_limit("max_depth_spinbox_value")
 DEFAULT_LINKS_PER_PAGE_SPINBOX_VALUE = 50
-MAX_PAGES_SPINBOX_RANGE = 100
-MAX_DEPTH_SPINBOX_RANGE = 10
+MAX_PAGES_SPINBOX_RANGE = (1, 100)
+MAX_DEPTH_SPINBOX_RANGE = (1, 10)
 MAX_LINKS_PER_PAGE_SPINBOX_RANGE = 100
 
 # Timeout Constants (seconds)
@@ -76,15 +77,21 @@ GRACEFUL_SHUTDOWN_WAIT = 3000  # milliseconds
 
 # HTTP Status Codes
 HTTP_OK = 200
-HTTP_TIMEOUT_SHORT = 10
-HTTP_TIMEOUT_LONG = 30
+HTTP_TIMEOUT_SHORT = get_timeout("http_short")
+HTTP_TIMEOUT_LONG = get_timeout("http_long")
+HTTP_CREATED = 201
+HTTP_BAD_REQUEST = 400
+HTTP_UNAUTHORIZED = 401
+HTTP_FORBIDDEN = 403
+HTTP_NOT_FOUND = 404
+HTTP_INTERNAL_SERVER_ERROR = 500
 
 # File Size Limits
 MAX_FILE_SIZE = 1024 * 1024  # 1MB
 MAX_CHAR_LENGTH = 2000
-MAX_ERROR_MESSAGE_LENGTH = 100
-MAX_SUGGESTION_LENGTH = 300
-MAX_CODE_CONTEXT_LENGTH = 200
+MAX_ERROR_MESSAGE_LENGTH = get_limit("max_error_message_length")
+MAX_SUGGESTION_LENGTH = get_limit("max_suggestion_length")
+MAX_CODE_CONTEXT_LENGTH = get_limit("max_code_context_length")
 MAX_FILENAME_LENGTH = 100
 
 # Content Limits
@@ -103,9 +110,13 @@ DEFAULT_BORDER_COLOR = "#444444"
 DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 
 # API Endpoints
-OLLAMA_API_BASE_URL = "http://localhost:11434/api"
+OLLAMA_API_BASE_URL = get_url("ollama_api")
 OLLAMA_TAGS_ENDPOINT = f"{OLLAMA_API_BASE_URL}/tags"
-OLLAMA_BASE_URL = "http://localhost:11434"
+OLLAMA_BASE_URL = get_url("ollama_base")
+LM_STUDIO_BASE_URL = get_url("lm_studio_base")
+WEB_SERVER_DEFAULT_HOST = get_url("web_server_default_host")
+WEB_SERVER_DEFAULT_PORT = get_url("web_server_default_port")
+API_SERVER_DEFAULT_PORT = get_url("api_server_default_port")
 
 # Percentage Calculations
 PERCENTAGE_MULTIPLIER = 100
@@ -179,12 +190,12 @@ WARNING_NO_OLLAMA_MODELS = "No Ollama models found. AI enhancement will be disab
 # Progress Constants
 
 # Content Size Limits
-MAX_DESCRIPTION_LENGTH = 150
-MAX_CODE_SNIPPET_LENGTH = 200
-MAX_PROMPT_LENGTH = 100
+MAX_DESCRIPTION_LENGTH = get_limit("max_description_length")
+MAX_CODE_SNIPPET_LENGTH = get_limit("max_code_snippet_length")
+MAX_PROMPT_LENGTH = get_limit("max_prompt_length")
 
 # File Size Limits
-MAX_FILE_SIZE_KB = 512  # 512KB limit for better performance
+MAX_FILE_SIZE_KB = get_limit("max_file_size_kb")
 
 # Default Values
 DEFAULT_SEVERITY_COLOR = "888888"
@@ -209,12 +220,12 @@ SUPPORTED_PROVIDERS = [
 ]
 
 # Scanner Constants
-MAX_ISSUES_PER_FILE = 100
-SCAN_TIMEOUT_SECONDS = 300  # 5 minutes
-BYTES_PER_KB = 1024
-DEFAULT_SCAN_LIMIT = 100
-AI_SUGGESTION_TIMEOUT_SECONDS = 15  # Timeout for AI suggestion generation
-LINTER_TIMEOUT_SECONDS = 30  # Timeout for linter execution
+MAX_ISSUES_PER_FILE = get_limit("max_issues_per_file")
+SCAN_TIMEOUT_SECONDS = get_timeout("scan")
+BYTES_PER_KB = get_scan_setting("bytes_per_kb")
+DEFAULT_SCAN_LIMIT = get_scan_setting("default_scan_limit")
+AI_SUGGESTION_TIMEOUT_SECONDS = get_timeout("ai_suggestion")
+LINTER_TIMEOUT_SECONDS = get_timeout("linter")
 
 # Test Constants
 TEST_TIMEOUT_MS = 5000
@@ -271,7 +282,7 @@ MARKDOWN_VIEWER_FONT_FAMILY = "Consolas, 'Courier New', monospace"
 MARKDOWN_VIEWER_BG_COLOR = "#1F1F1F"
 MARKDOWN_VIEWER_FG_COLOR = "#CCCCCC"
 
-DEFAULT_MAX_WORKERS = 4
+DEFAULT_MAX_WORKERS = get_scan_setting("default_max_workers")
 
 SSL_VERIFY_DEFAULT = True
 VERIFY_DEFAULT = True

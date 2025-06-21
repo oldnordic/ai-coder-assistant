@@ -1,0 +1,43 @@
+{
+  "urls": {
+    "ollama_base": "http://localhost:11434",
+    "ollama_api": "http://localhost:11434/api",
+    "lm_studio_base": "http://localhost:1234/v1",
+    "web_server_default_host": "localhost",
+    "web_server_default_port": 8080,
+    "api_server_default_port": 8000
+  },
+  "timeouts": {
+    "http_short": 5,
+    "http_long": 30,
+    "scan": 300,
+    "linter": 60,
+    "ai_suggestion": 120
+  },
+  "limits": {
+    "max_file_size_kb": 1024,
+    "max_issues_per_file": 100,
+    "max_code_context_length": 4000,
+    "max_code_snippet_length": 500,
+    "max_prompt_length": 8000,
+    "max_suggestion_length": 1000,
+    "max_description_length": 500,
+    "max_error_message_length": 200,
+    "max_depth_spinbox_value": 3,
+    "max_pages_spinbox_value": 10
+  },
+  "ui": {
+    "main_window_min_width": 1200,
+    "main_window_min_height": 800,
+    "progress_dialog_min_value": 0,
+    "progress_dialog_max_value": 100,
+    "log_output_max_height": 200,
+    "doc_urls_input_max_height": 100,
+    "status_box_min_height": 150
+  },
+  "scanning": {
+    "default_scan_limit": 1000,
+    "default_max_workers": 4,
+    "bytes_per_kb": 1024
+  }
+}
