@@ -34,6 +34,8 @@ class SecurityTool(Enum):
     NJSSCAN = "njsscan"
     SEMGREP = "semgrep"
     SAFETY = "safety"
+    TRUFFLEHOG = "trufflehog"
+    PIP_AUDIT = "pip-audit"
 
 
 @dataclass
@@ -97,6 +99,22 @@ class SASTAnalyzer:
                 elif tool == SecurityTool.SAFETY:
                     result = subprocess.run(
                         ["safety", "--version"],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                    )
+                    tools_status[tool] = result.returncode == 0
+                elif tool == SecurityTool.TRUFFLEHOG:
+                    result = subprocess.run(
+                        ["trufflehog", "--version"],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                    )
+                    tools_status[tool] = result.returncode == 0
+                elif tool == SecurityTool.PIP_AUDIT:
+                    result = subprocess.run(
+                        ["pip-audit", "--version"],
                         capture_output=True,
                         text=True,
                         timeout=5,
@@ -170,6 +188,14 @@ class SASTAnalyzer:
 
             if self.tools_available[SecurityTool.SAFETY]:
                 issues.extend(self._run_safety_check(project_path))
+
+            # Add secrets scanning
+            if self.tools_available[SecurityTool.TRUFFLEHOG]:
+                issues.extend(self._run_trufflehog_scan(project_path))
+
+            # Add SCA scanning
+            if self.tools_available[SecurityTool.PIP_AUDIT]:
+                issues.extend(self._run_pip_audit_scan(project_path))
 
         except Exception as e:
             logger.error(f"Error analyzing project {project_path} with SAST tools: {e}")
@@ -412,6 +438,114 @@ class SASTAnalyzer:
             logger.warning(f"Safety check timed out")
         except Exception as e:
             logger.error(f"Error running Safety check: {e}")
+
+        return issues
+
+    def _run_trufflehog_scan(self, project_path: str) -> List[SecurityIssue]:
+        """Run TruffleHog to scan for hardcoded secrets."""
+        issues = []
+
+        try:
+            # Run trufflehog with JSON output
+            result = subprocess.run(
+                ["trufflehog", "--json", project_path],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+
+            if result.returncode == 0:
+                try:
+                    # TruffleHog outputs one JSON object per line
+                    for line in result.stdout.strip().split('\n'):
+                        if line.strip():
+                            issue_data = json.loads(line)
+                            
+                            security_issue = SecurityIssue(
+                                file_path=issue_data.get("path", ""),
+                                line_number=issue_data.get("line", 1),
+                                severity="high",  # Secrets are always high severity
+                                issue_type="hardcoded_secret",
+                                description=f"Potential secret found: {issue_data.get('reason', 'Unknown secret type')}",
+                                tool=SecurityTool.TRUFFLEHOG,
+                                confidence=0.9,
+                                cwe_id="CWE-532",  # Information Exposure Through Log Files
+                                code_snippet=issue_data.get("raw", ""),
+                                suggestion="Remove hardcoded secrets and use environment variables or secure secret management",
+                            )
+                            issues.append(security_issue)
+
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse TruffleHog output: {e}")
+
+        except subprocess.TimeoutExpired:
+            logger.warning(f"TruffleHog analysis timed out for {project_path}")
+        except Exception as e:
+            logger.error(f"Error running TruffleHog on {project_path}: {e}")
+
+        return issues
+
+    def _run_pip_audit_scan(self, project_path: str) -> List[SecurityIssue]:
+        """Run pip-audit to scan for vulnerable dependencies."""
+        issues = []
+
+        try:
+            # Look for requirements files
+            requirements_files = []
+            for req_file in ["requirements.txt", "pyproject.toml", "setup.py"]:
+                req_path = os.path.join(project_path, req_file)
+                if os.path.exists(req_path):
+                    requirements_files.append(req_path)
+
+            if not requirements_files:
+                logger.info(f"No requirements files found in {project_path}")
+                return issues
+
+            # Run pip-audit on each requirements file
+            for req_file in requirements_files:
+                try:
+                    result = subprocess.run(
+                        ["pip-audit", "--format", "json", "--requirement", req_file],
+                        capture_output=True,
+                        text=True,
+                        timeout=30,
+                    )
+
+                    if result.returncode == 0 or result.returncode == 1:  # pip-audit returns 1 when vulnerabilities found
+                        try:
+                            output = json.loads(result.stdout)
+                            
+                            for vuln in output.get("vulnerabilities", []):
+                                security_issue = SecurityIssue(
+                                    file_path=req_file,
+                                    line_number=1,
+                                    severity=vuln.get("severity", "medium"),
+                                    issue_type="vulnerable_dependency",
+                                    description=f"Vulnerable package: {vuln.get('package', {}).get('name', 'Unknown')} - {vuln.get('description', 'No description')}",
+                                    tool=SecurityTool.PIP_AUDIT,
+                                    confidence=0.95,
+                                    cwe_id=vuln.get("cwe", ""),
+                                    code_snippet=f"Package: {vuln.get('package', {}).get('name', 'Unknown')}",
+                                    suggestion=f"Update {vuln.get('package', {}).get('name', 'Unknown')} to a secure version",
+                                    context={
+                                        "package_name": vuln.get("package", {}).get("name"),
+                                        "current_version": vuln.get("package", {}).get("version"),
+                                        "fixed_version": vuln.get("fixed_version"),
+                                        "cve_id": vuln.get("id"),
+                                    }
+                                )
+                                issues.append(security_issue)
+
+                        except json.JSONDecodeError:
+                            logger.error(f"Failed to parse pip-audit output for {req_file}")
+
+                except subprocess.TimeoutExpired:
+                    logger.warning(f"pip-audit analysis timed out for {req_file}")
+                except Exception as e:
+                    logger.error(f"Error running pip-audit on {req_file}: {e}")
+
+        except Exception as e:
+            logger.error(f"Error running pip-audit scan on {project_path}: {e}")
 
         return issues
 

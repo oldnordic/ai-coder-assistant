@@ -83,18 +83,19 @@ class BackendController:
     # AI Analysis Methods
 
     def start_quick_scan(self, directory_path: str, include_patterns: Optional[List[str]] = None, 
-                        exclude_patterns: Optional[List[str]] = None) -> Dict[str, Any]:
+                        exclude_patterns: Optional[List[str]] = None, enable_sast: bool = True) -> Dict[str, Any]:
         """
-        Start a quick scan of the specified directory.
+        Start a quick scan of the specified directory with optional SAST security scanning.
         
         This method implements the first stage of the two-stage analysis approach:
-        1. Quick Scan: Immediate local analysis using static rules
+        1. Quick Scan: Immediate local analysis using static rules and SAST tools
         2. AI Enhancement: On-demand AI analysis of specific issues
         
         Args:
             directory_path: Path to the directory to scan
             include_patterns: List of file patterns to include
             exclude_patterns: List of file patterns to exclude
+            enable_sast: Whether to enable SAST security scanning (default: True)
             
         Returns:
             Dictionary containing scan results with the following format:
@@ -108,15 +109,23 @@ class BackendController:
                         "severity": "high|medium|low",
                         "type": "issue_type",
                         "code_snippet": "line_of_code",
-                        "context": "surrounding_lines"
+                        "context": "surrounding_lines",
+                        "tool": "linter|bandit|trufflehog|pip-audit",
+                        "confidence": 0.9,
+                        "cwe_id": "CWE-123"
                     }
                 ],
                 "total_issues": int,
-                "scan_type": "quick_scan"
+                "scan_type": "quick_scan",
+                "sast_enabled": bool,
+                "security_issues": int,
+                "dependency_issues": int,
+                "secrets_found": int
             }
         """
         try:
             analyzer = self.get_intelligent_analyzer()
+            scanner_service = self.get_scanner_service()
             
             # Use default patterns if none provided
             if include_patterns is None:
@@ -142,13 +151,71 @@ class BackendController:
             
             # Perform quick scan on each file
             all_issues = []
+            security_issues_count = 0
+            dependency_issues_count = 0
+            secrets_found_count = 0
+            
             for file_path in files_to_scan:
                 try:
+                    # Get language for the file
+                    language = self._detect_language(file_path)
+                    
+                    # Perform basic code analysis
                     file_issues = analyzer.perform_quick_scan(file_path)
+                    
+                    # Add SAST security scanning if enabled
+                    if enable_sast:
+                        try:
+                            # Use scanner service for comprehensive SAST analysis
+                            # Start a scan for this specific file
+                            scan_id = scanner_service.start_scan(
+                                directory=os.path.dirname(file_path),
+                                enable_sast=True
+                            )
+                            
+                            # Get scan results (in a real implementation, this would be async)
+                            # For now, we'll use the SAST analyzer directly
+                            from src.backend.services.sast_analyzer import SASTAnalyzer
+                            sast_analyzer = SASTAnalyzer()
+                            security_issues = sast_analyzer.analyze_file(file_path, language)
+                            
+                            # Convert SAST issues to our format
+                            for security_issue in security_issues:
+                                sast_issue = {
+                                    "file_path": file_path,
+                                    "line_number": security_issue.line_number,
+                                    "description": security_issue.description,
+                                    "severity": security_issue.severity,
+                                    "issue_type": security_issue.issue_type,
+                                    "code_snippet": security_issue.code_snippet,
+                                    "context": "",
+                                    "language": language,
+                                    "tool": security_issue.tool.value,
+                                    "confidence": security_issue.confidence,
+                                    "cwe_id": security_issue.cwe_id or "",
+                                    "suggestion": security_issue.suggestion
+                                }
+                                
+                                # Count different types of issues
+                                tool = security_issue.tool.value
+                                if tool in ["bandit", "semgrep", "njsscan"]:
+                                    security_issues_count += 1
+                                elif tool == "pip-audit":
+                                    dependency_issues_count += 1
+                                elif tool == "trufflehog":
+                                    secrets_found_count += 1
+                                
+                                file_issues.append(sast_issue)
+                                
+                        except Exception as e:
+                            logger.warning(f"Error during SAST analysis of {file_path}: {e}")
+                    
                     # Add file path to each issue
                     for issue in file_issues:
-                        issue["file_path"] = file_path
+                        if "file_path" not in issue:
+                            issue["file_path"] = file_path
                     all_issues.extend(file_issues)
+                    
                 except Exception as e:
                     logger.warning(f"Error scanning file {file_path}: {e}")
                     # Add error issue
@@ -160,7 +227,8 @@ class BackendController:
                         "issue_type": "file_error",
                         "code_snippet": "",
                         "context": "",
-                        "language": "unknown"
+                        "language": "unknown",
+                        "tool": "scanner"
                     })
             
             # Convert to frontend-friendly format
@@ -174,7 +242,11 @@ class BackendController:
                     "type": issue.get("issue_type", "code_quality"),
                     "code_snippet": issue.get("code_snippet", ""),
                     "context": issue.get("context", ""),
-                    "language": issue.get("language", "unknown")
+                    "language": issue.get("language", "unknown"),
+                    "tool": issue.get("tool", "linter"),
+                    "confidence": issue.get("confidence", 0.8),
+                    "cwe_id": issue.get("cwe_id", ""),
+                    "suggestion": issue.get("suggestion", "")
                 }
                 formatted_issues.append(formatted_issue)
             
@@ -184,7 +256,11 @@ class BackendController:
                 "success": True,
                 "issues": formatted_issues,
                 "total_issues": len(formatted_issues),
-                "scan_type": "quick_scan"
+                "scan_type": "quick_scan",
+                "sast_enabled": enable_sast,
+                "security_issues": security_issues_count,
+                "dependency_issues": dependency_issues_count,
+                "secrets_found": secrets_found_count
             }
             
         except Exception as e:
@@ -194,8 +270,46 @@ class BackendController:
                 "error": str(e),
                 "issues": [],
                 "total_issues": 0,
-                "scan_type": "quick_scan"
+                "scan_type": "quick_scan",
+                "sast_enabled": enable_sast,
+                "security_issues": 0,
+                "dependency_issues": 0,
+                "secrets_found": 0
             }
+
+    def _detect_language(self, file_path: str) -> str:
+        """Detect programming language from file extension."""
+        ext = os.path.splitext(file_path)[1].lower()
+        language_map = {
+            '.py': 'python',
+            '.js': 'javascript',
+            '.jsx': 'javascript',
+            '.ts': 'typescript',
+            '.tsx': 'typescript',
+            '.java': 'java',
+            '.cpp': 'cpp',
+            '.cc': 'cpp',
+            '.c': 'c',
+            '.h': 'c',
+            '.hpp': 'cpp',
+            '.cs': 'csharp',
+            '.go': 'go',
+            '.rs': 'rust',
+            '.php': 'php',
+            '.rb': 'ruby',
+            '.swift': 'swift',
+            '.kt': 'kotlin',
+            '.scala': 'scala',
+            '.dart': 'dart',
+            '.r': 'r',
+            '.m': 'matlab',
+            '.sh': 'shell',
+            '.bash': 'shell',
+            '.sql': 'sql',
+            '.html': 'html',
+            '.htm': 'html'
+        }
+        return language_map.get(ext, 'unknown')
 
     def get_ai_enhancement(self, issue_data: Dict[str, Any], 
                           enhancement_type: str = "code_improvement") -> EnhancementResult:
@@ -630,3 +744,116 @@ class BackendController:
         except Exception as e:
             logger.error(f"Error exporting report: {e}")
             raise
+
+    def run_comprehensive_security_scan(self, directory_path: str) -> Dict[str, Any]:
+        """
+        Run a comprehensive security scan including SAST, SCA, and secrets scanning.
+        
+        Args:
+            directory_path: Path to the directory to scan
+            
+        Returns:
+            Dictionary containing comprehensive security scan results
+        """
+        try:
+            scanner_service = self.get_scanner_service()
+            
+            # Start comprehensive scan with SAST enabled
+            scan_id = scanner_service.start_scan(
+                directory=directory_path,
+                enable_sast=True
+            )
+            
+            # Wait for scan completion (in a real implementation, this would be async)
+            # For now, we'll return the scan ID and status
+            scan_status = scanner_service.get_scan_status()
+            
+            return {
+                "success": True,
+                "scan_id": scan_id,
+                "status": scan_status.value if scan_status else "unknown",
+                "message": "Comprehensive security scan started. Use get_scan_result() to retrieve results."
+            }
+            
+        except Exception as e:
+            logger.error(f"Error starting comprehensive security scan: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "scan_id": None,
+                "status": "failed"
+            }
+
+    def get_security_scan_result(self, scan_id: str) -> Dict[str, Any]:
+        """
+        Get results from a comprehensive security scan.
+        
+        Args:
+            scan_id: ID of the scan to retrieve results for
+            
+        Returns:
+            Dictionary containing security scan results
+        """
+        try:
+            scanner_service = self.get_scanner_service()
+            
+            # Get scan result
+            scan_result = scanner_service.get_scan_result(scan_id)
+            if not scan_result:
+                return {
+                    "success": False,
+                    "error": f"Scan result not found for ID: {scan_id}"
+                }
+            
+            # Get code issues
+            code_issues = scanner_service.get_code_issues(scan_id)
+            
+            # Categorize issues by type
+            security_issues = []
+            dependency_issues = []
+            secrets_issues = []
+            code_quality_issues = []
+            
+            for issue in code_issues:
+                tool = getattr(issue, 'tool', 'unknown')
+                if tool in ['bandit', 'semgrep', 'njsscan']:
+                    security_issues.append(issue)
+                elif tool == 'pip-audit':
+                    dependency_issues.append(issue)
+                elif tool == 'trufflehog':
+                    secrets_issues.append(issue)
+                else:
+                    code_quality_issues.append(issue)
+            
+            return {
+                "success": True,
+                "scan_id": scan_id,
+                "scan_status": scan_result.status.value,
+                "total_issues": len(code_issues),
+                "security_issues": len(security_issues),
+                "dependency_issues": len(dependency_issues),
+                "secrets_issues": len(secrets_issues),
+                "code_quality_issues": len(code_quality_issues),
+                "scan_timestamp": scan_result.created_at.isoformat() if scan_result.created_at else None,
+                "issues": [
+                    {
+                        "file": issue.file_path,
+                        "line": issue.line_number,
+                        "issue": issue.description,
+                        "severity": issue.severity.value,
+                        "type": issue.issue_type,
+                        "tool": getattr(issue, 'tool', 'unknown'),
+                        "confidence": getattr(issue, 'confidence', 0.8),
+                        "cwe_id": getattr(issue, 'cwe_id', ''),
+                        "suggestion": getattr(issue, 'suggestion', '')
+                    }
+                    for issue in code_issues
+                ]
+            }
+            
+        except Exception as e:
+            logger.error(f"Error retrieving security scan result: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }

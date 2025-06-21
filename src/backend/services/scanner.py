@@ -37,6 +37,7 @@ import pathspec
 
 from src.backend.services import ai_tools, ollama_client
 from src.backend.services.intelligent_analyzer import CodeIssue, IntelligentCodeAnalyzer
+from src.backend.services.sast_analyzer import SASTAnalyzer, SecurityIssue
 from src.backend.services.scanner_persistence import CodeIssue as PersistenceCodeIssue
 from src.backend.services.scanner_persistence import (
     FileAnalysis,
@@ -311,6 +312,7 @@ class ScannerService:
 
         # Initialize analyzers
         self.intelligent_analyzer = IntelligentCodeAnalyzer()
+        self.sast_analyzer = SASTAnalyzer()
 
         # Thread-safe locks
         self.linter_lock = threading.Lock()
@@ -466,11 +468,20 @@ class ScannerService:
         directory: str,
         model_name: Optional[str] = None,
         callback: Optional[Callable[..., Any]] = None,
+        enable_sast: bool = True,
     ) -> str:
-        """Start a code scan operation with persistence integration."""
-        if not os.path.isdir(directory):
-            raise ValueError(f"Directory not found: {directory}")
+        """
+        Start a new scan of the specified directory.
 
+        Args:
+            directory: Directory to scan
+            model_name: Optional model name for AI analysis
+            callback: Optional callback function for progress updates
+            enable_sast: Whether to enable SAST security scanning
+
+        Returns:
+            Scan ID
+        """
         if self._current_scan_id:
             self.logger.warning("A scan is already in progress.")
             raise Exception("Scan already in progress.")
@@ -496,6 +507,10 @@ class ScannerService:
             "file_extensions": self._file_extensions,
             "scan_id": scan_id,
             "callback": callback,
+            "enable_sast": enable_sast,
+            "max_file_size_kb": self.max_file_size_kb,
+            "max_issues_per_file": self.max_issues_per_file,
+            "scan_timeout": self.scan_timeout,
         }
 
         self._current_scan_id = scan_id
@@ -613,78 +628,67 @@ class ScannerService:
     def _scan_file(
         self, file_path: str, config: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
-        """Scan a single file using available linters.
+        """
+        Scan a single file for issues using linters and SAST tools.
 
         Args:
             file_path: Path to the file to scan
             config: Scan configuration
 
         Returns:
-            Optional[Dict[str, Any]]: Scan results for the file
+            Dictionary containing scan results for the file
         """
         try:
-            # Detect language from file extension
+            # Detect language
             language = detect_language(file_path)
-            if language not in self._supported_languages:
-                self.logger.debug(
-                    f"Skipping {file_path} - language {language} not supported or linter not available"
-                )
+            if not language:
+                logger.warning(f"Could not detect language for {file_path}")
                 return None
-
-            # Get language configuration
-            lang_config = self._supported_languages[language]
-            linter = lang_config["linter"]
-
-            # Check if linter is available
-            if not self._available_linters.get(linter, False):
-                self.logger.debug(
-                    f"Skipping {file_path} - linter {linter} not available"
-                )
-                return None
-
-            # Run the linter
-            linter_output, success = self._run_linter(file_path, language)
-
-            if not success:
-                self.logger.warning(f"Linter {linter} failed for {file_path}")
-                return None
-
-            # Parse linter output
-            issues = []
-            for line in linter_output:
-                parsed_issue = self._parse_linter_output(line, language)
-                if parsed_issue:
-                    line_num, description = parsed_issue
-                    issues.append(
-                        {
-                            "line": line_num,
-                            "description": description,
-                            "severity": "medium",  # Default severity
-                            "linter": linter,
-                        }
-                    )
 
             # Get file info
+            file_size = os.path.getsize(file_path)
+            if file_size > MAX_FILE_SIZE_KB * BYTES_PER_KB:
+                logger.warning(f"File {file_path} is too large ({file_size} bytes)")
+                return None
+
+            # Count lines of code
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                content = f.read()
+                lines_of_code = len(f.readlines())
+
+            # Run linter
+            linter_issues, linter_success = self._run_linter(file_path, language)
+
+            # Run SAST analysis for security issues
+            sast_issues = []
+            if config.get("enable_sast", True):  # Enable SAST by default
+                try:
+                    security_issues = self.sast_analyzer.analyze_file(file_path, language)
+                    sast_issues = self._convert_sast_issues(security_issues)
+                except Exception as e:
+                    logger.error(f"Error running SAST analysis on {file_path}: {e}")
+
+            # Combine all issues
+            all_issues = linter_issues + sast_issues
+
+            # Limit issues per file
+            if len(all_issues) > MAX_ISSUES_PER_FILE:
+                all_issues = all_issues[:MAX_ISSUES_PER_FILE]
+                logger.warning(
+                    f"Limited issues for {file_path} to {MAX_ISSUES_PER_FILE}"
+                )
 
             return {
-                "path": file_path,
+                "file_path": file_path,
                 "language": language,
-                "size": len(content),
-                "lines": len(content.splitlines()),
-                "issues": issues,
-                "linter_used": linter,
+                "file_size": file_size,
+                "lines_of_code": lines_of_code,
+                "issues": all_issues,
+                "linter_success": linter_success,
+                "sast_issues_count": len(sast_issues),
             }
 
         except Exception as e:
-            self.error_handler.handle_error(
-                e,
-                "scanner_service",
-                "_scan_file",
-                ErrorSeverity.WARNING,
-                {"file": file_path},
-            )
+            logger.error(f"Error scanning file {file_path}: {e}")
             return None
 
     def _run_linter(self, filepath: str, language: str) -> tuple[list[str], bool]:
@@ -936,3 +940,43 @@ class ScannerService:
     def delete_scan_result(self, scan_id: str) -> bool:
         """Delete scan result and all associated data."""
         return self.persistence.delete_scan_result(scan_id)
+
+    def _convert_sast_issues(self, security_issues: List[SecurityIssue]) -> List[Dict[str, Any]]:
+        """
+        Convert SAST SecurityIssue objects to the scanner's issue format.
+
+        Args:
+            security_issues: List of SecurityIssue objects from SAST analyzer
+
+        Returns:
+            List of issues in the scanner's format
+        """
+        converted_issues = []
+        
+        for security_issue in security_issues:
+            # Convert severity
+            severity = "error"  # Default for security issues
+            if security_issue.severity == "low":
+                severity = "warning"
+            elif security_issue.severity == "medium":
+                severity = "error"
+            elif security_issue.severity == "high":
+                severity = "error"
+            
+            # Create issue in scanner format
+            issue = {
+                "line": security_issue.line_number,
+                "column": 1,  # SAST doesn't always provide column info
+                "severity": severity,
+                "message": security_issue.description,
+                "code": security_issue.issue_type,
+                "tool": security_issue.tool.value,
+                "confidence": security_issue.confidence,
+                "cwe_id": security_issue.cwe_id,
+                "suggestion": security_issue.suggestion,
+                "context": security_issue.context or {},
+            }
+            
+            converted_issues.append(issue)
+        
+        return converted_issues

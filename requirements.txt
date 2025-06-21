@@ -49,7 +49,7 @@ PyJWT>=2.8.0
 # Code Analysis and Quality
 flake8>=6.1.0
 pathspec>=0.11.0
-bandit>=1.7.5  # Python security linter
+bandit>=1.7.7
 njsscan>=0.2.8  # JavaScript/Node.js security scanner
 semgrep>=1.50.0  # Multi-language security scanner
 safety>=2.3.0  # Python dependency vulnerability scanner
@@ -116,4 +116,6 @@ pre-commit>=3.6.0
 
 # New dependencies
 xhtml2pdf>=0.2.11
-markdown>=3.4.0 
+markdown>=3.4.0
+pip-audit>=2.7.2
+trufflehog>=2.2.1 
