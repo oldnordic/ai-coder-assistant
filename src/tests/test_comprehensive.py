@@ -407,6 +407,16 @@ class TestCodeQuality(unittest.TestCase):
         for name in constant_names:
             self.assertTrue(name.isupper(), f"Constant {name} should be in UPPER_CASE")
 
+    def test_ollama_url_configuration(self):
+        """Test that Ollama URL is properly configured."""
+        from src.backend.utils.config import get_url
+        
+        # Test that we can get the Ollama URL from config
+        ollama_url = get_url("ollama_base")
+        self.assertIsInstance(ollama_url, str)
+        self.assertIn("localhost", ollama_url)
+        self.assertIn("11434", ollama_url)
+
 
 if __name__ == '__main__':
     unittest.main()

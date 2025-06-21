@@ -14,11 +14,14 @@ import logging
 import os
 import json
 import time
-from typing import Any, Dict, List, Optional
+import requests
+import subprocess
+import tempfile
+from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
 
-from PyQt6.QtCore import QTimer, pyqtSlot
-from PyQt6.QtGui import QFont
+from PyQt6.QtCore import QTimer, pyqtSlot, Qt, QThread, QObject
+from PyQt6.QtGui import QFont, QPixmap, QIcon
 from PyQt6.QtWidgets import (
     QCheckBox,
     QDialog,
@@ -43,6 +46,8 @@ from PyQt6.QtWidgets import (
     QFileDialog,
     QSplitter,
     QFrame,
+    QProgressDialog,
+    QApplication,
 )
 
 from src.backend.services.llm_manager import LLMManager
@@ -50,8 +55,9 @@ from src.backend.services.models import ProviderConfig, ProviderType
 from src.backend.services.ollama_client import OllamaClient, get_available_models_sync, get_ollama_response
 from src.backend.services.local_code_reviewer import get_local_code_reviewer, LocalCodeReviewer
 from src.backend.services.trainer import fine_tune_code_model, create_code_review_dataset, evaluate_model_performance
-from src.backend.utils.constants import DEFAULT_MAX_WORKERS, DEFAULT_TIMEOUT
+from src.backend.utils.constants import DEFAULT_MAX_WORKERS, DEFAULT_TIMEOUT, HTTP_OK
 from src.backend.utils.secrets import get_secrets_manager
+from src.backend.utils.config import get_url
 
 logger = logging.getLogger(__name__)
 
@@ -1235,3 +1241,177 @@ class ModelManagerTab(QWidget):
         except Exception as e:
             logger.error(f"Health check completion error: {e}")
             self.manual_health_check_button.setEnabled(True)
+
+    def test_ollama_connection(self):
+        """Test connection to Ollama instance."""
+        try:
+            # Use configuration-based URL instead of hardcoded
+            ollama_base_url = get_url("ollama_base")
+            response = requests.get(f"{ollama_base_url}/api/tags", timeout=5)
+            
+            if response.status_code == HTTP_OK:
+                models = response.json().get("models", [])
+                QMessageBox.information(
+                    self,
+                    "Connection Successful",
+                    f"Successfully connected to Ollama at {ollama_base_url}\n\nFound {len(models)} models:\n" + 
+                    "\n".join([f"• {model.get('name', 'Unknown')}" for model in models[:10]])
+                )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Connection Failed",
+                    f"Failed to connect to Ollama at {ollama_base_url}\nStatus: {response.status_code}"
+                )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Connection Error",
+                f"Error connecting to Ollama: {str(e)}"
+            )
+
+    def test_model_generation(self):
+        """Test model generation with a simple prompt."""
+        try:
+            # Use configuration-based URL instead of hardcoded
+            ollama_base_url = get_url("ollama_base")
+            
+            test_prompt = "Write a simple Python function to calculate the factorial of a number."
+            
+            payload = {
+                "model": "codellama:13b",
+                "prompt": test_prompt,
+                "stream": False,
+                "temperature": 0.7
+            }
+            
+            response = requests.post(
+                f"{ollama_base_url}/api/generate",
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == HTTP_OK:
+                result = response.json()
+                generated_text = result.get("response", "No response generated")
+                
+                QMessageBox.information(
+                    self,
+                    "Generation Test Successful",
+                    f"Successfully generated response from Ollama:\n\n{generated_text[:500]}..."
+                )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Generation Test Failed",
+                    f"Failed to generate response. Status: {response.status_code}"
+                )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Generation Test Error",
+                f"Error during generation test: {str(e)}"
+            )
+
+    def export_model_to_ollama(self):
+        """Export the fine-tuned model to Ollama."""
+        try:
+            # Use configuration-based URL instead of hardcoded
+            ollama_base_url = get_url("ollama_base")
+            
+            # Get model path
+            model_path = self.model_path_edit.text()
+            if not model_path or not os.path.exists(model_path):
+                QMessageBox.warning(self, "Invalid Model", "Please select a valid model file.")
+                return
+            
+            # Create Modelfile content
+            modelfile_content = self.create_modelfile_content()
+            
+            # Save Modelfile
+            modelfile_path = os.path.join(os.path.dirname(model_path), "Modelfile")
+            with open(modelfile_path, "w") as f:
+                f.write(modelfile_content)
+            
+            # Show progress
+            progress = QProgressDialog("Exporting model to Ollama...", "Cancel", 0, 100, self)
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+            progress.show()
+            
+            # Run ollama create command
+            model_name = f"ai-coder-{os.path.basename(model_path).split('.')[0]}"
+            cmd = ["ollama", "create", model_name, "-f", modelfile_path]
+            
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Monitor progress
+            while process.poll() is None:
+                progress.setValue(50)
+                QApplication.processEvents()
+                if progress.wasCanceled():
+                    process.terminate()
+                    break
+            
+            if process.returncode == 0:
+                progress.setValue(100)
+                QMessageBox.information(
+                    self,
+                    "Export Successful",
+                    f"Model successfully exported to Ollama as '{model_name}'\n\n"
+                    f"You can now use this model with: ollama run {model_name}"
+                )
+            else:
+                stderr = process.stderr.read()
+                QMessageBox.critical(
+                    self,
+                    "Export Failed",
+                    f"Failed to export model to Ollama:\n{stderr}"
+                )
+                
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Export Error",
+                f"Error exporting model: {str(e)}"
+            )
+
+    def list_ollama_models(self):
+        """List available models in Ollama."""
+        try:
+            # Use configuration-based URL instead of hardcoded
+            ollama_base_url = get_url("ollama_base")
+            response = requests.get(f"{ollama_base_url}/api/tags", timeout=5)
+            
+            if response.status_code == HTTP_OK:
+                models = response.json().get("models", [])
+                
+                if models:
+                    model_list = "\n".join([f"• {model.get('name', 'Unknown')}" for model in models])
+                    QMessageBox.information(
+                        self,
+                        "Available Ollama Models",
+                        f"Found {len(models)} models in Ollama:\n\n{model_list}"
+                    )
+                else:
+                    QMessageBox.information(
+                        self,
+                        "No Models Found",
+                        "No models found in Ollama instance."
+                    )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Failed to List Models",
+                    f"Failed to retrieve models. Status: {response.status_code}"
+                )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error Listing Models",
+                f"Error listing Ollama models: {str(e)}"
+            )

@@ -29,6 +29,8 @@ from src.backend.utils.constants import (
     TEST_CONTEXT_LENGTH,
     TEST_MAX_TOKENS,
     TEST_TEMPERATURE,
+    get_url,
+    HTTP_OK,
 )
 
 
@@ -485,6 +487,26 @@ class TestLLMManager:
 
             assert result is True
             mock_provider.health_check.assert_called_once()
+
+    def test_ollama_model_loading(self):
+        """Test loading models from Ollama."""
+        with patch('requests.get') as mock_get:
+            # Use configuration-based URL instead of hardcoded
+            ollama_base_url = get_url("ollama_base")
+            mock_get.return_value.status_code = HTTP_OK
+            mock_get.return_value.json.return_value = {
+                "models": [
+                    {"name": "codellama:13b", "size": 1234567890},
+                    {"name": "llama2:7b", "size": 987654321}
+                ]
+            }
+            
+            models = self.model_manager.get_ollama_models()
+            
+            mock_get.assert_called_with(f"{ollama_base_url}/api/tags", timeout=5)
+            self.assertEqual(len(models), 2)
+            self.assertEqual(models[0]["name"], "codellama:13b")
+            self.assertEqual(models[1]["name"], "llama2:7b")
 
 
 if __name__ == "__main__":

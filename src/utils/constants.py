@@ -25,7 +25,8 @@ MAX_CONTENT_SIZE = 1024 * 1024  # 1MB
 # HTTP Constants
 HTTP_TIMEOUT_SHORT = 10
 HTTP_TIMEOUT_LONG = 30
-OLLAMA_BASE_URL = "http://localhost:11434"
+# OLLAMA_BASE_URL is now retrieved via get_url("ollama_base") from config service
+# OLLAMA_BASE_URL = "http://localhost:11434"  # DEPRECATED: Use config service instead
 CACHE_EXPIRY_SECONDS = 3600
 DEFAULT_USER_AGENT = "AI-Coder-Assistant/2.0"
 

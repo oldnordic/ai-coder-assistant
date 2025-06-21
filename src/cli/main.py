@@ -19,13 +19,20 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 
 import argparse
 import json
+import logging
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import requests
+
 from backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
 from backend.services.scanner import scan_code
+from src.backend.utils.config import get_url
+from src.backend.utils.constants import HTTP_OK
+from src.utils.logging_config import setup_logging
 
 
 def analyze_file(
@@ -224,7 +231,8 @@ def llm_studio_status() -> Dict[str, Any]:
 
         # Check if we can connect to Ollama
         try:
-            response = requests.get("http://localhost:11434/api/tags", timeout=5)
+            ollama_base_url = get_url("ollama_base")
+            response = requests.get(f"{ollama_base_url}/api/tags", timeout=5)
             if response.status_code == 200:
                 return {
                     "status": "ollama_available",
@@ -332,6 +340,29 @@ def format_security_results_text(results: Dict[str, Any]) -> str:
         output += "---\n"
 
     return output
+
+
+def check_ollama_status():
+    """Check if Ollama is running and accessible."""
+    try:
+        ollama_base_url = get_url("ollama_base")
+        response = requests.get(f"{ollama_base_url}/api/tags", timeout=5)
+        
+        if response.status_code == HTTP_OK:
+            models = response.json().get("models", [])
+            print(f"✅ Ollama is running at {ollama_base_url}")
+            print(f"📦 Found {len(models)} models")
+            for model in models[:5]:  # Show first 5 models
+                print(f"   • {model.get('name', 'Unknown')}")
+            if len(models) > 5:
+                print(f"   ... and {len(models) - 5} more")
+            return True
+        else:
+            print(f"❌ Ollama responded with status {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"❌ Cannot connect to Ollama: {e}")
+        return False
 
 
 def main():
