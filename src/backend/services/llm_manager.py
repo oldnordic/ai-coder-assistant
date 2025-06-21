@@ -975,15 +975,15 @@ class LLMManager:
             logger.error(f"Error deleting model {model_name}: {e}")
             raise
 
-    def get_code_standards_manager(self) -> "CodeStandardsManager":
-        """Get the CodeStandardsManager instance."""
-        from src.backend.services.code_standards import CodeStandardsManager
+    def get_code_standards_manager(self) -> "CodeStandardsService":
+        """Get the CodeStandardsService instance."""
+        from src.backend.services.code_standards import CodeStandardsService
 
         # Use centralized configuration management
         code_standards_config_path = str(
             self._config_manager.get_config_file_path("code_standards_config.json")
         )
-        return CodeStandardsManager(config_path=code_standards_config_path)
+        return CodeStandardsService(config_path=code_standards_config_path)
 
     def get_security_intelligence(self) -> "SecurityIntelligence":
         """Get the SecurityIntelligence instance."""

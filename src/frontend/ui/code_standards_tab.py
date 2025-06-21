@@ -25,7 +25,7 @@ import concurrent.futures
 import logging
 import os
 from typing import Any, Callable, Dict, List, Optional
-from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtCore import pyqtSlot, QTimer, pyqtSignal, QObject
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -57,7 +57,46 @@ from src.frontend.controllers import BackendController
 logger = logging.getLogger(__name__)
 
 
-# Backend functions for ThreadManager
+class AnalysisWorker(QObject):
+    """Worker class for handling analysis operations in background threads."""
+    
+    progress_updated = pyqtSignal(str, int, int, str)  # worker_id, current, total, message
+    analysis_finished = pyqtSignal(object)  # result
+    error_occurred = pyqtSignal(str)  # error message
+    
+    def __init__(self, backend_controller: BackendController):
+        super().__init__()
+        self.backend_controller = backend_controller
+    
+    def analyze_file(self, file_path: str):
+        """Analyze a single code file."""
+        try:
+            self.progress_updated.emit("analyze_file", 25, 100, f"Analyzing file: {os.path.basename(file_path)}")
+            
+            result = self.backend_controller.analyze_code_file(file_path)
+            
+            self.progress_updated.emit("analyze_file", 100, 100, "Analysis completed")
+            self.analysis_finished.emit(result)
+            
+        except Exception as e:
+            logger.error(f"Error analyzing code file: {e}")
+            self.error_occurred.emit(f"Error analyzing code: {e}")
+    
+    def analyze_directory(self, directory_path: str):
+        """Analyze a directory of code files."""
+        try:
+            self.progress_updated.emit("analyze_directory", 25, 100, f"Analyzing directory: {os.path.basename(directory_path)}")
+            
+            results = self.backend_controller.analyze_code_directory(directory_path)
+            
+            self.progress_updated.emit("analyze_directory", 100, 100, "Analysis completed")
+            self.analysis_finished.emit(results)
+            
+        except Exception as e:
+            logger.error(f"Error analyzing directory: {e}")
+            self.error_occurred.emit(f"Error analyzing directory: {e}")
+
+
 def analyze_code_file_backend(
     backend_controller: BackendController,
     file_path: str,
@@ -328,9 +367,7 @@ class CodeStandardsTab(QWidget):
             self.load_current_standard()
         except Exception as e:
             logger.error(f"Error loading code standards data: {e}")
-            QMessageBox.warning(
-                self, "Error", f"Failed to load code standards data: {e}"
-            )
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", f"Failed to load code standards data: {e}"))
 
     def load_standards(self):
         """Load code standards."""
@@ -339,15 +376,14 @@ class CodeStandardsTab(QWidget):
             self.populate_standards_table(standards)
         except Exception as e:
             logger.error(f"Error loading standards: {e}")
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", f"Failed to load standards: {e}"))
 
     def load_current_standard(self):
         """Load current standard."""
         try:
             current_standard = self.backend_controller.get_current_code_standard()
             if current_standard:
-                self.current_standard_label.setText(
-                    current_standard.get("name", "Unknown")
-                )
+                self.current_standard_label.setText(current_standard.get("name", "Unknown"))
             else:
                 self.current_standard_label.setText("No standard selected")
         except Exception as e:
@@ -422,11 +458,11 @@ class CodeStandardsTab(QWidget):
 
             self.backend_controller.add_code_standard(standard_data)
             self.load_standards()
-            QMessageBox.information(self, "Success", "Code standard added successfully")
+            QTimer.singleShot(0, lambda: QMessageBox.information(self, "Success", "Code standard added successfully"))
 
         except Exception as e:
             logger.error(f"Error adding code standard: {e}")
-            QMessageBox.warning(self, "Error", f"Failed to add code standard: {e}")
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", f"Failed to add code standard: {e}"))
 
     def remove_standard(self, standard: Dict):
         """Remove a code standard."""
@@ -442,20 +478,18 @@ class CodeStandardsTab(QWidget):
                 self.backend_controller.remove_code_standard(name)
                 self.load_standards()
                 self.load_current_standard()
-                QMessageBox.information(
-                    self, "Success", f"Code standard '{name}' removed"
-                )
+                QTimer.singleShot(0, lambda: QMessageBox.information(self, "Success", f"Code standard '{name}' removed"))
 
         except Exception as e:
             logger.error(f"Error removing code standard: {e}")
-            QMessageBox.warning(self, "Error", f"Failed to remove code standard: {e}")
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", f"Failed to remove code standard: {e}"))
 
     def set_current_standard(self):
         """Set the current standard."""
         try:
             standards = self.backend_controller.get_code_standards()
             if not standards:
-                QMessageBox.warning(self, "Error", "No code standards available")
+                QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", "No code standards available"))
                 return
 
             standard_names = [s.get("name", "") for s in standards]
@@ -471,13 +505,11 @@ class CodeStandardsTab(QWidget):
             if ok and name:
                 self.backend_controller.set_current_code_standard(name)
                 self.load_current_standard()
-                QMessageBox.information(
-                    self, "Success", f"Code standard '{name}' set as current"
-                )
+                QTimer.singleShot(0, lambda: QMessageBox.information(self, "Success", f"Code standard '{name}' set as current"))
 
         except Exception as e:
             logger.error(f"Error setting current standard: {e}")
-            QMessageBox.warning(self, "Error", f"Failed to set current standard: {e}")
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", f"Failed to set current standard: {e}"))
 
     def export_standard(self, standard: Dict):
         """Export a code standard."""
@@ -489,13 +521,11 @@ class CodeStandardsTab(QWidget):
 
             if file_path:
                 self.backend_controller.export_code_standard(name, file_path)
-                QMessageBox.information(
-                    self, "Success", f"Code standard exported to {file_path}"
-                )
+                QTimer.singleShot(0, lambda: QMessageBox.information(self, "Success", f"Code standard exported to {file_path}"))
 
         except Exception as e:
             logger.error(f"Error exporting code standard: {e}")
-            QMessageBox.warning(self, "Error", f"Failed to export code standard: {e}")
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", f"Failed to export code standard: {e}"))
 
     def import_code_standard(self):
         """Import a code standard."""
@@ -507,13 +537,11 @@ class CodeStandardsTab(QWidget):
             if file_path:
                 self.backend_controller.import_code_standard(file_path)
                 self.load_standards()
-                QMessageBox.information(
-                    self, "Success", "Code standard imported successfully"
-                )
+                QTimer.singleShot(0, lambda: QMessageBox.information(self, "Success", "Code standard imported successfully"))
 
         except Exception as e:
             logger.error(f"Error importing code standard: {e}")
-            QMessageBox.warning(self, "Error", f"Failed to import code standard: {e}")
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", f"Failed to import code standard: {e}"))
 
     def analyze_file(self):
         """Analyze a single code file."""
@@ -521,17 +549,19 @@ class CodeStandardsTab(QWidget):
         if not file_path:
             return
 
+        # Create worker and move to thread
+        worker = AnalysisWorker(self.backend_controller)
+        worker.progress_updated.connect(self.update_progress)
+        worker.analysis_finished.connect(self.on_analysis_finished)
+        worker.error_occurred.connect(self.handle_error)
+        
+        # Show progress bar
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
-        worker = self.executor.submit(
-            analyze_code_file_backend,
-            self.backend_controller,
-            file_path,
-            self.update_progress,
-            self.handle_error,
-        )
-        if worker:
-            worker.result().connect(self.on_analysis_finished)
+        
+        # Submit to thread pool
+        future = self.executor.submit(worker.analyze_file, file_path)
+        future.add_done_callback(lambda f: self.progress_bar.setVisible(False))
 
     def analyze_directory(self):
         """Analyze a directory of code files."""
@@ -539,17 +569,19 @@ class CodeStandardsTab(QWidget):
         if not dir_path:
             return
 
+        # Create worker and move to thread
+        worker = AnalysisWorker(self.backend_controller)
+        worker.progress_updated.connect(self.update_progress)
+        worker.analysis_finished.connect(self.on_directory_analysis_finished)
+        worker.error_occurred.connect(self.handle_error)
+        
+        # Show progress bar
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
-        worker = self.executor.submit(
-            analyze_code_directory_backend,
-            self.backend_controller,
-            dir_path,
-            self.update_progress,
-            self.handle_error,
-        )
-        if worker:
-            worker.result().connect(self.on_directory_analysis_finished)
+        
+        # Submit to thread pool
+        future = self.executor.submit(worker.analyze_directory, dir_path)
+        future.add_done_callback(lambda f: self.progress_bar.setVisible(False))
 
     @pyqtSlot(str, int, int, str)
     def update_progress(self, worker_id: str, current: int, total: int, message: str):
@@ -565,9 +597,7 @@ class CodeStandardsTab(QWidget):
         if result:
             self.display_analysis_results(result)
         else:
-            QMessageBox.warning(
-                self, "Analysis Failed", "File analysis failed or was cancelled."
-            )
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Analysis Failed", "File analysis failed or was cancelled."))
 
     @pyqtSlot(object)
     def on_directory_analysis_finished(self, results: Optional[List[Dict[str, Any]]]):
@@ -576,9 +606,7 @@ class CodeStandardsTab(QWidget):
         if results:
             self.display_directory_results(results)
         else:
-            QMessageBox.warning(
-                self, "Analysis Failed", "Directory analysis failed or was cancelled."
-            )
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Analysis Failed", "Directory analysis failed or was cancelled."))
 
     def display_analysis_results(self, result: Dict[str, Any]):
         """Display analysis results for a single file."""
@@ -619,7 +647,7 @@ class CodeStandardsTab(QWidget):
     def handle_error(self, error: str):
         """Handle worker errors."""
         self.progress_bar.setVisible(False)
-        QMessageBox.critical(self, "Error", f"An error occurred: {error}")
+        QTimer.singleShot(0, lambda: QMessageBox.critical(self, "Error", f"An error occurred: {error}"))
 
     @pyqtSlot(object)
     def _on_standards_loaded(self, standards: Optional[List[Dict[str, Any]]]):
@@ -633,7 +661,7 @@ class CodeStandardsTab(QWidget):
         if standards:
             self.load_standards(standards)
         else:
-            QMessageBox.warning(self, "Error", "Failed to load coding standards.")
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Error", "Failed to load coding standards."))
 
     @pyqtSlot(object)
     def _on_analysis_complete(self, analysis_results: Optional[Dict[str, Any]]):
@@ -647,6 +675,4 @@ class CodeStandardsTab(QWidget):
         if analysis_results:
             self.display_analysis_results(analysis_results)
         else:
-            QMessageBox.warning(
-                self, "Analysis Failed", "Code analysis returned no results."
-            )
+            QTimer.singleShot(0, lambda: QMessageBox.warning(self, "Analysis Failed", "Code analysis returned no results."))
