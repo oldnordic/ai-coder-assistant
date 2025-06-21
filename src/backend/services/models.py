@@ -56,12 +56,14 @@ class ModelConfig:
 
     name: str
     provider: ProviderType
-    model_type: ModelType
+    model_type: ModelType = ModelType.CHAT
     context_length: int = 4096
+    max_tokens: int = 4096
     cost_per_1k_tokens: float = 0.0
     capabilities: List[str] = field(default_factory=list)
+    supported_features: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+    is_default: bool = False
     # New fields for autonomous learning
     is_autonomous_learning_enabled: bool = False
     learning_priority: int = 0  # Higher priority models are used for learning
