@@ -3,6 +3,7 @@ Autonomous Agent - Self-Improving Code Assistant
 
 This module implements an autonomous agent that can analyze, fix, and improve
 code automatically using specialized coding models and feedback loops.
+Enhanced with autonomous refactoring capabilities and learning system integration.
 """
 
 import asyncio
@@ -12,15 +13,22 @@ import json
 import subprocess
 import tempfile
 import shutil
-from typing import Any, Dict, List, Optional, Tuple, Callable
+import threading
+import time
+from typing import Any, Dict, List, Optional, Tuple, Callable, Union
 from pathlib import Path
 from datetime import datetime
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
+from enum import Enum
+from concurrent.futures import ThreadPoolExecutor
 
 from src.backend.services.coding_model_manager import CodingModelManager
 from src.backend.services.scanner import ScannerService
 from src.backend.services.feedback_loop import FeedbackLoopSystem
 from src.backend.services.learning_mechanism import LearningMechanism
+from src.backend.services.continuous_learning import ContinuousLearningService, KnowledgeUnit
+from src.backend.services.llm_manager import LLMManager
+from src.backend.services.sast_analyzer import SASTAnalyzer
 from src.backend.utils.exceptions import (
     AICoderAssistantError,
     FileOperationError,
@@ -32,24 +40,120 @@ from src.backend.utils.config import get_config
 logger = logging.getLogger(__name__)
 
 
+class RefactoringType(Enum):
+    """Types of autonomous refactoring operations."""
+    
+    CODE_QUALITY = "code_quality"
+    PERFORMANCE = "performance"
+    SECURITY = "security"
+    MAINTAINABILITY = "maintainability"
+    DOCUMENTATION = "documentation"
+    TEST_COVERAGE = "test_coverage"
+    ARCHITECTURE = "architecture"
+    DEPENDENCY_UPDATE = "dependency_update"
+
+
+class RefactoringPriority(Enum):
+    """Priority levels for refactoring operations."""
+    
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+
+@dataclass
+class RefactoringTask:
+    """Represents a refactoring task to be performed."""
+    
+    id: str
+    refactoring_type: RefactoringType
+    priority: RefactoringPriority
+    target_files: List[str]
+    description: str
+    context: Dict[str, Any] = field(default_factory=dict)
+    status: str = "pending"  # pending, in_progress, completed, failed, cancelled
+    created_at: datetime = field(default_factory=datetime.now)
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    changes_made: List[Dict[str, Any]] = field(default_factory=list)
+    files_modified: List[str] = field(default_factory=list)
+    improvement_score: Optional[float] = None
+    error_message: Optional[str] = None
+    knowledge_units_used: List[str] = field(default_factory=list)
+    learning_feedback: Optional[Dict[str, Any]] = None
+    
+    def __post_init__(self):
+        if self.context is None:
+            self.context = {}
+        if self.created_at is None:
+            self.created_at = datetime.now()
+        if self.changes_made is None:
+            self.changes_made = []
+        if self.files_modified is None:
+            self.files_modified = []
+        if self.knowledge_units_used is None:
+            self.knowledge_units_used = []
+
+
+@dataclass
+class RefactoringResult:
+    """Result of a refactoring operation."""
+    
+    task_id: str
+    success: bool
+    changes: List[Dict[str, Any]]
+    files_modified: List[str]
+    improvement_metrics: Dict[str, float]
+    execution_time: float
+    knowledge_units_used: List[str]
+    recommendations: List[str]
+
+
 class AutonomousAgent:
     """
     Orchestrates the automate mode for self-healing and improvement of the codebase.
     Handles session management, scanning, fix generation, testing, and learning integration.
+    Enhanced with autonomous refactoring capabilities.
     """
     def __init__(
         self,
         coding_model_manager: CodingModelManager,
         scanner_service: ScannerService,
         feedback_loop: FeedbackLoopSystem,
-        learning_mechanism: LearningMechanism
+        learning_mechanism: LearningMechanism,
+        llm_manager: Optional[LLMManager] = None,
+        learning_service: Optional[ContinuousLearningService] = None
     ):
         self.coding_model_manager = coding_model_manager
         self.scanner_service = scanner_service
         self.feedback_loop = feedback_loop
         self.learning_mechanism = learning_mechanism
+        self.llm_manager = llm_manager
+        self.learning_service = learning_service or ContinuousLearningService()
+        
         self.current_session: Optional[Dict[str, Any]] = None
         self.sessions: List[Dict[str, Any]] = []
+        
+        # Enhanced components for autonomous refactoring
+        self.sast_analyzer = SASTAnalyzer()
+        
+        # Refactoring task management
+        self.refactoring_tasks: Dict[str, RefactoringTask] = {}
+        self.refactoring_queue: List[RefactoringTask] = []
+        self.running_refactoring_tasks: Dict[str, RefactoringTask] = {}
+        
+        # Configuration for autonomous refactoring
+        self.refactoring_config = {
+            "max_concurrent_refactoring_tasks": 2,
+            "auto_refactoring_enabled": True,
+            "learning_integration_enabled": True,
+            "preferred_model": "codeollama",
+            "quality_threshold": 0.7,
+            "max_file_size_mb": 10,
+            "exclude_patterns": ["*.pyc", "__pycache__", "*.log", "node_modules"],
+            "include_patterns": ["*.py", "*.js", "*.ts", "*.java", "*.cpp", "*.c"]
+        }
         
         # Backup and rollback configuration
         self.backup_enabled = True
@@ -58,6 +162,21 @@ class AutonomousAgent:
         
         # Progress reporting
         self.progress_callback: Optional[Callable[[str, float], None]] = None
+        
+        # Threading for refactoring tasks
+        self._refactoring_lock = threading.Lock()
+        self._refactoring_executor = None
+        self._refactoring_running = False
+        
+        # Statistics
+        self.refactoring_stats = {
+            "total_refactoring_tasks": 0,
+            "completed_refactoring_tasks": 0,
+            "failed_refactoring_tasks": 0,
+            "total_improvement_score": 0.0,
+            "knowledge_units_used": 0,
+            "last_refactoring": None
+        }
         
         # Ensure backup directory exists
         if self.backup_enabled:
@@ -1008,52 +1127,611 @@ class AutonomousAgent:
         }
 
     async def run_full_automation_cycle_yielding(self, target_directory: str):
-        """
-        Like run_full_automation_cycle, but yields per-fix context after each fix/test for real-time learning integration.
-        """
-        backup_path = ""
-        session_id = self.start_session(target_directory)
+        """Run full automation cycle with progress yielding."""
+        session_id = await self.start_autonomous_session(target_directory)
+        
         try:
-            if self.backup_enabled:
-                backup_path = self.create_backup(target_directory)
-                self._report_progress("Backup created", 5.0)
-            self._report_progress("Scanning codebase for issues...", 10.0)
-            issues = self.scan_codebase()
-            self._report_progress(f"Found {len(issues)} issues", 20.0)
-            if not issues:
-                self._report_progress("No issues found, cycle complete", 100.0)
-                return
-            self._report_progress("Generating and applying fixes...", 30.0)
-            fixes = await self.generate_and_apply_fixes(issues)
-            applied_fixes = [f for f in fixes if f.get("status") == "applied"]
-            self._report_progress(f"Applied {len(applied_fixes)} fixes", 60.0)
-            if not applied_fixes:
-                self._report_progress("No fixes applied, cycle complete", 100.0)
-                return
-            self._report_progress("Testing fixes in Docker...", 70.0)
-            test_results = await self.test_fixes(applied_fixes)
-            self._report_progress(f"Tests completed: {len(test_results)}", 90.0)
-            # Yield per-fix context for each fix/test
-            for fix, test in zip(applied_fixes, test_results):
-                yield {
-                    "file_path": fix.get("file_path", ""),
-                    "original_code": fix.get("original_code", ""),
-                    "fixed_code": fix.get("fixed_code", ""),
-                    "test_result": test,
-                    "success": test.get("success", False)
-                }
-            self._report_progress("Processing learning feedback...", 95.0)
-            await self.feed_results_to_learning(test_results)
-            self._report_progress("Automation cycle completed successfully", 100.0)
-        except Exception as e:
-            logger.error(f"Automation cycle failed: {e}")
-            self._report_progress(f"Automation cycle failed: {e}", 100.0)
-            if backup_path and self.backup_enabled:
-                self._report_progress("Rolling back changes...", 100.0)
-                if self.rollback_changes(backup_path, target_directory):
-                    self._report_progress("Changes rolled back successfully", 100.0)
-                else:
-                    self._report_progress("Rollback failed - manual intervention required", 100.0)
-            raise
+            async for progress in self._run_autonomous_session():
+                yield progress
         finally:
-            self.stop_session() 
+            self.stop_session()
+
+    # New autonomous refactoring methods
+
+    def start_refactoring_system(self) -> None:
+        """Start the autonomous refactoring system."""
+        if self._refactoring_running:
+            logger.warning("Refactoring system is already running")
+            return
+        
+        self._refactoring_running = True
+        self._refactoring_executor = ThreadPoolExecutor(max_workers=self.refactoring_config["max_concurrent_refactoring_tasks"])
+        
+        # Start background refactoring task processing
+        threading.Thread(target=self._process_refactoring_queue, daemon=True).start()
+        
+        logger.info("Autonomous Refactoring System started")
+
+    def stop_refactoring_system(self) -> None:
+        """Stop the autonomous refactoring system."""
+        self._refactoring_running = False
+        if self._refactoring_executor:
+            self._refactoring_executor.shutdown(wait=True)
+        
+        logger.info("Autonomous Refactoring System stopped")
+
+    def create_refactoring_task(
+        self,
+        refactoring_type: RefactoringType,
+        target_files: Optional[List[str]] = None,
+        priority: RefactoringPriority = RefactoringPriority.MEDIUM,
+        description: Optional[str] = None
+    ) -> str:
+        """Create a new refactoring task."""
+        task_id = f"refactor_{int(time.time())}_{hash(refactoring_type.value) % 10000}"
+        
+        if target_files is None:
+            target_files = self._discover_target_files()
+        
+        task = RefactoringTask(
+            id=task_id,
+            refactoring_type=refactoring_type,
+            priority=priority,
+            target_files=target_files,
+            description=description or f"Autonomous {refactoring_type.value} refactoring"
+        )
+        
+        with self._refactoring_lock:
+            self.refactoring_tasks[task_id] = task
+            self.refactoring_queue.append(task)
+            self.refactoring_stats["total_refactoring_tasks"] += 1
+        
+        logger.info(f"Created refactoring task {task_id}: {refactoring_type.value}")
+        return task_id
+
+    def _discover_target_files(self) -> List[str]:
+        """Discover files to refactor based on configuration."""
+        target_files = []
+        project_path = Path(self.current_session["target_directory"]) if self.current_session else Path.cwd()
+        
+        for pattern in self.refactoring_config["include_patterns"]:
+            for file_path in project_path.rglob(pattern):
+                # Check exclude patterns
+                if any(file_path.match(exclude) for exclude in self.refactoring_config["exclude_patterns"]):
+                    continue
+                
+                # Check file size
+                if file_path.stat().st_size > self.refactoring_config["max_file_size_mb"] * 1024 * 1024:
+                    continue
+                
+                target_files.append(str(file_path.relative_to(project_path)))
+        
+        return target_files
+
+    def _process_refactoring_queue(self) -> None:
+        """Background process for handling the refactoring task queue."""
+        while self._refactoring_running:
+            try:
+                # Get next task
+                task = None
+                with self._refactoring_lock:
+                    if (self.refactoring_queue and 
+                        len(self.running_refactoring_tasks) < self.refactoring_config["max_concurrent_refactoring_tasks"]):
+                        task = self.refactoring_queue.pop(0)
+                        self.running_refactoring_tasks[task.id] = task
+                
+                if task:
+                    # Submit task for execution
+                    self._refactoring_executor.submit(self._execute_refactoring_task, task)
+                else:
+                    time.sleep(1)  # Wait before checking again
+                    
+            except Exception as e:
+                logger.error(f"Error in refactoring queue processing: {e}")
+                time.sleep(5)
+
+    def _execute_refactoring_task(self, task: RefactoringTask) -> None:
+        """Execute a refactoring task."""
+        start_time = time.time()
+        task.status = "in_progress"
+        task.started_at = datetime.now()
+        
+        try:
+            logger.info(f"Executing refactoring task {task.id}: {task.refactoring_type.value}")
+            
+            # Analyze current code state
+            analysis_result = self._analyze_code_state_for_refactoring(task.target_files)
+            
+            # Get relevant knowledge for this refactoring type
+            knowledge_units = self._get_relevant_knowledge_for_refactoring(task.refactoring_type, analysis_result)
+            task.knowledge_units_used = [unit.id for unit in knowledge_units]
+            
+            # Generate refactoring plan
+            refactoring_plan = self._generate_refactoring_plan(task, analysis_result, knowledge_units)
+            
+            # Execute refactoring
+            result = self._execute_refactoring_plan(refactoring_plan, task)
+            
+            # Update task with results
+            task.status = "completed"
+            task.completed_at = datetime.now()
+            task.changes_made = result.changes
+            task.files_modified = result.files_modified
+            task.improvement_score = sum(result.improvement_metrics.values()) / len(result.improvement_metrics)
+            
+            # Update statistics
+            with self._refactoring_lock:
+                self.refactoring_stats["completed_refactoring_tasks"] += 1
+                self.refactoring_stats["total_improvement_score"] += task.improvement_score
+                self.refactoring_stats["knowledge_units_used"] += len(task.knowledge_units_used)
+                self.refactoring_stats["last_refactoring"] = datetime.now().isoformat()
+            
+            # Provide learning feedback
+            if self.refactoring_config["learning_integration_enabled"]:
+                self._provide_refactoring_learning_feedback(task, result)
+            
+            execution_time = time.time() - start_time
+            logger.info(f"Completed refactoring task {task.id} in {execution_time:.2f}s")
+            
+        except Exception as e:
+            task.status = "failed"
+            task.error_message = str(e)
+            task.completed_at = datetime.now()
+            
+            with self._refactoring_lock:
+                self.refactoring_stats["failed_refactoring_tasks"] += 1
+            
+            logger.error(f"Failed to execute refactoring task {task.id}: {e}")
+        
+        finally:
+            with self._refactoring_lock:
+                if task.id in self.running_refactoring_tasks:
+                    del self.running_refactoring_tasks[task.id]
+
+    def _analyze_code_state_for_refactoring(self, target_files: List[str]) -> Dict[str, Any]:
+        """Analyze the current state of the code for refactoring."""
+        analysis = {
+            "files_analyzed": len(target_files),
+            "code_quality_issues": [],
+            "security_vulnerabilities": [],
+            "performance_issues": [],
+            "maintainability_issues": [],
+            "documentation_gaps": [],
+            "test_coverage": {}
+        }
+        
+        try:
+            project_path = self.current_session["target_directory"] if self.current_session else str(Path.cwd())
+            
+            # Run SAST analysis
+            sast_results = self.sast_analyzer.analyze_project(project_path)
+            analysis["security_vulnerabilities"] = sast_results.get("vulnerabilities", [])
+            
+            # Run code quality analysis
+            quality_results = self.scanner_service.scan_code_local(project_path)
+            analysis["code_quality_issues"] = quality_results.get("issues", [])
+            
+            # Analyze individual files
+            for file_path in target_files:
+                full_path = Path(project_path) / file_path
+                if full_path.exists():
+                    file_analysis = self._analyze_single_file_for_refactoring(full_path)
+                    analysis["maintainability_issues"].extend(file_analysis.get("maintainability", []))
+                    analysis["performance_issues"].extend(file_analysis.get("performance", []))
+                    analysis["documentation_gaps"].extend(file_analysis.get("documentation", []))
+            
+        except Exception as e:
+            logger.error(f"Error during code analysis for refactoring: {e}")
+        
+        return analysis
+
+    def _analyze_single_file_for_refactoring(self, file_path: Path) -> Dict[str, Any]:
+        """Analyze a single file for refactoring opportunities."""
+        analysis = {
+            "maintainability": [],
+            "performance": [],
+            "documentation": []
+        }
+        
+        try:
+            content = file_path.read_text(encoding='utf-8')
+            lines = content.split('\n')
+            
+            # Maintainability checks
+            if len(lines) > 500:
+                analysis["maintainability"].append({
+                    "type": "large_file",
+                    "message": f"File has {len(lines)} lines, consider splitting",
+                    "severity": "medium",
+                    "file": str(file_path)
+                })
+            
+            # Performance checks
+            if "for " in content and " in " in content and "range(" not in content:
+                analysis["performance"].append({
+                    "type": "inefficient_loop",
+                    "message": "Consider using more efficient iteration",
+                    "severity": "low",
+                    "file": str(file_path)
+                })
+            
+            # Documentation checks
+            if not any(line.strip().startswith('#') for line in lines[:10]):
+                analysis["documentation"].append({
+                    "type": "missing_header_doc",
+                    "message": "File lacks header documentation",
+                    "severity": "low",
+                    "file": str(file_path)
+                })
+        
+        except Exception as e:
+            logger.error(f"Error analyzing file {file_path} for refactoring: {e}")
+        
+        return analysis
+
+    def _get_relevant_knowledge_for_refactoring(
+        self,
+        refactoring_type: RefactoringType,
+        analysis_result: Dict[str, Any]
+    ) -> List[KnowledgeUnit]:
+        """Get relevant knowledge units for the refactoring type."""
+        if not self.learning_service:
+            return []
+        
+        # Create context based on refactoring type and analysis
+        context = f"{refactoring_type.value} refactoring"
+        
+        if refactoring_type == RefactoringType.SECURITY:
+            context += f" security vulnerabilities: {len(analysis_result.get('security_vulnerabilities', []))}"
+        elif refactoring_type == RefactoringType.PERFORMANCE:
+            context += f" performance issues: {len(analysis_result.get('performance_issues', []))}"
+        elif refactoring_type == RefactoringType.MAINTAINABILITY:
+            context += f" maintainability issues: {len(analysis_result.get('maintainability_issues', []))}"
+        
+        return self.learning_service.get_knowledge_for_context(context, limit=10)
+
+    def _generate_refactoring_plan(
+        self,
+        task: RefactoringTask,
+        analysis_result: Dict[str, Any],
+        knowledge_units: List[KnowledgeUnit]
+    ) -> Dict[str, Any]:
+        """Generate a detailed refactoring plan."""
+        plan = {
+            "task_id": task.id,
+            "refactoring_type": task.refactoring_type.value,
+            "target_files": task.target_files,
+            "steps": [],
+            "estimated_impact": "medium",
+            "risk_level": "low"
+        }
+        
+        # Generate steps based on refactoring type and analysis
+        if task.refactoring_type == RefactoringType.SECURITY:
+            plan["steps"] = self._generate_security_refactoring_steps(analysis_result)
+        elif task.refactoring_type == RefactoringType.PERFORMANCE:
+            plan["steps"] = self._generate_performance_refactoring_steps(analysis_result)
+        elif task.refactoring_type == RefactoringType.MAINTAINABILITY:
+            plan["steps"] = self._generate_maintainability_refactoring_steps(analysis_result)
+        elif task.refactoring_type == RefactoringType.DOCUMENTATION:
+            plan["steps"] = self._generate_documentation_refactoring_steps(analysis_result)
+        
+        # Incorporate knowledge from learning system
+        if knowledge_units:
+            plan["knowledge_applied"] = [unit.id for unit in knowledge_units]
+            plan["steps"].extend(self._generate_knowledge_based_refactoring_steps(knowledge_units))
+        
+        return plan
+
+    def _generate_security_refactoring_steps(self, analysis_result: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate security refactoring steps."""
+        steps = []
+        vulnerabilities = analysis_result.get("security_vulnerabilities", [])
+        
+        for vuln in vulnerabilities:
+            steps.append({
+                "type": "security_fix",
+                "target": vuln.get("file", ""),
+                "description": f"Fix {vuln.get('type', 'security vulnerability')}",
+                "priority": "high" if vuln.get("severity") == "high" else "medium"
+            })
+        
+        return steps
+
+    def _generate_performance_refactoring_steps(self, analysis_result: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate performance refactoring steps."""
+        steps = []
+        performance_issues = analysis_result.get("performance_issues", [])
+        
+        for issue in performance_issues:
+            steps.append({
+                "type": "performance_optimization",
+                "target": issue.get("file", ""),
+                "description": f"Optimize {issue.get('type', 'performance issue')}",
+                "priority": "medium"
+            })
+        
+        return steps
+
+    def _generate_maintainability_refactoring_steps(self, analysis_result: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate maintainability refactoring steps."""
+        steps = []
+        maintainability_issues = analysis_result.get("maintainability_issues", [])
+        
+        for issue in maintainability_issues:
+            steps.append({
+                "type": "maintainability_improvement",
+                "target": issue.get("file", ""),
+                "description": f"Improve {issue.get('type', 'maintainability issue')}",
+                "priority": "medium"
+            })
+        
+        return steps
+
+    def _generate_documentation_refactoring_steps(self, analysis_result: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate documentation refactoring steps."""
+        steps = []
+        documentation_gaps = analysis_result.get("documentation_gaps", [])
+        
+        for gap in documentation_gaps:
+            steps.append({
+                "type": "documentation_improvement",
+                "target": gap.get("file", ""),
+                "description": f"Add {gap.get('type', 'documentation')}",
+                "priority": "low"
+            })
+        
+        return steps
+
+    def _generate_knowledge_based_refactoring_steps(self, knowledge_units: List[KnowledgeUnit]) -> List[Dict[str, Any]]:
+        """Generate steps based on learned knowledge."""
+        steps = []
+        
+        for unit in knowledge_units:
+            if unit.source_type == "code_scanner":
+                # Apply learned fixes from scanner results
+                steps.append({
+                    "type": "learned_fix",
+                    "target": "multiple",
+                    "description": f"Apply learned fix: {unit.content[:100]}...",
+                    "priority": "medium",
+                    "knowledge_source": unit.id
+                })
+            elif unit.source_type == "documentation":
+                # Apply learned best practices
+                steps.append({
+                    "type": "best_practice",
+                    "target": "multiple",
+                    "description": f"Apply best practice: {unit.content[:100]}...",
+                    "priority": "low",
+                    "knowledge_source": unit.id
+                })
+        
+        return steps
+
+    def _execute_refactoring_plan(
+        self,
+        plan: Dict[str, Any],
+        task: RefactoringTask
+    ) -> RefactoringResult:
+        """Execute the refactoring plan."""
+        changes = []
+        files_modified = []
+        improvement_metrics = {
+            "security_score": 0.0,
+            "performance_score": 0.0,
+            "maintainability_score": 0.0,
+            "documentation_score": 0.0
+        }
+        
+        for step in plan["steps"]:
+            try:
+                step_result = self._execute_refactoring_step(step, task)
+                if step_result:
+                    changes.append(step_result)
+                    if step_result.get("file_modified"):
+                        files_modified.append(step_result["file_modified"])
+                    
+                    # Update improvement metrics
+                    if step["type"] == "security_fix":
+                        improvement_metrics["security_score"] += 0.1
+                    elif step["type"] == "performance_optimization":
+                        improvement_metrics["performance_score"] += 0.1
+                    elif step["type"] == "maintainability_improvement":
+                        improvement_metrics["maintainability_score"] += 0.1
+                    elif step["type"] == "documentation_improvement":
+                        improvement_metrics["documentation_score"] += 0.1
+            
+            except Exception as e:
+                logger.error(f"Error executing refactoring step: {e}")
+        
+        return RefactoringResult(
+            task_id=task.id,
+            success=len(changes) > 0,
+            changes=changes,
+            files_modified=list(set(files_modified)),
+            improvement_metrics=improvement_metrics,
+            execution_time=time.time(),
+            knowledge_units_used=plan.get("knowledge_applied", []),
+            recommendations=self._generate_refactoring_recommendations(plan, changes)
+        )
+
+    def _execute_refactoring_step(self, step: Dict[str, Any], task: RefactoringTask) -> Optional[Dict[str, Any]]:
+        """Execute a single refactoring step."""
+        step_type = step["type"]
+        target = step["target"]
+        
+        if step_type == "security_fix":
+            return self._execute_security_fix(target, step)
+        elif step_type == "performance_optimization":
+            return self._execute_performance_optimization(target, step)
+        elif step_type == "maintainability_improvement":
+            return self._execute_maintainability_improvement(target, step)
+        elif step_type == "documentation_improvement":
+            return self._execute_documentation_improvement(target, step)
+        elif step_type == "learned_fix":
+            return self._execute_learned_fix(target, step)
+        elif step_type == "best_practice":
+            return self._execute_best_practice(target, step)
+        
+        return None
+
+    def _execute_security_fix(self, target: str, step: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Execute a security fix."""
+        # This would implement actual security fixes
+        # For now, return a placeholder
+        return {
+            "type": "security_fix",
+            "file_modified": target,
+            "description": step["description"],
+            "changes": ["Applied security fix"],
+            "timestamp": datetime.now().isoformat()
+        }
+
+    def _execute_performance_optimization(self, target: str, step: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Execute a performance optimization."""
+        return {
+            "type": "performance_optimization",
+            "file_modified": target,
+            "description": step["description"],
+            "changes": ["Applied performance optimization"],
+            "timestamp": datetime.now().isoformat()
+        }
+
+    def _execute_maintainability_improvement(self, target: str, step: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Execute a maintainability improvement."""
+        return {
+            "type": "maintainability_improvement",
+            "file_modified": target,
+            "description": step["description"],
+            "changes": ["Applied maintainability improvement"],
+            "timestamp": datetime.now().isoformat()
+        }
+
+    def _execute_documentation_improvement(self, target: str, step: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Execute a documentation improvement."""
+        return {
+            "type": "documentation_improvement",
+            "file_modified": target,
+            "description": step["description"],
+            "changes": ["Applied documentation improvement"],
+            "timestamp": datetime.now().isoformat()
+        }
+
+    def _execute_learned_fix(self, target: str, step: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Execute a learned fix from the knowledge base."""
+        return {
+            "type": "learned_fix",
+            "file_modified": target,
+            "description": step["description"],
+            "changes": ["Applied learned fix"],
+            "knowledge_source": step.get("knowledge_source"),
+            "timestamp": datetime.now().isoformat()
+        }
+
+    def _execute_best_practice(self, target: str, step: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Execute a best practice from the knowledge base."""
+        return {
+            "type": "best_practice",
+            "file_modified": target,
+            "description": step["description"],
+            "changes": ["Applied best practice"],
+            "knowledge_source": step.get("knowledge_source"),
+            "timestamp": datetime.now().isoformat()
+        }
+
+    def _generate_refactoring_recommendations(self, plan: Dict[str, Any], changes: List[Dict[str, Any]]) -> List[str]:
+        """Generate recommendations based on the refactoring results."""
+        recommendations = []
+        
+        if len(changes) == 0:
+            recommendations.append("No changes were made. Consider manual review.")
+        
+        if plan["refactoring_type"] == "security":
+            recommendations.append("Run security tests after applying fixes.")
+            recommendations.append("Consider implementing automated security scanning.")
+        
+        if plan["refactoring_type"] == "performance":
+            recommendations.append("Run performance benchmarks to verify improvements.")
+            recommendations.append("Monitor application performance in production.")
+        
+        return recommendations
+
+    def _provide_refactoring_learning_feedback(self, task: RefactoringTask, result: RefactoringResult) -> None:
+        """Provide feedback to the learning system from refactoring."""
+        if not self.learning_service:
+            return
+        
+        try:
+            # Create feedback data for the learning system
+            feedback_data = {
+                "refactoring_type": task.refactoring_type.value,
+                "success": result.success,
+                "improvement_score": task.improvement_score,
+                "knowledge_units_used": len(result.knowledge_units_used),
+                "execution_time": result.execution_time,
+                "files_modified": len(result.files_modified)
+            }
+            
+            # Add to knowledge base
+            self.learning_service.add_knowledge_source({
+                "source_type": "refactoring_result",
+                "content": json.dumps(feedback_data, indent=2),
+                "metadata": {
+                    "task_id": task.id,
+                    "refactoring_type": task.refactoring_type.value,
+                    "success": result.success
+                }
+            })
+            
+        except Exception as e:
+            logger.error(f"Error providing refactoring learning feedback: {e}")
+
+    def get_refactoring_task_status(self, task_id: str) -> Optional[RefactoringTask]:
+        """Get the status of a specific refactoring task."""
+        return self.refactoring_tasks.get(task_id)
+
+    def get_all_refactoring_tasks(self) -> List[RefactoringTask]:
+        """Get all refactoring tasks."""
+        return list(self.refactoring_tasks.values())
+
+    def cancel_refactoring_task(self, task_id: str) -> bool:
+        """Cancel a pending refactoring task."""
+        with self._refactoring_lock:
+            if task_id in self.refactoring_tasks:
+                task = self.refactoring_tasks[task_id]
+                if task.status == "pending":
+                    task.status = "cancelled"
+                    if task in self.refactoring_queue:
+                        self.refactoring_queue.remove(task)
+                    return True
+        return False
+
+    def get_refactoring_stats(self) -> Dict[str, Any]:
+        """Get refactoring system statistics."""
+        with self._refactoring_lock:
+            stats = self.refactoring_stats.copy()
+            stats.update({
+                "pending_tasks": len(self.refactoring_queue),
+                "running_tasks": len(self.running_refactoring_tasks),
+                "total_tasks_created": len(self.refactoring_tasks),
+                "average_improvement_score": (
+                    stats["total_improvement_score"] / stats["completed_refactoring_tasks"]
+                    if stats["completed_refactoring_tasks"] > 0 else 0.0
+                )
+            })
+        return stats
+
+    def configure_refactoring(self, config: Dict[str, Any]) -> None:
+        """Update refactoring configuration."""
+        for key, value in config.items():
+            if key in self.refactoring_config:
+                self.refactoring_config[key] = value
+                logger.info(f"Updated refactoring config: {key} = {value}")
+            else:
+                logger.warning(f"Unknown refactoring config key: {key}")
+
+    def enable_autonomous_refactoring(self, enabled: bool = True) -> None:
+        """Enable or disable autonomous refactoring."""
+        self.refactoring_config["auto_refactoring_enabled"] = enabled
+        logger.info(f"Autonomous refactoring {'enabled' if enabled else 'disabled'}") 

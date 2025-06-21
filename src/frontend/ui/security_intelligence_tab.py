@@ -255,9 +255,9 @@ class SecurityIntelligenceTab(QWidget):
         
         # Vulnerabilities table
         self.vulnerabilities_table = QTableWidget()
-        self.vulnerabilities_table.setColumnCount(5)
+        self.vulnerabilities_table.setColumnCount(6)  # Added column for Automate Fix button
         self.vulnerabilities_table.setHorizontalHeaderLabels([
-            "CVE ID", "Description", "Severity", "Affected Components", "Status"
+            "CVE ID", "Description", "Severity", "Affected Components", "Status", "Automate Fix"
         ])
         self.vulnerabilities_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.vulnerabilities_table.itemSelectionChanged.connect(self.on_vulnerability_selected)
@@ -558,6 +558,27 @@ class SecurityIntelligenceTab(QWidget):
             
             self.vulnerabilities_table.setItem(row, 3, QTableWidgetItem(vuln["affected_components"]))
             self.vulnerabilities_table.setItem(row, 4, QTableWidgetItem(vuln["status"]))
+            
+            # Add Automate Fix button
+            automate_button = QPushButton("🚀 Automate Fix")
+            automate_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 5px;
+                    border-radius: 3px;
+                    font-size: 10px;
+                }
+                QPushButton:hover {
+                    background-color: #45a049;
+                }
+                QPushButton:pressed {
+                    background-color: #3d8b40;
+                }
+            """)
+            automate_button.clicked.connect(lambda checked, r=row, v=vuln: self.on_automate_fix_clicked(r, v))
+            self.vulnerabilities_table.setCellWidget(row, 5, automate_button)
 
     def populate_breaches_table(self, breaches: List[Dict[str, Any]]):
         """Populate the breaches table with data."""
@@ -1051,4 +1072,126 @@ class SecurityIntelligenceTab(QWidget):
                 QMessageBox.warning(self, "Status Unavailable", "Cleanup status functionality is not available.")
                 
         except Exception as e:
-            QMessageBox.critical(self, "Status Error", f"Error checking cleanup status: {e}") 
+            QMessageBox.critical(self, "Status Error", f"Error checking cleanup status: {e}")
+
+    def on_automate_fix_clicked(self, row: int, vuln: Dict[str, Any]) -> None:
+        """Handle automate fix button click for a specific vulnerability."""
+        try:
+            # Create issue details for targeted fix
+            issue_details = {
+                "type": "security_vulnerability",
+                "cve_id": vuln["cve_id"],
+                "description": vuln["description"],
+                "severity": vuln["severity"],
+                "affected_components": vuln["affected_components"],
+                "status": vuln["status"],
+                "file_path": None,  # Will be determined during analysis
+                "line_number": None,  # Will be determined during analysis
+                "fix_goal": f"Fix {vuln['cve_id']}: {vuln['description']}"
+            }
+            
+            # Show confirmation dialog
+            reply = QMessageBox.question(
+                self,
+                "Confirm Targeted Fix",
+                f"Start automated fix for {vuln['cve_id']}?\n\n"
+                f"Description: {vuln['description']}\n"
+                f"Severity: {vuln['severity']}\n\n"
+                "This will analyze the codebase and attempt to fix this specific vulnerability.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                # Start targeted automation
+                self.start_targeted_automation(issue_details)
+                
+        except Exception as e:
+            QMessageBox.critical(self, "Automation Error", f"Error starting targeted fix: {e}")
+    
+    def start_targeted_automation(self, issue_details: Dict[str, Any]) -> None:
+        """Start targeted automation for a specific issue."""
+        try:
+            # Update status
+            self.status_label.setText(f"Targeted automation in progress for {issue_details['cve_id']}...")
+            self.status_label.setStyleSheet("font-weight: bold; color: #FF9800;")
+            
+            # Update results text
+            self.results_text.setPlainText(
+                f"Starting targeted fix for {issue_details['cve_id']}...\n\n"
+                f"• Issue: {issue_details['description']}\n"
+                f"• Severity: {issue_details['severity']}\n"
+                f"• Goal: {issue_details['fix_goal']}\n\n"
+                "• Analyzing codebase for affected components..."
+            )
+            
+            # Get remediation controller and start targeted fix
+            if hasattr(self.backend_controller, 'get_remediation_controller'):
+                remediation_controller = self.backend_controller.get_remediation_controller()
+                
+                # Create worker for targeted fix
+                self.remediation_worker = RemediationWorker(
+                    remediation_controller=remediation_controller,
+                    workspace_path=self.workspace_path.text() or "",
+                    mode="targeted"
+                )
+                self.remediation_worker.set_issue_details(issue_details)
+                self.remediation_worker.progress_updated.connect(self.update_targeted_progress)
+                self.remediation_worker.completed.connect(self.complete_targeted_automation)
+                self.remediation_worker.error_occurred.connect(self.handle_automation_error)
+                
+                # Start the worker
+                self.remediation_worker.start()
+                
+                # Disable start button, enable stop button
+                self.start_button.setEnabled(False)
+                self.stop_button.setEnabled(True)
+                
+            else:
+                QMessageBox.warning(self, "Automation Unavailable", 
+                                  "Remediation controller is not available in the current backend configuration.")
+                
+        except Exception as e:
+            QMessageBox.critical(self, "Automation Error", f"Error starting targeted automation: {e}")
+    
+    def update_targeted_progress(self, message: str, progress: float) -> None:
+        """Update progress for targeted automation."""
+        self.progress_bar.setValue(int(progress))
+        self.results_text.append(f"• {message}")
+    
+    def complete_targeted_automation(self, result: Dict[str, Any]) -> None:
+        """Complete targeted automation."""
+        self.start_button.setEnabled(True)
+        self.stop_button.setEnabled(False)
+        self.progress_bar.setVisible(False)
+        
+        if result.get("status") == "success":
+            self.status_label.setText("Targeted automation completed successfully")
+            self.status_label.setStyleSheet("font-weight: bold; color: #4CAF50;")
+            
+            self.results_text.append(f"\n✅ Targeted fix completed successfully!")
+            self.results_text.append(f"• Files modified: {result.get('files_modified', 0)}")
+            self.results_text.append(f"• Issues resolved: {result.get('issues_resolved', 0)}")
+            self.results_text.append(f"• Tests passed: {result.get('tests_passed', 0)}")
+            
+            if result.get("learning_applied"):
+                self.results_text.append("• Learning applied from previous fixes")
+                
+        else:
+            self.status_label.setText("Targeted automation failed")
+            self.status_label.setStyleSheet("font-weight: bold; color: #f44336;")
+            
+            self.results_text.append(f"\n❌ Targeted fix failed: {result.get('message', 'Unknown error')}")
+    
+    def handle_automation_error(self, error_message: str) -> None:
+        """Handle automation error."""
+        self.start_button.setEnabled(True)
+        self.stop_button.setEnabled(False)
+        self.progress_bar.setVisible(False)
+        
+        self.status_label.setText("Automation error occurred")
+        self.status_label.setStyleSheet("font-weight: bold; color: #f44336;")
+        
+        self.results_text.append(f"\n❌ Error: {error_message}")
+        
+        QMessageBox.critical(self, "Automation Error", f"An error occurred during automation:\n{error_message}") 

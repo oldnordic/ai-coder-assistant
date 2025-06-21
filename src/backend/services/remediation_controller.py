@@ -8,6 +8,7 @@ workflow, coordinating the autonomous agent, UI state, and user interactions.
 import asyncio
 import logging
 import os
+import time
 from typing import Any, Dict, List, Optional, Callable
 from pathlib import Path
 from datetime import datetime
@@ -386,177 +387,525 @@ process_id: {os.getpid()}
                     logger.error(f"Error in completion callback: {e}")
     
     async def start_targeted_fix(self, workspace_path: str, issue_details: Dict[str, Any]) -> RemediationResult:
-        """
-        Start a targeted fix for a specific issue.
-        
-        Args:
-            workspace_path: Path to the workspace
-            issue_details: Details of the specific issue to fix
-            
-        Returns:
-            RemediationResult with the outcome
-        """
-        start_time = datetime.now()
-        
+        """Start a targeted fix for a specific issue with iterative self-correction."""
         try:
-            # Check if workspace is locked
-            if self.is_workspace_locked(workspace_path):
-                raise RemediationError("Workspace is already locked")
-            
-            # Update state
-            self._update_state(
-                is_active=True,
-                start_time=start_time,
-                current_issue=issue_details,
-                error_message=None
-            )
-            
             # Lock workspace
             if not self.lock_workspace(workspace_path):
                 raise RemediationError("Failed to lock workspace")
             
-            self._report_progress(f"Starting targeted fix for {issue_details.get('type', 'issue')}", 10.0)
-            
-            # Generate fix using the coding model
-            file_path = issue_details.get("file_path", "")
-            original_code = issue_details.get("original_code", "")
-            issue_description = issue_details.get("message", "")
-            
-            if not file_path or not original_code:
-                raise RemediationError("Missing required issue details")
-            
-            # Detect language from file extension
-            language = self._detect_language(file_path)
-            
-            self._report_progress("Generating AI fix", 30.0)
-            
-            # Generate fix
-            fix_result = await self.coding_model_manager.generate_code_fix(
-                original_code=original_code,
-                issue_description=issue_description,
-                language=language
+            self._update_state(
+                is_active=True,
+                current_issue=issue_details,
+                start_time=datetime.now(),
+                error_message=None
             )
             
-            if not fix_result.get("success"):
-                raise RemediationError(f"Failed to generate fix: {fix_result.get('error', 'Unknown error')}")
+            self._report_progress("Starting targeted fix", 0.1)
             
-            fixed_code = fix_result.get("fixed_code", "")
+            # Create remediation goal
+            goal = self._create_remediation_goal(issue_details)
             
-            self._report_progress("Testing fix in Docker", 60.0)
+            # Execute iterative remediation
+            result = await self._execute_iterative_remediation(workspace_path, goal)
             
-            # Test the fix
-            test_result = await self.feedback_loop.test_fix_in_docker(
-                file_path=file_path,
-                original_code=original_code,
-                modified_code=fixed_code,
-                language=language,
-                test_types=["syntax_check", "lint_check"]
-            )
-            
-            # Always submit a learning example, even on failure
-            await self._submit_learning_example(
-                success=test_result.success,
-                original_code=original_code,
-                fixed_code=fixed_code,
-                file_path=file_path,
-                test_result=test_result,
-                applied=test_result.success,
-                score=0.8 if test_result.success else 0.2
-            )
-            
-            if not test_result.success:
-                raise RemediationError(f"Fix test failed: {test_result.test_error}")
-            
-            self._report_progress("Applying fix to workspace", 80.0)
-            
-            # Apply the fix using refactoring service
-            apply_result = self.refactoring_service.apply_code_changes(
-                file_path=os.path.join(workspace_path, file_path),
-                original_code=original_code,
-                new_code=fixed_code
-            )
-            
-            if not apply_result.get("success"):
-                raise RemediationError(f"Failed to apply fix: {apply_result.get('error', 'Unknown error')}")
-            
-            self._report_progress("Processing learning feedback", 90.0)
-            
-            # Calculate results
-            duration = (datetime.now() - start_time).total_seconds()
-            
-            result = RemediationResult(
-                success=True,
-                issues_found=1,
-                fixes_applied=1,
-                tests_passed=1,
-                tests_failed=0,
-                learning_examples_created=0,
-                duration_seconds=duration,
-                details={
-                    "issue_details": issue_details,
-                    "fix_result": fix_result,
-                    "test_result": test_result,
-                    "apply_result": apply_result
-                }
-            )
-            
-            self._report_progress("Targeted fix completed successfully", 100.0)
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"Targeted fix failed: {e}")
-            
-            duration = (datetime.now() - start_time).total_seconds()
-            
-            result = RemediationResult(
-                success=False,
-                issues_found=1,
-                fixes_applied=0,
-                tests_passed=0,
-                tests_failed=1,
-                learning_examples_created=0,
-                duration_seconds=duration,
-                error_message=str(e)
-            )
-            
-            self._update_state(error_message=str(e))
-            
-            return result
-            
-        finally:
             # Unlock workspace
             self.unlock_workspace(workspace_path)
             
             # Update state
             self._update_state(
                 is_active=False,
-                progress_percentage=100.0
+                progress_percentage=100.0,
+                current_step="Completed"
             )
             
-            # Step 5: Generate report and perform cleanup
-            try:
-                # Save the remediation result for potential export
-                self._last_remediation_result = result
-                
-                # Generate and save report
-                report_path = await self.save_remediation_report(result, workspace_path)
-                if report_path:
-                    logger.info(f"Remediation report saved: {report_path}")
-                
-                # Perform comprehensive cleanup
-                await self.perform_cleanup(workspace_path)
-                
-            except Exception as e:
-                logger.error(f"Error in reporting/cleanup phase: {e}")
+            return result
             
-            # Notify completion
-            if self.completion_callback:
-                try:
-                    self.completion_callback(result)
-                except Exception as e:
-                    logger.error(f"Error in completion callback: {e}")
-    
+        except Exception as e:
+            logger.error(f"Error in targeted fix: {e}")
+            self.unlock_workspace(workspace_path)
+            self._update_state(
+                is_active=False,
+                error_message=str(e)
+            )
+            return RemediationResult(
+                success=False,
+                issues_found=0,
+                fixes_applied=0,
+                tests_passed=0,
+                tests_failed=0,
+                learning_examples_created=0,
+                duration_seconds=0.0,
+                error_message=str(e)
+            )
+
+    def _create_remediation_goal(self, issue_details: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a remediation goal from issue details."""
+        return {
+            "id": f"fix_{issue_details.get('type', 'issue')}_{int(time.time())}",
+            "type": issue_details.get("type", "bug_fix"),
+            "description": issue_details.get("fix_goal", issue_details.get("description", "")),
+            "target_file": issue_details.get("file"),
+            "target_line": issue_details.get("line"),
+            "target_function": issue_details.get("function"),
+            "target_class": issue_details.get("class"),
+            "severity": issue_details.get("severity", "medium"),
+            "priority": issue_details.get("priority", "medium"),
+            "context": issue_details.get("context", {}),
+            "constraints": issue_details.get("constraints", []),
+            "requirements": issue_details.get("requirements", [])
+        }
+
+    async def _execute_iterative_remediation(
+        self,
+        workspace_path: str,
+        goal: Dict[str, Any]
+    ) -> RemediationResult:
+        """Execute iterative remediation with self-correction loop."""
+        start_time = time.time()
+        max_iterations = self.config.get("max_iterations", 5)
+        current_iteration = 0
+        fixes_applied = 0
+        tests_passed = 0
+        tests_failed = 0
+        learning_examples = 0
+        
+        try:
+            while current_iteration < max_iterations:
+                current_iteration += 1
+                
+                self._report_progress(
+                    f"Iteration {current_iteration}/{max_iterations} - Analyzing code",
+                    10 + (current_iteration * 15)
+                )
+                
+                # Analyze current state
+                analysis = await self._analyze_current_state(workspace_path, goal)
+                
+                self._report_progress(
+                    f"Iteration {current_iteration}/{max_iterations} - Generating fix",
+                    20 + (current_iteration * 15)
+                )
+                
+                # Generate fix using AI
+                fix_result = await self._generate_ai_fix(goal, analysis, current_iteration)
+                
+                if not fix_result.get("success"):
+                    logger.warning(f"Failed to generate fix in iteration {current_iteration}")
+                    continue
+                
+                self._report_progress(
+                    f"Iteration {current_iteration}/{max_iterations} - Applying changes",
+                    30 + (current_iteration * 15)
+                )
+                
+                # Apply the fix
+                apply_result = await self._apply_code_changes(workspace_path, fix_result["changes"])
+                
+                if not apply_result.get("success"):
+                    logger.warning(f"Failed to apply changes in iteration {current_iteration}")
+                    continue
+                
+                fixes_applied += len(fix_result["changes"])
+                
+                self._report_progress(
+                    f"Iteration {current_iteration}/{max_iterations} - Testing changes",
+                    40 + (current_iteration * 15)
+                )
+                
+                # Test the changes
+                test_result = await self._test_changes_containerized(workspace_path)
+                
+                if test_result.get("success"):
+                    tests_passed += 1
+                    self._report_progress(
+                        f"Iteration {current_iteration}/{max_iterations} - Tests passed!",
+                        50 + (current_iteration * 15)
+                    )
+                    
+                    # Add successful learning example
+                    await self._add_learning_example(
+                        goal=goal,
+                        changes=fix_result["changes"],
+                        test_result=test_result,
+                        success=True
+                    )
+                    learning_examples += 1
+                    
+                    # Success! Exit the loop
+                    break
+                else:
+                    tests_failed += 1
+                    self._report_progress(
+                        f"Iteration {current_iteration}/{max_iterations} - Tests failed, learning from failure",
+                        50 + (current_iteration * 15)
+                    )
+                    
+                    # Add failed learning example
+                    await self._add_learning_example(
+                        goal=goal,
+                        changes=fix_result["changes"],
+                        test_result=test_result,
+                        success=False
+                    )
+                    learning_examples += 1
+                    
+                    # Continue to next iteration
+                    continue
+            
+            duration = time.time() - start_time
+            
+            return RemediationResult(
+                success=tests_passed > 0,
+                issues_found=1,  # We're fixing one specific issue
+                fixes_applied=fixes_applied,
+                tests_passed=tests_passed,
+                tests_failed=tests_failed,
+                learning_examples_created=learning_examples,
+                duration_seconds=duration,
+                details={
+                    "iterations": current_iteration,
+                    "max_iterations": max_iterations,
+                    "goal": goal
+                }
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in iterative remediation: {e}")
+            duration = time.time() - start_time
+            return RemediationResult(
+                success=False,
+                issues_found=1,
+                fixes_applied=fixes_applied,
+                tests_passed=tests_passed,
+                tests_failed=tests_failed,
+                learning_examples_created=learning_examples,
+                duration_seconds=duration,
+                error_message=str(e)
+            )
+
+    async def _analyze_current_state(
+        self,
+        workspace_path: str,
+        goal: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Analyze the current state of the codebase for the given goal."""
+        try:
+            analysis = {
+                "goal": goal,
+                "workspace_path": workspace_path,
+                "files": [],
+                "issues": [],
+                "context": {}
+            }
+            
+            # Get relevant files
+            if goal.get("target_file"):
+                target_path = Path(workspace_path) / goal["target_file"]
+                if target_path.exists():
+                    analysis["files"].append({
+                        "path": str(target_path),
+                        "content": target_path.read_text(encoding='utf-8'),
+                        "lines": target_path.read_text(encoding='utf-8').split('\n')
+                    })
+            
+            # Run scanner analysis
+            scan_result = await self.scanner_service.scan_code_local(workspace_path)
+            analysis["issues"] = scan_result.get("issues", [])
+            
+            # Get relevant knowledge from learning mechanism
+            knowledge = await self.learning_mechanism.get_relevant_knowledge(goal["description"])
+            analysis["context"]["knowledge"] = knowledge
+            
+            return analysis
+            
+        except Exception as e:
+            logger.error(f"Error analyzing current state: {e}")
+            return {"goal": goal, "error": str(e)}
+
+    async def _generate_ai_fix(
+        self,
+        goal: Dict[str, Any],
+        analysis: Dict[str, Any],
+        iteration: int
+    ) -> Dict[str, Any]:
+        """Generate AI-powered fix for the given goal."""
+        try:
+            # Create prompt for AI
+            prompt = self._create_fix_generation_prompt(goal, analysis, iteration)
+            
+            # Get AI response using coding model manager
+            response = await self.coding_model_manager.generate_code_fix(
+                prompt=prompt,
+                context=analysis,
+                iteration=iteration
+            )
+            
+            # Parse the response
+            changes = self._parse_ai_response(response)
+            
+            return {
+                "success": True,
+                "changes": changes,
+                "reasoning": response.get("reasoning", ""),
+                "confidence": response.get("confidence", 0.5)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating AI fix: {e}")
+            return {"success": False, "error": str(e)}
+
+    def _create_fix_generation_prompt(
+        self,
+        goal: Dict[str, Any],
+        analysis: Dict[str, Any],
+        iteration: int
+    ) -> str:
+        """Create a prompt for fix generation."""
+        prompt = f"""You are an expert software developer tasked with fixing code issues.
+
+GOAL: {goal['description']}
+
+CONTEXT:
+- Target file: {goal.get('target_file', 'Not specified')}
+- Target line: {goal.get('target_line', 'Not specified')}
+- Issue type: {goal['type']}
+- Severity: {goal.get('severity', 'medium')}
+- Iteration: {iteration}
+
+REQUIREMENTS:
+{chr(10).join(f"- {req}" for req in goal.get('requirements', []))}
+
+CONSTRAINTS:
+{chr(10).join(f"- {constraint}" for constraint in goal.get('constraints', []))}
+
+CURRENT CODE:
+"""
+        
+        # Add current code if available
+        if analysis.get("files"):
+            for file_info in analysis["files"]:
+                prompt += f"\nFile: {file_info['path']}\n"
+                if goal.get("target_line") and file_info.get("lines"):
+                    # Show context around target line
+                    target_line = goal["target_line"]
+                    start_line = max(0, target_line - 5)
+                    end_line = min(len(file_info["lines"]), target_line + 5)
+                    for i in range(start_line, end_line):
+                        marker = ">>> " if i == target_line - 1 else "    "
+                        prompt += f"{marker}{i+1:4d}: {file_info['lines'][i]}\n"
+        
+        # Add relevant knowledge
+        if analysis.get("context", {}).get("knowledge"):
+            prompt += "\nRELEVANT KNOWLEDGE:\n"
+            for knowledge in analysis["context"]["knowledge"][:3]:  # Top 3 most relevant
+                prompt += f"- {knowledge['content'][:200]}...\n"
+        
+        # Add previous iteration context if available
+        if iteration > 1:
+            prompt += f"\nPREVIOUS ITERATION: This is iteration {iteration}. Previous attempts may have failed tests."
+        
+        prompt += """
+
+INSTRUCTIONS:
+1. Analyze the code and identify the issue
+2. Generate a fix that addresses the goal
+3. Ensure the fix is safe and follows best practices
+4. Provide the changes in a structured format
+
+Generate the fix:"""
+
+        return prompt
+
+    def _parse_ai_response(self, response: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Parse AI response to extract code changes."""
+        try:
+            changes = response.get("changes", [])
+            if isinstance(changes, list):
+                return changes
+            return []
+        except Exception as e:
+            logger.error(f"Error parsing AI response: {e}")
+            return []
+
+    async def _apply_code_changes(
+        self,
+        workspace_path: str,
+        changes: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """Apply code changes to the filesystem."""
+        try:
+            applied_changes = []
+            
+            for change in changes:
+                file_path = Path(workspace_path) / change.get("file_path", "")
+                
+                if not file_path.exists():
+                    logger.warning(f"File not found: {file_path}")
+                    continue
+                
+                # Read current content
+                content = file_path.read_text(encoding='utf-8')
+                lines = content.split('\n')
+                
+                # Apply change
+                change_type = change.get("change_type", "replace")
+                line_start = change.get("line_start", 1)
+                line_end = change.get("line_end", line_start)
+                new_code = change.get("new_code", "")
+                
+                if change_type == "replace":
+                    # Replace lines
+                    new_lines = lines[:line_start - 1]
+                    new_lines.extend(new_code.split('\n'))
+                    new_lines.extend(lines[line_end:])
+                    lines = new_lines
+                
+                elif change_type == "insert":
+                    # Insert at line
+                    new_lines = lines[:line_start - 1]
+                    new_lines.extend(new_code.split('\n'))
+                    new_lines.extend(lines[line_start - 1:])
+                    lines = new_lines
+                
+                elif change_type == "delete":
+                    # Delete lines
+                    lines = lines[:line_start - 1] + lines[line_end:]
+                
+                # Write back to file
+                new_content = '\n'.join(lines)
+                file_path.write_text(new_content, encoding='utf-8')
+                
+                applied_changes.append({
+                    "file_path": str(file_path),
+                    "change_type": change_type,
+                    "line_start": line_start,
+                    "line_end": line_end,
+                    "applied": True
+                })
+                
+                logger.info(f"Applied change to {file_path}")
+            
+            return {
+                "success": True,
+                "applied_changes": applied_changes
+            }
+            
+        except Exception as e:
+            logger.error(f"Error applying code changes: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def _test_changes_containerized(self, workspace_path: str) -> Dict[str, Any]:
+        """Test the applied changes using containerized testing."""
+        try:
+            # Import docker utils here to avoid circular imports
+            from src.backend.services.docker_utils import DockerUtils
+            docker_utils = DockerUtils()
+            
+            # Build container
+            build_result = await docker_utils.build_image(
+                dockerfile_path=str(Path(workspace_path) / "Dockerfile"),
+                image_name="ai_coder_test",
+                context_path=workspace_path,
+                timeout=600  # 10 minutes
+            )
+            
+            if not build_result.get("success"):
+                return {
+                    "success": False,
+                    "error": f"Container build failed: {build_result.get('error', 'Unknown error')}"
+                }
+            
+            # Run tests
+            test_result = await docker_utils.run_container(
+                image_name="ai_coder_test",
+                command="python -m pytest tests/ -v",
+                timeout=300  # 5 minutes
+            )
+            
+            # Parse test results
+            output = test_result.get("output", "")
+            exit_code = test_result.get("exit_code", 1)
+            
+            if exit_code == 0:
+                return {
+                    "success": True,
+                    "output": output,
+                    "test_count": self._extract_test_count(output),
+                    "passed_count": self._extract_passed_count(output),
+                    "failed_count": 0
+                }
+            else:
+                return {
+                    "success": False,
+                    "output": output,
+                    "error_message": self._extract_error_message(output),
+                    "test_count": self._extract_test_count(output),
+                    "passed_count": self._extract_passed_count(output),
+                    "failed_count": self._extract_failed_count(output)
+                }
+            
+        except Exception as e:
+            logger.error(f"Error in containerized testing: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    async def _add_learning_example(
+        self,
+        goal: Dict[str, Any],
+        changes: List[Dict[str, Any]],
+        test_result: Dict[str, Any],
+        success: bool
+    ) -> None:
+        """Add learning example to the learning mechanism."""
+        try:
+            # Create learning example
+            example = {
+                "goal": goal["description"],
+                "goal_type": goal["type"],
+                "changes": changes,
+                "test_result": test_result,
+                "success": success,
+                "timestamp": time.time()
+            }
+            
+            # Add to learning mechanism
+            await self.learning_mechanism.add_example(
+                example=example,
+                success=success,
+                context=goal["description"]
+            )
+            
+        except Exception as e:
+            logger.error(f"Error adding learning example: {e}")
+
+    def _extract_test_count(self, output: str) -> int:
+        """Extract test count from pytest output."""
+        import re
+        match = re.search(r'collected (\d+) items?', output)
+        return int(match.group(1)) if match else 0
+
+    def _extract_passed_count(self, output: str) -> int:
+        """Extract passed test count from pytest output."""
+        import re
+        match = re.search(r'(\d+) passed', output)
+        return int(match.group(1)) if match else 0
+
+    def _extract_failed_count(self, output: str) -> int:
+        """Extract failed test count from pytest output."""
+        import re
+        match = re.search(r'(\d+) failed', output)
+        return int(match.group(1)) if match else 0
+
+    def _extract_error_message(self, output: str) -> str:
+        """Extract error message from test output."""
+        lines = output.split('\n')
+        for line in lines:
+            if 'FAILED' in line or 'ERROR' in line:
+                return line.strip()
+        return "Test execution failed"
+
     def stop_remediation(self) -> bool:
         """
         Stop the current remediation process.

@@ -63,6 +63,9 @@ AI Coder Assistant is a modular, enterprise-grade application for code analysis,
 - **Functional Cloud Models tab:** Users can save/load API keys for all providers.
 - **Cleaner UI:** No duplicate widgets; improved user experience.
 - **Refactored config loading:** `LLMManager._load_config` is now maintainable.
+- **Autonomous refactoring system:** Advanced AI-powered code analysis and automated fixes with iterative self-correction.
+- **Containerized testing:** Safe, isolated testing environment for all automated changes.
+- **Continuous learning:** Unified knowledge base with specialized data adapters for continuous model improvement.
 
 ---
 
@@ -70,10 +73,12 @@ AI Coder Assistant is a modular, enterprise-grade application for code analysis,
 - Continue to monitor for architectural improvements.
 - Expand test coverage for new configuration and provider logic.
 - Gather user feedback on the new Cloud Models workflow.
+- Enhance autonomous refactoring capabilities with more sophisticated analysis.
+- Improve learning system performance and knowledge quality.
 
 ---
 
-_Last updated: December 2024_
+_Last updated: June 2025_
 
 ## Table of Contents
 
@@ -791,8 +796,204 @@ Application → Data Access Layer → Database/File System
 - **Mermaid**: Mermaid for diagrams
 - **GitBook**: GitBook for documentation hosting
 
+## Autonomous Refactoring and Learning Architecture
+
+### 1. System Overview
+
+The autonomous refactoring and learning system is a sophisticated AI-powered automation framework that combines code analysis, AI generation, containerized testing, and continuous learning to provide intelligent, self-improving code automation.
+
+### 2. Core Components
+
+#### ComprehensiveAnalysisService (`src/backend/services/comprehensive_analyzer.py`)
+- **AST Analysis**: Python AST module for deep code structure analysis
+- **Dependency Mapping**: Function calls, imports, class relationships
+- **Architectural Issue Detection**: High coupling, low cohesion, circular dependencies
+- **SOLID Violation Detection**: Design principle violation identification
+- **Refactoring Suggestions**: AI-enhanced refactoring recommendations
+
+#### RemediationController (`src/backend/services/remediation_controller.py`)
+- **Goal Management**: Creates and manages remediation goals
+- **Iterative Loop**: Manages the self-correction iteration process
+- **Workspace Safety**: Ensures workspace locking and backup creation
+- **Progress Tracking**: Real-time progress monitoring and reporting
+- **Error Handling**: Comprehensive error handling and recovery
+
+#### ContinuousLearningService (`src/backend/services/continuous_learning.py`)
+- **Knowledge Base**: Unified knowledge base with specialized adapters
+- **Data Adapters**: Specialized adapters for different knowledge sources
+- **Knowledge Retrieval**: Semantic search and context matching
+- **Model Fine-tuning**: Continuous model improvement integration
+- **Quality Assessment**: Learning example quality evaluation
+
+#### DockerUtils (`src/backend/services/docker_utils.py`)
+- **Container Management**: Docker container creation and management
+- **Test Environment**: Isolated testing environment setup
+- **Build Process**: Automated build and test execution
+- **Result Parsing**: Test result extraction and analysis
+- **Cleanup**: Automatic container cleanup and resource management
+
+### 3. Dual-Trigger Automation Architecture
+
+#### Reactive Fix (Issue-Specific)
+```
+User Click → Issue Analysis → Goal Creation → Remediation Loop → Result
+```
+
+1. **User Interaction**: User clicks "🚀 Automate Fix" on specific issues
+2. **Issue Analysis**: System analyzes the specific issue context
+3. **Goal Creation**: Creates targeted remediation goal
+4. **Remediation Loop**: Executes iterative self-correction process
+5. **Result Processing**: Processes and presents results to user
+
+#### Proactive Refactor (Architectural)
+```
+User Click → Architecture Analysis → AI Suggestions → User Approval → Implementation
+```
+
+1. **User Interaction**: User clicks "🏗️ Analyze Architecture"
+2. **Comprehensive Analysis**: AST-based architectural analysis
+3. **AI Suggestions**: AI generates high-level refactoring suggestions
+4. **User Approval**: User reviews and approves suggestions
+5. **Implementation**: Automated implementation of approved changes
+
+### 4. Iterative Self-Correction Loop
+
+#### Loop Architecture
+```
+Analysis → Generation → Application → Testing → Learning → Iteration Decision
+```
+
+#### Phase Details
+
+##### Analysis Phase
+- **Codebase Context**: Analyzes current codebase state
+- **Goal Processing**: Processes remediation goal requirements
+- **Knowledge Retrieval**: Retrieves relevant knowledge from learning system
+- **Context Building**: Builds comprehensive context for AI generation
+
+##### Generation Phase
+- **Prompt Engineering**: Creates context-aware AI prompts
+- **Code Generation**: Uses codeollama for intelligent code generation
+- **Change Parsing**: Extracts structured code changes from AI output
+- **Risk Assessment**: Evaluates potential risks and benefits
+
+##### Application Phase
+- **Workspace Locking**: Prevents conflicts during automation
+- **Change Application**: Safely applies code changes to files
+- **Backup Creation**: Creates automatic backups before changes
+- **Change Tracking**: Records all applied changes for rollback
+
+##### Testing Phase
+- **Container Building**: Creates isolated Docker testing environment
+- **Test Execution**: Runs comprehensive test suite
+- **Result Analysis**: Parses test results and statistics
+- **Success Evaluation**: Determines success/failure based on test outcomes
+
+##### Learning Phase
+- **Example Creation**: Creates learning examples from results
+- **Knowledge Integration**: Integrates examples into learning system
+- **Model Improvement**: Triggers model fine-tuning if needed
+- **Performance Tracking**: Updates success/failure statistics
+
+### 5. Learning System Architecture
+
+#### Knowledge Sources
+- **Code Scanners**: SAST results, linter output, static analysis
+- **User Interactions**: Manual fixes, approved/rejected suggestions
+- **Web/YouTube Content**: Tutorials, best practices, code examples
+- **Project Rules**: Coding standards, configuration files, documentation
+
+#### Data Adapters
+- **ScannerAdapter**: Processes scanner outputs and analysis results
+- **InteractionAdapter**: Processes user interactions and feedback
+- **WebAdapter**: Processes web and YouTube content
+- **RulesAdapter**: Processes project rules and configurations
+
+#### Knowledge Processing
+- **Semantic Search**: Finds relevant knowledge using semantic similarity
+- **Context Matching**: Matches knowledge to current context
+- **Confidence Ranking**: Ranks knowledge by confidence and relevance
+- **Quality Filtering**: Filters knowledge by quality metrics
+
+### 6. Safety and Reliability
+
+#### Workspace Safety
+- **Locking Mechanism**: Prevents concurrent automation conflicts
+- **Backup System**: Automatic backup creation before changes
+- **Rollback Capability**: Ability to revert changes if needed
+- **Progress Tracking**: Real-time monitoring of automation progress
+
+#### Containerized Testing
+- **Isolation**: Complete isolation of testing environment
+- **Reproducibility**: Consistent testing environment across runs
+- **Resource Management**: Controlled resource usage and cleanup
+- **Security**: Secure testing environment with limited permissions
+
+#### Error Handling
+- **Graceful Degradation**: System continues operation despite errors
+- **Error Recovery**: Automatic error recovery and retry mechanisms
+- **User Notification**: Clear error messages and status updates
+- **Logging**: Comprehensive logging for debugging and monitoring
+
+### 7. Configuration and Management
+
+#### System Configuration
+```json
+{
+  "max_iterations": 5,
+  "test_timeout": 300,
+  "build_timeout": 600,
+  "create_backup": true,
+  "run_tests": true,
+  "enable_learning": true
+}
+```
+
+#### Learning Configuration
+```json
+{
+  "learning_rate": 0.001,
+  "batch_size": 32,
+  "max_examples": 10000,
+  "confidence_threshold": 0.7,
+  "auto_finetune": true,
+  "finetune_interval": 100
+}
+```
+
+#### Docker Configuration
+```dockerfile
+FROM python:3.11-slim
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD ["python", "-m", "pytest", "tests/", "-v"]
+```
+
+### 8. Integration Points
+
+#### Frontend Integration
+- **Security Intelligence Tab**: "🚀 Automate Fix" buttons on vulnerabilities
+- **Scan Results Table**: "🚀 Automate Fix" buttons on issues
+- **Refactoring Tab**: "🏗️ Analyze Architecture" button
+- **Progress Tracking**: Real-time progress indicators and status updates
+
+#### Backend Integration
+- **BackendController**: Integration with main backend controller
+- **LLMManager**: Integration with AI model management
+- **TaskManagement**: Integration with task management system
+- **EventSystem**: Integration with event bus for notifications
+
+#### External Integration
+- **Docker Engine**: Container management and testing
+- **Git Integration**: Version control and change tracking
+- **CI/CD Systems**: Integration with continuous integration systems
+- **Monitoring Systems**: Integration with monitoring and alerting
+
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: January 2025  
+**Last Updated**: June 2025  
 **License**: GNU General Public License v3.0 

@@ -611,6 +611,6 @@ When requesting help, please provide:
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: January 2025  
-**License**: GNU General Public License v3.0 
+**Last Updated**: June 2025  
+**Version**: 1.0  
+**Compatibility**: AI Coder Assistant v2.0+ 

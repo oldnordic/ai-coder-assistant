@@ -38,6 +38,7 @@
 - **[PR Automation](pr_automation_guide.md)** - Automated pull request creation and management
 - **[Continuous Learning](continuous_learning_guide.md)** - Continuous learning and improvement
 - **[Training Workflow](training_workflow.md)** - Model training and fine-tuning workflows
+- **[Autonomous Refactoring](autonomous_refactoring_guide.md)** - Advanced autonomous refactoring and learning system
 
 ## 🤝 Collaboration & Team Features
 
@@ -107,10 +108,11 @@
 
 ### For Advanced Users
 1. [Advanced Refactoring](advanced_refactoring_guide.md)
-2. [Cloud Model Integration](cloud_model_integration_guide.md)
-3. [Continuous Learning](continuous_learning_guide.md)
+2. [Autonomous Refactoring](autonomous_refactoring_guide.md)
+3. [Cloud Model Integration](cloud_model_integration_guide.md)
+4. [Continuous Learning](continuous_learning_guide.md)
 
 ---
 
-**Last Updated:** January 2025  
+**Last Updated:** June 2025  
 **Total Documents:** 40+ comprehensive guides and references 

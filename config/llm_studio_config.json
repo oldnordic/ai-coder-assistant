@@ -55,6 +55,22 @@
         "local": true,
         "base_url": "http://localhost:1234/v1"
       }
+    },
+    "codeollama": {
+      "provider": "ollama",
+      "max_tokens": 16384,
+      "cost_per_1k_tokens": 0.0,
+      "supported_features": ["chat", "completion", "code_generation", "refactoring"],
+      "metadata": {
+        "source": "ollama",
+        "local": true,
+        "base_url": "http://localhost:11434",
+        "model_name": "codellama:13b"
+      },
+      "is_autonomous_learning_enabled": true,
+      "learning_priority": 10,
+      "fine_tuning_support": true,
+      "base_model_for_fine_tuning": "codellama:13b"
     }
   },
   "provider_configurations": {

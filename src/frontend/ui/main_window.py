@@ -2034,3 +2034,163 @@ Report Generation Complete!
         except Exception as e:
             self.log_message(f"Error exporting results: {e}")
             QMessageBox.critical(self, "Error", f"Failed to export results: {e}")
+
+    def automate_fix_single_issue(self, issue_data: Dict[str, Any]):
+        """Automate fix for a single issue."""
+        try:
+            w = self.widgets["ai_tab"]
+            w["scan_status_label"].setText(f"Starting automated fix for issue on line {issue_data.get('line', 0)}...")
+            
+            # Create issue details for targeted fix
+            issue_details = {
+                "type": "scan_issue",
+                "file": issue_data.get("file", ""),
+                "line": issue_data.get("line", 0),
+                "issue_type": issue_data.get("type", ""),
+                "severity": issue_data.get("severity", ""),
+                "description": issue_data.get("issue", ""),
+                "fix_goal": f"Fix {issue_data.get('type', 'issue')}: {issue_data.get('issue', '')}"
+            }
+            
+            # Show confirmation dialog
+            reply = QMessageBox.question(
+                self,
+                "Confirm Automated Fix",
+                f"Start automated fix for this issue?\n\n"
+                f"File: {issue_data.get('file', 'Unknown')}\n"
+                f"Line: {issue_data.get('line', 0)}\n"
+                f"Type: {issue_data.get('type', 'Unknown')}\n"
+                f"Severity: {issue_data.get('severity', 'Unknown')}\n"
+                f"Description: {issue_data.get('issue', '')}\n\n"
+                "This will analyze the code and attempt to fix this specific issue.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                # Start targeted automation using worker infrastructure
+                worker_id = f"automate_fix_{time.time()}"
+                self.start_worker(
+                    worker_id,
+                    self._perform_automate_fix_worker,
+                    issue_details=issue_details,
+                    callback=self.on_automate_fix_complete,
+                    error_callback=self.on_automate_fix_error
+                )
+            
+        except Exception as e:
+            self.log_message(f"Error starting automated fix: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to start automated fix: {e}")
+
+    def _perform_automate_fix_worker(self, issue_details: Dict[str, Any], 
+                                   progress_callback=None, log_message_callback=None):
+        """Worker function for automated fix."""
+        try:
+            if log_message_callback:
+                log_message_callback(f"Starting automated fix for issue: {issue_details.get('description', 'Unknown')}")
+            
+            # Get the backend controller for automation
+            from src.frontend.controllers.backend_controller import BackendController
+            controller = BackendController()
+            
+            # Get remediation controller
+            if hasattr(controller, 'get_remediation_controller'):
+                remediation_controller = controller.get_remediation_controller()
+                
+                # Configure remediation controller
+                remediation_controller.set_config({
+                    'create_backup': True,
+                    'run_tests': True,
+                    'enable_learning': True
+                })
+                
+                # Start targeted fix
+                if hasattr(remediation_controller, 'start_targeted_fix'):
+                    result = remediation_controller.start_targeted_fix(
+                        workspace_path=os.getcwd(),
+                        issue_details=issue_details
+                    )
+                    
+                    if log_message_callback:
+                        log_message_callback("Automated fix completed successfully")
+                    
+                    return {
+                        "success": True,
+                        "result": result,
+                        "issue_details": issue_details
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": "Targeted fix not available in remediation controller",
+                        "issue_details": issue_details
+                    }
+            else:
+                return {
+                    "success": False,
+                    "error": "Remediation controller not available",
+                    "issue_details": issue_details
+                }
+            
+        except Exception as e:
+            if log_message_callback:
+                log_message_callback(f"Error during automated fix: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "issue_details": issue_details
+            }
+
+    def on_automate_fix_complete(self, result):
+        """Handle automated fix completion."""
+        try:
+            w = self.widgets["ai_tab"]
+            w["scan_status_label"].setText("Automated fix complete")
+            
+            if result.get("success", False):
+                fix_result = result.get("result", {})
+                
+                # Show success dialog
+                message = f"""✅ Automated fix completed successfully!
+
+📊 Results:
+• Files modified: {fix_result.get('files_modified', 0)}
+• Issues resolved: {fix_result.get('issues_resolved', 0)}
+• Tests passed: {fix_result.get('tests_passed', 0)}
+
+🔧 Changes made:
+{fix_result.get('changes_summary', 'No details available')}
+
+💡 Learning applied: {'Yes' if fix_result.get('learning_applied') else 'No'}"""
+                
+                QMessageBox.information(self, "Automated Fix Complete", message)
+                
+                # Refresh scan results to show updated state
+                self.refresh_scan_results()
+                
+            else:
+                QMessageBox.warning(self, "Automated Fix Error", 
+                                  f"Automated fix failed: {result.get('error', 'Unknown error')}")
+            
+        except Exception as e:
+            self.log_message(f"Error handling automated fix completion: {e}")
+
+    def on_automate_fix_error(self, error):
+        """Handle automated fix error."""
+        self.log_message(f"Automated fix error: {error}")
+        QMessageBox.warning(self, "Automated Fix Error", f"Automated fix failed: {error}")
+
+    def refresh_scan_results(self):
+        """Refresh scan results to show updated state after fixes."""
+        try:
+            # Re-run quick scan to get updated results
+            w = self.widgets["ai_tab"]
+            project_dir = w["project_dir_edit"].text()
+            
+            if project_dir and os.path.exists(project_dir):
+                self.start_quick_scan()
+            else:
+                self.log_message("Cannot refresh scan results: invalid project directory")
+                
+        except Exception as e:
+            self.log_message(f"Error refreshing scan results: {e}")

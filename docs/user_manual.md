@@ -389,7 +389,116 @@ The Refactoring tab provides automated refactoring capabilities:
 - **Refactoring History**: Track refactoring changes
 - **Rollback**: Rollback refactoring changes
 
-### 4. Collaboration Features
+#### **Autonomous Refactoring System**
+- **🏗️ Analyze Architecture**: Comprehensive AST-based architectural analysis
+- **AI-Powered Suggestions**: AI-generated refactoring recommendations
+- **Iterative Self-Correction**: Automatic learning and improvement from failures
+- **Containerized Testing**: Safe, isolated testing environment for all changes
+- **Continuous Learning**: Every automation attempt improves future performance
+
+### 4. Autonomous Refactoring and Learning
+
+The AI Coder Assistant now features an advanced autonomous refactoring and learning system that can automatically analyze, fix, and improve code with minimal human intervention.
+
+#### **Dual-Trigger Automation**
+
+##### **Reactive Fix (Issue-Specific)**
+- **Security Intelligence Tab**: "🚀 Automate Fix" buttons on each vulnerability
+- **Scan Results Table**: "🚀 Automate Fix" buttons on each issue
+- **Targeted Remediation**: Creates specific goals for each issue
+- **AI Code Generation**: Uses fine-tuned codeollama models for intelligent fixes
+- **Containerized Testing**: Validates all changes in isolated environment
+- **Learning Integration**: Captures results for continuous improvement
+
+##### **Proactive Refactor (Architectural)**
+- **Refactoring Tab**: "🏗️ Analyze Architecture" button
+- **Comprehensive Analysis**: AST-based code architecture analysis
+- **Architectural Issues**: Detects high coupling, low cohesion, circular dependencies
+- **SOLID Violations**: Identifies design principle violations
+- **AI-Enhanced Suggestions**: Generates high-level refactoring recommendations
+- **User Approval Workflow**: Review and approve suggestions before implementation
+
+#### **Iterative Self-Correction Loop**
+
+The system uses a sophisticated iterative loop that continuously improves:
+
+1. **Analysis Phase**: Analyzes codebase, understands goals, retrieves relevant knowledge
+2. **Code Generation Phase**: Creates context-aware AI prompts and generates fixes
+3. **Application Phase**: Safely applies changes with workspace locking and backups
+4. **Testing Phase**: Runs comprehensive tests in containerized environment
+5. **Learning Phase**: Creates learning examples and improves future performance
+
+#### **Learning System**
+
+##### **Knowledge Sources**
+- **Code Scanners**: SAST results, linter output, static analysis
+- **User Interactions**: Manual fixes, approved/rejected suggestions, feedback
+- **Web/YouTube Content**: Tutorials, best practices, code examples
+- **Project Rules**: Coding standards, configuration files, documentation
+
+##### **Continuous Improvement**
+- **Unified Knowledge Base**: Specialized data adapters for each source
+- **Model Fine-tuning**: Continuous model improvement with new knowledge
+- **Performance Tracking**: Success/failure statistics and learning metrics
+- **Quality Assessment**: Example quality evaluation and filtering
+
+#### **Configuration**
+
+##### **System Settings**
+```json
+{
+  "max_iterations": 5,
+  "test_timeout": 300,
+  "build_timeout": 600,
+  "create_backup": true,
+  "run_tests": true,
+  "enable_learning": true
+}
+```
+
+##### **Learning Configuration**
+```json
+{
+  "learning_rate": 0.001,
+  "batch_size": 32,
+  "max_examples": 10000,
+  "confidence_threshold": 0.7,
+  "auto_finetune": true,
+  "finetune_interval": 100
+}
+```
+
+#### **Usage Workflow**
+
+##### **Getting Started**
+1. Open Settings Tab → "Autonomous Features"
+2. Enable "Autonomous Refactoring"
+3. Configure learning preferences
+4. Set up Docker for containerized testing
+
+##### **Using Reactive Fix**
+1. Open Security Intelligence Tab or scan results
+2. Click "🚀 Automate Fix" on specific issues
+3. Review confirmation dialog
+4. Monitor automation progress
+5. Review results and apply if satisfied
+
+##### **Using Proactive Refactor**
+1. Open Refactoring Tab
+2. Select project directory
+3. Click "🏗️ Analyze Architecture"
+4. Review architectural suggestions
+5. Select suggestions to implement
+6. Monitor automation progress
+
+#### **Safety Features**
+- **Workspace Locking**: Prevents conflicts during automation
+- **Automatic Backups**: Creates backups before applying changes
+- **Containerized Testing**: Isolated testing environment
+- **Progress Tracking**: Real-time monitoring of automation progress
+- **Rollback Capability**: Ability to revert changes if needed
+
+### 5. Collaboration Features
 
 The Collaboration tab enables team collaboration:
 
@@ -405,7 +514,7 @@ The Collaboration tab enables team collaboration:
 - **Best Practices**: Share best practices
 - **Knowledge Base**: Team knowledge base
 
-### 5. Model Management
+### 6. Model Management
 
 The Model Manager tab manages AI models:
 
@@ -698,6 +807,6 @@ Update documentation when making changes:
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: January 2025  
-**License**: GNU General Public License v3.0 
+**Last Updated**: June 2025  
+**Version**: 1.0  
+**Compatibility**: AI Coder Assistant v2.0+ 

@@ -24,8 +24,12 @@ import os
 import re
 import threading
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
+import json
+import logging
+from pathlib import Path
+from datetime import datetime
 
 from src.backend.utils.constants import MAX_FILENAME_LENGTH
 from src.backend.utils.exceptions import (
@@ -46,6 +50,8 @@ MAX_FILENAME_LENGTH = 100
 ProgressCallback = Callable[[int, int, str], None]
 LogCallback = Callable[[str], None]
 CancellationCallback = Callable[[], bool]
+
+logger = logging.getLogger(__name__)
 
 
 def process_url_parallel(
@@ -347,6 +353,8 @@ def crawl_docs_simple(urls: list, output_dir: str, **kwargs):
     """
     Simple crawler for basic web scraping with multi-threading.
     """
+    log_message_callback: LogCallback = kwargs.get("log_message_callback", print)
+    progress_callback: ProgressCallback = kwargs.get("progress_callback", lambda c, t, m: None)
     log_message_callback = kwargs.get("log_message_callback", print)
     progress_callback = kwargs.get("progress_callback", lambda c, t, m: None)
     cancellation_callback = kwargs.get("cancellation_callback", lambda: False)

@@ -277,14 +277,7 @@ Code Snippet:
 
 
 def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
-    """
-    Sets up the UI components for the AI code analysis tab.
-    
-    This implements the two-stage analysis approach:
-    1. Quick Scan: Immediate local analysis using static rules
-    2. AI Enhancement: On-demand AI analysis of specific issues using specialized local models
-    """
-    # Initialize widget dictionary for AI tab
+    """Setup the AI tab with all its widgets and functionality."""
     if not hasattr(main_app_instance, "widgets"):
         main_app_instance.widgets = {}
     main_app_instance.widgets["ai_tab"] = {}
@@ -403,6 +396,9 @@ def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
     # Connect table signals
     w["results_table"].cellDoubleClicked.connect(main_app_instance.on_issue_double_clicked)
     
+    # Store main app instance for button callbacks
+    w["main_app_instance"] = main_app_instance
+    
     # Initial model source change
     main_app_instance.on_model_source_changed(w["model_source_selector"].currentText())
 
@@ -420,6 +416,9 @@ def populate_scan_results_table(widgets: Dict[str, Any], issues: List[Dict[str, 
     """Populate the scan results table with issues."""
     table = widgets["results_table"]
     table.setRowCount(len(issues))
+    
+    # Get main app instance for button callbacks
+    main_app_instance = widgets.get("main_app_instance")
     
     for row, issue in enumerate(issues):
         # File column
@@ -453,7 +452,34 @@ def populate_scan_results_table(widgets: Dict[str, Any], issues: List[Dict[str, 
         enhance_button.setFixedSize(80, 25)
         enhance_button.clicked.connect(lambda checked, r=row: enhance_single_issue(r, issue))
         
+        # Add Automate Fix button
+        automate_fix_button = QPushButton("🚀 Automate Fix")
+        automate_fix_button.setFixedSize(90, 25)
+        automate_fix_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 2px;
+                border-radius: 3px;
+                font-size: 9px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #3d8b40;
+            }
+        """)
+        
+        # Connect to main app instance if available
+        if main_app_instance and hasattr(main_app_instance, 'automate_fix_single_issue'):
+            automate_fix_button.clicked.connect(lambda checked, i=issue: main_app_instance.automate_fix_single_issue(i))
+        else:
+            automate_fix_button.clicked.connect(lambda checked, r=row, i=issue: automate_fix_single_issue(r, i))
+        
         actions_layout.addWidget(enhance_button)
+        actions_layout.addWidget(automate_fix_button)
         actions_layout.addStretch()
         table.setCellWidget(row, 5, actions_widget)
     
@@ -468,6 +494,13 @@ def populate_scan_results_table(widgets: Dict[str, Any], issues: List[Dict[str, 
 def enhance_single_issue(row: int, issue_data: Dict[str, Any]):
     """Enhance a single issue with AI analysis."""
     # This will be connected to the main app's enhancement method
+    # The actual implementation will be in the main window
+    pass
+
+
+def automate_fix_single_issue(row: int, issue_data: Dict[str, Any]):
+    """Automate fix for a single issue."""
+    # This will be connected to the main app's automation method
     # The actual implementation will be in the main window
     pass
 

@@ -359,6 +359,12 @@ class RefactoringTab(QWidget):
         self.analyze_btn.setEnabled(False)  # Disabled until project is selected
         header_layout.addWidget(self.analyze_btn)
 
+        # Add Analyze Architecture button
+        self.analyze_architecture_btn = QPushButton("🏗️ Analyze Architecture")
+        self.analyze_architecture_btn.clicked.connect(self.analyze_architecture)
+        self.analyze_architecture_btn.setEnabled(False)  # Disabled until project is selected
+        header_layout.addWidget(self.analyze_architecture_btn)
+
         self.refresh_btn = QPushButton("Refresh")
         self.refresh_btn.clicked.connect(self.refresh_suggestions)
         self.refresh_btn.setEnabled(False)
@@ -511,6 +517,7 @@ class RefactoringTab(QWidget):
         """Set the project path for analysis."""
         self.project_path = project_path
         self.analyze_btn.setEnabled(True)
+        self.analyze_architecture_btn.setEnabled(True)  # Enable architecture analysis button
         self.status_label.setText(f"Project: {project_path}")
 
     def analyze_project(self):
@@ -861,3 +868,232 @@ class RefactoringTab(QWidget):
         """Connect signals and slots for the tab."""
         # This method will be implemented when the full UI is added
         pass
+
+    def analyze_architecture(self):
+        """Analyze the project architecture using comprehensive analysis service."""
+        if not self.project_path:
+            QMessageBox.warning(
+                self, "Warning", "Please select a project directory first."
+            )
+            return
+
+        self.analyze_architecture_btn.setEnabled(False)
+        self.progress_bar.setVisible(True)
+        self.status_label.setText("Analyzing architecture...")
+
+        # Start comprehensive architecture analysis using ThreadPoolExecutor
+        future = self.executor.submit(
+            self._analyze_architecture_backend,
+            self.project_path,
+            self.update_progress,
+            self.handle_architecture_analysis_complete,
+            self.handle_error,
+        )
+
+        future.add_done_callback(self._on_architecture_analysis_complete)
+
+    def _analyze_architecture_backend(
+        self,
+        project_path: str,
+        progress_callback=None,
+        log_message_callback=None,
+        error_callback=None,
+    ):
+        """Backend function for comprehensive architecture analysis."""
+        try:
+            if progress_callback:
+                progress_callback(1, 4, "Initializing comprehensive analysis...")
+
+            # Import here to avoid circular imports
+            from src.backend.services.comprehensive_analyzer import get_comprehensive_analyzer
+            from src.backend.services.llm_manager import LLMManager
+            from src.backend.services.continuous_learning import ContinuousLearningService
+
+            if progress_callback:
+                progress_callback(2, 4, "Setting up analysis services...")
+
+            # Get LLM manager and learning service
+            llm_manager = LLMManager()
+            learning_service = ContinuousLearningService()
+
+            if progress_callback:
+                progress_callback(3, 4, "Analyzing code architecture...")
+
+            # Get comprehensive analyzer
+            analyzer = get_comprehensive_analyzer(
+                project_path=project_path,
+                llm_manager=llm_manager,
+                learning_service=learning_service
+            )
+
+            # Perform comprehensive analysis
+            analysis_results = analyzer.analyze_architecture()
+
+            if progress_callback:
+                progress_callback(4, 4, "Generating AI-enhanced suggestions...")
+
+            # Get AI-enhanced suggestions
+            enhanced_suggestions = analyzer.get_ai_enhanced_suggestions()
+
+            return {
+                "success": True,
+                "analysis_results": analysis_results,
+                "enhanced_suggestions": [
+                    {
+                        "id": suggestion.id,
+                        "title": suggestion.title,
+                        "description": suggestion.description,
+                        "issue_type": suggestion.issue_type.value,
+                        "affected_files": suggestion.affected_files,
+                        "suggested_changes": suggestion.suggested_changes,
+                        "estimated_effort": suggestion.estimated_effort,
+                        "impact_score": suggestion.impact_score,
+                        "risk_score": suggestion.risk_score,
+                        "priority_score": suggestion.priority_score,
+                        "reasoning": suggestion.reasoning,
+                        "examples": suggestion.examples,
+                        "alternatives": suggestion.alternatives
+                    }
+                    for suggestion in enhanced_suggestions
+                ],
+                "total_suggestions": len(enhanced_suggestions)
+            }
+
+        except Exception as e:
+            if error_callback:
+                error_callback(f"Error analyzing architecture: {e}")
+            raise
+
+    def _on_architecture_analysis_complete(self, future):
+        """Handle completion of architecture analysis."""
+        def update_ui():
+            try:
+                result = future.result()
+                self.handle_architecture_analysis_complete(result)
+            except Exception as e:
+                self.handle_error(str(e))
+            finally:
+                self.analyze_architecture_btn.setEnabled(True)
+                self.progress_bar.setVisible(False)
+
+        # Use QTimer to ensure UI updates happen on main thread
+        QTimer.singleShot(0, update_ui)
+
+    def handle_architecture_analysis_complete(self, result: Dict[str, Any]):
+        """Handle completion of architecture analysis."""
+        if result.get("success"):
+            # Store architecture analysis results
+            self.architecture_results = result.get("analysis_results", {})
+            self.architecture_suggestions = result.get("enhanced_suggestions", [])
+            
+            # Update status
+            total_suggestions = result.get("total_suggestions", 0)
+            self.status_label.setText(
+                f"Architecture analysis complete! Found {total_suggestions} refactoring suggestions."
+            )
+            
+            # Show results dialog
+            self.show_architecture_results_dialog()
+            
+            # Update suggestions table with architecture suggestions
+            self.populate_architecture_suggestions_table()
+            
+        else:
+            self.status_label.setText("Architecture analysis failed")
+            QMessageBox.warning(self, "Analysis Failed", "Failed to analyze architecture.")
+
+    def show_architecture_results_dialog(self):
+        """Show dialog with architecture analysis results."""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Architecture Analysis Results")
+        dialog.setModal(True)
+        dialog.resize(800, 600)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Results summary
+        summary_text = QTextEdit()
+        summary_text.setReadOnly(True)
+        summary_text.setMaximumHeight(200)
+        
+        stats = self.architecture_results.get("stats", {})
+        summary = f"""🏗️ Architecture Analysis Complete
+
+📊 Analysis Statistics:
+• Files analyzed: {stats.get('files_analyzed', 0)}
+• Code elements found: {stats.get('elements_found', 0)}
+• Dependencies found: {stats.get('dependencies_found', 0)}
+• Issues detected: {stats.get('issues_found', 0)}
+• Refactoring suggestions: {stats.get('suggestions_generated', 0)}
+
+🔍 Key Findings:
+• High coupling issues: {len([i for i in self.architecture_results.get('architecture_issues', []) if i.get('issue_type') == 'high_coupling'])}
+• Low cohesion issues: {len([i for i in self.architecture_results.get('architecture_issues', []) if i.get('issue_type') == 'low_cohesion'])}
+• Circular dependencies: {len([i for i in self.architecture_results.get('architecture_issues', []) if i.get('issue_type') == 'circular_dependency'])}
+• God classes: {len([i for i in self.architecture_results.get('architecture_issues', []) if i.get('issue_type') == 'god_class'])}
+
+💡 AI-Enhanced Suggestions: {len(self.architecture_suggestions)}
+"""
+        summary_text.setPlainText(summary)
+        layout.addWidget(summary_text)
+        
+        # Buttons
+        button_layout = QHBoxLayout()
+        
+        view_suggestions_btn = QPushButton("View Suggestions")
+        view_suggestions_btn.clicked.connect(dialog.accept)
+        button_layout.addWidget(view_suggestions_btn)
+        
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(dialog.reject)
+        button_layout.addWidget(close_btn)
+        
+        layout.addLayout(button_layout)
+        
+        dialog.exec()
+
+    def populate_architecture_suggestions_table(self):
+        """Populate the suggestions table with architecture analysis results."""
+        if not hasattr(self, 'architecture_suggestions'):
+            return
+            
+        # Clear existing suggestions
+        self.suggestions_table.setRowCount(0)
+        
+        # Add architecture suggestions
+        for i, suggestion in enumerate(self.architecture_suggestions):
+            self.suggestions_table.insertRow(i)
+            
+            # Title
+            title_item = QTableWidgetItem(suggestion["title"])
+            self.suggestions_table.setItem(i, 0, title_item)
+            
+            # Priority (based on priority score)
+            priority_score = suggestion.get("priority_score", 0)
+            if priority_score >= 0.8:
+                priority = "High"
+            elif priority_score >= 0.5:
+                priority = "Medium"
+            else:
+                priority = "Low"
+            priority_item = QTableWidgetItem(priority)
+            self.suggestions_table.setItem(i, 1, priority_item)
+            
+            # Category
+            category_item = QTableWidgetItem("architecture")
+            self.suggestions_table.setItem(i, 2, category_item)
+            
+            # Impact
+            impact_item = QTableWidgetItem(f"{suggestion.get('impact_score', 0):.2f}")
+            self.suggestions_table.setItem(i, 3, impact_item)
+            
+            # Effort
+            effort_item = QTableWidgetItem(suggestion.get("estimated_effort", "Unknown"))
+            self.suggestions_table.setItem(i, 4, effort_item)
+            
+            # Store suggestion data for later use
+            self.suggestions_table.item(i, 0).setData(Qt.ItemDataRole.UserRole, suggestion)
+        
+        self.status_label.setText(f"Loaded {len(self.architecture_suggestions)} architecture suggestions")

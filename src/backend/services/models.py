@@ -52,24 +52,21 @@ class ModelType(Enum):
 
 @dataclass
 class ModelConfig:
-    """Configuration for a specific model."""
+    """Configuration for an AI model."""
 
     name: str
     provider: ProviderType
     model_type: ModelType
-    max_tokens: int = 4096
-    temperature: float = 0.7
-    top_p: float = 1.0
-    frequency_penalty: float = 0.0
-    presence_penalty: float = 0.0
-    stop_sequences: List[str] = field(default_factory=list)
-    system_prompt: Optional[str] = None
-    is_default: bool = False
-    is_enabled: bool = True
-    cost_per_1k_tokens: Optional[float] = None
-    context_length: Optional[int] = None
+    context_length: int = 4096
+    cost_per_1k_tokens: float = 0.0
     capabilities: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    # New fields for autonomous learning
+    is_autonomous_learning_enabled: bool = False
+    learning_priority: int = 0  # Higher priority models are used for learning
+    fine_tuning_support: bool = False
+    base_model_for_fine_tuning: Optional[str] = None
 
 
 @dataclass
