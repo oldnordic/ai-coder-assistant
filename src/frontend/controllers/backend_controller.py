@@ -620,14 +620,14 @@ class BackendController:
                 standard_dict: Dict[str, Any] = {
                     "name": standard.name,
                     "description": standard.description,
-                    "language": standard.language,
+                    "languages": [lang.value for lang in standard.languages],
                     "rules": standard.rules,
                     "enabled": standard.enabled,
-                    "created_at": (
-                        standard.created_at.isoformat() if standard.created_at else None
+                    "created_date": (
+                        standard.created_date.isoformat() if standard.created_date else None
                     ),
-                    "updated_at": (
-                        standard.updated_at.isoformat() if standard.updated_at else None
+                    "last_updated": (
+                        standard.last_updated.isoformat() if standard.last_updated else None
                     ),
                 }
                 result.append(standard_dict)
@@ -644,14 +644,14 @@ class BackendController:
                 return {
                     "name": standard.name,
                     "description": standard.description,
-                    "language": standard.language,
+                    "languages": [lang.value for lang in standard.languages],
                     "rules": standard.rules,
                     "enabled": standard.enabled,
-                    "created_at": (
-                        standard.created_at.isoformat() if standard.created_at else None
+                    "created_date": (
+                        standard.created_date.isoformat() if standard.created_date else None
                     ),
-                    "updated_at": (
-                        standard.updated_at.isoformat() if standard.updated_at else None
+                    "last_updated": (
+                        standard.last_updated.isoformat() if standard.last_updated else None
                     ),
                 }
             return None
