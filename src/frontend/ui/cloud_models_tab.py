@@ -35,6 +35,7 @@ from PyQt6.QtWidgets import (
 )
 
 from src.backend.services.llm_manager import LLMManager
+from src.backend.utils.secrets import get_secrets_manager
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,7 @@ class ProviderConfigWidget(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.secrets_manager = get_secrets_manager()
         self.init_ui()
         self.load_settings()
 
@@ -164,14 +166,68 @@ class ProviderConfigWidget(QWidget):
         self.setLayout(layout)
 
     def load_settings(self):
-        """Load current settings."""
-        # This would load from the settings service
-        pass
+        """Load current settings from secrets manager."""
+        try:
+            # Load OpenAI settings
+            openai_key = self.secrets_manager.get_secret("OPENAI_API_KEY", "")
+            openai_base_url = self.secrets_manager.get_secret("OPENAI_BASE_URL", "")
+            openai_org = self.secrets_manager.get_secret("OPENAI_ORGANIZATION", "")
+            
+            self.openai_key.setText(openai_key)
+            self.openai_base_url.setText(openai_base_url)
+            self.openai_org.setText(openai_org)
+            self.openai_enabled.setChecked(bool(openai_key.strip()))
+            
+            # Load Anthropic settings
+            anthropic_key = self.secrets_manager.get_secret("ANTHROPIC_API_KEY", "")
+            self.anthropic_key.setText(anthropic_key)
+            self.anthropic_enabled.setChecked(bool(anthropic_key.strip()))
+            
+            # Load Google AI settings
+            google_key = self.secrets_manager.get_secret("GOOGLE_API_KEY", "")
+            self.google_key.setText(google_key)
+            self.google_enabled.setChecked(bool(google_key.strip()))
+            
+            logger.info("Provider settings loaded successfully")
+            
+        except Exception as e:
+            logger.error(f"Error loading provider settings: {e}")
+            QMessageBox.warning(self, "Error", f"Failed to load settings: {e}")
 
     def save_settings(self):
-        """Save current settings."""
-        # This would save to the settings service
-        QMessageBox.information(self, "Success", "Configuration saved successfully!")
+        """Save current settings to secrets manager."""
+        try:
+            # Save OpenAI settings
+            openai_key = self.openai_key.text().strip()
+            openai_base_url = self.openai_base_url.text().strip()
+            openai_org = self.openai_org.text().strip()
+            
+            if openai_key:
+                self.secrets_manager.save_secret("OPENAI_API_KEY", openai_key)
+            if openai_base_url:
+                self.secrets_manager.save_secret("OPENAI_BASE_URL", openai_base_url)
+            if openai_org:
+                self.secrets_manager.save_secret("OPENAI_ORGANIZATION", openai_org)
+            
+            # Save Anthropic settings
+            anthropic_key = self.anthropic_key.text().strip()
+            if anthropic_key:
+                self.secrets_manager.save_secret("ANTHROPIC_API_KEY", anthropic_key)
+            
+            # Save Google AI settings
+            google_key = self.google_key.text().strip()
+            if google_key:
+                self.secrets_manager.save_secret("GOOGLE_API_KEY", google_key)
+            
+            # Reload secrets manager to update cache
+            self.secrets_manager.reload()
+            
+            QMessageBox.information(self, "Success", "Configuration saved successfully!")
+            logger.info("Provider settings saved successfully")
+            
+        except Exception as e:
+            logger.error(f"Error saving provider settings: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to save settings: {e}")
 
 
 class ModelSelectionWidget(QWidget):
@@ -505,11 +561,6 @@ class UsageMonitoringWidget(QWidget):
         layout.addLayout(refresh_layout)
 
         # Add progress bar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        layout.addWidget(self.progress_bar)
-
-        # Add progress bar at the bottom
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         layout.addWidget(self.progress_bar)
