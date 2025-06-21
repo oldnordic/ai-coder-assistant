@@ -24,6 +24,7 @@ import logging
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from PyQt6.QtCore import QMutex, QMutexLocker, Qt, QTimer, QUrl, pyqtSignal, pyqtSlot
@@ -89,20 +90,21 @@ from src.backend.utils.constants import (
 )
 from src.backend.utils.settings import is_docker_available
 from src.frontend.controllers.backend_controller import BackendController
+from src.frontend.ui.ai_tab_widgets import setup_ai_tab
 from src.frontend.ui.advanced_analytics_tab import AdvancedAnalyticsTab
 from src.frontend.ui.cloud_models_tab import CloudModelsTab
 from src.frontend.ui.code_standards_tab import CodeStandardsTab
 from src.frontend.ui.collaboration_tab import CollaborationTab
 from src.frontend.ui.continuous_learning_tab import ContinuousLearningTab
 from src.frontend.ui.data_tab_widgets import setup_data_tab
-from src.frontend.ui.ollama_export_tab import setup_ollama_export_tab
-from src.frontend.ui.model_manager_tab import LLMManager, ModelManagerTab
+from src.frontend.ui.markdown_viewer import MarkdownViewerDialog
+from src.frontend.ui.model_manager_tab import ModelManagerTab
+from src.frontend.ui.ollama_export_tab import OllamaExportTab, setup_ollama_export_tab
 from src.frontend.ui.performance_optimization_tab import PerformanceOptimizationTab
 from src.frontend.ui.pr_tab_widgets import setup_pr_tab
 from src.frontend.ui.refactoring_tab import RefactoringTab
 from src.frontend.ui.security_intelligence_tab import SecurityIntelligenceTab
 from src.frontend.ui.settings_tab import SettingsTab
-from src.frontend.ui.suggestion_dialog import SuggestionDialog
 from src.frontend.ui.web_server_tab import WebServerTab
 
 # Set up a logger for this module
@@ -134,6 +136,10 @@ class AICoderAssistant(QMainWindow):
         self.active_workers = []
         self.current_tokenizer_ref = None
         self.report_progress_dialog = None
+        
+        # Add flag to prevent multiple directory dialogs
+        self._directory_dialog_open = False
+        self._scan_in_progress = False
 
         # Initialize thread pool executor
         self.executor = ThreadPoolExecutor(max_workers=4)
@@ -468,8 +474,6 @@ class AICoderAssistant(QMainWindow):
 
     def setup_ai_tab(self):
         """Set up the AI tab using the new AI tab widgets."""
-        from src.frontend.ui.ai_tab_widgets import setup_ai_tab
-        
         ai_tab = QWidget()
         setup_ai_tab(ai_tab, self)
         self.tab_widget.addTab(ai_tab, "AI Analysis")
@@ -781,25 +785,45 @@ class AICoderAssistant(QMainWindow):
 
     def select_scan_directory(self):
         """Select directory to scan for code analysis."""
+        # Prevent multiple dialogs from opening
+        if self._directory_dialog_open:
+            return
+            
         try:
+            self._directory_dialog_open = True
+            
             directory = QFileDialog.getExistingDirectory(
                 self, 
                 "Select Directory to Scan",
                 options=QFileDialog.Option.ShowDirsOnly
             )
+            
             if directory and os.path.exists(directory):
                 self.scan_directory = directory
-                # Update the project directory field in the AI tab
+                
+                # Update the project directory field in the AI tab immediately
                 if "ai_tab" in self.widgets and "project_dir_edit" in self.widgets["ai_tab"]:
                     self.widgets["ai_tab"]["project_dir_edit"].setText(directory)
+                    # Force the field to update visually
+                    self.widgets["ai_tab"]["project_dir_edit"].repaint()
+                
                 # Update other directory fields if they exist
                 if hasattr(self, "scan_dir_entry"):
                     self.scan_dir_entry.setText(directory)
+                
                 self.log_message(f"Selected scan directory: {directory}")
+                
+                # Update scan directory for immediate use
+                self.scan_directory = directory
+                
             elif directory:
                 self.log_message(f"Selected directory does not exist: {directory}", "warning")
+                
         except Exception as e:
             self.log_message(f"Error selecting directory: {e}", "error")
+        finally:
+            # Always reset the flag
+            self._directory_dialog_open = False
 
     def select_local_corpus_dir(self):
         """Select local corpus directory."""
@@ -1193,6 +1217,9 @@ Report Generation Complete!
     def stop_scan(self):
         """Stop the current scan operation."""
         try:
+            # Reset scan in progress flag
+            self._scan_in_progress = False
+            
             # Cancel the scanner service
             if hasattr(self, "scanner_service"):
                 self.scanner_service.cancel_scan()
@@ -1228,6 +1255,8 @@ Report Generation Complete!
             self.log_message("Scan operation stopped by user")
 
         except Exception as e:
+            # Reset scan in progress flag on error
+            self._scan_in_progress = False
             self.log_message(f"Error stopping scan: {e}", "error")
 
     def start_scan(self):
@@ -1240,6 +1269,11 @@ Report Generation Complete!
 
     def start_quick_scan(self):
         """Start a quick, local scan without AI enhancement."""
+        # Prevent multiple scans from running simultaneously
+        if self._scan_in_progress:
+            self.log_message("A scan is already in progress. Please wait for it to complete.", "warning")
+            return
+            
         w = self.widgets["ai_tab"]
         w["scan_status_label"].setText("Starting quick scan...")
         w["enhance_all_button"].setEnabled(False)
@@ -1262,6 +1296,9 @@ Report Generation Complete!
             w["start_quick_scan_button"].setEnabled(True)
             w["stop_scan_button"].setEnabled(False)
             return
+
+        # Set scan in progress flag
+        self._scan_in_progress = True
 
         # Create progress dialog
         self.progress_dialog = QProgressDialog(
@@ -1308,24 +1345,50 @@ Report Generation Complete!
 
     def _handle_quick_scan_completion(self, result):
         """Handle completion of quick scan."""
-        w = self.widgets["ai_tab"]
-        
-        # Re-enable start button and disable stop button
-        w["start_quick_scan_button"].setEnabled(True)
-        w["stop_scan_button"].setEnabled(False)
-        
-        # Close progress dialog
-        if self.progress_dialog:
-            self.progress_dialog.close()
-            self.progress_dialog = None
-        
-        if result and result.get("success", False):
-            issues = result.get("issues", [])
-            self._handle_quick_scan_results(result)
-        else:
-            error_msg = result.get("error", "Unknown error") if result else "No result received"
-            self.log_message(f"Quick scan failed: {error_msg}", "error")
-            w["scan_status_label"].setText("Status: Quick scan failed")
+        try:
+            # Reset scan in progress flag
+            self._scan_in_progress = False
+            
+            w = self.widgets["ai_tab"]
+            
+            # Close progress dialog
+            if self.progress_dialog:
+                self.progress_dialog.close()
+                self.progress_dialog = None
+
+            # Re-enable start button and disable stop button
+            w["start_quick_scan_button"].setEnabled(True)
+            w["stop_scan_button"].setEnabled(False)
+
+            if result and isinstance(result, dict):
+                issues = result.get("issues", [])
+                total_files = result.get("total_files", 0)
+                
+                # Update status
+                w["scan_status_label"].setText(f"Quick scan completed. Found {len(issues)} issues.")
+                
+                # Populate results table
+                from src.frontend.ui.ai_tab_widgets import populate_scan_results_table
+                populate_scan_results_table(w, issues)
+                
+                self.log_message(f"Quick scan completed. Found {len(issues)} issues.")
+                
+                # Enable post-scan buttons
+                w["enhance_all_button"].setEnabled(len(issues) > 0)
+                w["export_results_button"].setEnabled(len(issues) > 0)
+                
+            else:
+                w["scan_status_label"].setText("Quick scan failed or was cancelled.")
+                self.log_message("Quick scan failed or was cancelled.", "warning")
+                
+        except Exception as e:
+            # Reset scan in progress flag on error
+            self._scan_in_progress = False
+            self.log_message(f"Error handling scan completion: {e}", "error")
+            w = self.widgets["ai_tab"]
+            w["start_quick_scan_button"].setEnabled(True)
+            w["stop_scan_button"].setEnabled(False)
+            w["scan_status_label"].setText("Scan failed with error.")
 
     def _perform_quick_scan_worker_legacy(self, directory: str, include_patterns: List[str], 
                                         exclude_patterns: List[str], progress_callback=None, 
