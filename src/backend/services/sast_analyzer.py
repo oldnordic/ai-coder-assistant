@@ -105,8 +105,9 @@ class SASTAnalyzer:
                     )
                     tools_status[tool] = result.returncode == 0
                 elif tool == SecurityTool.TRUFFLEHOG:
+                    # Use 'which' to check for trufflehog presence
                     result = subprocess.run(
-                        ["trufflehog", "--version"],
+                        ["which", "trufflehog"],
                         capture_output=True,
                         text=True,
                         timeout=5,
@@ -454,32 +455,42 @@ class SASTAnalyzer:
                 timeout=60,
             )
 
-            if result.returncode == 0:
+            # TruffleHog returns 0 when no secrets found, non-zero when secrets found
+            # Both cases are valid - we need to check the output regardless
+            if result.stdout.strip():
                 try:
                     # TruffleHog outputs one JSON object per line
                     for line in result.stdout.strip().split('\n'):
                         if line.strip():
-                            issue_data = json.loads(line)
-                            
-                            security_issue = SecurityIssue(
-                                file_path=issue_data.get("path", ""),
-                                line_number=issue_data.get("line", 1),
-                                severity="high",  # Secrets are always high severity
-                                issue_type="hardcoded_secret",
-                                description=f"Potential secret found: {issue_data.get('reason', 'Unknown secret type')}",
-                                tool=SecurityTool.TRUFFLEHOG,
-                                confidence=0.9,
-                                cwe_id="CWE-532",  # Information Exposure Through Log Files
-                                code_snippet=issue_data.get("raw", ""),
-                                suggestion="Remove hardcoded secrets and use environment variables or secure secret management",
-                            )
-                            issues.append(security_issue)
+                            try:
+                                issue_data = json.loads(line)
+                                
+                                security_issue = SecurityIssue(
+                                    file_path=issue_data.get("path", ""),
+                                    line_number=issue_data.get("line", 1),
+                                    severity="high",  # Secrets are always high severity
+                                    issue_type="hardcoded_secret",
+                                    description=f"Potential secret found: {issue_data.get('reason', 'Unknown secret type')}",
+                                    tool=SecurityTool.TRUFFLEHOG,
+                                    confidence=0.9,
+                                    cwe_id="CWE-532",  # Information Exposure Through Log Files
+                                    code_snippet=issue_data.get("raw", ""),
+                                    suggestion="Remove hardcoded secrets and use environment variables or secure secret management",
+                                )
+                                issues.append(security_issue)
+                            except json.JSONDecodeError as e:
+                                logger.warning(f"Failed to parse TruffleHog line: {line[:100]}... Error: {e}")
+                                continue
 
-                except json.JSONDecodeError as e:
-                    logger.error(f"Failed to parse TruffleHog output: {e}")
+                except Exception as e:
+                    logger.error(f"Failed to process TruffleHog output: {e}")
+            else:
+                logger.info("TruffleHog found no secrets in the project")
 
         except subprocess.TimeoutExpired:
             logger.warning(f"TruffleHog analysis timed out for {project_path}")
+        except FileNotFoundError:
+            logger.error("TruffleHog not found. Please install it: pip install trufflehog")
         except Exception as e:
             logger.error(f"Error running TruffleHog on {project_path}: {e}")
 
