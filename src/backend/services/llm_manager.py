@@ -119,6 +119,51 @@ class LLMManager:
                 return json.load(f)
         return None
 
+    def _load_config(self) -> LLMStudioConfig:
+        """Load configuration from file or create default if not found."""
+        raw_data = self._load_raw_config_file(self.config_path)
+        
+        if raw_data is None:
+            logger.info(f"Config file not found at {self.config_path}, creating default configuration")
+            config = self._create_default_config()
+            # Save the default config so it exists for future use
+            self._save_config()
+            return config
+        
+        try:
+            # Parse the configuration
+            models = self._parse_model_configurations(raw_data)
+            providers = self._parse_provider_configurations(raw_data, models)
+            default_model = self._parse_studio_settings(raw_data)
+            
+            # Create the config object
+            config = LLMStudioConfig()
+            config.models = models
+            config.providers = providers
+            config.default_model = default_model
+            
+            # Parse additional studio settings if present
+            studio_settings = raw_data.get("studio_settings", {})
+            config.enable_fallback = studio_settings.get("enable_fallback", True)
+            config.enable_retry = studio_settings.get("enable_retry", True)
+            config.max_concurrent_requests = studio_settings.get("max_concurrent_requests", 5)
+            config.request_timeout = studio_settings.get("request_timeout", 30)
+            config.enable_logging = studio_settings.get("enable_logging", True)
+            config.enable_metrics = studio_settings.get("enable_metrics", True)
+            config.cost_tracking = studio_settings.get("cost_tracking", True)
+            config.auto_switch_on_error = studio_settings.get("auto_switch_on_error", True)
+            
+            logger.info(f"Configuration loaded successfully from {self.config_path}")
+            return config
+            
+        except Exception as e:
+            logger.error(f"Error parsing config file {self.config_path}: {e}")
+            logger.info("Creating default configuration due to parsing error")
+            config = self._create_default_config()
+            # Save the default config so it exists for future use
+            self._save_config()
+            return config
+
     def _parse_model_configurations(self, raw_data: dict[str, Any]) -> Dict[str, ModelConfig]:
         """Parse model configurations from raw config data."""
         models: Dict[str, ModelConfig] = {}
