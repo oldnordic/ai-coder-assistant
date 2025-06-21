@@ -21,7 +21,11 @@ Copyright (C) 2024 AI Coder Assistant Contributors
 Secure Secrets Management Module
 
 This module provides a secure way to handle API keys and other sensitive
-configuration data using environment variables and .env files.
+configuration data using:
+1. Environment variables (highest priority)
+2. OS keychain via keyring (for persistent storage)
+3. .env files (for local development)
+4. Fallback to empty strings (for unconfigured services)
 """
 
 import os
@@ -38,6 +42,15 @@ except ImportError:
     load_dotenv = None
     logging.warning("python-dotenv not available. .env files will not be loaded.")
 
+# Check for keyring availability
+try:
+    import keyring
+    _keyring_available = True
+except ImportError:
+    _keyring_available = False
+    keyring = None
+    logging.warning("keyring not available. OS keychain will not be used.")
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,18 +60,21 @@ class SecretsManager:
     
     This class provides a centralized way to manage secrets using:
     1. Environment variables (highest priority)
-    2. .env files (for local development)
-    3. Fallback to empty strings (for unconfigured services)
+    2. OS keychain via keyring (for persistent storage)
+    3. .env files (for local development)
+    4. Fallback to empty strings (for unconfigured services)
     """
     
-    def __init__(self, env_file_path: Optional[str] = None):
+    def __init__(self, env_file_path: Optional[str] = None, service_name: str = "ai_coder_assistant"):
         """
         Initialize the secrets manager.
         
         Args:
             env_file_path: Optional path to .env file. If None, will look for .env in project root.
+            service_name: Service name for keyring storage
         """
         self._secrets_cache: Dict[str, str] = {}
+        self.service_name = service_name
         self._load_env_file(env_file_path)
     
     def _load_env_file(self, env_file_path: Optional[str] = None):
@@ -80,10 +96,15 @@ class SecretsManager:
     
     def get_secret(self, key: str, default: str = "") -> str:
         """
-        Retrieve a secret from environment variables.
+        Retrieve a secret from environment variables or keyring.
+        
+        Priority order:
+        1. Environment variables (highest priority)
+        2. OS keychain via keyring
+        3. Default value
         
         Args:
-            key: The environment variable name
+            key: The secret key name
             default: Default value if not found
             
         Returns:
@@ -93,35 +114,52 @@ class SecretsManager:
         if key in self._secrets_cache:
             return self._secrets_cache[key]
         
-        # Get from environment
-        value = os.environ.get(key, default)
+        # First, try environment variables
+        value = os.environ.get(key)
+        if value:
+            self._secrets_cache[key] = value
+            return value
         
-        # Cache the result
-        self._secrets_cache[key] = value
+        # Then, try keyring
+        if _keyring_available and keyring:
+            try:
+                value = keyring.get_password(self.service_name, key)
+                if value:
+                    self._secrets_cache[key] = value
+                    return value
+            except Exception as e:
+                logger.warning(f"Failed to retrieve {key} from keyring: {e}")
         
-        return value
+        # Return default
+        self._secrets_cache[key] = default
+        return default
     
-    def save_secret(self, key: str, value: str) -> bool:
+    def save_secret(self, key: str, value: str, persist_to_keyring: bool = True) -> bool:
         """
-        Save a secret to environment variables.
-        
-        Note: This method sets the environment variable for the current process.
-        For persistence across sessions, the value should be saved to a .env file
-        or system environment configuration.
+        Save a secret to environment variables and optionally to keyring.
         
         Args:
-            key: The environment variable name
+            key: The secret key name
             value: The secret value to save
+            persist_to_keyring: Whether to also save to OS keychain
             
         Returns:
             True if successful, False otherwise
         """
         try:
-            # Set in environment
+            # Set in environment for current session
             os.environ[key] = value
             
             # Update cache
             self._secrets_cache[key] = value
+            
+            # Optionally save to keyring for persistence
+            if persist_to_keyring and _keyring_available and keyring:
+                try:
+                    keyring.set_password(self.service_name, key, value)
+                    logger.info(f"Secret {key} saved to keyring successfully")
+                except Exception as e:
+                    logger.warning(f"Failed to save {key} to keyring: {e}")
             
             logger.info(f"Secret {key} saved successfully")
             return True
@@ -130,12 +168,47 @@ class SecretsManager:
             logger.error(f"Error saving secret {key}: {e}")
             return False
     
-    def load_secret(self, key: str) -> Optional[str]:
+    def delete_secret(self, key: str, remove_from_keyring: bool = True) -> bool:
         """
-        Load a secret from environment variables.
+        Delete a secret from environment and optionally from keyring.
         
         Args:
-            key: The environment variable name
+            key: The secret key name
+            remove_from_keyring: Whether to also remove from OS keychain
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Remove from environment
+            if key in os.environ:
+                del os.environ[key]
+            
+            # Remove from cache
+            if key in self._secrets_cache:
+                del self._secrets_cache[key]
+            
+            # Optionally remove from keyring
+            if remove_from_keyring and _keyring_available and keyring:
+                try:
+                    keyring.delete_password(self.service_name, key)
+                    logger.info(f"Secret {key} removed from keyring successfully")
+                except Exception as e:
+                    logger.warning(f"Failed to remove {key} from keyring: {e}")
+            
+            logger.info(f"Secret {key} deleted successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error deleting secret {key}: {e}")
+            return False
+    
+    def load_secret(self, key: str) -> Optional[str]:
+        """
+        Load a secret from environment variables or keyring.
+        
+        Args:
+            key: The secret key name
             
         Returns:
             The secret value or None if not found

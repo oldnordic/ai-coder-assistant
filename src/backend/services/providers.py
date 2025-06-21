@@ -82,6 +82,9 @@ class PricingConfig:
             },
             "ollama": {
                 "default": {"input": 0.0, "output": 0.0},  # Free for local models
+            },
+            "lm_studio": {
+                "default": {"input": 0.0, "output": 0.0},  # Free for local models
             }
         }
         
@@ -734,3 +737,157 @@ class OllamaProvider(BaseProvider):
     def calculate_cost(self, usage: Dict[str, int], model: str) -> float:
         """Calculate cost for Ollama token usage (always 0 for local models)."""
         return 0.0
+
+
+class LMStudioProvider(BaseProvider):
+    """LM Studio provider implementation.
+    
+    LM Studio provides an OpenAI-compatible API endpoint, so this provider
+    is essentially a specialized version of the OpenAIProvider with a
+    hardcoded base URL pointing to the local LM Studio server.
+    """
+
+    def _setup_client(self):
+        """Setup LM Studio client with OpenAI-compatible API."""
+        # LM Studio typically runs on localhost:1234 with OpenAI-compatible API
+        lm_studio_base_url = self.config.base_url or "http://localhost:1234/v1"
+        
+        self.client = AsyncOpenAI(
+            api_key="lm-studio",  # LM Studio doesn't require a real API key
+            base_url=lm_studio_base_url,
+            timeout=self.config.timeout,
+        )
+
+    async def chat_completion(
+        self, request: ChatCompletionRequest
+    ) -> ChatCompletionResponse:
+        """Send chat completion request to LM Studio."""
+        start_time = time.time()
+
+        try:
+            # Convert our request format to OpenAI format
+            openai_messages = [
+                {
+                    "role": msg.role,
+                    "content": msg.content,
+                    **({"name": msg.name} if msg.name else {}),
+                    **({"function_call": msg.function_call} if msg.function_call else {})
+                }
+                for msg in request.messages
+            ]
+
+            openai_request = {
+                "model": request.model,
+                "messages": openai_messages,
+                "temperature": request.temperature,
+                "max_tokens": request.max_tokens,
+                "top_p": request.top_p,
+                "frequency_penalty": request.frequency_penalty,
+                "presence_penalty": request.presence_penalty,
+                "stop": request.stop,
+                "stream": request.stream,
+                "functions": request.functions,
+                "function_call": request.function_call,
+            }
+
+            # Remove None values
+            openai_request = {k: v for k, v in openai_request.items() if v is not None}
+
+            response = await self.client.chat.completions.create(**openai_request)
+            
+            end_time = time.time()
+            response_time = end_time - start_time
+
+            # Convert OpenAI response to our format
+            choices = []
+            for choice in response.choices:
+                choice_dict = {
+                    "index": choice.index,
+                    "message": {
+                        "role": choice.message.role,
+                        "content": choice.message.content,
+                        **({"function_call": choice.message.function_call.model_dump()} if choice.message.function_call else {})
+                    },
+                    "finish_reason": choice.finish_reason,
+                }
+                choices.append(choice_dict)
+
+            usage = None
+            if response.usage:
+                usage = {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                }
+
+            cost = self.calculate_cost(usage, request.model) if usage else None
+
+            return ChatCompletionResponse(
+                id=response.id,
+                model=response.model,
+                created=datetime.fromtimestamp(response.created),
+                choices=choices,
+                provider=ProviderType.LM_STUDIO,
+                response_time=response_time,
+                usage=usage,
+                finish_reason=choices[0]["finish_reason"] if choices else None,
+                cost=cost,
+            )
+
+        except Exception as e:
+            logger.error(f"LM Studio chat completion error: {e}")
+            raise
+
+    async def list_models(self) -> List[ModelConfig]:
+        """List available models from LM Studio."""
+        try:
+            response = await self.client.models.list()
+            
+            models = []
+            for model in response.data:
+                # LM Studio models typically have names like "local-model"
+                # We'll create a more descriptive name
+                model_name = model.id
+                if model_name.startswith("local-"):
+                    display_name = model_name.replace("local-", "").replace("-", " ").title()
+                else:
+                    display_name = model_name
+                
+                model_config = ModelConfig(
+                    name=model_name,
+                    provider=ProviderType.LM_STUDIO,
+                    model_type=ModelType.CHAT,  # Most LM Studio models are chat models
+                    max_tokens=8192,  # Default for local models
+                    temperature=0.7,
+                    is_default=False,
+                    is_enabled=True,
+                    cost_per_1k_tokens=0.0,  # Free for local models
+                    context_length=8192,  # Typical for local models
+                    capabilities=["chat", "completion"],
+                    metadata={
+                        "display_name": display_name,
+                        "source": "lm_studio",
+                        "local": True,
+                    }
+                )
+                models.append(model_config)
+            
+            return models
+
+        except Exception as e:
+            logger.error(f"Error listing LM Studio models: {e}")
+            return []
+
+    async def health_check(self) -> bool:
+        """Check if LM Studio server is running and accessible."""
+        try:
+            # Try to list models to check connectivity
+            models = await self.list_models()
+            return len(models) > 0
+        except Exception as e:
+            logger.warning(f"LM Studio health check failed: {e}")
+            return False
+
+    def calculate_cost(self, usage: Dict[str, int], model: str) -> float:
+        """Calculate cost for LM Studio models (always 0 for local models)."""
+        return 0.0  # LM Studio models are local and free

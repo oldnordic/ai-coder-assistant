@@ -147,6 +147,13 @@ def get_settings() -> Dict[str, Any]:
     
     secrets_manager = get_secrets_manager()
     
+    # Check keyring availability safely
+    try:
+        import importlib.util
+        keyring_available = importlib.util.find_spec("keyring") is not None
+    except Exception:
+        keyring_available = False
+    
     return {
         "openai_api_key": secrets_manager.get_secret("OPENAI_API_KEY", ""),
         "openai_base_url": secrets_manager.get_secret("OPENAI_BASE_URL", ""),
@@ -159,6 +166,7 @@ def get_settings() -> Dict[str, Any]:
         "aws_secret_key": secrets_manager.get_secret("AWS_SECRET_KEY", ""),
         "aws_region": secrets_manager.get_secret("AWS_REGION", ""),
         "cohere_api_key": secrets_manager.get_secret("COHERE_API_KEY", ""),
+        "keyring_available": keyring_available,
     }
 
 

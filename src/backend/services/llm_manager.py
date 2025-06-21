@@ -36,6 +36,7 @@ from src.backend.services.providers import (
     GoogleGeminiProvider,
     OllamaProvider,
     OpenAIProvider,
+    LMStudioProvider,
 )
 from src.backend.services.pr_automation import (
     PRAutomationService,
@@ -198,6 +199,14 @@ class LLMManager:
                     provider=ProviderType.CLAUDE,
                     model_type=ModelType.CHAT,
                 ),
+                "local-model": ModelConfig(
+                    name="local-model",
+                    provider=ProviderType.LM_STUDIO,
+                    model_type=ModelType.CHAT,
+                    cost_per_1k_tokens=0.0,  # Free for local models
+                    capabilities=["chat", "completion"],
+                    metadata={"source": "lm_studio", "local": True},
+                ),
             }
         )
 
@@ -262,13 +271,7 @@ class LLMManager:
             logger.error(f"Error saving config: {e}")
 
     def _is_provider_configured(self, provider_type: ProviderType) -> bool:
-        """
-        Check if a provider is properly configured with API keys.
-        Returns True only if the provider has the necessary configuration.
-        """
-        # Use the new secrets management system
-        provider_name = provider_type.value.lower()
-        
+        """Check if a provider is properly configured with API keys."""
         if provider_type == ProviderType.OPENAI:
             return is_provider_configured("openai")
         elif provider_type == ProviderType.CLAUDE or provider_type == ProviderType.ANTHROPIC:
@@ -279,23 +282,10 @@ class LLMManager:
             # Ollama is always available if it's running locally
             # We'll check availability during actual initialization
             return True
-        elif provider_type == ProviderType.AZURE:
-            # Check for Azure API key and endpoint
-            secrets_manager = get_secrets_manager()
-            return bool(
-                secrets_manager.get_secret("AZURE_API_KEY", "").strip() and
-                secrets_manager.get_secret("AZURE_ENDPOINT", "").strip()
-            )
-        elif provider_type == ProviderType.AWS_BEDROCK:
-            # Check for AWS credentials
-            secrets_manager = get_secrets_manager()
-            return bool(
-                secrets_manager.get_secret("AWS_ACCESS_KEY", "").strip() and
-                secrets_manager.get_secret("AWS_SECRET_KEY", "").strip() and
-                secrets_manager.get_secret("AWS_REGION", "").strip()
-            )
-        elif provider_type == ProviderType.COHERE:
-            return is_provider_configured("cohere")
+        elif provider_type == ProviderType.LM_STUDIO:
+            # LM Studio is available if the local server is running
+            # We'll check availability during actual initialization
+            return True
         else:
             logger.warning(
                 f"Unknown provider type for configuration check: {provider_type.value}"
@@ -355,6 +345,8 @@ class LLMManager:
                     # General Ollama provider. Specific instances are handled elsewhere.
                     if provider_type not in self.providers:
                         self.providers[provider_type] = OllamaProvider(provider_config)
+                elif provider_type == ProviderType.LM_STUDIO:
+                    self.providers[provider_type] = LMStudioProvider(provider_config)
                 else:
                     logger.warning(
                         f"Unknown provider type encountered: {provider_type.value}"
@@ -554,6 +546,8 @@ class LLMManager:
                 provider = GoogleGeminiProvider(provider_config)
             elif provider_config.provider_type == ProviderType.OLLAMA:
                 provider = OllamaProvider(provider_config)
+            elif provider_config.provider_type == ProviderType.LM_STUDIO:
+                provider = LMStudioProvider(provider_config)
             else:
                 raise ValueError(
                     f"Unsupported provider type: {provider_config.provider_type}"
@@ -665,6 +659,8 @@ class LLMManager:
                 provider = GoogleGeminiProvider(temp_config)
             elif provider_type == ProviderType.OLLAMA:
                 provider = OllamaProvider(temp_config)
+            elif provider_type == ProviderType.LM_STUDIO:
+                provider = LMStudioProvider(temp_config)
             else:
                 return False
 

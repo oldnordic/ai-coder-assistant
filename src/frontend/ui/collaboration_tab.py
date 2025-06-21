@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QColor, QFont
+from PyQt6.QtGui import QColor, QFont, QIcon
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -55,6 +55,28 @@ from src.utils.constants import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def get_safe_icon(icon_path: str, fallback_text: str = "⚙️") -> QIcon:
+    """
+    Safely load an icon from a path, with fallback to text-based icon.
+    
+    Args:
+        icon_path: Path to the icon file
+        fallback_text: Unicode character to use as fallback
+        
+    Returns:
+        QIcon object or None if loading fails
+    """
+    try:
+        if os.path.exists(icon_path):
+            return QIcon(icon_path)
+        else:
+            # Return None to use default button appearance
+            return QIcon()
+    except Exception as e:
+        logger.warning(f"Failed to load icon from {icon_path}: {e}")
+        return QIcon()
 
 
 class PlatformConfig:
@@ -1131,6 +1153,10 @@ class CollaborationTab(QWidget):
 
         # Configuration button
         config_btn = QPushButton("Configure Platforms")
+        # Try to set a proper icon if available, otherwise use text
+        config_icon = get_safe_icon(":/icons/configure.png")
+        if not config_icon.isNull():
+            config_btn.setIcon(config_icon)
         config_btn.clicked.connect(self.show_config_dialog)
         header_layout.addWidget(config_btn)
 

@@ -93,6 +93,10 @@ class SettingsTab(QWidget):
         self.app_settings_tab = self.create_app_settings_tab()
         self.tab_widget.addTab(self.app_settings_tab, "Application Settings")
         
+        # Local Models Tab
+        self.local_models_tab = self.create_local_models_tab()
+        self.tab_widget.addTab(self.local_models_tab, "Local Models")
+        
         # Security Tab
         self.security_tab = self.create_security_tab()
         self.tab_widget.addTab(self.security_tab, "Security")
@@ -359,6 +363,53 @@ class SettingsTab(QWidget):
         tab.setLayout(layout)
         return tab
         
+    def create_local_models_tab(self) -> QWidget:
+        """Create the Local Models tab."""
+        tab = QWidget()
+        layout = QVBoxLayout()
+        
+        # Description
+        desc_label = QLabel(
+            "Configure local models for AI generation."
+        )
+        desc_label.setWordWrap(True)
+        layout.addWidget(desc_label)
+        
+        # Local Models Grid
+        models_group = QGroupBox("Local Models")
+        models_layout = QGridLayout()
+        
+        self.local_model_inputs = {}
+        
+        # Define models and their display names
+        models = [
+            ("gpt-3.5-turbo", "gpt-3.5-turbo"),
+            ("gpt-4", "gpt-4"),
+            ("claude-3-sonnet", "claude-3-sonnet"),
+            ("gemini-pro", "gemini-pro"),
+        ]
+        
+        for row, (model, display_name) in enumerate(models):
+            # Model name
+            name_label = QLabel(display_name)
+            name_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+            models_layout.addWidget(name_label, row, 0)
+            
+            # Model input
+            model_input = QLineEdit()
+            model_input.setPlaceholderText(model)
+            model_input.textChanged.connect(self.on_setting_changed)
+            models_layout.addWidget(model_input, row, 1)
+            
+            self.local_model_inputs[model] = model_input
+        
+        models_group.setLayout(models_layout)
+        layout.addWidget(models_group)
+        
+        layout.addStretch()
+        tab.setLayout(layout)
+        return tab
+        
     def create_security_tab(self) -> QWidget:
         """Create the Security tab."""
         tab = QWidget()
@@ -441,6 +492,11 @@ class SettingsTab(QWidget):
         self.servicenow_username_input.setText(servicenow_config.get('username', ''))
         self.servicenow_token_input.setText(servicenow_config.get('api_token', ''))
         self.update_servicenow_status()
+        
+        # Load local models
+        for model, input_field in self.local_model_inputs.items():
+            current_value = self.secrets_manager.get_secret(f"LOCAL_MODEL_{model.upper()}")
+            input_field.setText(current_value)
         
         # Reset change tracking
         self.save_button.setEnabled(False)
@@ -586,6 +642,13 @@ class SettingsTab(QWidget):
             if servicenow_token:
                 env_content.append(f"SERVICENOW_API_TOKEN={servicenow_token}")
             
+            # Local Models
+            env_content.append("# Local Models")
+            for model, input_field in self.local_model_inputs.items():
+                value = input_field.text().strip()
+                if value:
+                    env_content.append(f"LOCAL_MODEL_{model.upper()}={value}")
+            
             # Write to .env file
             env_file = project_root / ".env"
             with open(env_file, 'w') as f:
@@ -639,6 +702,10 @@ class SettingsTab(QWidget):
             self.enable_fallback_check.setChecked(True)
             self.enable_retry_check.setChecked(True)
             self.timeout_spin.setValue(30)
+            
+            # Reset local models
+            for input_field in self.local_model_inputs.values():
+                input_field.clear()
             
             self.save_button.setEnabled(True)
             

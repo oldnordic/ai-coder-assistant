@@ -211,8 +211,8 @@ def crawl_docs(urls: List[str], output_dir: str, **kwargs: Any) -> Dict[str, Any
             )
             future_to_url[future] = url
 
-        # Collect results as they complete with timeout
-        for future in as_completed(future_to_url, timeout=timeout):
+        # Collect results as they complete
+        for future in as_completed(future_to_url):
             # Check for cancellation
             if cancellation_callback():
                 log_message_callback("Web scraping cancelled by user")
@@ -227,6 +227,7 @@ def crawl_docs(urls: List[str], output_dir: str, **kwargs: Any) -> Dict[str, Any
                 # Update progress for current URL
                 update_progress(url, "Scraping")
 
+                # This correctly handles the timeout for each individual URL
                 filepath, success = future.result(timeout=timeout)
                 if success:
                     successful_scrapes += 1

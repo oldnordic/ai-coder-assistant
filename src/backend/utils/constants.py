@@ -120,6 +120,62 @@ GRACEFUL_SHUTDOWN_WAIT_MS = 3000
 SPLITTER_LEFT_SIZE = 400
 SPLITTER_RIGHT_SIZE = 600
 
+# UI Table Headers and Labels
+SCAN_RESULTS_TABLE_HEADERS = ["File", "Line", "Type", "Severity", "Issue", "Actions"]
+MODEL_SOURCE_OPTIONS = ["Ollama", "Fine-tuned Local Model"]
+DEFAULT_INCLUDE_PATTERNS = "*.py,*.js,*.ts,*.java,*.cpp,*.c,*.h,*.hpp"
+DEFAULT_EXCLUDE_PATTERNS = "__pycache__/*,node_modules/*,.git/*,*.pyc,*.log"
+
+# UI Status Messages
+STATUS_READY_TO_SCAN = "Ready to scan"
+STATUS_NO_ISSUES_FOUND = "No issues found"
+STATUS_ENHANCEMENT_COMPLETE = "Enhancement complete."
+STATUS_MODEL_NOT_LOADED = "Status: Not Loaded"
+STATUS_NO_MODEL_INFO = "No model information available"
+
+# UI Button Labels
+BUTTON_BROWSE = "Browse..."
+BUTTON_RUN_QUICK_SCAN = "Run Quick Scan"
+BUTTON_STOP_SCAN = "Stop Scan"
+BUTTON_REFRESH_MODELS = "Refresh Models"
+BUTTON_LOAD_MODEL = "Load Fine-tuned Model"
+BUTTON_ENHANCE_ALL = "Enhance All Issues with AI"
+BUTTON_EXPORT_RESULTS = "Export Results"
+BUTTON_AI_ENHANCE = "AI Enhance"
+
+# UI Group Box Titles
+GROUP_MODEL_CONFIG = "1. AI Model Configuration"
+GROUP_SCAN_CONFIG = "2. Quick Scan Configuration"
+GROUP_SCAN_RESULTS = "3. Scan Results & AI Enhancement"
+
+# UI Form Labels
+LABEL_MODEL_SOURCE = "Model Source:"
+LABEL_OLLAMA_MODEL = "Ollama Model:"
+LABEL_MODEL_STATUS = "Model Status:"
+LABEL_MODEL_INFO = "Model Info:"
+LABEL_PROJECT_DIRECTORY = "Project Directory:"
+LABEL_INCLUDE_PATTERNS = "Include Patterns:"
+LABEL_EXCLUDE_PATTERNS = "Exclude Patterns:"
+
+# UI Placeholder Texts
+PLACEHOLDER_PROJECT_DIR = "Select a project folder to scan..."
+
+# UI Error Messages
+ERROR_DOCKER_TIMEOUT = "Docker operation timed out."
+ERROR_AI_PARSING_FAILED = "Failed to parse AI response."
+ERROR_NO_MODEL_AVAILABLE = "No AI model available"
+
+# UI Success Messages
+SUCCESS_SECRET_SAVED = "Secret saved successfully"
+SUCCESS_MODEL_SWITCHED = "Switched to model:"
+
+# UI Warning Messages
+WARNING_NO_DOTENV = "python-dotenv not available. .env files will not be loaded."
+WARNING_NO_ENV_FILE = "No .env file found at"
+WARNING_UNKNOWN_PROVIDER = "Unknown provider:"
+WARNING_MODEL_NOT_AVAILABLE = "Model not available"
+WARNING_NO_OLLAMA_MODELS = "No Ollama models found. AI enhancement will be disabled."
+
 # Progress Constants
 
 # Content Size Limits
@@ -219,3 +275,79 @@ DEFAULT_MAX_WORKERS = 4
 
 SSL_VERIFY_DEFAULT = True
 VERIFY_DEFAULT = True
+
+# Collaboration Constants
+COLLABORATION_TAB_TITLE = "Collaboration Features"
+COLLABORATION_DESCRIPTION = "Team collaboration tools for code sharing, communication, and project management."
+CONFIGURE_PLATFORMS_BUTTON = "Configure Platforms"
+TEAM_CHAT_TAB = "Team Chat"
+CODE_SHARING_TAB = "Code Sharing"
+PROJECT_MANAGEMENT_TAB = "Project Management"
+
+# Collaboration Platform Names
+PLATFORM_TEAMS = "Microsoft Teams"
+PLATFORM_SLACK = "Slack"
+PLATFORM_GITHUB = "GitHub"
+PLATFORM_STATUS_ACTIVE = "Active Platforms: "
+PLATFORM_STATUS_NONE = "None (Configure platforms to enable integration)"
+
+# Code Sharing Constants
+CODE_SHARING_TITLE = "Code Sharing & Collaboration"
+SHARE_NEW_ITEM_GROUP = "Share New Item"
+SHARE_TYPE_LABEL = "Share Type:"
+SHARE_FILE_BUTTON = "Share File"
+SHARE_SNIPPET_BUTTON = "Share Code Snippet"
+SHARE_DOC_BUTTON = "Share Documentation"
+SHARED_ITEMS_GROUP = "Shared Items"
+FILTER_BY_LABEL = "Filter by:"
+
+# Share Types
+SHARE_TYPE_FILE = "File"
+SHARE_TYPE_SNIPPET = "Code Snippet"
+SHARE_TYPE_DOCUMENTATION = "Documentation"
+SHARE_TYPE_CONFIGURATION = "Configuration"
+
+# Model Manager Constants
+MODEL_MANAGER_TITLE = "Model Manager"
+CURRENT_MODEL_STATUS_GROUP = "Current Model Status"
+ACTIVE_MODEL_LABEL = "Active Model:"
+SWITCH_TO_LABEL = "Switch to:"
+SELECT_MODEL_PLACEHOLDER = "Select Model"
+
+# Model Health Constants
+HEALTH_OVERVIEW_GROUP = "Model Health Overview"
+HEALTH_STATUS_LABEL = "Status:"
+RESPONSE_TIME_LABEL = "Response Time:"
+LAST_CHECK_LABEL = "Last Check:"
+RUN_HEALTH_CHECK_BUTTON = "Run Health Check"
+REFRESH_SYSTEM_INFO_BUTTON = "Refresh System Info"
+
+# Health Status Colors
+HEALTH_COLOR_GREEN = "#28a745"
+HEALTH_COLOR_RED = "#dc3545"
+HEALTH_COLOR_YELLOW = "#ffc107"
+HEALTH_COLOR_BLUE = "#007bff"
+
+# Health Status Messages
+HEALTH_STATUS_HEALTHY = "Healthy"
+HEALTH_STATUS_UNHEALTHY = "Unhealthy"
+HEALTH_STATUS_NO_MODEL = "No Model"
+HEALTH_STATUS_ERROR = "Error"
+HEALTH_STATUS_CHECKING = "Checking..."
+
+# Model Types
+MODEL_TYPE_OLLAMA = "ollama"
+MODEL_TYPE_FINE_TUNED = "fine_tuned"
+MODEL_TYPE_LOCAL = "local"
+
+# Model Actions
+MODEL_ACTION_SET_ACTIVE = "Set Active"
+MODEL_ACTION_DELETE = "Delete"
+MODEL_ACTION_EVALUATE = "Evaluate"
+MODEL_ACTION_REFRESH = "Refresh"
+
+# Training Constants
+TRAINING_START_BUTTON = "Start Training"
+TRAINING_STOP_BUTTON = "Stop Training"
+TRAINING_CREATE_DATASET_BUTTON = "Create Dataset"
+TRAINING_BROWSE_DATASETS_BUTTON = "Browse Datasets"

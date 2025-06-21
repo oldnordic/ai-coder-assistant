@@ -419,38 +419,123 @@ If no issues are found, respond with:
     def _parse_enhancement_response(self, response: str, request: EnhancementRequest) -> EnhancementResult:
         """Parse the AI model response into a structured result."""
         try:
-            # Try to extract JSON from the response
+            # Try multiple JSON extraction strategies
+            parsed_data = None
+            
+            # Strategy 1: Look for JSON block with square brackets
             json_match = re.search(r'\{.*\}', response, re.DOTALL)
             if json_match:
-                json_str = json_match.group(0)
-                parsed = json.loads(json_str)
+                try:
+                    json_str = json_match.group(0)
+                    parsed_data = json.loads(json_str)
+                except json.JSONDecodeError:
+                    pass
+            
+            # Strategy 2: Look for JSON block with specific markers
+            if not parsed_data:
+                # Look for common JSON markers
+                markers = [
+                    r'```json\s*(\{.*?\})\s*```',
+                    r'```\s*(\{.*?\})\s*```',
+                    r'JSON:\s*(\{.*?\})',
+                    r'Response:\s*(\{.*?\})'
+                ]
+                
+                for pattern in markers:
+                    match = re.search(pattern, response, re.DOTALL)
+                    if match:
+                        try:
+                            json_str = match.group(1)
+                            parsed_data = json.loads(json_str)
+                            break
+                        except json.JSONDecodeError:
+                            continue
+            
+            # Strategy 3: Try to extract JSON from the entire response
+            if not parsed_data:
+                try:
+                    # Clean up the response and try to parse as JSON
+                    cleaned_response = response.strip()
+                    # Remove common prefixes/suffixes
+                    cleaned_response = re.sub(r'^[^{]*', '', cleaned_response)
+                    cleaned_response = re.sub(r'[^}]*$', '', cleaned_response)
+                    if cleaned_response.startswith('{') and cleaned_response.endswith('}'):
+                        parsed_data = json.loads(cleaned_response)
+                except (json.JSONDecodeError, IndexError):
+                    pass
+            
+            if parsed_data:
+                # Validate and sanitize the parsed data
+                analysis = parsed_data.get('analysis', '')
+                if not analysis and 'enhanced_analysis' in parsed_data:
+                    analysis = parsed_data.get('enhanced_analysis', '')
+                
+                suggestions = parsed_data.get('suggestions', [])
+                if not isinstance(suggestions, list):
+                    suggestions = [str(suggestions)] if suggestions else []
+                else:
+                    # Ensure all items are strings
+                    validated_suggestions = []
+                    for s in suggestions:
+                        if s is not None:
+                            validated_suggestions.append(str(s))
+                    suggestions = validated_suggestions
+                
+                explanation = parsed_data.get('explanation', '')
+                confidence = parsed_data.get('confidence', 0.5)
+                if not isinstance(confidence, (int, float)) or confidence < 0 or confidence > 1:
+                    confidence = 0.5
+                
+                code_changes = parsed_data.get('code_changes', [])
+                if not isinstance(code_changes, list):
+                    code_changes = []
+                else:
+                    # Ensure all items are dictionaries with proper types
+                    validated_changes = []
+                    for c in code_changes:
+                        if isinstance(c, dict):
+                            validated_changes.append({
+                                'type': str(c.get('type', '')),
+                                'line': int(c.get('line', 0)),
+                                'old_code': str(c.get('old_code', '')),
+                                'new_code': str(c.get('new_code', '')),
+                                'explanation': str(c.get('explanation', ''))
+                            })
+                    code_changes = validated_changes
+                
+                security_implications = parsed_data.get('security_implications')
+                performance_impact = parsed_data.get('performance_impact')
                 
                 return EnhancementResult(
                     original_issue=request.issue_description,
-                    enhanced_analysis=parsed.get('analysis', ''),
-                    suggestions=parsed.get('suggestions', []),
-                    explanation=parsed.get('explanation', ''),
-                    confidence_score=parsed.get('confidence', 0.5),
+                    enhanced_analysis=analysis,
+                    suggestions=suggestions,
+                    explanation=explanation,
+                    confidence_score=float(confidence),
                     model_used=self.current_model or "unknown",
                     processing_time=0.0,  # TODO: Track actual processing time
-                    code_changes=parsed.get('code_changes', []),
-                    security_implications=parsed.get('security_implications'),
-                    performance_impact=parsed.get('performance_impact')
+                    code_changes=code_changes,
+                    security_implications=security_implications,
+                    performance_impact=performance_impact
                 )
             else:
                 # Fallback: treat the entire response as analysis
+                logger.warning(f"Could not parse JSON from model response. Using raw response as analysis.")
+                logger.debug(f"Raw response: {response[:500]}...")  # Log first 500 chars for debugging
+                
                 return EnhancementResult(
                     original_issue=request.issue_description,
                     enhanced_analysis=response,
-                    suggestions=[],
-                    explanation="Raw AI response",
-                    confidence_score=0.5,
+                    suggestions=["Review the code manually", "Consider the raw AI analysis above"],
+                    explanation="AI provided raw analysis (JSON parsing failed)",
+                    confidence_score=0.3,  # Lower confidence for unparsed responses
                     model_used=self.current_model or "unknown",
                     processing_time=0.0
                 )
                 
         except Exception as e:
             logger.error(f"Failed to parse enhancement response: {e}")
+            logger.error(f"Raw response: {response[:500]}...")  # Log first 500 chars for debugging
             return self._create_fallback_result(request, f"Failed to parse response: {e}")
     
     def _create_fallback_result(self, request: EnhancementRequest, error_message: str) -> EnhancementResult:

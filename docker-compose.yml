@@ -1,31 +1,58 @@
 version: '3.8'
 
 services:
-  # Main application
+  # Unified API server (FastAPI)
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: ai-coder-api
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_MODE=production
+      - HOST=0.0.0.0
+      - PORT=8000
+      - PYTHONPATH=/app
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - ./models:/app/models
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Main application (GUI)
   ai-coder-assistant:
     build:
       context: .
       target: production
     container_name: ai-coder-assistant
     ports:
-      - "8000:8000"
       - "8080:8080"
     environment:
       - APP_MODE=production
       - HOST=0.0.0.0
-      - PORT=8000
+      - PORT=8080
       - PYTHONPATH=/app/src
+      - API_BASE_URL=http://api:8000
     volumes:
       - ./data:/app/data
       - ./config:/app/config
       - ./logs:/app/logs
+    depends_on:
+      - api
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    profiles:
+      - gui
 
   # Development environment
   ai-coder-dev:
@@ -53,33 +80,6 @@ services:
     profiles:
       - dev
 
-  # API server
-  ai-coder-api:
-    build:
-      context: .
-      target: api-server
-    container_name: ai-coder-api
-    ports:
-      - "8002:8000"
-    environment:
-      - APP_MODE=api
-      - HOST=0.0.0.0
-      - PORT=8000
-      - PYTHONPATH=/app/src
-    volumes:
-      - ./data:/app/data
-      - ./config:/app/config
-      - ./logs:/app/logs
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    profiles:
-      - api
-
   # CLI tool
   ai-coder-cli:
     build:
@@ -89,10 +89,13 @@ services:
     environment:
       - APP_MODE=cli
       - PYTHONPATH=/app/src
+      - API_BASE_URL=http://api:8000
     volumes:
       - ./data:/app/data
       - ./config:/app/config
       - ./logs:/app/logs
+    depends_on:
+      - api
     profiles:
       - cli
 
@@ -105,11 +108,14 @@ services:
     environment:
       - APP_MODE=scanner
       - PYTHONPATH=/app/src
+      - API_BASE_URL=http://api:8000
     volumes:
       - ./data:/app/data
       - ./config:/app/config
       - ./logs:/app/logs
       - ./src:/app/src:ro
+    depends_on:
+      - api
     profiles:
       - scanner
 
@@ -123,11 +129,14 @@ services:
       - APP_MODE=trainer
       - PYTHONPATH=/app/src
       - CUDA_VISIBLE_DEVICES=0
+      - API_BASE_URL=http://api:8000
     volumes:
       - ./data:/app/data
       - ./config:/app/config
       - ./logs:/app/logs
       - ./models:/app/models
+    depends_on:
+      - api
     deploy:
       resources:
         reservations:
@@ -147,11 +156,14 @@ services:
     environment:
       - PYTHONPATH=/app/src
       - PYTEST_ADDOPTS=--cov=src --cov-report=html --cov-report=term-missing
+      - API_BASE_URL=http://api:8000
     volumes:
       - .:/app
       - ./data:/app/data
       - ./config:/app/config
       - ./logs:/app/logs
+    depends_on:
+      - api
     profiles:
       - test
 

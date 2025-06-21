@@ -1,6 +1,14 @@
 {
   "studio_settings": {
     "default_model": "gpt-3.5-turbo",
+    "enable_fallback": true,
+    "enable_retry": true,
+    "max_concurrent_requests": 5,
+    "request_timeout": 30,
+    "enable_logging": true,
+    "enable_metrics": true,
+    "cost_tracking": true,
+    "auto_switch_on_error": true,
     "default_temperature": 0.7,
     "default_max_tokens": 2048,
     "default_system_prompt": "You are a helpful AI coding assistant. Provide clear, concise, and accurate responses to coding questions and tasks.",
@@ -16,44 +24,70 @@
     "gpt-3.5-turbo": {
       "provider": "openai",
       "max_tokens": 4096,
-      "temperature_range": [0.0, 2.0],
-      "supported_features": ["chat", "code_generation", "analysis"],
-      "cost_per_1k_tokens": 0.002
+      "cost_per_1k_tokens": 0.002,
+      "supported_features": ["chat", "completion"]
     },
     "gpt-4": {
       "provider": "openai",
       "max_tokens": 8192,
-      "temperature_range": [0.0, 2.0],
-      "supported_features": ["chat", "code_generation", "analysis", "reasoning"],
-      "cost_per_1k_tokens": 0.03
-    },
-    "claude-3-sonnet": {
-      "provider": "anthropic",
-      "max_tokens": 4096,
-      "temperature_range": [0.0, 1.0],
-      "supported_features": ["chat", "code_generation", "analysis"],
-      "cost_per_1k_tokens": 0.015
-    },
-    "claude-3-opus": {
-      "provider": "anthropic",
-      "max_tokens": 4096,
-      "temperature_range": [0.0, 1.0],
-      "supported_features": ["chat", "code_generation", "analysis", "reasoning"],
-      "cost_per_1k_tokens": 0.075
+      "cost_per_1k_tokens": 0.03,
+      "supported_features": ["chat", "completion"]
     },
     "gemini-pro": {
-      "provider": "google",
+      "provider": "google_gemini",
       "max_tokens": 8192,
-      "temperature_range": [0.0, 2.0],
-      "supported_features": ["chat", "code_generation", "analysis"],
-      "cost_per_1k_tokens": 0.00125
+      "cost_per_1k_tokens": 0.0005,
+      "supported_features": ["chat", "completion"]
     },
-    "llama3:latest": {
-      "provider": "ollama",
+    "claude-3-sonnet-20240229": {
+      "provider": "claude",
       "max_tokens": 4096,
-      "temperature_range": [0.0, 2.0],
-      "supported_features": ["chat", "code_generation"],
-      "cost_per_1k_tokens": 0.0
+      "cost_per_1k_tokens": 0.003,
+      "supported_features": ["chat", "completion"]
+    },
+    "local-model": {
+      "provider": "lm_studio",
+      "max_tokens": 8192,
+      "cost_per_1k_tokens": 0.0,
+      "supported_features": ["chat", "completion"],
+      "metadata": {
+        "source": "lm_studio",
+        "local": true,
+        "base_url": "http://localhost:1234/v1"
+      }
+    }
+  },
+  "provider_configurations": {
+    "openai": {
+      "is_enabled": true,
+      "priority": 1,
+      "timeout": 30,
+      "max_retries": 3
+    },
+    "google_gemini": {
+      "is_enabled": true,
+      "priority": 2,
+      "timeout": 30,
+      "max_retries": 3
+    },
+    "claude": {
+      "is_enabled": true,
+      "priority": 3,
+      "timeout": 30,
+      "max_retries": 3
+    },
+    "ollama": {
+      "is_enabled": true,
+      "priority": 4,
+      "timeout": 60,
+      "max_retries": 2
+    },
+    "lm_studio": {
+      "is_enabled": true,
+      "priority": 5,
+      "timeout": 60,
+      "max_retries": 2,
+      "base_url": "http://localhost:1234/v1"
     }
   },
   "prompt_templates": {
@@ -144,5 +178,6 @@
         }
       ]
     }
-  ]
+  ],
+  "ollama_instances": []
 } 

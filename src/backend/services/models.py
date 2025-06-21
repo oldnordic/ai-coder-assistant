@@ -37,6 +37,7 @@ class ProviderType(Enum):
     CLAUDE = "claude"
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
+    LM_STUDIO = "lm_studio"
 
 
 class ModelType(Enum):

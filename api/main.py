@@ -14,11 +14,24 @@ import secrets
 import sqlite3
 import hashlib
 import uuid
+import json
+
+# FastAPI imports
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, File, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel, Field
+import uvicorn
+
+# Import the BackendController for unified business logic
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from src.frontend.controllers.backend_controller import BackendController
 
 # Initialize FastAPI app
 app = FastAPI(
     title="AI Coder Assistant API",
-    description="REST API for AI-powered code analysis and security scanning",
+    description="Unified API for all backend services - Code analysis, security scanning, and AI enhancement",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -35,6 +48,14 @@ app.add_middleware(
 
 # Security
 security = HTTPBearer()
+
+# Create a single, reusable instance of the BackendController
+# This maintains the singleton-like pattern and provides unified business logic
+backend_controller = BackendController()
+
+# Dependency function to provide the controller to endpoints
+def get_backend_controller() -> BackendController:
+    return backend_controller
 
 # JWT Configuration
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_urlsafe(32))
@@ -126,12 +147,6 @@ def update_last_login(user_id: str):
 # Initialize user database
 init_user_database()
 
-# Initialize components
-settings = Settings()
-scanner = CodeScanner()
-analyzer = IntelligentAnalyzer()
-ai_tools = AITools()
-
 # Pydantic models
 class ScanRequest(BaseModel):
     """Request model for code scanning"""
@@ -198,24 +213,16 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
         if not credentials.credentials:
             raise HTTPException(status_code=401, detail="Invalid token")
         
-        # Decode and verify JWT token
-        payload = jwt.decode(
-            credentials.credentials, 
-            JWT_SECRET_KEY, 
-            algorithms=[JWT_ALGORITHM]
-        )
-        
+        payload = jwt.decode(credentials.credentials, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid token payload")
         
-        # Check if token is expired
         exp = payload.get("exp")
-        if exp is None or datetime.utcnow().timestamp() > exp:
+        if exp is None or datetime.utcfromtimestamp(exp) < datetime.utcnow():
             raise HTTPException(status_code=401, detail="Token expired")
         
         return username
-        
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
     except Exception as e:
@@ -228,24 +235,20 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
-    
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
-# Authentication endpoints
 @app.post("/auth/login", response_model=TokenResponse)
 async def login(request: LoginRequest):
-    """Login endpoint with proper user authentication"""
+    """Login endpoint"""
     if not request.username or not request.password:
         raise HTTPException(status_code=400, detail="Username and password required")
     
-    # Get user from database
     user = get_user_by_username(request.username)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password")
     
-    # Verify password
     if not verify_password(request.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid username or password")
     
@@ -255,7 +258,7 @@ async def login(request: LoginRequest):
     # Create access token
     access_token_expires = timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user["username"], "role": user["role"], "user_id": user["id"]}, 
+        data={"sub": user["username"], "role": user["role"]}, 
         expires_delta=access_token_expires
     )
     
@@ -276,8 +279,8 @@ async def register_user(request: LoginRequest):
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already exists")
     
-    # Create new user
     try:
+        # Create new user
         user_id = str(uuid.uuid4())
         password_hash = hash_password(request.password)
         
@@ -285,7 +288,7 @@ async def register_user(request: LoginRequest):
             conn.execute("""
                 INSERT INTO users (id, username, password_hash, email, role, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (user_id, request.username, password_hash, "", "user", datetime.utcnow().isoformat()))
+            """, (user_id, request.username, password_hash, f"{request.username}@example.com", "user", datetime.utcnow().isoformat()))
             conn.commit()
         
         return {"success": True, "message": "User registered successfully"}
@@ -297,18 +300,17 @@ async def verify_token_endpoint(token: str = Depends(verify_token)):
     """Verify token endpoint"""
     return {"valid": True, "username": token}
 
-# Health check endpoint
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint"""
     return HealthResponse(
         status="healthy",
         version="1.0.0",
-        timestamp=datetime.now(),
+        timestamp=datetime.utcnow(),
         components={
-            "scanner": "operational",
-            "analyzer": "operational",
-            "ai_tools": "operational"
+            "backend_controller": "active",
+            "database": "connected",
+            "authentication": "enabled"
         }
     )
 
@@ -1074,6 +1076,231 @@ async def get_llm_config(token: str = Depends(verify_token)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting config: {str(e)}")
+
+# Unified API Endpoints using BackendController
+
+@app.post("/api/v1/quick-scan")
+async def quick_scan(
+    request: ScanRequest,
+    controller: BackendController = Depends(get_backend_controller)
+):
+    """
+    Perform a quick scan of the specified directory using local static analysis.
+    This is the first stage of the two-stage analysis approach.
+    """
+    try:
+        # Validate path
+        if not os.path.exists(request.path):
+            raise HTTPException(status_code=400, detail=f"Path does not exist: {request.path}")
+        
+        # Perform quick scan using BackendController
+        result = controller.start_quick_scan(
+            directory_path=request.path,
+            include_patterns=request.type_filter,
+            exclude_patterns=None  # Could be added to request model
+        )
+        
+        return {
+            "success": result["success"],
+            "message": "Quick scan completed successfully" if result["success"] else result.get("error", "Scan failed"),
+            "results": result.get("issues", []),
+            "summary": {
+                "total_issues": result.get("total_issues", 0),
+                "scan_type": result.get("scan_type", "quick_scan"),
+                "files_scanned": len(result.get("issues", []))
+            },
+            "timestamp": datetime.utcnow(),
+            "scan_duration": 0.0  # Could be measured if needed
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Quick scan failed: {str(e)}")
+
+@app.post("/api/v1/ai-enhancement")
+async def ai_enhancement(
+    issue_data: Dict[str, Any],
+    enhancement_type: str = "code_improvement",
+    controller: BackendController = Depends(get_backend_controller)
+):
+    """
+    Get AI enhancement for a specific issue.
+    This is the second stage of the two-stage analysis approach.
+    """
+    try:
+        # Start AI enhancement asynchronously
+        task_id = controller.get_ai_enhancement_async(
+            issue_data=issue_data,
+            enhancement_type=enhancement_type
+        )
+        
+        return {
+            "success": True,
+            "message": "AI enhancement started",
+            "task_id": task_id,
+            "enhancement_type": enhancement_type,
+            "timestamp": datetime.utcnow()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI enhancement failed: {str(e)}")
+
+@app.get("/api/v1/enhancement-status/{task_id}")
+async def get_enhancement_status(
+    task_id: str,
+    controller: BackendController = Depends(get_backend_controller)
+):
+    """Get the status of an AI enhancement task."""
+    try:
+        status = controller.get_enhancement_status(task_id)
+        return {
+            "success": True,
+            "task_id": task_id,
+            "status": status,
+            "timestamp": datetime.utcnow()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get enhancement status: {str(e)}")
+
+@app.delete("/api/v1/enhancement/{task_id}")
+async def cancel_enhancement(
+    task_id: str,
+    controller: BackendController = Depends(get_backend_controller)
+):
+    """Cancel an AI enhancement task."""
+    try:
+        success = controller.cancel_enhancement(task_id)
+        return {
+            "success": success,
+            "message": "Enhancement cancelled successfully" if success else "Failed to cancel enhancement",
+            "task_id": task_id,
+            "timestamp": datetime.utcnow()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to cancel enhancement: {str(e)}")
+
+@app.get("/api/v1/code-standards")
+async def get_code_standards(
+    controller: BackendController = Depends(get_backend_controller)
+):
+    """Get all configured code standards."""
+    try:
+        standards = controller.get_code_standards()
+        return standards
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get code standards: {str(e)}")
+
+@app.get("/api/v1/security-feeds")
+async def get_security_feeds(
+    controller: BackendController = Depends(get_backend_controller)
+):
+    """Get security intelligence feeds."""
+    try:
+        feeds = controller.get_security_feeds()
+        return feeds
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get security feeds: {str(e)}")
+
+@app.get("/api/v1/security-vulnerabilities")
+async def get_security_vulnerabilities(
+    severity: Optional[str] = None,
+    limit: int = 100,
+    controller: BackendController = Depends(get_backend_controller)
+):
+    """Get security vulnerabilities."""
+    try:
+        vulnerabilities = controller.get_security_vulnerabilities(severity=severity, limit=limit)
+        return vulnerabilities
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get security vulnerabilities: {str(e)}")
+
+@app.get("/api/v1/available-models")
+async def get_available_models(
+    controller: BackendController = Depends(get_backend_controller)
+):
+    """Get available AI models."""
+    try:
+        models = controller.get_available_models()
+        return {
+            "success": True,
+            "models": models,
+            "total_count": len(models)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get available models: {str(e)}")
+
+@app.post("/api/v1/switch-model")
+async def switch_model(
+    model_name: str,
+    controller: BackendController = Depends(get_backend_controller)
+):
+    """Switch to a different AI model."""
+    try:
+        success = controller.switch_model(model_name)
+        return {
+            "success": success,
+            "message": f"Switched to model: {model_name}" if success else f"Failed to switch to model: {model_name}",
+            "model_name": model_name
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to switch model: {str(e)}")
+
+# WebSocket endpoint for real-time communication
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time communication."""
+    await websocket.accept()
+    
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            
+            # Handle different message types
+            if message.get("type") == "ping":
+                await websocket.send_text(json.dumps({"type": "pong"}))
+            elif message.get("type") == "quick_scan":
+                # Handle real-time quick scan
+                result = await handle_realtime_quick_scan(message)
+                await websocket.send_text(json.dumps(result))
+            elif message.get("type") == "ai_enhancement":
+                # Handle real-time AI enhancement
+                result = await handle_realtime_ai_enhancement(message)
+                await websocket.send_text(json.dumps(result))
+            else:
+                await websocket.send_text(
+                    json.dumps({"type": "error", "message": "Unknown message type"})
+                )
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        await websocket.send_text(
+            json.dumps({"type": "error", "message": str(e)})
+        )
+
+async def handle_realtime_quick_scan(message: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle real-time quick scan requests."""
+    try:
+        directory_path = message.get("directory_path", "")
+        if not directory_path or not os.path.exists(directory_path):
+            return {"type": "quick_scan_result", "success": False, "error": "Invalid directory path"}
+        
+        controller = get_backend_controller()
+        result = controller.start_quick_scan(directory_path)
+        
+        return {"type": "quick_scan_result", "success": True, "result": result}
+    except Exception as e:
+        return {"type": "quick_scan_result", "success": False, "error": str(e)}
+
+async def handle_realtime_ai_enhancement(message: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle real-time AI enhancement requests."""
+    try:
+        issue_data = message.get("issue_data", {})
+        enhancement_type = message.get("enhancement_type", "code_improvement")
+        
+        controller = get_backend_controller()
+        task_id = controller.get_ai_enhancement_async(issue_data, enhancement_type)
+        
+        return {"type": "ai_enhancement_result", "success": True, "task_id": task_id}
+    except Exception as e:
+        return {"type": "ai_enhancement_result", "success": False, "error": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -45,7 +45,88 @@ from PyQt6.QtWidgets import (
     QFrame,
 )
 
+from src.backend.utils.constants import (
+    SCAN_RESULTS_TABLE_HEADERS,
+    MODEL_SOURCE_OPTIONS,
+    DEFAULT_INCLUDE_PATTERNS,
+    DEFAULT_EXCLUDE_PATTERNS,
+    STATUS_READY_TO_SCAN,
+    STATUS_NO_ISSUES_FOUND,
+    STATUS_MODEL_NOT_LOADED,
+    STATUS_NO_MODEL_INFO,
+    BUTTON_BROWSE,
+    BUTTON_RUN_QUICK_SCAN,
+    BUTTON_STOP_SCAN,
+    BUTTON_REFRESH_MODELS,
+    BUTTON_LOAD_MODEL,
+    BUTTON_ENHANCE_ALL,
+    BUTTON_EXPORT_RESULTS,
+    BUTTON_AI_ENHANCE,
+    GROUP_MODEL_CONFIG,
+    GROUP_SCAN_CONFIG,
+    GROUP_SCAN_RESULTS,
+    LABEL_MODEL_SOURCE,
+    LABEL_OLLAMA_MODEL,
+    LABEL_MODEL_STATUS,
+    LABEL_MODEL_INFO,
+    LABEL_PROJECT_DIRECTORY,
+    LABEL_INCLUDE_PATTERNS,
+    LABEL_EXCLUDE_PATTERNS,
+    PLACEHOLDER_PROJECT_DIR,
+)
+
 logger = logging.getLogger(__name__)
+
+
+def show_error_dialog(title: str, message: str, parent: Optional[QWidget] = None) -> None:
+    """
+    Show a standardized error dialog.
+    
+    Args:
+        title: Dialog title
+        message: Error message to display
+        parent: Parent widget for the dialog
+    """
+    error_dialog = QMessageBox(parent)
+    error_dialog.setIcon(QMessageBox.Icon.Critical)
+    error_dialog.setWindowTitle(title)
+    error_dialog.setText(message)
+    error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+    error_dialog.exec()
+
+
+def show_info_dialog(title: str, message: str, parent: Optional[QWidget] = None) -> None:
+    """
+    Show a standardized info dialog.
+    
+    Args:
+        title: Dialog title
+        message: Info message to display
+        parent: Parent widget for the dialog
+    """
+    info_dialog = QMessageBox(parent)
+    info_dialog.setIcon(QMessageBox.Icon.Information)
+    info_dialog.setWindowTitle(title)
+    info_dialog.setText(message)
+    info_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+    info_dialog.exec()
+
+
+def show_warning_dialog(title: str, message: str, parent: Optional[QWidget] = None) -> None:
+    """
+    Show a standardized warning dialog.
+    
+    Args:
+        title: Dialog title
+        message: Warning message to display
+        parent: Parent widget for the dialog
+    """
+    warning_dialog = QMessageBox(parent)
+    warning_dialog.setIcon(QMessageBox.Icon.Warning)
+    warning_dialog.setWindowTitle(title)
+    warning_dialog.setText(message)
+    warning_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+    warning_dialog.exec()
 
 
 class AIEnhancementDialog(QDialog):
@@ -212,62 +293,60 @@ def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
     layout = QVBoxLayout(parent_widget)
 
     # --- Model Selection Group ---
-    model_group = QGroupBox("1. AI Model Configuration")
+    model_group = QGroupBox(GROUP_MODEL_CONFIG)
     model_layout = QFormLayout(model_group)
 
     w["model_source_selector"] = QComboBox()
-    w["model_source_selector"].addItem("Ollama")
-    w["model_source_selector"].addItem("Fine-tuned Local Model")
+    for option in MODEL_SOURCE_OPTIONS:
+        w["model_source_selector"].addItem(option)
     w["model_source_selector"].currentTextChanged.connect(main_app_instance.on_model_source_changed)
     
-    w["ollama_model_label"] = QLabel("Ollama Model:")
+    w["ollama_model_label"] = QLabel(LABEL_OLLAMA_MODEL)
     w["ollama_model_selector"] = QComboBox()
-    w["refresh_models_button"] = QPushButton("Refresh Models")
+    w["refresh_models_button"] = QPushButton(BUTTON_REFRESH_MODELS)
     w["refresh_models_button"].clicked.connect(main_app_instance.populate_ollama_models)
     
     ollama_layout = QHBoxLayout()
     ollama_layout.addWidget(w["ollama_model_selector"])
     ollama_layout.addWidget(w["refresh_models_button"])
     
-    w["model_status_label"] = QLabel("Status: Not Loaded")
-    w["load_model_button"] = QPushButton("Load Fine-tuned Model")
+    w["model_status_label"] = QLabel(STATUS_MODEL_NOT_LOADED)
+    w["load_model_button"] = QPushButton(BUTTON_LOAD_MODEL)
     w["load_model_button"].clicked.connect(main_app_instance.load_fine_tuned_model)
     
     # Model info display
-    w["model_info_label"] = QLabel("No model information available")
+    w["model_info_label"] = QLabel(STATUS_NO_MODEL_INFO)
     w["model_info_label"].setStyleSheet("color: #666; font-size: 11px;")
     
-    model_layout.addRow(QLabel("Model Source:"), w["model_source_selector"])
+    model_layout.addRow(QLabel(LABEL_MODEL_SOURCE), w["model_source_selector"])
     model_layout.addRow(w["ollama_model_label"], ollama_layout)
-    model_layout.addRow(QLabel("Model Status:"), w["model_status_label"])
+    model_layout.addRow(QLabel(LABEL_MODEL_STATUS), w["model_status_label"])
     model_layout.addRow(w["load_model_button"])
-    model_layout.addRow(QLabel("Model Info:"), w["model_info_label"])
+    model_layout.addRow(QLabel(LABEL_MODEL_INFO), w["model_info_label"])
     layout.addWidget(model_group)
 
     # --- Quick Scan Configuration Group ---
-    scan_group = QGroupBox("2. Quick Scan Configuration")
+    scan_group = QGroupBox(GROUP_SCAN_CONFIG)
     scan_layout = QFormLayout(scan_group)
     w["project_dir_edit"] = QLineEdit()
     w["project_dir_edit"].setText(os.getcwd())
-    w["project_dir_edit"].setPlaceholderText("Select a project folder to scan...")
-    w["browse_button"] = QPushButton("Browse...")
+    w["project_dir_edit"].setPlaceholderText(PLACEHOLDER_PROJECT_DIR)
+    w["browse_button"] = QPushButton(BUTTON_BROWSE)
     w["browse_button"].clicked.connect(main_app_instance.select_scan_directory)
     scan_dir_layout = QHBoxLayout()
     scan_dir_layout.addWidget(w["project_dir_edit"])
     scan_dir_layout.addWidget(w["browse_button"])
     w["include_patterns_edit"] = QLineEdit()
-    w["include_patterns_edit"].setText("*.py,*.js,*.ts,*.java,*.cpp,*.c,*.h,*.hpp")
+    w["include_patterns_edit"].setText(DEFAULT_INCLUDE_PATTERNS)
     w["exclude_patterns_edit"] = QLineEdit()
-    w["exclude_patterns_edit"].setText(
-        "__pycache__/*,node_modules/*,.git/*,*.pyc,*.log"
-    )
-    scan_layout.addRow(QLabel("Project Directory:"), scan_dir_layout)
-    scan_layout.addRow(QLabel("Include Patterns:"), w["include_patterns_edit"])
-    scan_layout.addRow(QLabel("Exclude Patterns:"), w["exclude_patterns_edit"])
-    w["start_quick_scan_button"] = QPushButton("Run Quick Scan")
+    w["exclude_patterns_edit"].setText(DEFAULT_EXCLUDE_PATTERNS)
+    scan_layout.addRow(QLabel(LABEL_PROJECT_DIRECTORY), scan_dir_layout)
+    scan_layout.addRow(QLabel(LABEL_INCLUDE_PATTERNS), w["include_patterns_edit"])
+    scan_layout.addRow(QLabel(LABEL_EXCLUDE_PATTERNS), w["exclude_patterns_edit"])
+    w["start_quick_scan_button"] = QPushButton(BUTTON_RUN_QUICK_SCAN)
     w["start_quick_scan_button"].setFixedHeight(35)
     w["start_quick_scan_button"].clicked.connect(main_app_instance.start_quick_scan)
-    w["stop_scan_button"] = QPushButton("Stop Scan")
+    w["stop_scan_button"] = QPushButton(BUTTON_STOP_SCAN)
     w["stop_scan_button"].setFixedHeight(35)
     w["stop_scan_button"].setEnabled(False)
     w["stop_scan_button"].clicked.connect(main_app_instance.stop_scan)
@@ -279,11 +358,11 @@ def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
     layout.addWidget(scan_group)
 
     # --- Scan Results Group ---
-    results_group = QGroupBox("3. Scan Results & AI Enhancement")
+    results_group = QGroupBox(GROUP_SCAN_RESULTS)
     results_layout = QVBoxLayout(results_group)
     
     # Status and progress
-    w["scan_status_label"] = QLabel("Ready to scan")
+    w["scan_status_label"] = QLabel(STATUS_READY_TO_SCAN)
     w["scan_progress_bar"] = QProgressBar()
     w["scan_progress_bar"].setVisible(False)
     
@@ -295,22 +374,20 @@ def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
     # Results table
     w["results_table"] = QTableWidget()
     w["results_table"].setColumnCount(6)
-    w["results_table"].setHorizontalHeaderLabels([
-        "File", "Line", "Type", "Severity", "Issue", "Actions"
-    ])
+    w["results_table"].setHorizontalHeaderLabels(SCAN_RESULTS_TABLE_HEADERS)
     w["results_table"].horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
     w["results_table"].horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
     results_layout.addWidget(w["results_table"])
     
     # Summary and actions
-    w["summary_label"] = QLabel("No issues found")
+    w["summary_label"] = QLabel(STATUS_NO_ISSUES_FOUND)
     w["summary_label"].setStyleSheet("font-weight: bold; color: #666;")
     
-    w["enhance_all_button"] = QPushButton("Enhance All Issues with AI")
+    w["enhance_all_button"] = QPushButton(BUTTON_ENHANCE_ALL)
     w["enhance_all_button"].setEnabled(False)
     w["enhance_all_button"].clicked.connect(main_app_instance.enhance_all_issues)
     
-    w["export_results_button"] = QPushButton("Export Results")
+    w["export_results_button"] = QPushButton(BUTTON_EXPORT_RESULTS)
     w["export_results_button"].setEnabled(False)
     w["export_results_button"].clicked.connect(main_app_instance.export_scan_results)
     
@@ -333,10 +410,10 @@ def setup_ai_tab(parent_widget: QWidget, main_app_instance: Any) -> None:
 def clear_scan_results(widgets: Dict[str, Any]):
     """Clear the scan results table and reset status."""
     widgets["results_table"].setRowCount(0)
-    widgets["summary_label"].setText("No issues found")
+    widgets["summary_label"].setText(STATUS_NO_ISSUES_FOUND)
     widgets["enhance_all_button"].setEnabled(False)
     widgets["export_results_button"].setEnabled(False)
-    widgets["scan_status_label"].setText("Ready to scan")
+    widgets["scan_status_label"].setText(STATUS_READY_TO_SCAN)
 
 
 def populate_scan_results_table(widgets: Dict[str, Any], issues: List[Dict[str, Any]]):
@@ -372,7 +449,7 @@ def populate_scan_results_table(widgets: Dict[str, Any], issues: List[Dict[str, 
         actions_layout = QHBoxLayout(actions_widget)
         actions_layout.setContentsMargins(2, 2, 2, 2)
         
-        enhance_button = QPushButton("AI Enhance")
+        enhance_button = QPushButton(BUTTON_AI_ENHANCE)
         enhance_button.setFixedSize(80, 25)
         enhance_button.clicked.connect(lambda checked, r=row: enhance_single_issue(r, issue))
         

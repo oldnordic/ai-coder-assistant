@@ -8,6 +8,7 @@ def build_docker_image(
     dockerfile_path: Optional[str] = None,
     build_args: Optional[Dict[str, str]] = None,
     tag: str = "ai-coder-app:latest",
+    timeout: int = 600,  # 10-minute timeout
 ) -> Tuple[bool, str]:
     """
     Build a Docker image from the given context directory and Dockerfile.
@@ -28,8 +29,10 @@ def build_docker_image(
             cmd += ["--build-arg", f"{sanitized_key}={sanitized_value}"]
     cmd.append(sanitized_context_dir)
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=timeout)
         return True, result.stdout
+    except subprocess.TimeoutExpired:
+        return False, f"Docker build operation timed out after {timeout} seconds."
     except subprocess.CalledProcessError as e:
         return False, e.stderr
 
@@ -41,6 +44,7 @@ def run_docker_container(
     volumes: Optional[Dict[str, str]] = None,
     env_vars: Optional[Dict[str, str]] = None,
     detach: bool = False,
+    timeout: int = 300,  # 5-minute timeout
 ) -> Tuple[bool, str]:
     """
     Run a Docker container from the given image with optional run args, command, volumes, and env vars.
@@ -70,19 +74,23 @@ def run_docker_container(
         sanitized_command = [shlex.quote(arg) for arg in command]
         cmd += sanitized_command
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=timeout)
         return True, result.stdout.strip()
+    except subprocess.TimeoutExpired:
+        return False, f"Docker run operation timed out after {timeout} seconds."
     except subprocess.CalledProcessError as e:
         return False, e.stderr
 
 
 def run_build_and_test_in_docker(
     context_dir: str,
-    dockerfile_path: str = None,
+    dockerfile_path: Optional[str] = None,
     build_args: str = "",
     run_opts: str = "",
     test_command: str = "python run_tests.py",
-) -> dict:
+    build_timeout: int = 600,  # 10-minute build timeout
+    test_timeout: int = 300,   # 5-minute test timeout
+) -> Dict[str, str]:
     """
     Build the Docker image and run tests in a container. Returns a dict with success, stage, and output.
     """
@@ -91,7 +99,6 @@ def run_build_and_test_in_docker(
     sanitized_dockerfile_path = (
         shlex.quote(dockerfile_path) if dockerfile_path else None
     )
-    sanitized_build_args = shlex.quote(build_args) if build_args else ""
     sanitized_run_opts = shlex.quote(run_opts) if run_opts else ""
     sanitized_test_command = (
         shlex.quote(test_command) if test_command else "python run_tests.py"
@@ -99,11 +106,11 @@ def run_build_and_test_in_docker(
 
     tag = "ai-coder-app:latest"
     build_success, build_output = build_docker_image(
-        sanitized_context_dir, sanitized_dockerfile_path, None, tag
+        sanitized_context_dir, sanitized_dockerfile_path, None, tag, build_timeout
     )
     if not build_success:
-        return {"success": False, "stage": "build", "output": build_output}
+        return {"success": "False", "stage": "build", "output": build_output}
     run_args = sanitized_run_opts.split() if sanitized_run_opts else []
     command = sanitized_test_command.split()
-    run_success, run_output = run_docker_container(tag, run_args, command)
-    return {"success": run_success, "stage": "test", "output": run_output}
+    run_success, run_output = run_docker_container(tag, run_args, command, timeout=test_timeout)
+    return {"success": str(run_success), "stage": "test", "output": run_output}

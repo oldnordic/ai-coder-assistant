@@ -5,6 +5,7 @@ Provides UI for managing multiple model sources including:
 - Remote Ollama instances (local and remote)
 - Local fine-tuned models for code review
 - Model configuration, health monitoring, and management
+- Integration with LocalCodeReviewer for seamless model switching
 """
 
 import asyncio
@@ -12,6 +13,7 @@ import concurrent.futures
 import logging
 import os
 import json
+import time
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 
@@ -39,13 +41,17 @@ from PyQt6.QtWidgets import (
     QTextEdit,
     QComboBox,
     QFileDialog,
+    QSplitter,
+    QFrame,
 )
 
 from src.backend.services.llm_manager import LLMManager
 from src.backend.services.models import ProviderConfig, ProviderType
-from src.backend.services.ollama_client import OllamaClient, get_available_models_sync
+from src.backend.services.ollama_client import OllamaClient, get_available_models_sync, get_ollama_response
+from src.backend.services.local_code_reviewer import get_local_code_reviewer, LocalCodeReviewer
 from src.backend.services.trainer import fine_tune_code_model, create_code_review_dataset, evaluate_model_performance
 from src.backend.utils.constants import DEFAULT_MAX_WORKERS, DEFAULT_TIMEOUT
+from src.backend.utils.secrets import get_secrets_manager
 
 logger = logging.getLogger(__name__)
 
@@ -331,18 +337,55 @@ class OllamaInstanceDialog(QDialog):
 
 
 class ModelManagerTab(QWidget):
-    """Main model manager tab widget."""
+    """Main model manager tab widget with enhanced LocalCodeReviewer integration."""
 
     def __init__(self, llm_manager: LLMManager, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.llm_manager = llm_manager
         self.ollama_client = OllamaClient()
+        self.local_code_reviewer = get_local_code_reviewer()
+        self.secrets_manager = get_secrets_manager()
         self.setup_ui()
         self.load_data()
+        
+        # Set up periodic health checks
+        self.health_timer = QTimer()
+        self.health_timer.timeout.connect(self.check_model_health)
+        self.health_timer.start(30000)  # Check every 30 seconds
 
     def setup_ui(self):
         """Set up the UI components."""
         layout = QVBoxLayout(self)
+        
+        # Header with current model status
+        header_group = QGroupBox("Current Model Status")
+        header_layout = QVBoxLayout(header_group)
+        
+        # Current model info
+        current_model_layout = QHBoxLayout()
+        current_model_layout.addWidget(QLabel("Active Model:"))
+        self.current_model_label = QLabel("Loading...")
+        self.current_model_label.setStyleSheet("font-weight: bold; color: #007bff;")
+        current_model_layout.addWidget(self.current_model_label)
+        current_model_layout.addStretch()
+        
+        # Model health indicator
+        self.health_indicator = QLabel("●")
+        self.health_indicator.setStyleSheet("font-size: 16px; color: #28a745;")
+        current_model_layout.addWidget(self.health_indicator)
+        
+        header_layout.addLayout(current_model_layout)
+        
+        # Model switching
+        switch_layout = QHBoxLayout()
+        switch_layout.addWidget(QLabel("Switch to:"))
+        self.model_switch_combo = QComboBox()
+        self.model_switch_combo.currentTextChanged.connect(self.switch_model)
+        switch_layout.addWidget(self.model_switch_combo)
+        switch_layout.addStretch()
+        
+        header_layout.addLayout(switch_layout)
+        layout.addWidget(header_group)
         
         # Create tab widget
         self.tab_widget = QTabWidget()
@@ -358,6 +401,10 @@ class ModelManagerTab(QWidget):
         # Training tab
         self.training_tab = self.create_training_tab()
         self.tab_widget.addTab(self.training_tab, "Model Training")
+        
+        # Health monitoring tab
+        self.health_tab = self.create_health_tab()
+        self.tab_widget.addTab(self.health_tab, "Health Monitor")
         
         layout.addWidget(self.tab_widget)
 
@@ -504,6 +551,94 @@ class ModelManagerTab(QWidget):
         
         return widget
 
+    def create_health_tab(self) -> QWidget:
+        """Create the health monitoring tab."""
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        
+        # Model Health Overview
+        overview_group = QGroupBox("Model Health Overview")
+        overview_layout = QVBoxLayout(overview_group)
+        
+        # Health status grid
+        health_grid = QHBoxLayout()
+        
+        # Current model status
+        current_status_layout = QVBoxLayout()
+        current_status_layout.addWidget(QLabel("Current Model:"))
+        self.health_current_model = QLabel("Loading...")
+        self.health_current_model.setStyleSheet("font-weight: bold;")
+        current_status_layout.addWidget(self.health_current_model)
+        health_grid.addLayout(current_status_layout)
+        
+        # Health indicator
+        health_status_layout = QVBoxLayout()
+        health_status_layout.addWidget(QLabel("Status:"))
+        self.health_status_label = QLabel("Checking...")
+        self.health_status_label.setStyleSheet("font-weight: bold; color: #ffc107;")
+        health_status_layout.addWidget(self.health_status_label)
+        health_grid.addLayout(health_status_layout)
+        
+        # Response time
+        response_layout = QVBoxLayout()
+        response_layout.addWidget(QLabel("Response Time:"))
+        self.response_time_label = QLabel("N/A")
+        response_layout.addWidget(self.response_time_label)
+        health_grid.addLayout(response_layout)
+        
+        # Last check
+        last_check_layout = QVBoxLayout()
+        last_check_layout.addWidget(QLabel("Last Check:"))
+        self.last_check_label = QLabel("Never")
+        last_check_layout.addWidget(self.last_check_label)
+        health_grid.addLayout(last_check_layout)
+        
+        overview_layout.addLayout(health_grid)
+        
+        # Health check button
+        health_buttons = QHBoxLayout()
+        self.manual_health_check_button = QPushButton("Run Health Check")
+        self.manual_health_check_button.clicked.connect(self.run_manual_health_check)
+        health_buttons.addWidget(self.manual_health_check_button)
+        health_buttons.addStretch()
+        overview_layout.addLayout(health_buttons)
+        
+        layout.addWidget(overview_group)
+        
+        # System Information
+        system_group = QGroupBox("System Information")
+        system_layout = QVBoxLayout(system_group)
+        
+        # System info table
+        self.system_info_table = QTableWidget()
+        self.system_info_table.setColumnCount(2)
+        self.system_info_table.setHorizontalHeaderLabels(["Property", "Value"])
+        self.system_info_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        system_layout.addWidget(self.system_info_table)
+        
+        # Refresh system info button
+        refresh_system_button = QPushButton("Refresh System Info")
+        refresh_system_button.clicked.connect(self.refresh_system_info)
+        system_layout.addWidget(refresh_system_button)
+        
+        layout.addWidget(system_group)
+        
+        # Performance Metrics
+        performance_group = QGroupBox("Performance Metrics")
+        performance_layout = QVBoxLayout(performance_group)
+        
+        self.performance_log = QTextEdit()
+        self.performance_log.setMaximumHeight(200)
+        self.performance_log.setReadOnly(True)
+        performance_layout.addWidget(self.performance_log)
+        
+        layout.addWidget(performance_group)
+        
+        # Initialize system info
+        self.refresh_system_info()
+        
+        return widget
+
     def handle_error(self, error):
         """Handle and display errors."""
         QMessageBox.critical(self, "Error", str(error))
@@ -513,6 +648,12 @@ class ModelManagerTab(QWidget):
         self.refresh_ollama_instances()
         self.refresh_models()
         self.refresh_local_models()
+        
+        # Initialize current model display
+        self.update_current_model_display()
+        
+        # Perform initial health check
+        self.check_model_health()
 
     def refresh_ollama_instances(self):
         """Refresh Ollama instances."""
@@ -638,16 +779,28 @@ class ModelManagerTab(QWidget):
     def set_active_ollama_model(self, model: Dict[str, Any]):
         """Set an Ollama model as active."""
         try:
-            # Implementation would set the active model in the backend
-            QMessageBox.information(self, "Success", f"Set {model.get('name')} as active model")
+            model_name = model.get('name', '')
+            if self.local_code_reviewer:
+                success = self.local_code_reviewer.switch_model(model_name)
+                if success:
+                    self.update_current_model_display()
+                    QMessageBox.information(self, "Success", f"Set {model_name} as active model")
+                else:
+                    QMessageBox.warning(self, "Error", f"Failed to set {model_name} as active model")
         except Exception as e:
             self.handle_error(e)
 
     def set_active_local_model(self, model: Dict[str, Any]):
         """Set a local model as active."""
         try:
-            # Implementation would set the active model in the backend
-            QMessageBox.information(self, "Success", f"Set {model.get('name')} as active model")
+            model_name = model.get('name', '')
+            if self.local_code_reviewer:
+                success = self.local_code_reviewer.switch_model(model_name)
+                if success:
+                    self.update_current_model_display()
+                    QMessageBox.information(self, "Success", f"Set {model_name} as active model")
+                else:
+                    QMessageBox.warning(self, "Error", f"Failed to set {model_name} as active model")
         except Exception as e:
             self.handle_error(e)
 
@@ -844,3 +997,241 @@ class ModelManagerTab(QWidget):
                 self.training_progress.setVisible(False)
         
         QTimer.singleShot(0, update_ui)
+
+    def check_model_health(self):
+        """Check the health of the active model."""
+        try:
+            if self.local_code_reviewer and self.local_code_reviewer.current_model:
+                # Use a simple HTTP request instead of the async function
+                import requests
+                
+                start_time = time.time()
+                
+                response = requests.post(
+                    "http://localhost:11434/api/generate",
+                    json={
+                        "model": self.local_code_reviewer.current_model,
+                        "prompt": "Hello, this is a health check.",
+                        "stream": False,
+                        "temperature": 0.7
+                    },
+                    timeout=30
+                )
+                
+                end_time = time.time()
+                response_time = end_time - start_time
+                
+                if response.status_code == 200:
+                    self.health_indicator.setStyleSheet("font-size: 16px; color: #28a745;")  # Green
+                    self.health_indicator.setText("●")
+                else:
+                    self.health_indicator.setStyleSheet("font-size: 16px; color: #dc3545;")  # Red
+                    self.health_indicator.setText("●")
+        except Exception as e:
+            logger.warning(f"Health check failed: {e}")
+            self.health_indicator.setStyleSheet("font-size: 16px; color: #dc3545;")  # Red
+            self.health_indicator.setText("●")
+
+    def switch_model(self, model_name: str):
+        """Switch to a different model."""
+        if not model_name or model_name == "Select Model":
+            return
+            
+        try:
+            # Update the LocalCodeReviewer
+            if self.local_code_reviewer:
+                success = self.local_code_reviewer.switch_model(model_name)
+                if success:
+                    # Update the current model label
+                    self.current_model_label.setText(model_name)
+                    
+                    # Save the selection to secrets for persistence
+                    self.secrets_manager.save_secret('LOCAL_CODE_REVIEWER_MODEL', model_name)
+                    
+                    QMessageBox.information(self, "Success", f"Switched to model: {model_name}")
+                    
+                    # Update the health indicator
+                    self.check_model_health()
+                else:
+                    QMessageBox.warning(self, "Error", f"Failed to switch to model: {model_name}")
+        except Exception as e:
+            self.handle_error(e)
+
+    def update_current_model_display(self):
+        """Update the current model display."""
+        try:
+            if self.local_code_reviewer and self.local_code_reviewer.current_model:
+                self.current_model_label.setText(self.local_code_reviewer.current_model)
+            else:
+                self.current_model_label.setText("No model selected")
+                
+            # Update the model switch combo box
+            self.populate_model_switch_combo()
+        except Exception as e:
+            logger.error(f"Failed to update current model display: {e}")
+
+    def populate_model_switch_combo(self):
+        """Populate the model switch combo box with available models."""
+        try:
+            self.model_switch_combo.clear()
+            self.model_switch_combo.addItem("Select Model")
+            
+            # Get available models from LocalCodeReviewer
+            if self.local_code_reviewer:
+                available_models = self.local_code_reviewer.get_available_models()
+                for model in available_models:
+                    self.model_switch_combo.addItem(model)
+                    
+                # Set current selection
+                if self.local_code_reviewer.current_model:
+                    index = self.model_switch_combo.findText(self.local_code_reviewer.current_model)
+                    if index >= 0:
+                        self.model_switch_combo.setCurrentIndex(index)
+        except Exception as e:
+            logger.error(f"Failed to populate model switch combo: {e}")
+
+    def run_manual_health_check(self):
+        """Run a manual health check."""
+        try:
+            self.manual_health_check_button.setEnabled(False)
+            self.health_status_label.setText("Checking...")
+            self.health_status_label.setStyleSheet("font-weight: bold; color: #ffc107;")
+            
+            # Run health check in background
+            def perform_health_check():
+                try:
+                    start_time = time.time()
+                    
+                    if self.local_code_reviewer and self.local_code_reviewer.current_model:
+                        # Use a simple HTTP request instead of the async function
+                        import requests
+                        
+                        response = requests.post(
+                            "http://localhost:11434/api/generate",
+                            json={
+                                "model": self.local_code_reviewer.current_model,
+                                "prompt": "Hello, this is a health check.",
+                                "stream": False,
+                                "temperature": 0.7
+                            },
+                            timeout=30
+                        )
+                        
+                        end_time = time.time()
+                        response_time = end_time - start_time
+                        
+                        if response.status_code == 200:
+                            return {
+                                "status": "healthy",
+                                "response_time": response_time,
+                                "model": self.local_code_reviewer.current_model
+                            }
+                        else:
+                            return {
+                                "status": "unhealthy",
+                                "response_time": response_time,
+                                "model": self.local_code_reviewer.current_model
+                            }
+                    else:
+                        return {
+                            "status": "no_model",
+                            "response_time": 0,
+                            "model": "None"
+                        }
+                except Exception as e:
+                    return {
+                        "status": "error",
+                        "response_time": 0,
+                        "model": "Error",
+                        "error": str(e)
+                    }
+            
+            future = concurrent.futures.ThreadPoolExecutor().submit(perform_health_check)
+            future.add_done_callback(self._on_health_check_complete)
+            
+        except Exception as e:
+            self.handle_error(e)
+            self.manual_health_check_button.setEnabled(True)
+
+    def refresh_system_info(self):
+        """Refresh system information."""
+        try:
+            import psutil
+            import platform
+            
+            system_info = [
+                ["Operating System", platform.system() + " " + platform.release()],
+                ["Python Version", platform.python_version()],
+                ["CPU Cores", str(psutil.cpu_count())],
+                ["Memory Total", f"{psutil.virtual_memory().total / (1024**3):.1f} GB"],
+                ["Memory Available", f"{psutil.virtual_memory().available / (1024**3):.1f} GB"],
+                ["Disk Usage", f"{psutil.disk_usage('/').percent:.1f}%"],
+                ["Ollama Status", "Running" if self._check_ollama_status() else "Not Running"],
+            ]
+            
+            self.system_info_table.setRowCount(len(system_info))
+            for row, (property_name, value) in enumerate(system_info):
+                self.system_info_table.setItem(row, 0, QTableWidgetItem(property_name))
+                self.system_info_table.setItem(row, 1, QTableWidgetItem(str(value)))
+                
+        except Exception as e:
+            logger.error(f"Failed to refresh system info: {e}")
+
+    def _check_ollama_status(self) -> bool:
+        """Check if Ollama is running."""
+        try:
+            import requests
+            response = requests.get("http://localhost:11434/api/tags", timeout=5)
+            return response.status_code == 200
+        except:
+            return False
+
+    @pyqtSlot(object)
+    def _on_health_check_complete(self, future):
+        """Handle health check completion."""
+        try:
+            result = future.result()
+            
+            def update_ui():
+                self.manual_health_check_button.setEnabled(True)
+                
+                if result["status"] == "healthy":
+                    self.health_status_label.setText("Healthy")
+                    self.health_status_label.setStyleSheet("font-weight: bold; color: #28a745;")
+                    self.health_indicator.setStyleSheet("font-size: 16px; color: #28a745;")
+                elif result["status"] == "unhealthy":
+                    self.health_status_label.setText("Unhealthy")
+                    self.health_status_label.setStyleSheet("font-weight: bold; color: #dc3545;")
+                    self.health_indicator.setStyleSheet("font-size: 16px; color: #dc3545;")
+                elif result["status"] == "no_model":
+                    self.health_status_label.setText("No Model")
+                    self.health_status_label.setStyleSheet("font-weight: bold; color: #ffc107;")
+                    self.health_indicator.setStyleSheet("font-size: 16px; color: #ffc107;")
+                else:
+                    self.health_status_label.setText("Error")
+                    self.health_status_label.setStyleSheet("font-weight: bold; color: #dc3545;")
+                    self.health_indicator.setStyleSheet("font-size: 16px; color: #dc3545;")
+                
+                # Update response time
+                if result["response_time"] > 0:
+                    self.response_time_label.setText(f"{result['response_time']:.2f}s")
+                else:
+                    self.response_time_label.setText("N/A")
+                
+                # Update current model
+                self.health_current_model.setText(result["model"])
+                
+                # Update last check time
+                from datetime import datetime
+                self.last_check_label.setText(datetime.now().strftime("%H:%M:%S"))
+                
+                # Log to performance log
+                status_text = "✓" if result["status"] == "healthy" else "✗"
+                log_entry = f"[{datetime.now().strftime('%H:%M:%S')}] {status_text} Health check completed - {result['model']} ({result['response_time']:.2f}s)\n"
+                self.performance_log.append(log_entry)
+            
+            QTimer.singleShot(0, update_ui)
+            
+        except Exception as e:
+            logger.error(f"Health check completion error: {e}")
+            self.manual_health_check_button.setEnabled(True)

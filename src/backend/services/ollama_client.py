@@ -92,8 +92,36 @@ def get_ollama_response(prompt: str, model_name: str) -> str:
         The generated response text
     """
     try:
-        # Use asyncio to run the async generate method
-        return asyncio.run(_global_ollama_client.generate(model_name, prompt))
+        # Check if there's already an event loop running
+        try:
+            loop = asyncio.get_running_loop()
+            # If we're in an event loop, we need to use a different approach
+            # For now, we'll use a synchronous HTTP request as a fallback
+            import requests
+            import json
+            
+            response = requests.post(
+                f"{_global_ollama_client.base_url}/api/generate",
+                json={
+                    "model": model_name,
+                    "prompt": prompt,
+                    "stream": False,
+                    "temperature": 0.7
+                },
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("response", "")
+            else:
+                logger.error(f"Ollama API error: {response.status_code}")
+                return f"API_ERROR: HTTP {response.status_code}"
+                
+        except RuntimeError:
+            # No event loop running, we can use asyncio.run
+            return asyncio.run(_global_ollama_client.generate(model_name, prompt))
+            
     except Exception as e:
         logger.error(f"Error in get_ollama_response: {e}")
         return f"API_ERROR: {str(e)}"
