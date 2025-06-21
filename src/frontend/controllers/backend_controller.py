@@ -31,7 +31,7 @@ from src.backend.services.local_code_reviewer import (
     EnhancementType,
     get_local_code_reviewer
 )
-from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer
+from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, export_report
 from src.backend.utils.secrets import get_secrets_manager
 import logging
 from typing import Any, Dict, List, Optional, Callable
@@ -621,3 +621,12 @@ class BackendController:
         except Exception as e:
             logger.error(f"Error loading secret: {e}")
             return None
+
+    def export_scan_report(self, report_data: dict, export_format: str, output_path: str):
+        """Export scan report in the specified format (JSON, CSV, Markdown, PDF)."""
+        try:
+            export_report(report_data, export_format, output_path)
+            logger.info(f"Report exported to {output_path} as {export_format}")
+        except Exception as e:
+            logger.error(f"Error exporting report: {e}")
+            raise

@@ -28,6 +28,11 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import networkx as nx
+import json
+import csv
+from datetime import datetime
+import markdown as md_lib
+from xhtml2pdf import pisa
 
 
 class IssueType(Enum):
@@ -1046,3 +1051,68 @@ class IntelligentCodeAnalyzer:
                 "suggestions": ["Check file accessibility", "Verify file encoding"],
                 "severity": "error"
             }
+
+def export_report(report_data, export_format, output_path):
+    if export_format == "JSON":
+        _export_to_json(report_data, output_path)
+    elif export_format == "CSV":
+        _export_to_csv(report_data, output_path)
+    elif export_format == "Markdown (.md)":
+        _export_to_markdown(report_data, output_path)
+    elif export_format == "PDF":
+        _export_to_pdf(report_data, output_path)
+    else:
+        raise ValueError(f"Unsupported export format: {export_format}")
+
+
+def _export_to_json(report_data, output_path):
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(report_data, f, indent=2, ensure_ascii=False)
+
+def _export_to_csv(report_data, output_path):
+    issues = report_data.get("issues", [])
+    if not issues:
+        return
+    with open(output_path, "w", newline="", encoding="utf-8") as csvfile:
+        fieldnames = list(issues[0].keys())
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for issue in issues:
+            writer.writerow(issue)
+
+def generate_markdown_string(report_data):
+    content = []
+    content.append(f"# AI Code Analysis Report")
+    content.append(f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    for issue in report_data.get("issues", []):
+        content.append(f"## Issue: {issue.get('title', issue.get('issue_type', ''))}")
+        content.append(f"**File:** `{issue.get('file_path', '')}`")
+        content.append(f"**Line:** {issue.get('line_number', '')}")
+        content.append(f"**Severity:** {issue.get('severity', '')}\n")
+        content.append("### Description")
+        content.append(f"{issue.get('description', '')}\n")
+        content.append("### Code Snippet")
+        code = issue.get('code_snippet', '')
+        if code:
+            content.append(f"```python\n{code}\n```\n")
+        content.append("### Suggestion")
+        content.append(f"{issue.get('suggestion', '')}\n")
+        content.append("---\n")
+    return "\n".join(content)
+
+def _export_to_markdown(report_data, output_path):
+    md_content = generate_markdown_string(report_data)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(md_content)
+
+def _convert_html_to_pdf(source_html, output_path):
+    with open(output_path, "w+b") as result_file:
+        pisa_status = pisa.CreatePDF(source_html, dest=result_file)
+    return not pisa_status.err
+
+def _export_to_pdf(report_data, output_path):
+    md_content = generate_markdown_string(report_data)
+    html_content = md_lib.markdown(md_content)
+    success = _convert_html_to_pdf(html_content, output_path)
+    if not success:
+        print("Error converting report to PDF.")

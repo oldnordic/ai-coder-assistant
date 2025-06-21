@@ -25,6 +25,7 @@
 - **Multi-Provider LLMs** ([Cloud Model Guide](docs/cloud_model_integration_guide.md))
 - **Collaboration & Analytics** ([User Manual](docs/user_manual.md#advanced-features))
 - **Unified API & CLI** ([API Documentation](api/README.md), [Migration Guide](docs/API_MIGRATION_GUIDE.md))
+- **Export Formats:** Scan reports can now be exported as JSON, CSV, **Markdown (.md)**, and **PDF** for easy sharing and documentation.
 
 ---
 

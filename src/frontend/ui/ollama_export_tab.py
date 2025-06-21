@@ -222,3 +222,107 @@ class OllamaExportTab(QWidget):
         super().__init__(parent)
         self.executor = concurrent.futures.ThreadPoolExecutor()
         self.setup_ui()
+
+    def setup_ui(self):
+        layout = QVBoxLayout(self)
+
+        # Title
+        self.title = QLabel("Export Local Model to Ollama")
+        self.title.setStyleSheet("font-weight: bold; font-size: 16px;")
+        layout.addWidget(self.title)
+
+        # Info text
+        self.info = QLabel(
+            """
+This tool will export your locally trained model (HuggingFace format) to GGUF and create an enhanced Ollama model.
+- The GGUF export requires llama.cpp's conversion script (convert_hf_to_gguf.py).
+- An enhanced Ollama model will be created that extends your selected base model with custom parameters and system prompts.
+- The enhanced model can be used for improved code suggestions in the AI Agent tab.
+            """
+        )
+        self.info.setWordWrap(True)
+        layout.addWidget(self.info)
+
+        # Model selection
+        self.model_label = QLabel("Select Ollama Model to Feed Knowledge:")
+        layout.addWidget(self.model_label)
+
+        self.model_selector = QComboBox()
+        self.model_selector.addItem("(Click 'Refresh Models' to load)")
+        layout.addWidget(self.model_selector)
+
+        # Refresh button
+        self.refresh_button = QPushButton("Refresh Models")
+        layout.addWidget(self.refresh_button)
+
+        # Status box
+        self.status_box = QTextEdit()
+        self.status_box.setReadOnly(True)
+        self.status_box.setMinimumHeight(STATUS_BOX_MIN_HEIGHT)
+        layout.addWidget(self.status_box)
+
+        # Export button
+        self.export_button = QPushButton("Export & Send to Ollama")
+        layout.addWidget(self.export_button)
+
+        # Format selector
+        self.format_selector = QComboBox()
+        self.format_selector.addItems(["JSON", "CSV", "Markdown (.md)", "PDF"])
+        layout.addWidget(self.format_selector)
+
+        def log(msg: str):
+            self.status_box.append(msg)
+
+        def refresh_models():
+            self.model_selector.clear()
+            log("Fetching available models from Ollama...")
+            models = get_ollama_models()
+            if not models:
+                self.model_selector.addItem("(No models found)")
+                log("No models found on Ollama or Ollama is not running.")
+            else:
+                for m in models:
+                    self.model_selector.addItem(m)
+                log(f"Found {len(models)} model(s) on Ollama.")
+
+        # Connect the refresh button
+        self.refresh_button.clicked.connect(refresh_models)
+
+        def start_export():
+            progress_dialog = QProgressDialog(
+                "Exporting model to Ollama...", "Cancel", 0, 0, self
+            )
+            progress_dialog.setWindowTitle("Ollama Export Progress")
+            progress_dialog.setAutoClose(False)
+            progress_dialog.setAutoReset(False)
+            progress_dialog.show()
+
+            # Keep a reference to the worker to prevent GC
+            self.ollama_export_worker = OllamaExportWorker(
+                self, self.model_selector, self.status_box
+            )
+            worker = self.ollama_export_worker
+
+            def on_progress(msg):
+                self.status_box.append(msg)
+                QApplication.processEvents()
+
+            def on_finished(msg):
+                progress_dialog.close()
+                self.status_box.append(msg)
+                QMessageBox.information(self, "Export Complete", msg)
+                self.ollama_export_worker = None
+
+            def on_error(msg):
+                progress_dialog.close()
+                self.status_box.append(msg)
+                QMessageBox.critical(self, "Export Failed", msg)
+                self.ollama_export_worker = None
+
+            worker.progress.connect(on_progress)
+            worker.finished.connect(on_finished)
+            worker.error.connect(on_error)
+            progress_dialog.canceled.connect(worker.cancel)
+            worker.start()
+
+        self.export_button.clicked.connect(start_export)

@@ -64,6 +64,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 - `POST /api/v1/ai-enhancement` - Start AI enhancement for specific issues
 - `GET /api/v1/enhancement-status/{task_id}` - Check enhancement status
 - `DELETE /api/v1/enhancement/{task_id}` - Cancel enhancement task
+- **Export Scan Report:** Now supports `JSON`, `CSV`, `Markdown (.md)`, and `PDF` formats.
 
 ### Code Standards
 - `GET /api/v1/code-standards` - Get configured code standards
@@ -314,4 +315,21 @@ uvicorn main:app --reload --log-level debug
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0. See the LICENSE file for details. 
+This project is licensed under the GNU General Public License v3.0. See the LICENSE file for details.
+
+## Exporting Reports in Markdown and PDF
+
+You can now export scan reports in Markdown and PDF formats for easy sharing and documentation:
+
+### Example: Export as Markdown
+```python
+controller.export_scan_report(report_data, "Markdown (.md)", "report.md")
+```
+
+### Example: Export as PDF
+```python
+controller.export_scan_report(report_data, "PDF", "report.pdf")
+```
+
+- **Markdown (.md):** Well-formatted, readable, and easy to share in code reviews or documentation.
+- **PDF:** Professional, fixed-format for archiving or formal distribution. 

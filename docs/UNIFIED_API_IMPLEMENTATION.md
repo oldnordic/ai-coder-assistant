@@ -254,4 +254,14 @@ The unified API implementation successfully consolidates the dual-server archite
 
 The implementation follows enterprise best practices and provides a solid foundation for future development and scaling. The migration guide ensures a smooth transition for existing users while the comprehensive documentation supports new users and developers.
 
-This unified approach positions the AI Coder Assistant for enterprise-level deployment and provides a robust platform for future enhancements and features. 
+This unified approach positions the AI Coder Assistant for enterprise-level deployment and provides a robust platform for future enhancements and features.
+
+## Markdown and PDF Export Support (2025)
+
+- **New Feature:** Scan reports can now be exported as Markdown (.md) and PDF, in addition to JSON and CSV.
+- **How to Use:**
+    - In the UI, select "Markdown (.md)" or "PDF" from the export dropdown.
+    - In code: `controller.export_scan_report(report_data, "Markdown (.md)", "report.md")` or `controller.export_scan_report(report_data, "PDF", "report.pdf")`
+- **Benefits:**
+    - **Markdown:** Easy to share in code reviews, readable in any text editor, and can be embedded in documentation.
+    - **PDF:** Professional, fixed-format for archiving, compliance, or formal distribution. 
