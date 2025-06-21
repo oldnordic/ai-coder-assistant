@@ -112,64 +112,47 @@ class LLMManager:
         self._initialize_ollama_instances()
         self._initialize_models()
 
-    def _load_config(self) -> LLMStudioConfig:
-        """Load configuration from file."""
-        try:
-            if Path(self.config_path).exists():
-                with open(self.config_path, "r") as f:
-                    raw_data = json.load(f)
+    def _load_raw_config_file(self, config_path: str) -> Optional[dict[str, Any]]:
+        """Load and return the raw config file as a dictionary, or None if not found."""
+        if Path(config_path).exists():
+            with open(config_path, "r") as f:
+                return json.load(f)
+        return None
 
-                # Extract model configurations
-                models: Dict[str, ModelConfig] = {}
-                providers: Dict[ProviderType, ProviderConfig] = {}
-                default_model = raw_data.get("studio_settings", {}).get(
-                    "default_model", "gpt-3.5-turbo"
+    def _parse_model_configurations(self, raw_data: dict[str, Any]) -> Dict[str, ModelConfig]:
+        """Parse model configurations from raw config data."""
+        models: Dict[str, ModelConfig] = {}
+        default_model = raw_data.get("studio_settings", {}).get("default_model", "gpt-3.5-turbo")
+        for model_name, model_data in raw_data.get("model_configurations", {}).items():
+            provider_type = ProviderType(model_data["provider"])
+            models[model_name] = ModelConfig(
+                name=model_name,
+                provider=provider_type,
+                model_type=ModelType.CHAT,  # Default to chat
+                max_tokens=model_data.get("max_tokens", 4096),
+                temperature=0.7,  # Default temperature
+                is_default=(model_name == default_model),
+                cost_per_1k_tokens=model_data.get("cost_per_1k_tokens"),
+                capabilities=model_data.get("supported_features", []),
+            )
+        return models
+
+    def _parse_provider_configurations(self, raw_data: dict[str, Any], models: Dict[str, ModelConfig]) -> Dict[ProviderType, ProviderConfig]:
+        """Parse provider configurations from raw config data and models."""
+        providers: Dict[ProviderType, ProviderConfig] = {}
+        for model in models.values():
+            provider_type = model.provider
+            if provider_type not in providers:
+                providers[provider_type] = ProviderConfig(
+                    provider_type=provider_type,
+                    api_key="",  # Will be loaded from environment
+                    is_enabled=True,
                 )
+        return providers
 
-                # Convert model configurations
-                for model_name, model_data in raw_data.get(
-                    "model_configurations", {}
-                ).items():
-                    provider_type = ProviderType(model_data["provider"])
-                    models[model_name] = ModelConfig(
-                        name=model_name,
-                        provider=provider_type,
-                        model_type=ModelType.CHAT,  # Default to chat
-                        max_tokens=model_data.get("max_tokens", 4096),
-                        temperature=0.7,  # Default temperature
-                        is_default=(model_name == default_model),
-                        cost_per_1k_tokens=model_data.get("cost_per_1k_tokens"),
-                        capabilities=model_data.get("supported_features", []),
-                    )
-
-                    # Add provider if not already present
-                    if provider_type not in providers:
-                        providers[provider_type] = ProviderConfig(
-                            provider_type=provider_type,
-                            api_key="",  # Will be loaded from environment
-                            is_enabled=True,
-                        )
-
-                return LLMStudioConfig(
-                    models=models,
-                    providers=providers,
-                    default_model=default_model,
-                    enable_fallback=True,
-                    enable_retry=True,
-                    max_concurrent_requests=5,
-                    request_timeout=30,
-                    enable_logging=True,
-                    enable_metrics=True,
-                    cost_tracking=True,
-                    auto_switch_on_error=True,
-                    ollama_instances=[],
-                )
-            else:
-                return self._create_default_config()
-
-        except Exception as e:
-            logger.error(f"Error loading config: {e}")
-            return self._create_default_config()
+    def _parse_studio_settings(self, raw_data: dict[str, Any]) -> str:
+        """Parse studio settings and return the default model name."""
+        return raw_data.get("studio_settings", {}).get("default_model", "gpt-3.5-turbo")
 
     def _create_default_config(self) -> LLMStudioConfig:
         """Create default configuration."""
