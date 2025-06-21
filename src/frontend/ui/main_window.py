@@ -1512,7 +1512,7 @@ Report Generation Complete!
             QMessageBox.critical(self, "Error", f"Failed to start AI enhancement: {e}")
 
     def _perform_ai_enhancement_worker(self, issue_data: Dict[str, Any], enhancement_type: str, 
-                                     progress_callback=None, log_message_callback=None):
+                                     progress_callback=None, log_message_callback=None, error_callback=None):
         """Worker function for AI enhancement."""
         try:
             if log_message_callback:
@@ -1538,8 +1538,11 @@ Report Generation Complete!
             }
             
         except Exception as e:
+            error_msg = f"Error during AI enhancement: {e}"
             if log_message_callback:
-                log_message_callback(f"Error during AI enhancement: {e}")
+                log_message_callback(error_msg)
+            if error_callback:
+                error_callback(error_msg)
             return {
                 "success": False,
                 "error": str(e),
@@ -2083,7 +2086,7 @@ Report Generation Complete!
             QMessageBox.critical(self, "Error", f"Failed to start automated fix: {e}")
 
     def _perform_automate_fix_worker(self, issue_details: Dict[str, Any], 
-                                   progress_callback=None, log_message_callback=None):
+                                   progress_callback=None, log_message_callback=None, error_callback=None):
         """Worker function for automated fix."""
         try:
             if log_message_callback:
@@ -2120,21 +2123,30 @@ Report Generation Complete!
                         "issue_details": issue_details
                     }
                 else:
+                    error_msg = "Targeted fix not available in remediation controller"
+                    if error_callback:
+                        error_callback(error_msg)
                     return {
                         "success": False,
-                        "error": "Targeted fix not available in remediation controller",
+                        "error": error_msg,
                         "issue_details": issue_details
                     }
             else:
+                error_msg = "Remediation controller not available"
+                if error_callback:
+                    error_callback(error_msg)
                 return {
                     "success": False,
-                    "error": "Remediation controller not available",
+                    "error": error_msg,
                     "issue_details": issue_details
                 }
             
         except Exception as e:
+            error_msg = f"Error during automated fix: {e}"
             if log_message_callback:
-                log_message_callback(f"Error during automated fix: {e}")
+                log_message_callback(error_msg)
+            if error_callback:
+                error_callback(error_msg)
             return {
                 "success": False,
                 "error": str(e),
