@@ -54,6 +54,54 @@ class ModelError(AICoderAssistantError):
         super().__init__(message, details)
 
 
+class LearningError(AICoderAssistantError):
+    """Raised when there's an issue with the learning mechanism."""
+    
+    def __init__(self, message: str, learning_component: Optional[str] = None, data_type: Optional[str] = None):
+        details = {}
+        if learning_component:
+            details["learning_component"] = learning_component
+        if data_type:
+            details["data_type"] = data_type
+        super().__init__(message, details)
+
+
+class DockerError(AICoderAssistantError):
+    """Raised when there's an issue with Docker operations."""
+    
+    def __init__(self, message: str, container_id: Optional[str] = None, image_name: Optional[str] = None):
+        details = {}
+        if container_id:
+            details["container_id"] = container_id
+        if image_name:
+            details["image_name"] = image_name
+        super().__init__(message, details)
+
+
+class TestError(AICoderAssistantError):
+    """Raised when there's an issue with testing operations."""
+    
+    def __init__(self, message: str, test_type: Optional[str] = None, test_file: Optional[str] = None):
+        details = {}
+        if test_type:
+            details["test_type"] = test_type
+        if test_file:
+            details["test_file"] = test_file
+        super().__init__(message, details)
+
+
+class RemediationError(AICoderAssistantError):
+    """Raised when there's an issue with remediation operations."""
+    
+    def __init__(self, message: str, workspace_path: Optional[str] = None, issue_type: Optional[str] = None):
+        details = {}
+        if workspace_path:
+            details["workspace_path"] = workspace_path
+        if issue_type:
+            details["issue_type"] = issue_type
+        super().__init__(message, details)
+
+
 class FileOperationError(AICoderAssistantError):
     """Raised when there's an issue with file operations."""
     

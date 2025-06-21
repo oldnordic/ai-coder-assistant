@@ -1,0 +1,229 @@
+{
+  "success": true,
+  "timestamp": "2025-06-21T21:10:02.750194",
+  "issues_found": 5,
+  "fixes_generated": 5,
+  "tests_run": 5,
+  "successful_tests": 5,
+  "learning_statistics": {
+    "total_examples": 5,
+    "successful_examples": 5,
+    "success_rate": 1.0,
+    "average_confidence": 0.85,
+    "learning_examples_created": 5,
+    "timestamp": "2025-06-21T21:10:02.750181"
+  },
+  "detailed_results": {
+    "issues": [
+      {
+        "file": "buggy_code.py",
+        "line": 5,
+        "type": "missing_return",
+        "message": "Function 'calculate_sum' is missing a return statement",
+        "severity": "error"
+      },
+      {
+        "file": "buggy_code.py",
+        "line": 9,
+        "type": "division_by_zero",
+        "message": "Potential division by zero in function 'divide_numbers'",
+        "severity": "warning"
+      },
+      {
+        "file": "buggy_code.py",
+        "line": 15,
+        "type": "unused_variable",
+        "message": "Variable 'processed_items' is assigned but never used",
+        "severity": "warning"
+      },
+      {
+        "file": "buggy_code.py",
+        "line": 22,
+        "type": "syntax_error",
+        "message": "Missing colon after 'if True'",
+        "severity": "error"
+      },
+      {
+        "file": "buggy_code.py",
+        "line": 26,
+        "type": "unused_import",
+        "message": "Unused import 'os'",
+        "severity": "warning"
+      }
+    ],
+    "fixes": [
+      {
+        "issue": {
+          "file": "buggy_code.py",
+          "line": 5,
+          "type": "missing_return",
+          "message": "Function 'calculate_sum' is missing a return statement",
+          "severity": "error"
+        },
+        "status": "generated",
+        "original_code": "def calculate_sum(a, b):\n    result = a + b",
+        "fixed_code": "def calculate_sum(a, b):\n    result = a + b\n    return result",
+        "confidence": 0.85,
+        "timestamp": "2025-06-21T21:10:02.750098"
+      },
+      {
+        "issue": {
+          "file": "buggy_code.py",
+          "line": 9,
+          "type": "division_by_zero",
+          "message": "Potential division by zero in function 'divide_numbers'",
+          "severity": "warning"
+        },
+        "status": "generated",
+        "original_code": "def divide_numbers(a, b):\n    return a / b",
+        "fixed_code": "def divide_numbers(a, b):\n    if b == 0:\n        raise ValueError('Division by zero')\n    return a / b",
+        "confidence": 0.85,
+        "timestamp": "2025-06-21T21:10:02.750102"
+      },
+      {
+        "issue": {
+          "file": "buggy_code.py",
+          "line": 15,
+          "type": "unused_variable",
+          "message": "Variable 'processed_items' is assigned but never used",
+          "severity": "warning"
+        },
+        "status": "generated",
+        "original_code": "Original code snippet",
+        "fixed_code": "Fixed code snippet",
+        "confidence": 0.85,
+        "timestamp": "2025-06-21T21:10:02.750104"
+      },
+      {
+        "issue": {
+          "file": "buggy_code.py",
+          "line": 22,
+          "type": "syntax_error",
+          "message": "Missing colon after 'if True'",
+          "severity": "error"
+        },
+        "status": "generated",
+        "original_code": "if True\n    print('This will cause a syntax error')",
+        "fixed_code": "if True:\n    print('This will cause a syntax error')",
+        "confidence": 0.85,
+        "timestamp": "2025-06-21T21:10:02.750105"
+      },
+      {
+        "issue": {
+          "file": "buggy_code.py",
+          "line": 26,
+          "type": "unused_import",
+          "message": "Unused import 'os'",
+          "severity": "warning"
+        },
+        "status": "generated",
+        "original_code": "Original code snippet",
+        "fixed_code": "Fixed code snippet",
+        "confidence": 0.85,
+        "timestamp": "2025-06-21T21:10:02.750106"
+      }
+    ],
+    "test_results": [
+      {
+        "fix": {
+          "issue": {
+            "file": "buggy_code.py",
+            "line": 5,
+            "type": "missing_return",
+            "message": "Function 'calculate_sum' is missing a return statement",
+            "severity": "error"
+          },
+          "status": "generated",
+          "original_code": "def calculate_sum(a, b):\n    result = a + b",
+          "fixed_code": "def calculate_sum(a, b):\n    result = a + b\n    return result",
+          "confidence": 0.85,
+          "timestamp": "2025-06-21T21:10:02.750098"
+        },
+        "success": true,
+        "test_output": "Test completed successfully",
+        "execution_time": 1.2,
+        "timestamp": "2025-06-21T21:10:02.750148"
+      },
+      {
+        "fix": {
+          "issue": {
+            "file": "buggy_code.py",
+            "line": 9,
+            "type": "division_by_zero",
+            "message": "Potential division by zero in function 'divide_numbers'",
+            "severity": "warning"
+          },
+          "status": "generated",
+          "original_code": "def divide_numbers(a, b):\n    return a / b",
+          "fixed_code": "def divide_numbers(a, b):\n    if b == 0:\n        raise ValueError('Division by zero')\n    return a / b",
+          "confidence": 0.85,
+          "timestamp": "2025-06-21T21:10:02.750102"
+        },
+        "success": true,
+        "test_output": "Test completed successfully",
+        "execution_time": 1.2,
+        "timestamp": "2025-06-21T21:10:02.750150"
+      },
+      {
+        "fix": {
+          "issue": {
+            "file": "buggy_code.py",
+            "line": 15,
+            "type": "unused_variable",
+            "message": "Variable 'processed_items' is assigned but never used",
+            "severity": "warning"
+          },
+          "status": "generated",
+          "original_code": "Original code snippet",
+          "fixed_code": "Fixed code snippet",
+          "confidence": 0.85,
+          "timestamp": "2025-06-21T21:10:02.750104"
+        },
+        "success": true,
+        "test_output": "Test completed successfully",
+        "execution_time": 1.2,
+        "timestamp": "2025-06-21T21:10:02.750150"
+      },
+      {
+        "fix": {
+          "issue": {
+            "file": "buggy_code.py",
+            "line": 22,
+            "type": "syntax_error",
+            "message": "Missing colon after 'if True'",
+            "severity": "error"
+          },
+          "status": "generated",
+          "original_code": "if True\n    print('This will cause a syntax error')",
+          "fixed_code": "if True:\n    print('This will cause a syntax error')",
+          "confidence": 0.85,
+          "timestamp": "2025-06-21T21:10:02.750105"
+        },
+        "success": true,
+        "test_output": "Test completed successfully",
+        "execution_time": 1.2,
+        "timestamp": "2025-06-21T21:10:02.750151"
+      },
+      {
+        "fix": {
+          "issue": {
+            "file": "buggy_code.py",
+            "line": 26,
+            "type": "unused_import",
+            "message": "Unused import 'os'",
+            "severity": "warning"
+          },
+          "status": "generated",
+          "original_code": "Original code snippet",
+          "fixed_code": "Fixed code snippet",
+          "confidence": 0.85,
+          "timestamp": "2025-06-21T21:10:02.750106"
+        },
+        "success": true,
+        "test_output": "Test completed successfully",
+        "execution_time": 1.2,
+        "timestamp": "2025-06-21T21:10:02.750152"
+      }
+    ]
+  }
+}

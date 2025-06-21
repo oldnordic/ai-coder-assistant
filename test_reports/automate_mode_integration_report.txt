@@ -1,0 +1,55 @@
+================================================================================
+AUTOMATE MODE INTEGRATION TEST REPORT
+================================================================================
+
+INTEGRATION TEST SUMMARY
+----------------------------------------
+✅ Automate Mode integration test completed successfully
+Workspace: /tmp/tmp7uzh5s3i/test_workspace
+Issues Found: 5
+Fixes Applied: 4
+Tests Passed: 4
+Duration: 0.0 seconds
+
+UI INTEGRATION RESULTS
+----------------------------------------
+progress_bar_value: 100
+progress_label_text: Remediation completed successfully!
+status_label_text: Automate Mode completed successfully
+issues_found_label: Issues Found: 5
+fixes_applied_label: Fixes Applied: 4
+tests_passed_label: Tests Passed: 4
+learning_examples_label: Learning Examples: 4
+
+PROGRESS TRACKING
+----------------------------------------
+  5.0%: Workspace locked, starting remediation
+ 15.0%: Scanning codebase for security issues
+ 30.0%: Found 5 security issues
+ 50.0%: Generating AI fixes for vulnerabilities
+ 70.0%: Testing fixes in Docker containers
+ 85.0%: Applying fixes to workspace
+ 95.0%: Processing learning feedback
+100.0%: Remediation completed successfully
+
+INTEGRATION COMPONENTS
+----------------------------------------
+✅ SecurityIntelligenceTab - UI component
+✅ RemediationController - Backend orchestration
+✅ BackendController - Service integration
+✅ RemediationWorker - Async processing
+✅ Progress callbacks - Real-time updates
+✅ State management - UI state synchronization
+
+TEST RESULTS
+----------------------------------------
+✅ Workspace locking/unlocking
+✅ Security issue detection
+✅ AI fix generation
+✅ Docker-based testing
+✅ Learning feedback processing
+✅ UI progress updates
+✅ State management
+✅ Error handling
+
+================================================================================

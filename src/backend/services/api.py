@@ -1178,6 +1178,125 @@ async def import_code_standard(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/remediation/export-report")
+async def export_remediation_report(output_path: str, format: str = "json"):
+    """Export the last remediation report in various formats."""
+    try:
+        controller = get_remediation_controller()
+        
+        # Determine output path if not provided
+        if not output_path:
+            from pathlib import Path
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = f"remediation_report_{timestamp}.{format}"
+        
+        success = controller.export_remediation_report(output_path)
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Report exported to {output_path}",
+                "output_path": output_path
+            }
+        else:
+            return {
+                "success": False,
+                "message": "Failed to export report"
+            }
+                
+    except Exception as e:
+        logger.error(f"Error exporting remediation report: {e}")
+        return {
+            "success": False,
+            "message": f"Error exporting report: {str(e)}"
+        }
+
+    @app.get("/api/remediation/get-last-report")
+    async def get_last_remediation_report():
+        """Get the content of the last generated remediation report."""
+        try:
+            controller = get_remediation_controller()
+            
+            # Check if we have a last remediation result
+            if not hasattr(controller, '_last_remediation_result'):
+                return {
+                    "success": False,
+                    "message": "No remediation report available"
+                }
+            
+            # Generate report content
+            result = controller._last_remediation_result
+            report_content = await controller.generate_remediation_report(
+                result, 
+                "workspace"  # We don't have the original workspace path here
+            )
+            
+            return {
+                "success": True,
+                "report_content": report_content,
+                "report_metadata": {
+                    "success": result.success,
+                    "issues_found": result.issues_found,
+                    "fixes_applied": result.fixes_applied,
+                    "tests_passed": result.tests_passed,
+                    "tests_failed": result.tests_failed,
+                    "duration_seconds": result.duration_seconds
+                }
+            }
+                
+        except Exception as e:
+            logger.error(f"Error getting last remediation report: {e}")
+            return {
+                "success": False,
+                "message": f"Error getting report: {str(e)}"
+            }
+
+    @app.post("/api/remediation/cleanup")
+    async def trigger_cleanup(workspace_path: str):
+        """Trigger manual cleanup for a workspace."""
+        try:
+            controller = get_remediation_controller()
+            
+            await controller.perform_cleanup(workspace_path)
+            
+            return {
+                "success": True,
+                "message": f"Cleanup completed for workspace: {workspace_path}"
+            }
+                
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}")
+            return {
+                "success": False,
+                "message": f"Error during cleanup: {str(e)}"
+            }
+
+    @app.get("/api/remediation/cleanup-status")
+    async def get_cleanup_status():
+        """Get the status of cleanup operations."""
+        try:
+            controller = get_remediation_controller()
+            
+            # Check if workspace is locked (indicates cleanup might be needed)
+            workspace_locked = controller.state.is_locked
+            
+            return {
+                "success": True,
+                "cleanup_status": {
+                    "workspace_locked": workspace_locked,
+                    "remediation_active": controller.state.is_active,
+                    "needs_cleanup": workspace_locked or controller.state.is_active
+                }
+            }
+                
+        except Exception as e:
+            logger.error(f"Error getting cleanup status: {e}")
+            return {
+                "success": False,
+                "message": f"Error getting cleanup status: {str(e)}"
+            }
+
 # Run the API server
 def run_api_server(
     host: str = "0.0.0.0", port: int = 8000

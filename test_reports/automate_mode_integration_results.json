@@ -1,0 +1,59 @@
+{
+  "remediation_result": {
+    "success": true,
+    "issues_found": 5,
+    "fixes_applied": 4,
+    "tests_passed": 4,
+    "tests_failed": 0,
+    "learning_examples_created": 4,
+    "duration_seconds": 0.0001,
+    "details": {
+      "workspace_path": "/tmp/tmp7uzh5s3i/test_workspace",
+      "issues_processed": 5,
+      "security_issues_fixed": 4
+    }
+  },
+  "ui_updates": {
+    "progress_bar_value": 100,
+    "progress_label_text": "Remediation completed successfully!",
+    "status_label_text": "Automate Mode completed successfully",
+    "issues_found_label": "Issues Found: 5",
+    "fixes_applied_label": "Fixes Applied: 4",
+    "tests_passed_label": "Tests Passed: 4",
+    "learning_examples_label": "Learning Examples: 4"
+  },
+  "progress_updates": [
+    [
+      5.0,
+      "Workspace locked, starting remediation"
+    ],
+    [
+      15.0,
+      "Scanning codebase for security issues"
+    ],
+    [
+      30.0,
+      "Found 5 security issues"
+    ],
+    [
+      50.0,
+      "Generating AI fixes for vulnerabilities"
+    ],
+    [
+      70.0,
+      "Testing fixes in Docker containers"
+    ],
+    [
+      85.0,
+      "Applying fixes to workspace"
+    ],
+    [
+      95.0,
+      "Processing learning feedback"
+    ],
+    [
+      100.0,
+      "Remediation completed successfully"
+    ]
+  ]
+}

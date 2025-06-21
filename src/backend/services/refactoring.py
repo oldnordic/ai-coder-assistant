@@ -1158,16 +1158,102 @@ class JavaRefactoringParser:
 
 
 class CppRefactoringParser:
-    """Parser for C++ code refactoring."""
+    """C++ refactoring parser."""
 
     def analyze_file(self, file_path: str) -> List[RefactoringSuggestion]:
         """Analyze a C++ file for refactoring opportunities."""
-        # Simplified implementation
+        # TODO: Implement C++ refactoring analysis
         return []
 
     def apply_operation(self, operation: RefactoringOperation):
         """Apply a refactoring operation to a C++ file."""
-        logger.info(f"Applying {operation.operation_type} to {operation.file_path}")
+        # TODO: Implement C++ refactoring application
+        pass
+
+
+class RefactoringService:
+    """
+    High-level refactoring service that provides a simplified interface
+    for refactoring operations.
+    """
+    
+    def __init__(self):
+        """Initialize the refactoring service."""
+        self.engine = AdvancedRefactoringEngine()
+        logger.info("Refactoring service initialized")
+    
+    def analyze_project(self, project_path: str, languages: List[str] = None) -> List[RefactoringSuggestion]:
+        """
+        Analyze a project for refactoring opportunities.
+        
+        Args:
+            project_path: Path to the project directory
+            languages: List of languages to analyze
+            
+        Returns:
+            List of refactoring suggestions
+        """
+        try:
+            return self.engine.analyze_refactoring_opportunities(project_path, languages)
+        except Exception as e:
+            logger.error(f"Error analyzing project: {e}")
+            return []
+    
+    def apply_refactoring(self, suggestion: RefactoringSuggestion, backup: bool = True) -> Dict[str, Any]:
+        """
+        Apply a refactoring suggestion.
+        
+        Args:
+            suggestion: The refactoring suggestion to apply
+            backup: Whether to create a backup before applying
+            
+        Returns:
+            Dictionary with the result of the operation
+        """
+        try:
+            return self.engine.apply_refactoring(suggestion, backup)
+        except Exception as e:
+            logger.error(f"Error applying refactoring: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Failed to apply refactoring"
+            }
+    
+    def preview_refactoring(self, suggestion: RefactoringSuggestion) -> Dict[str, Any]:
+        """
+        Preview a refactoring suggestion without applying it.
+        
+        Args:
+            suggestion: The refactoring suggestion to preview
+            
+        Returns:
+            Dictionary with preview information
+        """
+        try:
+            return self.engine.preview_refactoring(suggestion)
+        except Exception as e:
+            logger.error(f"Error previewing refactoring: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Failed to preview refactoring"
+            }
+    
+    def get_refactoring_statistics(self) -> Dict[str, Any]:
+        """
+        Get statistics about refactoring operations.
+        
+        Returns:
+            Dictionary with refactoring statistics
+        """
+        return {
+            "total_suggestions": 0,  # TODO: Track statistics
+            "applied_refactorings": 0,
+            "successful_refactorings": 0,
+            "failed_refactorings": 0,
+            "languages_supported": list(self.engine.language_parsers.keys())
+        }
 
 
 # Global instance for easy access

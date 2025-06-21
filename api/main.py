@@ -17,16 +17,18 @@ import uuid
 import json
 
 # FastAPI imports
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, File, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, File, UploadFile, WebSocket, WebSocketDisconnect, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 import uvicorn
+from fastapi.responses import JSONResponse
 
 # Import the BackendController for unified business logic
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from src.frontend.controllers.backend_controller import BackendController
+from src.backend.services.remediation_controller import RemediationController
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -1301,6 +1303,36 @@ async def handle_realtime_ai_enhancement(message: Dict[str, Any]) -> Dict[str, A
         return {"type": "ai_enhancement_result", "success": True, "task_id": task_id}
     except Exception as e:
         return {"type": "ai_enhancement_result", "success": False, "error": str(e)}
+
+# New endpoints for learning stats and triggering fine-tuning
+router = APIRouter()
+remediation_controller = RemediationController()
+
+@router.get("/learning_stats")
+def get_learning_stats():
+    """Get learning statistics and fine-tune readiness status."""
+    try:
+        return remediation_controller.get_learning_stats_and_finetune_status()
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to get learning stats: {str(e)}"}
+        )
+
+@router.post("/trigger_finetune")
+def trigger_finetune():
+    """Trigger fine-tuning with collected learning examples."""
+    try:
+        result = remediation_controller.trigger_finetune()
+        return JSONResponse(content=result)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to trigger fine-tuning: {str(e)}"}
+        )
+
+# Include the router with a prefix
+app.include_router(router, prefix="/api/v1", tags=["learning"])
 
 if __name__ == "__main__":
     uvicorn.run(

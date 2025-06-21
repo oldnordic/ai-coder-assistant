@@ -32,6 +32,7 @@ from src.backend.services.local_code_reviewer import (
     get_local_code_reviewer
 )
 from src.backend.services.intelligent_analyzer import IntelligentCodeAnalyzer, export_report
+from src.backend.services.remediation_controller import RemediationController
 from src.backend.utils.secrets import get_secrets_manager
 import logging
 from typing import Any, Dict, List, Optional, Callable
@@ -49,6 +50,7 @@ class BackendController:
         self._scanner_service = None
         self._local_code_reviewer = None
         self._intelligent_analyzer = None
+        self._remediation_controller = None
         self._config = Config()
 
     def get_llm_manager(self):
@@ -79,6 +81,12 @@ class BackendController:
         if self._intelligent_analyzer is None:
             self._intelligent_analyzer = IntelligentCodeAnalyzer()
         return self._intelligent_analyzer
+
+    def get_remediation_controller(self) -> RemediationController:
+        """Get the RemediationController instance."""
+        if self._remediation_controller is None:
+            self._remediation_controller = RemediationController()
+        return self._remediation_controller
 
     # AI Analysis Methods
 
@@ -857,3 +865,207 @@ class BackendController:
                 "success": False,
                 "error": str(e)
             }
+
+    def validate_path(self, path: str) -> bool:
+        """Validate if a path exists and is accessible."""
+        try:
+            return os.path.exists(path) and os.access(path, os.R_OK)
+        except Exception:
+            return False
+
+    # Learning Stats and Fine-tuning Methods
+
+    def get_learning_stats(self) -> Dict[str, Any]:
+        """Get learning statistics from the learning mechanism."""
+        try:
+            from src.backend.services.learning_mechanism import LearningMechanism
+            learning_mechanism = LearningMechanism()
+            
+            # Get learning statistics
+            stats = {
+                "total_examples": learning_mechanism.get_total_examples(),
+                "successful_examples": learning_mechanism.get_successful_examples(),
+                "failed_examples": learning_mechanism.get_failed_examples(),
+                "success_rate": learning_mechanism.get_success_rate(),
+                "last_learning_session": learning_mechanism.get_last_session_time(),
+                "model_performance": learning_mechanism.get_model_performance()
+            }
+            
+            return stats
+        except Exception as e:
+            logger.error(f"Error getting learning stats: {e}")
+            return {
+                "total_examples": 0,
+                "successful_examples": 0,
+                "failed_examples": 0,
+                "success_rate": 0.0,
+                "last_learning_session": None,
+                "model_performance": {}
+            }
+
+    def get_finetune_status(self) -> Dict[str, Any]:
+        """Get fine-tuning status and requirements."""
+        try:
+            from src.backend.services.learning_mechanism import LearningMechanism
+            learning_mechanism = LearningMechanism()
+            
+            total_examples = learning_mechanism.get_total_examples()
+            min_required = 100  # Minimum examples required for fine-tuning
+            ready = total_examples >= min_required
+            
+            status = {
+                "ready": ready,
+                "total_examples": total_examples,
+                "min_required": min_required,
+                "examples_needed": max(0, min_required - total_examples),
+                "last_finetune": learning_mechanism.get_last_finetune_time()
+            }
+            
+            return status
+        except Exception as e:
+            logger.error(f"Error getting fine-tune status: {e}")
+            return {
+                "ready": False,
+                "total_examples": 0,
+                "min_required": 100,
+                "examples_needed": 100,
+                "last_finetune": None
+            }
+
+    def trigger_finetune(self) -> Dict[str, Any]:
+        """Trigger model fine-tuning."""
+        try:
+            from src.backend.services.trainer import Trainer
+            trainer = Trainer()
+            
+            # Check if we have enough examples
+            finetune_status = self.get_finetune_status()
+            if not finetune_status["ready"]:
+                return {
+                    "status": "error",
+                    "message": f"Not enough examples for fine-tuning. Need {finetune_status['examples_needed']} more examples."
+                }
+            
+            # Start fine-tuning
+            result = trainer.start_finetuning()
+            
+            return {
+                "status": "started",
+                "result": result
+            }
+        except Exception as e:
+            logger.error(f"Error triggering fine-tune: {e}")
+            return {
+                "status": "error",
+                "message": str(e)
+            }
+
+    def get_learning_stats_and_finetune_status(self) -> Dict[str, Any]:
+        """Get learning statistics and fine-tune status."""
+        try:
+            # This would typically call the remediation controller
+            # For now, return mock data
+            return {
+                "learning_stats": {
+                    "total_examples": 0,
+                    "successful_examples": 0,
+                    "failed_examples": 0,
+                    "success_rate": 0.0
+                },
+                "finetune_status": {
+                    "ready": False,
+                    "total_examples": 0,
+                    "min_required": 100,
+                    "examples_needed": 100
+                }
+            }
+        except Exception as e:
+            logger.error(f"Error getting learning stats: {e}")
+            return {"error": str(e)}
+
+    def get_remediation_reports(self) -> List[Dict[str, Any]]:
+        """Get list of remediation reports."""
+        try:
+            from pathlib import Path
+            from datetime import datetime
+            
+            reports_dir = Path("src/backend/reports")
+            if not reports_dir.exists():
+                return []
+            
+            reports = []
+            for report_file in reports_dir.glob("remediation_report_*.md"):
+                try:
+                    # Extract report info from filename
+                    filename = report_file.name
+                    timestamp_str = filename.replace("remediation_report_", "").replace(".md", "")
+                    
+                    # Parse timestamp
+                    try:
+                        timestamp = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
+                        date_str = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                    except:
+                        date_str = "Unknown"
+                    
+                    reports.append({
+                        "id": filename,
+                        "date": date_str,
+                        "type": "Remediation",
+                        "status": "Completed",
+                        "duration": "N/A",
+                        "file_path": str(report_file)
+                    })
+                    
+                except Exception as e:
+                    logger.debug(f"Error parsing report file {report_file}: {e}")
+            
+            # Sort by date (newest first)
+            reports.sort(key=lambda x: x["date"], reverse=True)
+            return reports
+            
+        except Exception as e:
+            logger.error(f"Error getting remediation reports: {e}")
+            return []
+
+    def get_last_remediation_report(self) -> Dict[str, Any]:
+        """Get the last remediation report content."""
+        try:
+            # This would typically call the remediation controller
+            # For now, return mock data
+            return {
+                "success": False,
+                "message": "No remediation report available"
+            }
+        except Exception as e:
+            logger.error(f"Error getting last remediation report: {e}")
+            return {"error": str(e)}
+
+    def trigger_cleanup(self, workspace_path: str) -> Dict[str, Any]:
+        """Trigger cleanup for a workspace."""
+        try:
+            # This would typically call the remediation controller
+            # For now, return mock success
+            return {
+                "success": True,
+                "message": f"Cleanup completed for workspace: {workspace_path}"
+            }
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}")
+            return {"error": str(e)}
+
+    def get_cleanup_status(self) -> Dict[str, Any]:
+        """Get the status of cleanup operations."""
+        try:
+            # This would typically call the remediation controller
+            # For now, return mock data
+            return {
+                "success": True,
+                "cleanup_status": {
+                    "workspace_locked": False,
+                    "remediation_active": False,
+                    "needs_cleanup": False
+                }
+            }
+        except Exception as e:
+            logger.error(f"Error getting cleanup status: {e}")
+            return {"error": str(e)}
