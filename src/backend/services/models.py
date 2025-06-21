@@ -64,6 +64,7 @@ class ModelConfig:
     supported_features: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     is_default: bool = False
+    temperature: Optional[float] = None
     # New fields for autonomous learning
     is_autonomous_learning_enabled: bool = False
     learning_priority: int = 0  # Higher priority models are used for learning
