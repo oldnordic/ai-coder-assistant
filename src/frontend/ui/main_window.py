@@ -1325,7 +1325,6 @@ Report Generation Complete!
         else:
             error_msg = result.get("error", "Unknown error") if result else "No result received"
             self.log_message(f"Quick scan failed: {error_msg}", "error")
-            QMessageBox.warning(self, "Scan Error", f"Quick scan failed: {error_msg}")
             w["scan_status_label"].setText("Status: Quick scan failed")
 
     def _perform_quick_scan_worker_legacy(self, directory: str, include_patterns: List[str], 
@@ -1434,18 +1433,55 @@ Report Generation Complete!
             # Get enhancement type (default to code improvement)
             enhancement_type = "code_improvement"
             
-            # Start AI enhancement
-            self.thread_manager.start_worker(
-                self.backend_controller.get_ai_enhancement,
-                on_success=self.on_enhancement_complete,
-                on_error=self.on_enhancement_error,
+            # Start AI enhancement using the existing worker infrastructure
+            worker_id = f"ai_enhancement_{time.time()}"
+            self.start_worker(
+                worker_id,
+                self._perform_ai_enhancement_worker,
                 issue_data=issue_data,
-                enhancement_type=enhancement_type
+                enhancement_type=enhancement_type,
+                callback=self.on_enhancement_complete,
+                error_callback=self.on_enhancement_error
             )
             
         except Exception as e:
             self.log_message(f"Error starting AI enhancement: {e}")
             QMessageBox.critical(self, "Error", f"Failed to start AI enhancement: {e}")
+
+    def _perform_ai_enhancement_worker(self, issue_data: Dict[str, Any], enhancement_type: str, 
+                                     progress_callback=None, log_message_callback=None):
+        """Worker function for AI enhancement."""
+        try:
+            if log_message_callback:
+                log_message_callback(f"Starting AI enhancement for issue: {issue_data.get('issue', 'Unknown')}")
+            
+            # Get the backend controller for AI enhancement
+            from src.frontend.controllers.backend_controller import BackendController
+            controller = BackendController()
+            
+            # Perform AI enhancement
+            result = controller.get_ai_enhancement(
+                issue_data=issue_data,
+                enhancement_type=enhancement_type
+            )
+            
+            if log_message_callback:
+                log_message_callback("AI enhancement completed successfully")
+            
+            return {
+                "success": True,
+                "result": result,
+                "issue_data": issue_data
+            }
+            
+        except Exception as e:
+            if log_message_callback:
+                log_message_callback(f"Error during AI enhancement: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "issue_data": issue_data
+            }
 
     def on_enhancement_complete(self, result):
         """Handle AI enhancement completion."""
@@ -1453,9 +1489,13 @@ Report Generation Complete!
             w = self.widgets["ai_tab"]
             w["scan_status_label"].setText("AI enhancement complete")
             
-            # Show the enhancement dialog
-            dialog = AIEnhancementDialog(self.current_issue_data, result, self)
-            dialog.exec()
+            if result.get("success", False):
+                # Show the enhancement dialog
+                from src.frontend.ui.suggestion_dialog import AIEnhancementDialog
+                dialog = AIEnhancementDialog(result["issue_data"], result["result"], self)
+                dialog.exec()
+            else:
+                QMessageBox.warning(self, "Enhancement Error", f"AI enhancement failed: {result.get('error', 'Unknown error')}")
             
         except Exception as e:
             self.log_message(f"Error handling enhancement completion: {e}")
@@ -1842,9 +1882,12 @@ Report Generation Complete!
                 QMessageBox.information(self, "No Results", "No results to export.")
                 return
             
-            # Get save file path
-            file_path, _ = QFileDialog.getSaveFileName(
-                self, "Export Scan Results", "", "JSON Files (*.json);;CSV Files (*.csv)"
+            # Get save file path with all format options
+            file_path, selected_filter = QFileDialog.getSaveFileName(
+                self, 
+                "Export Scan Results", 
+                "", 
+                "JSON Files (*.json);;CSV Files (*.csv);;Markdown Files (*.md);;HTML Files (*.html);;PDF Files (*.pdf)"
             )
             
             if file_path:
@@ -1857,11 +1900,18 @@ Report Generation Complete!
                         if issue_data:
                             issues.append(issue_data)
                 
-                # Export based on file extension
-                if file_path.endswith('.json'):
+                # Prepare report data
+                report_data = {
+                    "scan_date": datetime.now().isoformat(),
+                    "total_issues": len(issues),
+                    "issues": issues
+                }
+                
+                # Export based on file extension or selected filter
+                if file_path.endswith('.json') or "JSON" in selected_filter:
                     with open(file_path, 'w') as f:
-                        json.dump(issues, f, indent=2)
-                elif file_path.endswith('.csv'):
+                        json.dump(report_data, f, indent=2)
+                elif file_path.endswith('.csv') or "CSV" in selected_filter:
                     import csv
                     with open(file_path, 'w', newline='') as f:
                         writer = csv.writer(f)
@@ -1874,6 +1924,47 @@ Report Generation Complete!
                                 issue.get('severity', ''),
                                 issue.get('issue', '')
                             ])
+                elif file_path.endswith('.md') or "Markdown" in selected_filter:
+                    # Use the intelligent analyzer's markdown export
+                    from src.backend.services.intelligent_analyzer import export_report
+                    export_report(report_data, "Markdown (.md)", file_path)
+                elif file_path.endswith('.html') or "HTML" in selected_filter:
+                    # Convert to HTML using markdown
+                    from src.backend.services.intelligent_analyzer import generate_markdown_string
+                    import markdown
+                    md_content = generate_markdown_string(report_data)
+                    html_content = markdown.markdown(md_content)
+                    
+                    # Add basic HTML styling
+                    full_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Code Analysis Report</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 40px; }}
+        h1 {{ color: #333; }}
+        h2 {{ color: #666; margin-top: 30px; }}
+        h3 {{ color: #888; }}
+        code {{ background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; }}
+        pre {{ background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }}
+        .issue {{ border-left: 4px solid #007acc; padding-left: 15px; margin: 20px 0; }}
+        .severity-high {{ border-left-color: #d73a49; }}
+        .severity-medium {{ border-left-color: #f6a434; }}
+        .severity-low {{ border-left-color: #28a745; }}
+    </style>
+</head>
+<body>
+{html_content}
+</body>
+</html>
+"""
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(full_html)
+                elif file_path.endswith('.pdf') or "PDF" in selected_filter:
+                    # Use the intelligent analyzer's PDF export
+                    from src.backend.services.intelligent_analyzer import export_report
+                    export_report(report_data, "PDF", file_path)
                 
                 QMessageBox.information(self, "Success", f"Results exported to: {file_path}")
                 
